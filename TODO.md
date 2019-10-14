@@ -1,0 +1,14 @@
+- Catalog:
+    - number of node and edges.
+    - max node and egde ids.
+    - count for each label_id for node/edge (separated).
+    - count for each key for node/edge (separated)
+- When creating nodes/edges, accept strings as ID and save it in a new BPT.
+- When importing the graph, all nodes needs an id.
+- Creating edges don't accept custom ID.
+- Parse JSON (if can be efficent, else Property Graph Exchange Format) and create nodes/edges
+- Revisar generador de grafos que envió Renzo.
+- Initialize BPlusTreeParams correctly:
+    - calculate max_records for dir and leaf.
+    - detect if exists.
+- Test insert duplicated values in BPT.
