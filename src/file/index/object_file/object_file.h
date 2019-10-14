@@ -18,7 +18,6 @@ class ObjectFile
         unique_ptr<vector<char>> read(u_int64_t id);
         u_int64_t write(vector<char>& bytes);
     private:
-        //long last_pos;
         std::fstream file;
 };
 

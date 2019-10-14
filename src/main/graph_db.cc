@@ -71,15 +71,8 @@ void test_nested_loop_join() {
 
 	IndexNestedLoopJoin nlj = IndexNestedLoopJoin(config, s1, s2);
 
-	map<int, string> var_names;
-
-	var_names.insert(pair<int, string>(1, "Label:type1"));
-	var_names.insert(pair<int, string>(2, "Var:?n"));
-	var_names.insert(pair<int, string>(3, "Key:Name"));
-	var_names.insert(pair<int, string>(4, "Value:?v"));
-
 	auto input = make_shared<BindingId>();
-	ObjectId label_type_1 = graph.get_label_id(Label("type1"));
+	ObjectId label_type_1 = graph.get_label_id(Label("type2"));
 	ObjectId key_name = graph.get_key_id(Key("Name"));
 	input->add(VarId(1), label_type_1);
 	input->add(VarId(3), key_name);
@@ -88,22 +81,21 @@ void test_nested_loop_join() {
 	root.init(input);
 	unique_ptr<BindingId const> b = root.next();
 	while (b != nullptr) {
-		//b->print(var_names);
 		auto n_id = b->search_id(VarId(2));
 		Node node = graph.create_node(n_id->id);
 
 		auto label_id = b->search_id(VarId(1));
-		Label label = graph.create_label(label_id->id);
+		Label label = graph.get_label(label_id->id);
 
 		auto key_id = b->search_id(VarId(3));
-		Key key = graph.create_key(key_id->id);
+		Key key = graph.get_key(key_id->id);
 
 		auto value_id = b->search_id(VarId(4));
-		Key value = graph.create_key(value_id->id); // TODO: cambiar a value
+		auto value = graph.get_value(value_id->id);
 
 		cout << "Node:  " << node.get_id();
 		cout << "[" << label.get_label_name() << "]\t";
-		cout << key.get_key_name() << ": " << value.get_key_name() << "\t";
+		cout << key.get_key_name() << ": " << value->to_string() << "\t";
 		cout << "\n";
 		b = root.next();
 	}
@@ -162,7 +154,7 @@ void test_graph_creation() {
 
 int main()
 {
-	test_graph_creation();
+	//test_graph_creation();
 	test_nested_loop_join();
 	//test_bpt();
 	//test_object_file();

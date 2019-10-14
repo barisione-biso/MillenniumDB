@@ -15,7 +15,7 @@ public:
     BPlusTreeLeaf(BPlusTreeParams& params, Page& page);
     ~BPlusTreeLeaf();
     std::unique_ptr<std::pair<Record, int>> insert(Record& record);
-    std::pair<int, int> search_leaf(Record& min);
+    std::pair<int, int> search_leaf(const Record& min);
 
     void create_new(Record& record); // method used for inserting the first record of the B+Tree
     bool is_leaf() { return true; }
@@ -32,7 +32,7 @@ private:
     int* next;
     uint64_t* records;
 
-    int search_index(int from, int to, Record& record);
+    int search_index(int from, int to, const Record& record);
 };
 
 #endif //FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_LEAF_

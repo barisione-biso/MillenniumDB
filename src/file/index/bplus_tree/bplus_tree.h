@@ -35,6 +35,7 @@ public:
             BPlusTreeParams& params;
     };
 
+    bool has_record(const Record&);
     unique_ptr<BPlusTree::Iter> get_range(unique_ptr<Record> min, unique_ptr<Record> max);
 
 private:

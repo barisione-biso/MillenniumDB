@@ -204,7 +204,7 @@ void BPlusTreeDir::rotate_dirs(int from, int to)
     }
 }
 
-std::pair<int, int> BPlusTreeDir::search_leaf(Record& min)
+std::pair<int, int> BPlusTreeDir::search_leaf(const Record& min)
 {
     int dir_index = search_dir_index(0, *count, min);
     int page_pointer = dirs[dir_index];
@@ -228,7 +228,7 @@ std::pair<int, int> BPlusTreeDir::search_leaf(Record& min)
     }
 }
 
-int BPlusTreeDir::search_dir_index(int dir_from, int dir_to, Record& record)
+int BPlusTreeDir::search_dir_index(int dir_from, int dir_to, const Record& record)
 {
     //std::cout << "BPlusTreeDir::search_dir_index from " << dir_from << " to " << dir_to << "\n";
     if (dir_from == dir_to) {

@@ -18,6 +18,13 @@ BPlusTree::BPlusTree(BPlusTreeParams& params)
     root = make_unique<BPlusTreeDir>(params, root_page);
 }
 
+bool BPlusTree::has_record(const Record& record)
+{
+    pair<int, int> page_number_and_pos = root->search_leaf(record);
+    auto iter = make_unique<Iter>(params, page_number_and_pos.first, page_number_and_pos.second, make_unique<Record>(record));
+    return iter->next() != nullptr;
+}
+
 unique_ptr<BPlusTree::Iter> BPlusTree::get_range(unique_ptr<Record> min, unique_ptr<Record> max)
 {
     pair<int, int> page_number_and_pos = root->search_leaf(*min);
@@ -31,6 +38,10 @@ void BPlusTree::insert(Record& record)
         params.is_empty = false;
         return;
     }
+    if (has_record(record)) {
+        throw "Inserting duplicated record in BPlusTree";
+    }
+
     auto split_key = root->insert(record);
 }
 

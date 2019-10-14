@@ -1,8 +1,6 @@
 #ifndef BASE__VALUE_STRING_H_
 #define BASE__VALUE_STRING_H_
 
-// #include <openssl/md5.h>
-
 #include "base/graph/value/value.h"
 
 class ValueString : public Value {
@@ -19,11 +17,9 @@ public:
 	    std::copy(value.begin(), value.end(), (*res).begin());
         return res;
     }
-#ifdef DEBUG
     std::string to_string() {
-        return "NodeString(" + value + ")";
+        return value;
     }
-#endif
 private:
     std::string value;
 };

@@ -13,7 +13,7 @@ public:
     BPlusTreeDir(BPlusTreeParams& params, Page& page);
     ~BPlusTreeDir();
     std::unique_ptr<std::pair<Record, int>> insert(Record& record); // returns not null if needs to split
-    std::pair<int, int> search_leaf(Record& min);
+    std::pair<int, int> search_leaf(const Record& min);
 
     bool is_leaf() { return false; }
     int get_count() { return *count; }
@@ -26,7 +26,7 @@ private:
     uint64_t* records;
     int* dirs;
 
-    int search_dir_index(int from, int to, Record& record);
+    int search_dir_index(int from, int to, const Record& record);
     void rotate_records(int from, int to);
     void rotate_dirs(int from, int to);
     void update_record(int index, Record& record);

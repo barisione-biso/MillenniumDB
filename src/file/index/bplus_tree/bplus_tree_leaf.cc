@@ -120,7 +120,7 @@ void BPlusTreeLeaf::create_new(Record& record)
     (*count)++;
 }
 
-std::pair<int, int> BPlusTreeLeaf::search_leaf(Record& min)
+std::pair<int, int> BPlusTreeLeaf::search_leaf(const Record& min)
 {
     int index = search_index(0, *count-1, min);
     /*std::cout << "BPlusTreeLeaf::search_leaf\n";
@@ -133,7 +133,7 @@ std::pair<int, int> BPlusTreeLeaf::search_leaf(Record& min)
 
 
 // returns the position of the minimum key greater (or equal) than the record given.
-int BPlusTreeLeaf::search_index(int from, int to, Record& record)
+int BPlusTreeLeaf::search_index(int from, int to, const Record& record)
 {
     //std::cout << "search index(" << from << ", " << to << ") count: " << *count << " \n";
     if (from >= to) {

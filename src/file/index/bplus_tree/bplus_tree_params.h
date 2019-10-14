@@ -14,7 +14,7 @@ class BPlusTreeParams {
         {
             dir_max_records = 5;
             leaf_max_records = 5;
-            is_empty = true; //TODO: detectar
+            is_empty = true; //TODO: detectar al crear
         }
         ~BPlusTreeParams() = default;
 
