@@ -12,7 +12,7 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",            
+            "MIMode": "gdb",
             "windows": {
                 "miDebuggerPath": "C:\\tools\\msys64\\mingw64\\bin\\gdb.exe",
             },

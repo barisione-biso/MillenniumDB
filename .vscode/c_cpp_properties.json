@@ -26,7 +26,6 @@
             "intelliSenseMode": "gcc-x64",
             "includePath": [
                 "${workspaceFolder}/src/",
-                "$/home/crojas/graph-db/src/",
                 "/usr/include/"
             ],
             "defines": []
