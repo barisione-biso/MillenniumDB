@@ -35,9 +35,9 @@ public:
     Key get_key(u_int64_t id);
     unique_ptr<Value> get_value(u_int64_t id);
 
-    ObjectId get_label_id(Label const&);
-    ObjectId get_key_id(Key const&);
-    ObjectId get_value_id(Key const&);
+    ObjectId get_label_id(Label const&); // TODO: define what happens if doesnt exist, ¿special ObjectId?
+    ObjectId get_key_id(Key const&);     // TODO: define what happens if doesnt exist, ¿special ObjectId?
+    ObjectId get_value_id(Value const&); // TODO: define what happens if doesnt exist, ¿special ObjectId?
 
     unique_ptr<BPlusTree> label2element; // Label|Element
     unique_ptr<BPlusTree> element2label; // Element|Label

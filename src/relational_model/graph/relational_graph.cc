@@ -284,3 +284,28 @@ ObjectId RelationalGraph::get_key_id(Key const& key)
     }
     return ObjectId(graph_id, key_id|KEY_MASK);
 }
+
+ObjectId RelationalGraph::get_value_id(Value const& value)
+{
+    u_int64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
+    auto bytes = value.get_bytes();
+    MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
+
+    u_int64_t value_id;
+
+    // check if bpt contains object
+    BPlusTree& bpt = config.get_hash2id_bpt();
+    auto iter = bpt.get_range(
+        make_unique<Record>(hash[0], hash[1], 0),
+        make_unique<Record>(hash[0], hash[1], UINT64_MAX)
+    );
+    auto next = iter->next();
+    if (next == nullptr) {
+        cout << "ERROR: Value doesn't exist";
+        exit(1);
+    }
+    else { // label_name already exists
+        value_id = next->ids[2];
+    }
+    return ObjectId(graph_id, value_id|VALUE_MASK);
+}

@@ -9,7 +9,7 @@
 
 class  Value {
 public:
-    virtual std::unique_ptr<std::vector<char>> get_bytes() = 0;
+    virtual std::unique_ptr<std::vector<char>> get_bytes() const = 0;
     virtual std::string to_string() = 0;
 };
 

@@ -101,34 +101,6 @@ void test_nested_loop_join() {
 	}
 }
 
-void test_object_file() {
-	string filename = "example_object_file.dat";
-	ObjectFile obj_file = ObjectFile(filename);
-
-	ValueString node_string = ValueString("src -MMD -MP -Wall -Wextra  -c src/base/var/var_id.cc");
-	auto bytes1 = node_string.get_bytes();
-	u_int64_t inserted_pos = obj_file.write(*bytes1);
-	cout << "pos:  " << inserted_pos << "\n";
-
-	ValueString node_string2 = ValueString("lorem ipsum dolor");
-	auto bytes2 = node_string2.get_bytes();
-	u_int64_t inserted_pos2 = obj_file.write(*bytes2);
-	cout << "pos2: " << inserted_pos2 << "\n";
-
-	auto a1 = obj_file.read(inserted_pos);
-	auto a2 = obj_file.read(inserted_pos2);
-
-	cout << "value inserted at pos: ";
-	for (vector<int>::size_type i = 0; i < a1->size(); i++) {
-		cout << a1->at(i);
-	}
-	cout << "\n";
-	cout << "value inserted at pos2: ";
-	for (vector<int>::size_type i = 0; i < a2->size(); i++) {
-		cout << a2->at(i);
-	}
-	cout << "\n";
-}
 
 void test_graph_creation() {
 	Config config = Config();
@@ -149,14 +121,12 @@ void test_graph_creation() {
 		ValueString value = ValueString("name" + to_string((int)i));
 		graph.add_property(n, Property(key, value));
 	}
-
 }
 
 int main()
 {
-	//test_graph_creation();
+	test_graph_creation();
 	test_nested_loop_join();
 	//test_bpt();
-	//test_object_file();
 	return 0;
 }
