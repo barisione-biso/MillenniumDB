@@ -2,7 +2,7 @@
 #define RELATIONAL_MODEL__CONFIG_H_
 
 #include "file/buffer_manager.h"
-#include "file/catalog/catalog_file.h"
+#include "file/catalog/catalog.h"
 #include "file/index/bplus_tree/bplus_tree.h"
 #include "file/index/bplus_tree/bplus_tree_dir.h"
 #include "file/index/bplus_tree/bplus_tree_params.h"
@@ -10,12 +10,13 @@
 
 #include <memory>
 
+
 class Config {
 public:
     Config() {
         buffer_manager = std::make_unique<BufferManager>();
         object_file = std::make_unique<ObjectFile>(get_path(object_file_name));
-        catalog_file = std::make_unique<CatalogFile>(get_path(catalog_file_name));
+        catalog = std::make_unique<Catalog>(get_path(catalog_file_name));
         bpt_params_hash2id = std::make_unique<BPlusTreeParams>(*buffer_manager, get_path(hash2id_name), 3); // Hash:128 + Key:64
         hash2id = std::make_unique<BPlusTree>(*bpt_params_hash2id);
     }
@@ -26,7 +27,7 @@ public:
     }
 
     ObjectFile&     get_object_file()    { return *object_file; }
-    CatalogFile&    get_catalog()        { return *catalog_file; }
+    Catalog&        get_catalog()        { return *catalog; }
     BPlusTree&      get_hash2id_bpt()    { return *hash2id; }
     BufferManager&  get_buffer_manager() { return *buffer_manager; }
 
@@ -43,7 +44,7 @@ public:
 private:
     unique_ptr<BufferManager>    buffer_manager;
     unique_ptr<ObjectFile>       object_file;
-    unique_ptr<CatalogFile>      catalog_file;
+    unique_ptr<Catalog>          catalog;
     unique_ptr<BPlusTree>        hash2id; // ObjectHash|ObjectId.
     unique_ptr<BPlusTreeParams>  bpt_params_hash2id;
 };

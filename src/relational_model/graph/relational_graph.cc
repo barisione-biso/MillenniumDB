@@ -44,49 +44,31 @@ RelationalGraph::RelationalGraph(int graph_id, Config& config)
 }
 
 
-Node RelationalGraph::create_node()
+Node RelationalGraph::create_node(string const& id)
 {
-    u_int64_t id = config.get_catalog().create_node();
-    return Node(id & UNMASK);
-}
-
-
-Node RelationalGraph::create_node(u_int64_t id)
-{
-    config.get_catalog().create_node(id);
-    return Node(id & UNMASK);
+    u_int64_t new_id = config.get_catalog().create_node(id);
+    return Node(new_id & UNMASK);
 }
 
 
 Edge RelationalGraph::connect_nodes(Node& from, Node& to)
 {
-    u_int64_t id = config.get_catalog().create_edge();
-    return _connect_nodes(id, from, to);
-}
-
-
-Edge RelationalGraph::connect_nodes(u_int64_t edge_id, Node& from, Node& to)
-{
-    config.get_catalog().create_edge(edge_id);
-    return _connect_nodes(edge_id, from, to);
-}
-
-
-Edge RelationalGraph::_connect_nodes(u_int64_t edge_id, Node& from, Node& to)
-{
-    Record records_from_to_edge = Record(
-        from.get_id()|NODE_MASK,
-        to.get_id()|NODE_MASK,
-        edge_id|EDGE_MASK
+    u_int64_t edge_id = config.get_catalog().create_edge();
+    from_to_edge->insert(
+        Record(
+            from.get_id()|NODE_MASK,
+            to.get_id()|NODE_MASK,
+            edge_id|EDGE_MASK
+        )
     );
-    from_to_edge->insert(records_from_to_edge);
 
-    Record records_to_from_edge = Record(
-        from.get_id()|NODE_MASK,
-        to.get_id()|NODE_MASK,
-        edge_id|EDGE_MASK
+    to_from_edge->insert(
+        Record(
+            from.get_id()|NODE_MASK,
+            to.get_id()|NODE_MASK,
+            edge_id|EDGE_MASK
+        )
     );
-    to_from_edge->insert(records_to_from_edge);
 
     return Edge(edge_id);
 }
@@ -103,8 +85,8 @@ void RelationalGraph::add_label(GraphElement& element, Label const& label)
     // check if bpt contains object
     BPlusTree& bpt = config.get_hash2id_bpt();
     auto iter = bpt.get_range(
-        make_unique<Record>(hash[0], hash[1], 0),
-        make_unique<Record>(hash[0], hash[1], UINT64_MAX)
+        Record(hash[0], hash[1], 0),
+        Record(hash[0], hash[1], UINT64_MAX)
     );
     auto next = iter->next();
     if (next == nullptr) { // label_name doesn't exist
@@ -114,28 +96,29 @@ void RelationalGraph::add_label(GraphElement& element, Label const& label)
         label_id = config.get_object_file().write(vect);
 
         // insert in bpt
-        Record new_record = Record(
-            hash[0],
-            hash[1],
-            label_id // NO MASK
+        bpt.insert(
+            Record(
+                hash[0], hash[1], label_id // NO MASK
+            )
         );
-        bpt.insert(new_record);
     }
     else { // label_name already exists
         label_id = next->ids[2];
     }
 
     u_int64_t mask = element.is_node() ? NODE_MASK : EDGE_MASK;
-    Record label2element_record = Record(
-        label_id|LABEL_MASK,
-        element.get_id()|mask
+    label2element->insert(
+        Record(
+            label_id|LABEL_MASK,
+            element.get_id()|mask
+        )
     );
-    Record element2label_record = Record(
-        element.get_id()|mask,
-        label_id|LABEL_MASK
+    element2label->insert(
+        Record(
+            element.get_id()|mask,
+            label_id|LABEL_MASK
+        )
     );
-    label2element->insert(label2element_record);
-    element2label->insert(element2label_record);
 }
 
 
@@ -155,8 +138,8 @@ void RelationalGraph::add_property(GraphElement& element, Property const& proper
     // check if bpt contains key
     BPlusTree& bpt = config.get_hash2id_bpt();
     auto iter = bpt.get_range(
-        make_unique<Record>(hash_key[0], hash_key[1], 0),
-        make_unique<Record>(hash_key[0], hash_key[1], UINT64_MAX)
+        Record(hash_key[0], hash_key[1], 0),
+        Record(hash_key[0], hash_key[1], UINT64_MAX)
     );
     auto next = iter->next();
     if (next == nullptr) { // key_name doesn't exist
@@ -166,12 +149,9 @@ void RelationalGraph::add_property(GraphElement& element, Property const& proper
         key_id = config.get_object_file().write(vect);
 
         // insert in bpt
-        Record new_record = Record(
-            hash_key[0],
-            hash_key[1],
-            key_id
+        bpt.insert(
+            Record(hash_key[0], hash_key[1], key_id)
         );
-        bpt.insert(new_record);
     }
     else { // label_name already exists
         key_id = next->ids[2];
@@ -179,8 +159,8 @@ void RelationalGraph::add_property(GraphElement& element, Property const& proper
 
     // check if bpt contains value
     iter = bpt.get_range(
-        make_unique<Record>(hash_value[0], hash_value[1], 0),
-        make_unique<Record>(hash_value[0], hash_value[1], UINT64_MAX)
+        Record(hash_value[0], hash_value[1], 0),
+        Record(hash_value[0], hash_value[1], UINT64_MAX)
     );
     next = iter->next();
     if (next == nullptr) { // value doesn't exist
@@ -188,30 +168,34 @@ void RelationalGraph::add_property(GraphElement& element, Property const& proper
         value_id = config.get_object_file().write(*value);
 
         // insert in bpt
-        Record new_record = Record(
-            hash_value[0],
-            hash_value[1],
-            value_id
+        bpt.insert(
+            Record(hash_value[0], hash_value[1], value_id)
         );
-        bpt.insert(new_record);
     }
     else { // value already exists
         value_id = next->ids[2];
     }
 
     u_int64_t mask = element.is_node() ? NODE_MASK : EDGE_MASK;
-    Record element2prop_record = Record(
-        key_id|KEY_MASK,
-        value_id|VALUE_MASK,
-        element.get_id()|mask
+    element2prop->insert(
+        Record(
+            element.get_id()|mask,
+            key_id|KEY_MASK,
+            value_id|VALUE_MASK
+        )
     );
-    Record prop2element_record = Record(
-        element.get_id()|mask,
-        key_id|KEY_MASK,
-        value_id|VALUE_MASK
+    prop2element->insert(
+        Record(
+            key_id|KEY_MASK,
+            value_id|VALUE_MASK,
+            element.get_id()|mask
+        )
     );
-    element2prop->insert(element2prop_record);
-    prop2element->insert(prop2element_record);
+}
+
+Node RelationalGraph::get_node(u_int64_t id)
+{
+    return Node(id & UNMASK);
 }
 
 Label RelationalGraph::get_label(u_int64_t id)
@@ -246,8 +230,8 @@ ObjectId RelationalGraph::get_label_id(Label const& label)
     // check if bpt contains object
     BPlusTree& bpt = config.get_hash2id_bpt();
     auto iter = bpt.get_range(
-        make_unique<Record>(hash[0], hash[1], 0),
-        make_unique<Record>(hash[0], hash[1], UINT64_MAX)
+        Record(hash[0], hash[1], 0),
+        Record(hash[0], hash[1], UINT64_MAX)
     );
     auto next = iter->next();
     if (next == nullptr) { // label_name doesn't exist
@@ -271,8 +255,8 @@ ObjectId RelationalGraph::get_key_id(Key const& key)
     // check if bpt contains object
     BPlusTree& bpt = config.get_hash2id_bpt();
     auto iter = bpt.get_range(
-        make_unique<Record>(hash[0], hash[1], 0),
-        make_unique<Record>(hash[0], hash[1], UINT64_MAX)
+        Record(hash[0], hash[1], 0),
+        Record(hash[0], hash[1], UINT64_MAX)
     );
     auto next = iter->next();
     if (next == nullptr) { // key_name doesn't exist
@@ -296,8 +280,8 @@ ObjectId RelationalGraph::get_value_id(Value const& value)
     // check if bpt contains object
     BPlusTree& bpt = config.get_hash2id_bpt();
     auto iter = bpt.get_range(
-        make_unique<Record>(hash[0], hash[1], 0),
-        make_unique<Record>(hash[0], hash[1], UINT64_MAX)
+        Record(hash[0], hash[1], 0),
+        Record(hash[0], hash[1], UINT64_MAX)
     );
     auto next = iter->next();
     if (next == nullptr) {

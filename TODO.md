@@ -1,8 +1,8 @@
 - Catalog:
     - number of node and edges.
-    - max node and egde ids.
+    - number of different keys.
     - count for each label_id for node/edge (separated).
-    - count for each key for node/edge (separated)
+    - count for each key for node/edge (separated). Stop if having more than X different keys.
 - When creating nodes/edges, accept strings as ID and save it in a new BPT.
 - When importing the graph, all nodes needs an id.
 - Creating edges don't accept custom ID.
@@ -12,3 +12,4 @@
     - calculate max_records for dir and leaf.
     - detect if exists.
 - Test insert duplicated values in BPT.
+- BPlusTree with values (value stored only on leaf to save space)

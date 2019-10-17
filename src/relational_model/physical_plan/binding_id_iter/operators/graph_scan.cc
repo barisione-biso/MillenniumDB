@@ -11,7 +11,7 @@ using namespace std;
 GraphScan::GraphScan(int graph_id, BPlusTree& bpt, vector<VarId> vars)
     : graph_id(graph_id), bpt(bpt), vars(vars)
 {
-    record_size = bpt.params.record_size;
+    record_size = bpt.params.total_size;
 }
 
 void GraphScan::init(shared_ptr<BindingId const> input)
@@ -45,8 +45,8 @@ void GraphScan::init(shared_ptr<BindingId const> input)
     }
 
     it = bpt.get_range(
-        make_unique<Record>(min_ids.get(), record_size),
-        make_unique<Record>(max_ids.get(), record_size)
+        Record(min_ids.get(), record_size),
+        Record(max_ids.get(), record_size)
     );
 }
 

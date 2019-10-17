@@ -22,15 +22,13 @@ public:
     RelationalGraph(int graph_id, Config& config);
     ~RelationalGraph() = default;
 
-    Node create_node();
-    Node create_node(u_int64_t id);
-
+    Node create_node(string const& id);
     Edge connect_nodes(Node& from, Node& to);
-    Edge connect_nodes(u_int64_t edge_id, Node& from, Node& to);
 
     void add_label(GraphElement&, Label const&);
     void add_property(GraphElement&, Property const&);
 
+    Node get_node(u_int64_t id);
     Label get_label(u_int64_t id);
     Key get_key(u_int64_t id);
     unique_ptr<Value> get_value(u_int64_t id);
@@ -58,8 +56,6 @@ private:
     unique_ptr<BPlusTreeParams> bpt_params_prop2element;
     unique_ptr<BPlusTreeParams> bpt_params_from_to_edge;
     unique_ptr<BPlusTreeParams> bpt_params_to_from_edge;
-
-    Edge _connect_nodes(u_int64_t edge_id, Node& from, Node& to);
 
 };
 

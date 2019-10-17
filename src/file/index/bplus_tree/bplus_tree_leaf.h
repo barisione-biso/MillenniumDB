@@ -12,21 +12,28 @@ class BPlusTreeParams;
 class BPlusTreeLeaf {
 friend class BPlusTree;
 public:
-    BPlusTreeLeaf(BPlusTreeParams& params, Page& page);
+    BPlusTreeLeaf(const BPlusTreeParams& params, Page& page);
     ~BPlusTreeLeaf();
-    std::unique_ptr<std::pair<Record, int>> insert(Record& record);
+
+    std::unique_ptr<std::pair<Record, int>> insert(const Record& record);
+    std::unique_ptr<std::pair<Record, int>> insert(const Record& key, const Record& size);
     std::pair<int, int> search_leaf(const Record& min);
 
-    void create_new(Record& record); // method used for inserting the first record of the B+Tree
+    void edit(const Record& key, const Record& value);
+    std::unique_ptr<Record> get(const Record& key);
+
+    void create_new(const Record& record); // method used for inserting the first record of the B+Tree
+    void create_new(const Record& key, const Record& size);
+
     bool is_leaf() { return true; }
     int get_count() { return *count; }
     int has_next() { return *next != 0; }
+
     std::unique_ptr<BPlusTreeLeaf> next_leaf();
-    Record get_record(int pos);
-    static inline int instance_count = 0;
+    std::unique_ptr<Record> get_record(int pos);
 
 private:
-    BPlusTreeParams& params;
+    const BPlusTreeParams& params;
     Page& page;
     int* count;
     int* next;

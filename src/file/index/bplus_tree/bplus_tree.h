@@ -1,5 +1,5 @@
-#ifndef FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_
-#define FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_
+#ifndef FILE__INDEX__B_PLUS_TREE_H_
+#define FILE__INDEX__B_PLUS_TREE_H_
 
 #include <string>
 #include <memory>
@@ -15,32 +15,37 @@ using namespace std;
 class BPlusTree
 {
 public:
-    BPlusTree(BPlusTreeParams& params);
+    BPlusTree(const BPlusTreeParams& params);
     ~BPlusTree() = default;
 
-    void insert(Record& record);
-    //void remove(Record& record);
-    BPlusTreeParams& params; // private?
+    void insert(const Record& record);
+    void insert(const Record& key, const Record& value);
+
+    void edit(const Record& key, const Record& value);
+    unique_ptr<Record> get(const Record& record);
+
+    const BPlusTreeParams& params;
 
     class Iter {
         public:
-            Iter(BPlusTreeParams& params, int leaf_page_number, int current_pos, unique_ptr<Record> max);
+            Iter(const BPlusTreeParams& params, int leaf_page_number, int current_pos, const Record& max);
             ~Iter() = default;
             unique_ptr<Record> next();
 
         private:
-            unique_ptr<BPlusTreeLeaf> current_leaf;
             int current_pos;
-            unique_ptr<Record> max;
-            BPlusTreeParams& params;
+            const BPlusTreeParams& params;
+            const Record max;
+            unique_ptr<BPlusTreeLeaf> current_leaf;
     };
 
-    bool has_record(const Record&);
-    unique_ptr<BPlusTree::Iter> get_range(unique_ptr<Record> min, unique_ptr<Record> max);
+    unique_ptr<BPlusTree::Iter> get_range(const Record& min, const Record& max);
 
 private:
-    unique_ptr<BPlusTreeDir> root; // value?
-    void create_new(Record& record);
+    bool is_empty;
+    unique_ptr<BPlusTreeDir> root;
+    void create_new(const Record& record);
+    void create_new(const Record& key, const Record& value);
 };
 
-#endif //FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_
+#endif //FILE__INDEX__B_PLUS_TREE_H_

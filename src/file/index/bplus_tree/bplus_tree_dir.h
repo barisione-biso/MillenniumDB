@@ -10,17 +10,22 @@ class BPlusTree;
 class BPlusTreeDir {
 friend class BPlusTree;
 public:
-    BPlusTreeDir(BPlusTreeParams& params, Page& page);
+    BPlusTreeDir(const BPlusTreeParams& params, Page& page);
     ~BPlusTreeDir();
-    std::unique_ptr<std::pair<Record, int>> insert(Record& record); // returns not null if needs to split
+
+    std::unique_ptr<std::pair<Record, int>> insert(const Record& record); // returns not null if needs to split
+    std::unique_ptr<std::pair<Record, int>> insert(const Record& key, const Record& value); // returns not null if needs to split
+
+    void edit(const Record& key, const Record& value);
+    std::unique_ptr<Record> get(const Record& key);
+
     std::pair<int, int> search_leaf(const Record& min);
 
     bool is_leaf() { return false; }
     int get_count() { return *count; }
-    static inline int instance_count = 0;
 
 private:
-    BPlusTreeParams& params;
+    const BPlusTreeParams& params;
     Page& page;
     int* count;
     uint64_t* records;
@@ -29,9 +34,9 @@ private:
     int search_dir_index(int from, int to, const Record& record);
     void rotate_records(int from, int to);
     void rotate_dirs(int from, int to);
-    void update_record(int index, Record& record);
+    void update_record(int index, const Record& record);
     void update_dir(int index, int dir);
-    void split(Record& record);
+    void split(const Record& record);
 };
 
 #endif //FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_DIR_

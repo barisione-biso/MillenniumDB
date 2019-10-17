@@ -5,29 +5,47 @@
 #include "file/index/bplus_tree/bplus_tree_params.h"
 #include <iostream>
 
-BPlusTreeLeaf::BPlusTreeLeaf(BPlusTreeParams& params, Page& page)
+BPlusTreeLeaf::BPlusTreeLeaf(const BPlusTreeParams& params, Page& page)
     : params(params), page(page)
 {
     count = (int*) &page.bytes[0];
     next = (int*) &page.bytes[sizeof(int)];
     records = (uint64_t*) &page.bytes[2*sizeof(int)];
-    instance_count++;
-
-    //std::cout << "Creating Leaf("<<page.page_number<<"), count: " << *count << "\n";
 }
 
 BPlusTreeLeaf::~BPlusTreeLeaf()
 {
-    instance_count--;
+    page.unpin();
 }
 
-Record BPlusTreeLeaf::get_record(int pos)
+void BPlusTreeLeaf::edit(const Record& key, const Record& value)
 {
-    std::unique_ptr<uint64_t[]> ids = std::make_unique<uint64_t[]>(params.record_size);
-    for (int i = 0; i < params.record_size; i++) {
-        ids[i] = records[pos*params.record_size + i];
+    int index = search_index(0, *count-1, key);
+    // TODO: check value found
+    for (int i = 0; i < params.value_size; i++) {
+        records[params.total_size*index + params.key_size + i] = value.ids[i];
     }
-    return Record(ids.get(), params.record_size);
+}
+
+std::unique_ptr<Record> BPlusTreeLeaf::get(const Record& key)
+{
+    int index = search_index(0, *count-1, key);
+
+    std::unique_ptr<uint64_t[]> ids = std::make_unique<uint64_t[]>(params.value_size);
+    for (int i = 0; i < params.value_size; i++) {
+        ids[i] = records[index*params.total_size + params.key_size + i];
+    }
+    return std::make_unique<Record>(ids.get(), params.total_size);
+}
+
+
+std::unique_ptr<Record> BPlusTreeLeaf::get_record(int pos)
+{
+    std::unique_ptr<uint64_t[]> ids = std::make_unique<uint64_t[]>(params.total_size);
+    for (int i = 0; i < params.total_size; i++) {
+        ids[i] = records[pos*params.total_size + i];
+    }
+    return std::make_unique<Record>(ids.get(), params.total_size);
 }
 
 std::unique_ptr<BPlusTreeLeaf> BPlusTreeLeaf::next_leaf()
@@ -36,46 +54,45 @@ std::unique_ptr<BPlusTreeLeaf> BPlusTreeLeaf::next_leaf()
     return std::make_unique<BPlusTreeLeaf>(params, new_page);
 }
 
-std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(Record& record) // TODO: make unique pointer
+std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& record)
 {
     int index = search_index(0, *count-1, record);
 
     if (*count < params.leaf_max_records) {
         // rotate right from index to *count-1
         for (int i = (*count-1); i >= index; i--) {
-            for (int j = 0; j < params.record_size; j++) {
-                records[(i+1)*params.record_size + j] = records[i*params.record_size + j];
+            for (int j = 0; j < params.total_size; j++) {
+                records[(i+1)*params.total_size + j] = records[i*params.total_size + j];
             }
         }
 
-        for (int i = 0; i < params.record_size; i++) {
-            records[index*params.record_size + i] = record.ids[i];
+        for (int i = 0; i < params.key_size; i++) {
+            records[index*params.key_size + i] = record.ids[i];
         }
         (*count)++;
         return nullptr;
     }
     else {
-        std::cout << "Splitting leaf\n";
         // poner nuevo record y guardar el ultimo (que no cabe)
-        std::unique_ptr<uint64_t[]> last_key = std::make_unique<uint64_t[]>(params.record_size);
+        std::unique_ptr<uint64_t[]> last_key = std::make_unique<uint64_t[]>(params.total_size);
         if (index == *count) { // la llave a insertar es la ultima
-            for (int i = 0; i < params.record_size; i++) {
+            for (int i = 0; i < params.total_size; i++) {
                 last_key[i] = record.ids[i];
             }
         }
         else {
             // guardar ultima llave
-            for (int i = 0; i < params.record_size; i++) {
-                last_key[i] = records[(*count-1)*params.record_size+i];
+            for (int i = 0; i < params.total_size; i++) {
+                last_key[i] = records[(*count-1)*params.total_size+i];
             }
 
             for (int i = (*count-2); i >= index; i--) {
-                for (int j = 0; j < params.record_size; j++) {
-                    records[(i+1)*params.record_size + j] = records[i*params.record_size + j];
+                for (int j = 0; j < params.total_size; j++) {
+                    records[(i+1)*params.total_size + j] = records[i*params.total_size + j];
                 }
             }
-            for (int i = 0; i < params.record_size; i++) {
-                records[index*params.record_size + i] = record.ids[i];
+            for (int i = 0; i < params.key_size; i++) {
+                records[index*params.total_size + i] = record.ids[i];
             }
         }
 
@@ -88,13 +105,13 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(Record& record) //
 
         // write records
         int middle_index = (*count+1)/2;
-        int last_index = params.leaf_max_records * params.record_size;
+        int last_index = params.leaf_max_records * params.total_size;
         int new_leaf_pos = 0;
-        for (int i = middle_index * params.record_size; i < last_index; i++, new_leaf_pos++) {
+        for (int i = middle_index * params.total_size; i < last_index; i++, new_leaf_pos++) {
             new_leaf.records[new_leaf_pos] = records[i];
         }
         // write last record
-        for (int i = 0; i < params.record_size; i++, new_leaf_pos++) {
+        for (int i = 0; i < params.total_size; i++, new_leaf_pos++) {
             new_leaf.records[new_leaf_pos] = last_key[i];
         }
 
@@ -103,19 +120,115 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(Record& record) //
         *new_leaf.count = (params.leaf_max_records/2) + 1;
 
         // split_key is the first in the new leaf
-        std::unique_ptr<uint64_t[]> split_key = std::make_unique<uint64_t[]>(params.record_size);
-        for (int i = 0; i < params.record_size; i++) {
+        std::unique_ptr<uint64_t[]> split_key = std::make_unique<uint64_t[]>(params.key_size);
+        for (int i = 0; i < params.key_size; i++) {
             split_key[i] = new_leaf.records[i];
         }
-        Record split_record = Record(split_key.get(), params.record_size);
+        Record split_record = Record(split_key.get(), params.key_size);
         return std::make_unique<std::pair<Record, int>>(split_record, new_page.page_number);
     }
 }
 
-void BPlusTreeLeaf::create_new(Record& record)
+std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key, const Record& value)
 {
-    for (int i = 0; i < params.record_size; i++) {
+    int index = search_index(0, *count-1, key);
+
+    if (*count < params.leaf_max_records) {
+        // rotate right from index to *count-1
+        for (int i = (*count-1); i >= index; i--) {
+            for (int j = 0; j < params.total_size; j++) {
+                records[(i+1)*params.total_size + j] = records[i*params.total_size + j];
+            }
+        }
+
+        for (int i = 0; i < params.key_size; i++) {
+            records[index*params.total_size + i] = key.ids[i];
+        }
+        for (int i = 0; i < params.value_size; i++) {
+            records[index*params.total_size + params.key_size + i] = value.ids[i];
+        }
+        (*count)++;
+        return nullptr;
+    }
+    else {
+        // poner nuevo record y guardar el ultimo (que no cabe)
+        std::unique_ptr<uint64_t[]> last_key = std::make_unique<uint64_t[]>(params.total_size);
+        if (index == *count) { // la llave a insertar es la ultima
+            for (int i = 0; i < params.key_size; i++) {
+                last_key[i] = key.ids[i];
+            }
+            for (int i = 0; i < params.value_size; i++) {
+                last_key[params.key_size + i] = value.ids[i];
+            }
+        }
+        else {
+            // guardar ultima llave
+            for (int i = 0; i < params.total_size; i++) {
+                last_key[i] = records[(*count-1)*params.total_size+i];
+            }
+
+            // rotate right
+            for (int i = (*count-2); i >= index; i--) {
+                for (int j = 0; j < params.total_size; j++) {
+                    records[(i+1)*params.total_size + j] = records[i*params.total_size + j];
+                }
+            }
+            for (int i = 0; i < params.key_size; i++) {
+                records[index*params.total_size + i] = key.ids[i];
+            }
+            for (int i = 0; i < params.value_size; i++) {
+                records[index*params.total_size + params.key_size + i] = value.ids[i];
+            }
+        }
+
+        // crear nueva hoja
+        Page& new_page = params.buffer_manager.append_page(params.leaf_path);
+        BPlusTreeLeaf new_leaf = BPlusTreeLeaf(params, new_page);
+
+        *new_leaf.next = *next;
+        *next = new_leaf.page.page_number;
+
+        // write records
+        int middle_index = (*count+1)/2;
+        int last_index = params.leaf_max_records * params.total_size;
+        int new_leaf_pos = 0;
+        for (int i = middle_index * params.total_size; i < last_index; i++, new_leaf_pos++) {
+            new_leaf.records[new_leaf_pos] = records[i];
+        }
+        // write last record
+        for (int i = 0; i < params.total_size; i++, new_leaf_pos++) {
+            new_leaf.records[new_leaf_pos] = last_key[i];
+        }
+
+        // update counts
+        *count = middle_index;
+        *new_leaf.count = (params.leaf_max_records/2) + 1;
+
+        // split_key is the first in the new leaf
+        std::unique_ptr<uint64_t[]> split_key = std::make_unique<uint64_t[]>(params.key_size);
+        for (int i = 0; i < params.key_size; i++) {
+            split_key[i] = new_leaf.records[i];
+        }
+        Record split_record = Record(split_key.get(), params.key_size);
+        return std::make_unique<std::pair<Record, int>>(split_record, new_page.page_number);
+    }
+}
+
+void BPlusTreeLeaf::create_new(const Record& record)
+{
+    for (int i = 0; i < params.key_size; i++) {
         records[i] = record.ids[i];
+    }
+    (*count)++;
+}
+
+void BPlusTreeLeaf::create_new(const Record& key, const Record& value)
+{
+    for (int i = 0; i < params.key_size; i++) {
+        records[i] = key.ids[i];
+    }
+    for (int i = 0; i < params.value_size; i++) {
+        records[params.key_size+i] = value.ids[i];
     }
     (*count)++;
 }
@@ -123,11 +236,6 @@ void BPlusTreeLeaf::create_new(Record& record)
 std::pair<int, int> BPlusTreeLeaf::search_leaf(const Record& min)
 {
     int index = search_index(0, *count-1, min);
-    /*std::cout << "BPlusTreeLeaf::search_leaf\n";
-    for (int i = 0; i < (*count)*2; i++) {
-        std::cout << "   " << records[i++] << ", " << records[i] << "\n";
-    }
-    std::cout << "found " << index << "\n";*/
     return std::pair<int, int>(page.page_number, index);
 }
 
@@ -135,12 +243,11 @@ std::pair<int, int> BPlusTreeLeaf::search_leaf(const Record& min)
 // returns the position of the minimum key greater (or equal) than the record given.
 int BPlusTreeLeaf::search_index(int from, int to, const Record& record)
 {
-    //std::cout << "search index(" << from << ", " << to << ") count: " << *count << " \n";
     if (from >= to) {
         bool record_greater = false; // if records is greater or equal than from
 
-        for (int i = 0; i < params.record_size; i++) {
-            auto id = records[from*params.record_size + i];
+        for (int i = 0; i < params.key_size; i++) {
+            auto id = records[from*params.total_size + i];
             if (record.ids[i] < id) {
                 break;
             }
@@ -160,8 +267,8 @@ int BPlusTreeLeaf::search_index(int from, int to, const Record& record)
     int middle = (from + to) / 2;
     bool record_is_greater = true; // if records is greater or equal than middle
 
-    for (int i = 0; i < params.record_size; i++) {
-        auto id = records[middle*params.record_size + i];
+    for (int i = 0; i < params.key_size; i++) {
+        auto id = records[middle*params.total_size + i];
         if (record.ids[i] < id) {
             record_is_greater = false;
             goto not_equal;
