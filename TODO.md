@@ -11,5 +11,6 @@
 - Initialize BPlusTreeParams correctly:
     - calculate max_records for dir and leaf.
     - detect if exists.
-- Test insert duplicated values in BPT.
-- BPlusTree with values (value stored only on leaf to save space)
+- Inserting duplicated values in BPT should throw exception.
+- Return nullptr if bpt.get() don't found the key.
+- if bpt.edit() don't found the key throw exception.
