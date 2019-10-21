@@ -21,9 +21,23 @@ BPlusTreeLeaf::~BPlusTreeLeaf()
 void BPlusTreeLeaf::edit(const Record& key, const Record& value)
 {
     int index = search_index(0, *count-1, key);
-    // TODO: check value found
-    for (int i = 0; i < params.value_size; i++) {
-        records[params.total_size*index + params.key_size + i] = value.ids[i];
+    // check record found
+    bool record_found = true;
+    for (int i = 0; i < params.key_size; i++) {
+        if (records[params.total_size*index + i] != key.ids[i]) {
+            record_found = false;
+            break;
+        }
+    }
+
+    if (record_found) {
+        for (int i = 0; i < params.value_size; i++) {
+            records[params.total_size*index + params.key_size + i] = value.ids[i];
+        }
+    }
+    else {
+        // TODO: throw exception
+        std::cout << "Editing record threw error: key not found.\n";
     }
 }
 
@@ -59,13 +73,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& reco
     int index = search_index(0, *count-1, record);
 
     if (*count < params.leaf_max_records) {
-        // rotate right from index to *count-1
-        for (int i = (*count-1); i >= index; i--) {
-            for (int j = 0; j < params.total_size; j++) {
-                records[(i+1)*params.total_size + j] = records[i*params.total_size + j];
-            }
-        }
-
+        shift_right_records(index, *count-1);
+        // set record
         for (int i = 0; i < params.key_size; i++) {
             records[index*params.key_size + i] = record.ids[i];
         }
@@ -134,12 +143,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
     int index = search_index(0, *count-1, key);
 
     if (*count < params.leaf_max_records) {
-        // rotate right from index to *count-1
-        for (int i = (*count-1); i >= index; i--) {
-            for (int j = 0; j < params.total_size; j++) {
-                records[(i+1)*params.total_size + j] = records[i*params.total_size + j];
-            }
-        }
+        // shift right from index to *count-1
+        shift_right_records(index, *count-1);
 
         for (int i = 0; i < params.key_size; i++) {
             records[index*params.total_size + i] = key.ids[i];
@@ -167,12 +172,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
                 last_key[i] = records[(*count-1)*params.total_size+i];
             }
 
-            // rotate right
-            for (int i = (*count-2); i >= index; i--) {
-                for (int j = 0; j < params.total_size; j++) {
-                    records[(i+1)*params.total_size + j] = records[i*params.total_size + j];
-                }
-            }
+            shift_right_records(index, *count-2);
             for (int i = 0; i < params.key_size; i++) {
                 records[index*params.total_size + i] = key.ids[i];
             }
@@ -244,46 +244,40 @@ std::pair<int, int> BPlusTreeLeaf::search_leaf(const Record& min)
 int BPlusTreeLeaf::search_index(int from, int to, const Record& record)
 {
     if (from >= to) {
-        bool record_greater = false; // if records is greater or equal than from
-
         for (int i = 0; i < params.key_size; i++) {
             auto id = records[from*params.total_size + i];
             if (record.ids[i] < id) {
-                break;
+                return from;
             }
             else if (record.ids[i] > id) {
-                record_greater = true;
-                break;
+                return from+1;
             }
             // continue if they were equal
         }
-        if (record_greater) {
-            return from+1;
-        }
-        else {
-            return from;
-        }
+        return from;
     }
     int middle = (from + to) / 2;
-    bool record_is_greater = true; // if records is greater or equal than middle
 
     for (int i = 0; i < params.key_size; i++) {
         auto id = records[middle*params.total_size + i];
-        if (record.ids[i] < id) {
-            record_is_greater = false;
-            goto not_equal;
+        if (record.ids[i] < id) { // record is smaller
+            return search_index(from, middle-1, record);
         }
-        else if (record.ids[i] > id) {
-            goto not_equal;
+        else if (record.ids[i] > id) { // record is greater
+            return search_index(middle+1, to, record);
         }
         // continue if they were equal
     }
-    return search_index(middle, middle, record);
-not_equal:
-    if (record_is_greater) {
-        return search_index(middle+1, to, record);
-    }
-    else {
-        return search_index(from, middle-1, record);
+    // record is equal
+    return middle;
+}
+
+
+void BPlusTreeLeaf::shift_right_records(int from, int to)
+{
+    for (int i = to; i >= from; i--) {
+        for (int j = 0; j < params.total_size; j++) {
+            records[(i+1)*params.total_size + j] = records[i*params.total_size + j];
+        }
     }
 }

@@ -1,5 +1,5 @@
-#ifndef FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_DIR_
-#define FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_DIR_
+#ifndef FILE__INDEX__B_PLUS_TREE_DIR_H_
+#define FILE__INDEX__B_PLUS_TREE_DIR_H_
 
 #include "file/index/record.h"
 
@@ -21,7 +21,7 @@ public:
 
     std::pair<int, int> search_leaf(const Record& min);
 
-    bool is_leaf() { return false; }
+    bool is_leaf()  { return false; }
     int get_count() { return *count; }
 
 private:
@@ -32,11 +32,11 @@ private:
     int* dirs;
 
     int search_dir_index(int from, int to, const Record& record);
-    void rotate_records(int from, int to);
-    void rotate_dirs(int from, int to);
+    void shift_right_records(int from, int to);
+    void shift_right_dirs(int from, int to);
     void update_record(int index, const Record& record);
     void update_dir(int index, int dir);
     void split(const Record& record);
 };
 
-#endif //FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_DIR_
+#endif //FILE__INDEX__B_PLUS_TREE_DIR_H_

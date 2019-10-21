@@ -25,9 +25,9 @@ public:
     void create_new(const Record& record); // method used for inserting the first record of the B+Tree
     void create_new(const Record& key, const Record& size);
 
-    bool is_leaf() { return true; }
+    bool is_leaf()  { return true; }
     int get_count() { return *count; }
-    int has_next() { return *next != 0; }
+    int has_next()  { return *next != 0; }
 
     std::unique_ptr<BPlusTreeLeaf> next_leaf();
     std::unique_ptr<Record> get_record(int pos);
@@ -40,6 +40,7 @@ private:
     uint64_t* records;
 
     int search_index(int from, int to, const Record& record);
+    void shift_right_records(int from, int to);
 };
 
 #endif //FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_LEAF_

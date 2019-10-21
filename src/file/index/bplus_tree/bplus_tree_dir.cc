@@ -80,8 +80,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& recor
         int splitted_index = search_dir_index(0, *count, split_record_index->first);
         // Case 1: no need to split this node
         if (*count < params.dir_max_records){
-            rotate_records(splitted_index, *count-1);
-            rotate_dirs(splitted_index+1, *count);
+            shift_right_records(splitted_index, *count-1);
+            shift_right_dirs(splitted_index+1, *count);
             update_record(splitted_index, split_record_index->first);
             update_dir(splitted_index+1, split_record_index->second);
             (*count)++;
@@ -103,8 +103,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& recor
                     last_key[i] = records[(*count-1)*params.key_size+i];
                 }
                 last_dir = dirs[*count];
-                rotate_records(splitted_index, *count-2);
-                rotate_dirs(splitted_index+1, *count-1);
+                shift_right_records(splitted_index, *count-2);
+                shift_right_dirs(splitted_index+1, *count-1);
                 update_record(splitted_index, split_record_index->first);
                 update_dir(splitted_index+1, split_record_index->second);
             }
@@ -165,8 +165,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& recor
                     last_key[i] = records[(*count-1)*params.key_size+i];
                 }
                 last_dir = dirs[*count];
-                rotate_records(splitted_index, *count-2);
-                rotate_dirs(splitted_index+1, *count-1);
+                shift_right_records(splitted_index, *count-2);
+                shift_right_dirs(splitted_index+1, *count-1);
                 update_record(splitted_index, split_record_index->first);
                 update_dir(splitted_index+1, split_record_index->second);
             }
@@ -226,8 +226,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
         int splitted_index = search_dir_index(0, *count, split_record_index->first);
         // Case 1: no need to split this node
         if (*count < params.dir_max_records){
-            rotate_records(splitted_index, *count-1);
-            rotate_dirs(splitted_index+1, *count);
+            shift_right_records(splitted_index, *count-1);
+            shift_right_dirs(splitted_index+1, *count);
             update_record(splitted_index, split_record_index->first);
             update_dir(splitted_index+1, split_record_index->second);
             (*count)++;
@@ -249,8 +249,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
                     last_key[i] = records[(*count-1)*params.key_size+i];
                 }
                 last_dir = dirs[*count];
-                rotate_records(splitted_index, *count-2);
-                rotate_dirs(splitted_index+1, *count-1);
+                shift_right_records(splitted_index, *count-2);
+                shift_right_dirs(splitted_index+1, *count-1);
                 update_record(splitted_index, split_record_index->first);
                 update_dir(splitted_index+1, split_record_index->second);
             }
@@ -311,8 +311,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
                     last_key[i] = records[(*count-1)*params.key_size+i];
                 }
                 last_dir = dirs[*count];
-                rotate_records(splitted_index, *count-2);
-                rotate_dirs(splitted_index+1, *count-1);
+                shift_right_records(splitted_index, *count-2);
+                shift_right_dirs(splitted_index+1, *count-1);
                 update_record(splitted_index, split_record_index->first);
                 update_dir(splitted_index+1, split_record_index->second);
             }
@@ -362,7 +362,7 @@ void BPlusTreeDir::update_dir(int index, int dir)
     dirs[index] = dir;
 }
 
-void BPlusTreeDir::rotate_records(int from, int to)
+void BPlusTreeDir::shift_right_records(int from, int to)
 {
     for (int i = to; i >= from; i--) {
         for (int j = 0; j < params.key_size; j++) {
@@ -371,7 +371,7 @@ void BPlusTreeDir::rotate_records(int from, int to)
     }
 }
 
-void BPlusTreeDir::rotate_dirs(int from, int to)
+void BPlusTreeDir::shift_right_dirs(int from, int to)
 {
     for (int i = to; i >= from; i--) {
         dirs[i+1] = dirs[i];

@@ -31,7 +31,7 @@ void insert_records(BPlusTree& bpt) {
 	// 	bpt.insert(record);
 	// 	delete[] c;
 	// }
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 150; i++) {
 		uint64_t* c = new uint64_t[2];
 		c[0] = (uint64_t) rand()/1000;
 		c[1] = (uint64_t) rand()/1000;
@@ -45,13 +45,14 @@ void insert_records(BPlusTree& bpt) {
 void search_records(BPlusTree& bpt) {
 	 uint64_t min[] = {0, 0};
 	//uint64_t min[] = {628175,  1656478};
-	uint64_t max[] = {2044897, 1967514};
+	//uint64_t max[] = {2044897, 1967514};
+	uint64_t max[] = {9992044897, 9991967514};
 	auto it = bpt.get_range(Record(min, 2), Record(max, 2));
 	auto record = it->next();
 	while (record != nullptr) {
 		cout << "(" << (int)record->ids[0] << ", " << (int)record->ids[1] << ")\n";
 		// bpt.edit(Record(record->ids[0]), Record(record->ids[0]+1));
-		cout << "(" << bpt.get(Record(record->ids[0]))->ids[0] << ")\n";
+		// cout << "(" << bpt.get(Record(record->ids[0]))->ids[0] << ")\n";
 		record = it->next();
 	}
 }
@@ -60,7 +61,7 @@ void test_bpt() {
 	BufferManager buffer_manager = BufferManager();
 	BPlusTreeParams bpt_params = BPlusTreeParams(buffer_manager, "test_files/example_bpt", 1, 1);
     BPlusTree bpt = BPlusTree(bpt_params);
-	// insert_records(bpt);
+	insert_records(bpt);
 	cout << "Records insertados!\n";
 	search_records(bpt);
 }
