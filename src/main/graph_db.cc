@@ -43,10 +43,10 @@ void insert_records(BPlusTree& bpt) {
 }
 
 void search_records(BPlusTree& bpt) {
-	 uint64_t min[] = {0, 0};
+	uint64_t min[] = {0, 0};
+	uint64_t max[] = {ULONG_MAX, ULONG_MAX};
 	//uint64_t min[] = {628175,  1656478};
 	//uint64_t max[] = {2044897, 1967514};
-	uint64_t max[] = {9992044897, 9991967514};
 	auto it = bpt.get_range(Record(min, 2), Record(max, 2));
 	auto record = it->next();
 	while (record != nullptr) {
