@@ -72,9 +72,9 @@ void test_nested_loop_join() {
 	RelationalGraph graph = RelationalGraph(0, config);
 
 	map<int, string> var_names;
-	var_names.insert(pair<int, string>(1, "Label:type1"));
+	var_names.insert(pair<int, string>(1, "Label:Person"));
 	var_names.insert(pair<int, string>(2, "Var:?n"));
-	var_names.insert(pair<int, string>(3, "Key:Name"));
+	var_names.insert(pair<int, string>(3, "Key:name"));
 	var_names.insert(pair<int, string>(4, "Value:?v"));
 
 	vector<VarId> s1_vars;
@@ -87,13 +87,13 @@ void test_nested_loop_join() {
 	s2_vars.push_back(VarId(4)); // Value:?v
 
 	GraphScan s1 = GraphScan(graph.graph_id, *graph.label2element, s1_vars);
-	GraphScan s2 = GraphScan(graph.graph_id, *graph.prop2element, s2_vars);
+	GraphScan s2 = GraphScan(graph.graph_id, *graph.element2prop, s2_vars);
 
 	IndexNestedLoopJoin nlj = IndexNestedLoopJoin(config, s1, s2);
 
 	auto input = make_shared<BindingId>();
-	ObjectId label_type_1 = graph.get_label_id(Label("type1"));
-	ObjectId key_name = graph.get_key_id(Key("Name"));
+	ObjectId label_type_1 = graph.get_label_id(Label("Person"));
+	ObjectId key_name = graph.get_key_id(Key("name"));
 	input->add(VarId(1), label_type_1);
 	input->add(VarId(3), key_name);
 
@@ -101,23 +101,23 @@ void test_nested_loop_join() {
 	root.init(input);
 	unique_ptr<BindingId const> b = root.next();
 	while (b != nullptr) {
-		b->print(var_names);
-		// auto n_id = b->search_id(VarId(2));
-		// Node node = graph.get_node(n_id->id);
+		// b->print(var_names);
+		auto n_id = b->search_id(VarId(2));
+		Node node = graph.get_node(n_id->id);
 
-		// auto label_id = b->search_id(VarId(1));
-		// Label label = graph.get_label(label_id->id);
+		auto label_id = b->search_id(VarId(1));
+		Label label = graph.get_label(label_id->id);
 
-		// auto key_id = b->search_id(VarId(3));
-		// Key key = graph.get_key(key_id->id);
+		auto key_id = b->search_id(VarId(3));
+		Key key = graph.get_key(key_id->id);
 
-		// auto value_id = b->search_id(VarId(4));
-		// auto value = graph.get_value(value_id->id);
+		auto value_id = b->search_id(VarId(4));
+		auto value = graph.get_value(value_id->id);
 
-		// cout << "Node:  " << node.get_id();
-		// cout << "[" << label.get_label_name() << "]\t";
-		// cout << key.get_key_name() << ": " << value->to_string() << "\t";
-		// cout << "\n";
+		cout << "Node:  " << node.get_id();
+		cout << "[" << label.get_label_name() << "]\t";
+		cout << key.get_key_name() << ": " << value->to_string() << "\t";
+		cout << "\n";
 		b = root.next();
 	}
 }
@@ -131,9 +131,8 @@ void test_bulk_import() {
 
 int main()
 {
-	test_bulk_import();
-	// test_graph_creation();
-	// test_nested_loop_join();
+	// test_bulk_import();
+	test_nested_loop_join();
 	// test_bpt();
 	return 0;
 }

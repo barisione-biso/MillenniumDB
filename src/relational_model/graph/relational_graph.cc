@@ -74,25 +74,29 @@ void RelationalGraph::connect_nodes(uint64_t id_from, uint64_t id_to, uint64_t i
 
 void RelationalGraph::add_label_to_node(uint64_t node_id, const string& label)
 {
-    add_label(node_id|NODE_MASK, label);
+    uint64_t label_id_unmasked = add_label(node_id|NODE_MASK, label);
+    config.get_catalog().add_node_label(label_id_unmasked);
 }
 
 void RelationalGraph::add_label_to_edge(uint64_t edge_id, const string& label)
 {
-    add_label(edge_id|EDGE_MASK, label);
+     uint64_t label_id_unmasked = add_label(edge_id|EDGE_MASK, label);
+     config.get_catalog().add_edge_label(label_id_unmasked);
 }
 
 void RelationalGraph::add_property_to_node(uint64_t node_id, const string& key, const Value& value)
 {
-    add_property(node_id|NODE_MASK, key, value);
+    uint64_t key_id_unmasked = add_property(node_id|NODE_MASK, key, value);
+    config.get_catalog().add_node_key(key_id_unmasked);
 }
 
 void RelationalGraph::add_property_to_edge(uint64_t edge_id, const string& key, const Value& value)
 {
-    add_property(edge_id|EDGE_MASK, key, value);
+    uint64_t key_id_unmasked = add_property(edge_id|EDGE_MASK, key, value);
+    config.get_catalog().add_edge_key(key_id_unmasked);
 }
 
-void RelationalGraph::add_label(uint64_t id, const string& label)
+uint64_t RelationalGraph::add_label(uint64_t id, const string& label)
 {
     uint64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
     MD5((const unsigned char*)label.c_str(), label.size(), (unsigned char *)hash);
@@ -135,10 +139,12 @@ void RelationalGraph::add_label(uint64_t id, const string& label)
             label_id|LABEL_MASK
         )
     );
+
+    return label_id;
 }
 
 
-void RelationalGraph::add_property(uint64_t id, const string& key, const Value& value)
+uint64_t RelationalGraph::add_property(uint64_t id, const string& key, const Value& value)
 {
     uint64_t hash_key[2];
     MD5((const unsigned char*)key.c_str(), key.size(), (unsigned char *)hash_key);
@@ -205,6 +211,8 @@ void RelationalGraph::add_property(uint64_t id, const string& key, const Value& 
             id
         )
     );
+
+    return key_id;
 }
 
 Node RelationalGraph::get_node(uint64_t id)

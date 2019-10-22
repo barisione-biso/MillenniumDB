@@ -19,6 +19,7 @@ void BulkImport::start_import()
     node_count = 0;
     edge_count = 0;
     string line;
+
     while (getline(nodes_file, line)) {
         process_node(line);
     }

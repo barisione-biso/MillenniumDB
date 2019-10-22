@@ -1,6 +1,7 @@
 #ifndef FILE__CATALOG_H_
 #define FILE__CATALOG_H_
 
+#include <fstream>
 #include <memory>
 #include <map>
 #include <string>
@@ -10,7 +11,7 @@ using namespace std;
 class Catalog
 {
     public:
-        Catalog(const string& filename_prefix);
+        Catalog(const string& filename);
         ~Catalog(); // not defaulted, write to disk
 
         // create_node and create_edge return the new id without the corresponding mask
@@ -20,14 +21,21 @@ class Catalog
         uint64_t get_node_count();
         uint64_t get_edge_count();
 
-        uint64_t get_node_count_for_label(uint64_t label_id_masked);
-        uint64_t get_edge_count_for_label(uint64_t label_id_masked);
+        // ALL IDS ARE UNMASKED
+        void add_node_label(uint64_t label_id);
+        void add_edge_label(uint64_t label_id);
+        void add_node_key(uint64_t key_id);
+        void add_edge_key(uint64_t key_id);
 
-        uint64_t get_node_count_for_key(uint64_t key_id_masked);
-        uint64_t get_edge_count_for_key(uint64_t key_id_masked);
+        uint64_t get_node_count_for_label(uint64_t label_id);
+        uint64_t get_edge_count_for_label(uint64_t label_id);
+
+        uint64_t get_node_count_for_key(uint64_t key_id);
+        uint64_t get_edge_count_for_key(uint64_t key_id);
 
     private:
-        unique_ptr<Catalog> file;
+        fstream file;
+
         uint64_t node_count;
         uint64_t edge_count;
         uint64_t node_label_count;
@@ -38,7 +46,13 @@ class Catalog
         map<uint64_t, uint64_t> node_label_stats;
         map<uint64_t, uint64_t> edge_label_stats;
         map<uint64_t, uint64_t> node_key_stats;
-        map<uint64_t, uint64_t> label_stats;
+        map<uint64_t, uint64_t> edge_key_stats;
+
+        void save_changes();
+        void add_to_map(map<uint64_t, uint64_t>& map, uint64_t key);
+        uint64_t get_count(map<uint64_t, uint64_t>& map, uint64_t key);
+        uint64_t read();
+        pair<uint64_t, uint64_t> read_pair();
 };
 
 #endif //FILE__CATALOG_H_

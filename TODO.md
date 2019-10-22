@@ -1,11 +1,8 @@
 - Catalog:
-    - number of node and edges.
-    - number of different keys.
-    - count for each label_id for node/edge (separated).
-    - count for each key for node/edge (separated). Stop if having more than X different keys.
+    - Stop if having key for node/edge more than X different keys.
 - Revisar generador de grafos que envió Renzo.
 - Initialize BPlusTreeParams correctly:
     - calculate max_records for dir and leaf.
 - Inserting duplicated values in BPT should throw exception.
-- Return nullptr if bpt.get() don't found the key.
-- if bpt.edit() don't found the key throw exception.
+- Return nullptr if bpt.get() didn't found the key.
+- if bpt.edit() don't find the key throw exception.
