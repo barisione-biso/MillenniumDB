@@ -13,7 +13,6 @@ public:
     BPlusTreeDir(const BPlusTreeParams& params, Page& page);
     ~BPlusTreeDir();
 
-    std::unique_ptr<std::pair<Record, int>> insert(const Record& record); // returns not null if needs to split
     std::unique_ptr<std::pair<Record, int>> insert(const Record& key, const Record& value); // returns not null if needs to split
 
     void edit(const Record& key, const Record& value);

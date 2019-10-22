@@ -28,31 +28,21 @@ unique_ptr<BPlusTree::Iter> BPlusTree::get_range(const Record& min, const Record
 void BPlusTree::insert(const Record& record)
 {
     if (is_empty) {
-        create_new(record);
+        create_new(record, Record::get_empty_record());
         is_empty = false;
         return;
     }
-    // TODO: check if record exists?
-    root->insert(record);
+    root->insert(record, Record::get_empty_record());
 }
 
 void BPlusTree::insert(const Record& key, const Record& value)
 {
     if (is_empty) {
-        std::cout << "DEBUG Is Empty";
         create_new(key, value);
         is_empty = false;
         return;
     }
     root->insert(key, value);
-}
-
-// Insert first key at root, create leaf
-void BPlusTree::create_new(const Record& record)
-{
-    Page& leaf_page = params.buffer_manager.get_page(0, params.leaf_path);
-    BPlusTreeLeaf first_leaf = BPlusTreeLeaf(params, leaf_page);
-    first_leaf.create_new(record);
 }
 
 // Insert first key at root, create leaf

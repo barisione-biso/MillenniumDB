@@ -48,7 +48,7 @@ void search_records(BPlusTree& bpt) {
 	uint64_t max[] = {ULONG_MAX, ULONG_MAX};
 	//uint64_t min[] = {628175,  1656478};
 	//uint64_t max[] = {2044897, 1967514};
-	auto it = bpt.get_range(Record(min, 2), Record(max, 2));
+	auto it = bpt.get_range(Record(min[0], min[1]), Record(max[0], max[1]));
 	auto record = it->next();
 	while (record != nullptr) {
 		cout << "(" << (int)record->ids[0] << ", " << (int)record->ids[1] << ")\n";
@@ -131,7 +131,7 @@ void test_bulk_import() {
 
 int main()
 {
-	// test_bulk_import();
+	test_bulk_import();
 	test_nested_loop_join();
 	// test_bpt();
 	return 0;

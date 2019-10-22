@@ -6,6 +6,8 @@
 #include "file/index/bplus_tree/bplus_tree_leaf.h"
 #include "file/index/bplus_tree/bplus_tree_params.h"
 
+#include <vector>
+
 using namespace std;
 
 GraphScan::GraphScan(int graph_id, BPlusTree& bpt, vector<VarId> vars)
@@ -17,8 +19,8 @@ GraphScan::GraphScan(int graph_id, BPlusTree& bpt, vector<VarId> vars)
 void GraphScan::init(shared_ptr<BindingId const> input)
 {
     this->input = input;
-    auto min_ids = make_unique<uint64_t[]>(record_size);
-    auto max_ids = make_unique<uint64_t[]>(record_size);
+    vector<uint64_t> min_ids(record_size);
+    vector<uint64_t> max_ids(record_size);
 
     if (input == nullptr) {
         int i = 0;
@@ -45,8 +47,8 @@ void GraphScan::init(shared_ptr<BindingId const> input)
     }
 
     it = bpt.get_range(
-        Record(min_ids.get(), record_size),
-        Record(max_ids.get(), record_size)
+        Record(min_ids),
+        Record(max_ids)
     );
 }
 

@@ -3,6 +3,3 @@
 - Revisar generador de grafos que envió Renzo.
 - Initialize BPlusTreeParams correctly:
     - calculate max_records for dir and leaf.
-- Inserting duplicated values in BPT should throw exception.
-- Return nullptr if bpt.get() didn't found the key.
-- if bpt.edit() don't find the key throw exception.
