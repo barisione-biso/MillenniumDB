@@ -11,6 +11,7 @@
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/physical_plan/binding_id_iter/operators/graph_scan.h"
 #include "relational_model/physical_plan/binding_id_iter/operators/index_nested_loop_join.h"
+#include "relational_model/import/bulk_import.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -121,33 +122,18 @@ void test_nested_loop_join() {
 	}
 }
 
-
-void test_graph_creation() {
+void test_bulk_import() {
 	Config config = Config();
 	RelationalGraph graph = RelationalGraph(0, config);
-
-	for (u_int64_t i = 0; i < 10; i++) {
-		Node n = graph.create_node("N" + to_string(i));
-		graph.add_label(n, Label("type1"));
-		Key key = Key("Name");
-		ValueString value = ValueString("name" + to_string((int)i));
-		graph.add_property(n, Property(key, value));
-	}
-
-	for (u_int64_t i = 0; i < 10; i++) {
-		Node n = graph.create_node("N" + to_string(10+i));
-		graph.add_label(n, Label("type2"));
-		Key key = Key("Name");
-		ValueString value = ValueString("name" + to_string((int)i));
-		graph.add_property(n, Property(key, value));
-	}
+	BulkImport import = BulkImport("test_files/graph_creation_example/nodes.txt", "test_files/graph_creation_example/edges.txt", graph);
+	import.start_import();
 }
 
 int main()
 {
+	test_bulk_import();
 	// test_graph_creation();
-	// cout << "Graph created\n";
 	// test_nested_loop_join();
-	test_bpt();
+	// test_bpt();
 	return 0;
 }

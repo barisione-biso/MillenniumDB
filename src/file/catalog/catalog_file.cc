@@ -20,10 +20,10 @@ CatalogFile::CatalogFile(const string& filename)
         char buffer[8];
 
         file.read(buffer, 8);
-        node_count = *(u_int64_t *)buffer;
+        node_count = *(uint64_t *)buffer;
 
         file.read(buffer, 8);
-        edge_count = *(u_int64_t *)buffer;
+        edge_count = *(uint64_t *)buffer;
     }
 }
 
@@ -35,30 +35,30 @@ CatalogFile::~CatalogFile()
     file.close();
 }
 
-u_int64_t CatalogFile::create_node()
+uint64_t CatalogFile::create_node()
 {
     return ++node_count;
 }
 
-u_int64_t CatalogFile::create_edge()
+uint64_t CatalogFile::create_edge()
 {
     return ++edge_count;
 }
 
-u_int64_t CatalogFile::get_node_count()
+uint64_t CatalogFile::get_node_count()
 {
     return node_count;
 }
 
-u_int64_t CatalogFile::get_edge_count()
+uint64_t CatalogFile::get_edge_count()
 {
     return edge_count;
 }
 
-// u_int64_t CatalogFile::get(int pos)
+// uint64_t CatalogFile::get(int pos)
 // {
 //     file.seekg(pos);
 //     char bytes[8];
 //     file.read(bytes, 8);
-//     return *(u_int64_t *)bytes;
+//     return *(uint64_t *)bytes;
 // }
