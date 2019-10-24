@@ -19,13 +19,6 @@ BPlusTree::BPlusTree(const BPlusTreeParams& params)
     is_empty = *first_leaf.count == 0;
 }
 
-// bool BPlusTree::has_record(const Record& record)
-// {
-//     pair<int, int> page_number_and_pos = root->search_leaf(record);
-//     auto iter = make_unique<Iter>(params, page_number_and_pos.first, page_number_and_pos.second, record);
-//     return iter->next() != nullptr;
-// }
-
 unique_ptr<BPlusTree::Iter> BPlusTree::get_range(const Record& min, const Record& max)
 {
     pair<int, int> page_number_and_pos = root->search_leaf(min);
@@ -35,15 +28,11 @@ unique_ptr<BPlusTree::Iter> BPlusTree::get_range(const Record& min, const Record
 void BPlusTree::insert(const Record& record)
 {
     if (is_empty) {
-        create_new(record);
+        create_new(record, Record::get_empty_record());
         is_empty = false;
         return;
     }
-    /*if (has_record(record)) {
-        cout << "DEBUG THROW";
-        throw "Inserting duplicated record in BPlusTree";
-    }*/
-    root->insert(record);
+    root->insert(record, Record::get_empty_record());
 }
 
 void BPlusTree::insert(const Record& key, const Record& value)
@@ -57,11 +46,11 @@ void BPlusTree::insert(const Record& key, const Record& value)
 }
 
 // Insert first key at root, create leaf
-void BPlusTree::create_new(const Record& record)
+void BPlusTree::create_new(const Record& key, const Record& value)
 {
     Page& leaf_page = params.buffer_manager.get_page(0, params.leaf_path);
     BPlusTreeLeaf first_leaf = BPlusTreeLeaf(params, leaf_page);
-    first_leaf.create_new(record);
+    first_leaf.create_new(key, value);
 }
 
 void BPlusTree::edit(const Record& key, const Record& value)
@@ -72,14 +61,6 @@ void BPlusTree::edit(const Record& key, const Record& value)
 unique_ptr<Record> BPlusTree::get(const Record& key)
 {
     return root->get(key);
-}
-
-// Insert first key at root, create leaf
-void BPlusTree::create_new(const Record& key, const Record& value)
-{
-    Page& leaf_page = params.buffer_manager.get_page(0, params.leaf_path);
-    BPlusTreeLeaf first_leaf = BPlusTreeLeaf(params, leaf_page);
-    first_leaf.create_new(key, value);
 }
 
 /******************************* Iter ********************************/

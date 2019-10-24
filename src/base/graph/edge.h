@@ -11,25 +11,25 @@
 
 class Edge : public GraphElement {
 public:
-    Edge(u_int64_t id)
+    Edge(uint64_t id)
         : id(id)
     {}
     ~Edge() = default;
 
-    void add_label(Label& label) { labels.push_back(label); }
-    void add_property(Property& property) {
-        properties[property.get_key()] = &property.get_value();
-    }
+    // void add_label(Label& label) { labels.push_back(label); }
+    // void add_property(Property& property) {
+    //     properties[property.get_key()] = &property.get_value();
+    // }
 
-    inline std::vector<Label>& get_labels() { return labels; }
-    inline std::map<Key, Value*>& get_properties() { return properties; }
+    // inline std::vector<Label>& get_labels() { return labels; }
+    // inline std::map<Key, Value*>& get_properties() { return properties; }
     inline bool is_node() { return true; }
-    inline u_int64_t get_id() { return id; }
+    inline uint64_t get_id() { return id; }
 
 private:
-    u_int64_t id;
-    std::vector<Label> labels;
-    std::map<Key, Value*> properties;
+    uint64_t id;
+    // std::vector<Label> labels;
+    // std::map<Key, Value*> properties;
 };
 
 #endif //BASE__EDGE_H_

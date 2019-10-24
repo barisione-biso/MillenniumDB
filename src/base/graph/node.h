@@ -12,25 +12,25 @@
 
 class Node : public GraphElement {
 public:
-    Node(u_int64_t id)
+    Node(uint64_t id)
         : id(id)
     {}
     ~Node() = default;
 
-    void add_label(Label& label) { labels.push_back(label); }
-    void add_property(Property& property) {
-        properties[property.get_key()] = &property.get_value();
-    }
+    // void add_label(Label& label) { labels.push_back(label); }
+    // void add_property(Property& property) {
+    //     properties[property.get_key()] = &property.get_value();
+    // }
 
-    inline std::vector<Label>& get_labels() { return labels; }
-    inline std::map<Key, Value*>& get_properties() { return properties; }
-    inline bool is_node() { return true; }
-    inline u_int64_t get_id() { return id; }
+    // inline std::vector<Label>& get_labels() { return labels; }
+    // inline std::map<Key, Value*>& get_properties() { return properties; }
+    bool is_node() { return true; }
+    uint64_t get_id() { return id; }
 
 private:
-    u_int64_t id;
-    std::vector<Label> labels;
-    std::map<Key, Value*> properties;
+    uint64_t id;
+    // std::vector<Label> labels;
+    // std::map<Key, Value*> properties;
 };
 
 #endif //BASE__NODE_H_

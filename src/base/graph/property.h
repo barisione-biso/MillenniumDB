@@ -8,16 +8,16 @@ class Value;
 
 class Property {
 public:
-    Property(Key& key, Value& value)
+    Property(const Key& key, const Value& value)
         : key(key), value(value){}
     ~Property() = default;
 
-    inline Key& get_key() const { return key; }
-    inline Value& get_value() const { return value; }
+    const Key& get_key() const { return key; }
+    const Value& get_value() const { return value; }
 
 private:
-    Key& key;
-    Value& value;
+    const Key& key;
+    const Value& value;
 };
 
 #endif //BASE__PROPERTY_H_

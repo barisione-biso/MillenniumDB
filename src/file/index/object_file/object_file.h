@@ -15,8 +15,8 @@ class ObjectFile
     public:
         ObjectFile(const string& filename);
         ~ObjectFile();
-        unique_ptr<vector<char>> read(u_int64_t id);
-        u_int64_t write(vector<char>& bytes);
+        unique_ptr<vector<char>> read(uint64_t id);
+        uint64_t write(vector<char>& bytes);
     private:
         std::fstream file;
 };

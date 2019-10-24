@@ -22,7 +22,7 @@ ObjectFile::~ObjectFile()
     file.close();
 }
 
-unique_ptr<vector<char>> ObjectFile::read(u_int64_t id)
+unique_ptr<vector<char>> ObjectFile::read(uint64_t id)
 {
     file.seekg(id);
 
@@ -36,7 +36,7 @@ unique_ptr<vector<char>> ObjectFile::read(u_int64_t id)
     return value;
 }
 
-u_int64_t ObjectFile::write(vector<char>& bytes){
+uint64_t ObjectFile::write(vector<char>& bytes){
     int length = bytes.size();
 
     file.seekg(0, file.end);

@@ -44,43 +44,64 @@ RelationalGraph::RelationalGraph(int graph_id, Config& config)
 }
 
 
-Node RelationalGraph::create_node(string const& id)
+uint64_t RelationalGraph::create_node()
 {
-    u_int64_t new_id = config.get_catalog().create_node(id);
-    return Node(new_id & UNMASK);
+    return config.get_catalog().create_node();
 }
 
-
-Edge RelationalGraph::connect_nodes(Node& from, Node& to)
+uint64_t RelationalGraph::create_edge()
 {
-    u_int64_t edge_id = config.get_catalog().create_edge();
+    return config.get_catalog().create_edge();
+}
+
+void RelationalGraph::connect_nodes(uint64_t id_from, uint64_t id_to, uint64_t id_edge)
+{
     from_to_edge->insert(
         Record(
-            from.get_id()|NODE_MASK,
-            to.get_id()|NODE_MASK,
-            edge_id|EDGE_MASK
+            id_from|NODE_MASK,
+            id_to|NODE_MASK,
+            id_edge|EDGE_MASK
         )
     );
-
     to_from_edge->insert(
         Record(
-            from.get_id()|NODE_MASK,
-            to.get_id()|NODE_MASK,
-            edge_id|EDGE_MASK
+            id_to|NODE_MASK,
+            id_from|NODE_MASK,
+            id_edge|EDGE_MASK
         )
     );
-
-    return Edge(edge_id);
 }
 
-
-void RelationalGraph::add_label(GraphElement& element, Label const& label)
+void RelationalGraph::add_label_to_node(uint64_t node_id, const string& label)
 {
-    u_int64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
-    string label_name = label.get_label_name();
-    MD5((const unsigned char*)label_name.c_str(), label_name.size(), (unsigned char *)hash);
+    uint64_t label_id_unmasked = add_label(node_id|NODE_MASK, label);
+    config.get_catalog().add_node_label(label_id_unmasked);
+}
 
-    u_int64_t label_id;
+void RelationalGraph::add_label_to_edge(uint64_t edge_id, const string& label)
+{
+     uint64_t label_id_unmasked = add_label(edge_id|EDGE_MASK, label);
+     config.get_catalog().add_edge_label(label_id_unmasked);
+}
+
+void RelationalGraph::add_property_to_node(uint64_t node_id, const string& key, const Value& value)
+{
+    uint64_t key_id_unmasked = add_property(node_id|NODE_MASK, key, value);
+    config.get_catalog().add_node_key(key_id_unmasked);
+}
+
+void RelationalGraph::add_property_to_edge(uint64_t edge_id, const string& key, const Value& value)
+{
+    uint64_t key_id_unmasked = add_property(edge_id|EDGE_MASK, key, value);
+    config.get_catalog().add_edge_key(key_id_unmasked);
+}
+
+uint64_t RelationalGraph::add_label(uint64_t id, const string& label)
+{
+    uint64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
+    MD5((const unsigned char*)label.c_str(), label.size(), (unsigned char *)hash);
+
+    uint64_t label_id;
 
     // check if bpt contains object
     BPlusTree& bpt = config.get_hash2id_bpt();
@@ -91,8 +112,8 @@ void RelationalGraph::add_label(GraphElement& element, Label const& label)
     auto next = iter->next();
     if (next == nullptr) { // label_name doesn't exist
         // insert in object file
-        vector<char> vect(label_name.length());
-	    copy(label_name.begin(), label_name.end(), vect.begin());
+        vector<char> vect(label.length());
+	    copy(label.begin(), label.end(), vect.begin());
         label_id = config.get_object_file().write(vect);
 
         // insert in bpt
@@ -106,34 +127,34 @@ void RelationalGraph::add_label(GraphElement& element, Label const& label)
         label_id = next->ids[2];
     }
 
-    u_int64_t mask = element.is_node() ? NODE_MASK : EDGE_MASK;
     label2element->insert(
         Record(
             label_id|LABEL_MASK,
-            element.get_id()|mask
+            id
         )
     );
     element2label->insert(
         Record(
-            element.get_id()|mask,
+            id,
             label_id|LABEL_MASK
         )
     );
+
+    return label_id;
 }
 
 
-void RelationalGraph::add_property(GraphElement& element, Property const& property)
+uint64_t RelationalGraph::add_property(uint64_t id, const string& key, const Value& value)
 {
-    u_int64_t hash_key[2];
-    string key_name = property.get_key().get_key_name();
-    MD5((const unsigned char*)key_name.c_str(), key_name.size(), (unsigned char *)hash_key);
+    uint64_t hash_key[2];
+    MD5((const unsigned char*)key.c_str(), key.size(), (unsigned char *)hash_key);
 
-    u_int64_t hash_value[2];
-    auto value = property.get_value().get_bytes();
-    MD5((const unsigned char*)value->data(), value->size(), (unsigned char *)hash_value);
+    uint64_t hash_value[2];
+    auto value_bytes = value.get_bytes();
+    MD5((const unsigned char*)value_bytes->data(), value_bytes->size(), (unsigned char *)hash_value);
 
-    u_int64_t key_id;
-    u_int64_t value_id;
+    uint64_t key_id;
+    uint64_t value_id;
 
     // check if bpt contains key
     BPlusTree& bpt = config.get_hash2id_bpt();
@@ -142,10 +163,10 @@ void RelationalGraph::add_property(GraphElement& element, Property const& proper
         Record(hash_key[0], hash_key[1], UINT64_MAX)
     );
     auto next = iter->next();
-    if (next == nullptr) { // key_name doesn't exist
+    if (next == nullptr) { // key doesn't exist
         // insert in object file
-        vector<char> vect(key_name.length());
-	    copy(key_name.begin(), key_name.end(), vect.begin());
+        vector<char> vect(key.length());
+	    copy(key.begin(), key.end(), vect.begin());
         key_id = config.get_object_file().write(vect);
 
         // insert in bpt
@@ -165,7 +186,7 @@ void RelationalGraph::add_property(GraphElement& element, Property const& proper
     next = iter->next();
     if (next == nullptr) { // value doesn't exist
         // insert in object file
-        value_id = config.get_object_file().write(*value);
+        value_id = config.get_object_file().write(*value_bytes);
 
         // insert in bpt
         bpt.insert(
@@ -176,10 +197,9 @@ void RelationalGraph::add_property(GraphElement& element, Property const& proper
         value_id = next->ids[2];
     }
 
-    u_int64_t mask = element.is_node() ? NODE_MASK : EDGE_MASK;
     element2prop->insert(
         Record(
-            element.get_id()|mask,
+            id,
             key_id|KEY_MASK,
             value_id|VALUE_MASK
         )
@@ -188,31 +208,33 @@ void RelationalGraph::add_property(GraphElement& element, Property const& proper
         Record(
             key_id|KEY_MASK,
             value_id|VALUE_MASK,
-            element.get_id()|mask
+            id
         )
     );
+
+    return key_id;
 }
 
-Node RelationalGraph::get_node(u_int64_t id)
+Node RelationalGraph::get_node(uint64_t id)
 {
     return Node(id & UNMASK);
 }
 
-Label RelationalGraph::get_label(u_int64_t id)
+Label RelationalGraph::get_label(uint64_t id)
 {
     auto bytes = config.get_object_file().read(id&UNMASK);
     string label_name(bytes->begin(), bytes->end());
     return Label(label_name);
 }
 
-Key RelationalGraph::get_key(u_int64_t id)
+Key RelationalGraph::get_key(uint64_t id)
 {
     auto bytes = config.get_object_file().read(id&UNMASK);
     string key_name(bytes->begin(), bytes->end());
     return Key(key_name);
 }
 
-unique_ptr<Value> RelationalGraph::get_value(u_int64_t id)
+unique_ptr<Value> RelationalGraph::get_value(uint64_t id)
 {
     auto bytes = config.get_object_file().read(id&UNMASK);
     string str(bytes->begin(), bytes->end());
@@ -221,11 +243,11 @@ unique_ptr<Value> RelationalGraph::get_value(u_int64_t id)
 
 ObjectId RelationalGraph::get_label_id(Label const& label)
 {
-    u_int64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
+    uint64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
     string label_name = label.get_label_name();
     MD5((const unsigned char*)label_name.c_str(), label_name.size(), (unsigned char *)hash);
 
-    u_int64_t label_id;
+    uint64_t label_id;
 
     // check if bpt contains object
     BPlusTree& bpt = config.get_hash2id_bpt();
@@ -246,11 +268,11 @@ ObjectId RelationalGraph::get_label_id(Label const& label)
 
 ObjectId RelationalGraph::get_key_id(Key const& key)
 {
-    u_int64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
+    uint64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
     string key_name = key.get_key_name();
     MD5((const unsigned char*)key_name.c_str(), key_name.size(), (unsigned char *)hash);
 
-    u_int64_t key_id;
+    uint64_t key_id;
 
     // check if bpt contains object
     BPlusTree& bpt = config.get_hash2id_bpt();
@@ -271,11 +293,11 @@ ObjectId RelationalGraph::get_key_id(Key const& key)
 
 ObjectId RelationalGraph::get_value_id(Value const& value)
 {
-    u_int64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
+    uint64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
     auto bytes = value.get_bytes();
     MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
 
-    u_int64_t value_id;
+    uint64_t value_id;
 
     // check if bpt contains object
     BPlusTree& bpt = config.get_hash2id_bpt();

@@ -44,7 +44,6 @@ public:
 private:
     bool is_empty;
     unique_ptr<BPlusTreeDir> root;
-    void create_new(const Record& record);
     void create_new(const Record& key, const Record& value);
 };
 

@@ -1,0 +1,3 @@
+(101)	:Person		:Developer	name:"Carlos Rojas"    age:25 country:Chile
+(101) :Person name:Alice age:15 country:"United States"
+(102) :Person :Student name:Bob country:Japan

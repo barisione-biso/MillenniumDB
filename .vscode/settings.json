@@ -66,6 +66,7 @@
         "cfenv": "cpp",
         "typeindex": "cpp",
         "variant": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "regex": "cpp"
     }
 }

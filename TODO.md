@@ -1,19 +1,11 @@
+- Importing graph:
+    - remove "" to strings
+    - add int support
 - Catalog:
-    - number of node and edges.
-    - number of different keys.
-    - count for each label_id for node/edge (separated).
-    - count for each key for node/edge (separated). Stop if having more than X different keys.
-- When creating nodes/edges, accept strings as ID and save it in a new BPT.
-- When importing the graph, all nodes needs an id.
-- Creating edges don't accept custom ID.
-- Parse JSON (if can be efficent, else Property Graph Exchange Format) and create nodes/edges
+    - Stop if having key for node/edge more than X different keys.
 - Revisar generador de grafos que envió Renzo.
 - Initialize BPlusTreeParams correctly:
     - calculate max_records for dir and leaf.
-    - detect if exists.
-- Inserting duplicated values in BPT should throw exception.
-- Return nullptr if bpt.get() don't found the key.
-- if bpt.edit() don't found the key throw exception.
 - use unsigned int for page numbers
-- posible optimización: no usar 3 punteros para los nodos del bpt, sino incices del arreglo que pueden ser 32 bits.
+- posible optimización: no usar 3 punteros para los nodos del bpt, sino indices del arreglo que pueden ser 32 bits.
 - incluir datos basura para no checkear casos borde en BPT?

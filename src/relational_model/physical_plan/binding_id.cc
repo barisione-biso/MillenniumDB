@@ -58,8 +58,8 @@ void BindingId::print(map<int, string>& var_names) const
     cout << "BindingId: ";
     auto it = dict->cbegin();
     while (it != dict->cend()) {
-        cout << ">";
-        cout << var_names[it->first.var_id] << ":" << it->second.id << "\t";
+        cout << "";
+        cout << var_names[it->first.var_id] << ":[" << ((it->second.id) >> 56) << "]" << (it->second.id & 0x00FFFFFFFFFFFFFFUL) << "\t\t";
         it++;
     }
     cout << endl;
