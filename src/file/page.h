@@ -10,13 +10,17 @@
 class Page {
     friend class BufferManager;
     public:
-        void unpin() {
-            pins--;
-        }
         const int page_number;
         char* bytes; // protected ??
         const std::string& filename;
+
+        void unpin() {
+            pins--;
+        }
     private:
+        int pins;
+        boost::iostreams::mapped_file mapped_file;
+
         Page(int page_number, const std::string& filename)
             : page_number(page_number), filename(filename)
         {
@@ -51,8 +55,6 @@ class Page {
             std::cout << "destroying page (" << page_number << ", " << filename << ")\n";
             mapped_file.close();
         }
-        int pins;
-        boost::iostreams::mapped_file mapped_file;
 };
 
 #endif //FILE__PAGE_

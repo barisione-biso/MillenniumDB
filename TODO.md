@@ -14,3 +14,6 @@
 - Inserting duplicated values in BPT should throw exception.
 - Return nullptr if bpt.get() don't found the key.
 - if bpt.edit() don't found the key throw exception.
+- use unsigned int for page numbers
+- posible optimización: no usar 3 punteros para los nodos del bpt, sino incices del arreglo que pueden ser 32 bits.
+- incluir datos basura para no checkear casos borde en BPT?

@@ -49,7 +49,6 @@ void BPlusTree::insert(const Record& record)
 void BPlusTree::insert(const Record& key, const Record& value)
 {
     if (is_empty) {
-        std::cout << "DEBUG Is Empty";
         create_new(key, value);
         is_empty = false;
         return;
