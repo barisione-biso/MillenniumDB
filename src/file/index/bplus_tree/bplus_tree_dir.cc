@@ -78,7 +78,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
     }
 
     if (split_record_index != nullptr) {
-        this->page.make_dirty();
+        
         int splitted_index = search_dir_index(0, *count, split_record_index->first);
         // Case 1: no need to split this node
         if (*count < params.dir_max_records){
@@ -113,8 +113,6 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             int middle_index = (*count+1)/2;
             Page& new_left_page = params.buffer_manager.append_page(params.dir_path);
             Page& new_right_page = params.buffer_manager.append_page(params.dir_path);
-            new_left_page.make_dirty();
-            new_right_page.make_dirty();
 
             BPlusTreeDir new_left_dir = BPlusTreeDir(params, new_left_page);
             BPlusTreeDir new_right_dir = BPlusTreeDir(params, new_right_page);
@@ -152,6 +150,9 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             }
             dirs[0] = new_left_dir.page.page_number * -1;
             dirs[1] = new_right_dir.page.page_number * -1;
+            this->page.make_dirty();
+            new_left_page.make_dirty();
+            new_right_page.make_dirty();
             return nullptr;
         }
         else { // normal split split
@@ -177,7 +178,6 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             int middle_index = (*count+1)/2;
 
             Page& new_page = params.buffer_manager.append_page(params.dir_path);
-            new_page.make_dirty();
             BPlusTreeDir new_dir = BPlusTreeDir(params, new_page);
 
             // write records from (middle_index+1) to (*count-1) plus the last record saved before
@@ -203,6 +203,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             for (int i = 0; i < params.key_size; i++) {
                 split_key[i] = records[middle_index*params.key_size + i];
             }
+            new_page.make_dirty();
             return std::make_unique<std::pair<Record, int>>(Record(split_key), new_page.page_number*-1);
         }
     }

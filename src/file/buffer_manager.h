@@ -17,11 +17,10 @@ public:
 
 private:
     int count_pages(const std::string& filename);
-    // std::map<std::string, int> file_page_size;
     std::map<std::pair<std::string, int>, int> pages;
 
-    Buffer** buffer_pool; // array of pointers
-    Page**   pages_pool; // array of pointers
+    Page** buffer_pool; // array of pointers
+    char* bytes;
     int clock_pos;
     int get_buffer_available();
 };

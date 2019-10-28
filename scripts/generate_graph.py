@@ -39,6 +39,7 @@ with open("nodes.txt", mode="w") as nodes_file:
             label = words[randint(0, word_count-1)]
             while label in labels_already_added:
                 label = words[randint(0, word_count-1)]
+            labels_already_added.append(label)
             nodes_file.write(" :{}".format(label))
 
         # generate random properties
@@ -49,6 +50,7 @@ with open("nodes.txt", mode="w") as nodes_file:
             while key in keys_already_added:
                 key = words[randint(0, word_count-1)]
             value = words[randint(0, word_count-1)]
+            keys_already_added.append(key)
             nodes_file.write(" {}:{}".format(key, value))
         nodes_file.write("\n")
 
@@ -63,6 +65,7 @@ with open("edges.txt", mode="w") as edges_file:
             label = words[randint(0, word_count-1)]
             while label in labels_already_added:
                 label = words[randint(0, word_count-1)]
+            labels_already_added.append(label)
             edges_file.write(" :{}".format(label))
 
         # generate random properties
@@ -72,6 +75,7 @@ with open("edges.txt", mode="w") as edges_file:
             key = words[randint(0, word_count-1)]
             while key in keys_already_added:
                 key = words[randint(0, word_count-1)]
+            keys_already_added.append(key)
             value = words[randint(0, word_count-1)]
             edges_file.write(" {}:{}".format(key, value))
         edges_file.write("\n")

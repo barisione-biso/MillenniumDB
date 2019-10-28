@@ -82,7 +82,6 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
 
         throw std::logic_error("Inserting key duplicated into BPlusTree.");
     }
-    this->page.make_dirty();
 
     if (*count < params.leaf_max_records) {
         // shift right from index to *count-1
@@ -95,6 +94,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
             records[index*params.total_size + params.key_size + i] = value.ids[i];
         }
         (*count)++;
+        this->page.make_dirty();
         return nullptr;
     }
     else {
@@ -125,7 +125,6 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
 
         // crear nueva hoja
         Page& new_page = params.buffer_manager.append_page(params.leaf_path);
-        new_page.make_dirty();
         BPlusTreeLeaf new_leaf = BPlusTreeLeaf(params, new_page);
 
         *new_leaf.next = *next;
@@ -153,6 +152,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
             split_key[i] = (new_leaf.records[i]);
         }
         Record split_record = Record(split_key);
+        this->page.make_dirty();
+        new_page.make_dirty();
         return std::make_unique<std::pair<Record, int>>(split_record, new_page.page_number);
     }
 }

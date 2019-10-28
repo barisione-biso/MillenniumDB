@@ -5,23 +5,23 @@
 #include "file/page.h"
 #include "file/buffer_manager.h"
 
-#define BUFFER_POOL_SIZE 4096
+#define BUFFER_POOL_INITIAL_SIZE 4096
 
 using namespace std;
 
 BufferManager::BufferManager()
 {
-    buffer_pool = new Buffer*[BUFFER_POOL_SIZE];
-    pages_pool = new Page*[BUFFER_POOL_SIZE];
+    buffer_pool = new Page*[BUFFER_POOL_INITIAL_SIZE];
     clock_pos = 0;
+    bytes = new char[BUFFER_POOL_INITIAL_SIZE*PAGE_SIZE];
 }
 
 BufferManager::~BufferManager()
 {
     cout << "FLUSHING PAGES\n";
     for (int i = 0; i < PAGE_SIZE; i++) {
-        if (pages_pool[i] != nullptr) {
-            pages_pool[i]->flush();
+        if (buffer_pool[i] != nullptr) {
+            buffer_pool[i]->flush();
         }
     }
 }
@@ -48,39 +48,31 @@ Page& BufferManager::get_page(int page_number, const string& filename) {
     if (it == pages.end()) {
         int buffer_available = get_buffer_available();
         if (buffer_pool[buffer_available] == nullptr) {
-            buffer_pool[buffer_available] = new Buffer();
+            buffer_pool[buffer_available] = new Page(page_number, &bytes[page_number*PAGE_SIZE], filename);
         }
-        fstream file;
-        file.open(filename, fstream::in|fstream::out|fstream::binary|fstream::app);
+        else {
+            buffer_pool[buffer_available]->reuse(page_number, filename);
+        }
 
-        // check file has block_size == page_number+1?
-        // cout << "get_page(" <<page_number << ", "<< filename << ")\n";
+        fstream file(filename, fstream::in|fstream::out|fstream::binary|fstream::app);
         file.seekg (0, file.end);
-        int block_size = file.tellg()/PAGE_SIZE;
-        // cout << "  block_size: " << block_size << "\n";
-
-        if (block_size <= page_number) {
+        if (file.tellg()/PAGE_SIZE <= page_number) {
             for (int i = 0; i < PAGE_SIZE; i++) {
                 buffer_pool[buffer_available]->get_bytes()[i] = 0;
             }
             file.write(buffer_pool[buffer_available]->get_bytes(), PAGE_SIZE);
-            // cout << "  New block created\n";
         }
         else {
-            // cout << "  buffer_available" << buffer_available << "\n";
             file.seekg(page_number*PAGE_SIZE);
             file.readsome(buffer_pool[buffer_available]->get_bytes(), PAGE_SIZE);
         }
-
         file.close();
 
         pages.insert(std::pair<pair<string, int>, int>(page_key, buffer_available));
-        pages_pool[buffer_available] = new Page(page_number, *buffer_pool[buffer_available], filename);
-        // cout << "returned get_page(" <<page_number << ", "<< filename << ")\n";
-        return *pages_pool[buffer_available];
+        return *buffer_pool[buffer_available];
     }
     else { // file is already open
-        pages_pool[it->second]->pin();
-        return *pages_pool[it->second];
+        buffer_pool[it->second]->pin();
+        return *buffer_pool[it->second];
     }
 }

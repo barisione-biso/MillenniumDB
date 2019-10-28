@@ -1,3 +1,6 @@
+- Create Grammar
+- Buffer manager preallocating memory
+
 - File Manager:
     - for each file open, have its open pages.
 - Importing graph:
