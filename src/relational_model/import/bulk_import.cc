@@ -4,7 +4,7 @@
 #include "relational_model/graph/relational_graph.h"
 
 #include <iostream>
-#include <regex>
+
 
 
 BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_name, RelationalGraph& graph)
@@ -12,6 +12,15 @@ BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_n
 {
     nodes_file = ifstream(nodes_file_name);
     edges_file = ifstream(edges_file_name);
+
+    node_line_expr = std::regex("^\\s*\\(\\d+\\)(\\s+:[^:\\s]+)*(\\s+[^:\\s]+:((\".+\")|[^\\s\"]+))*\\s*$");
+    edge_line_expr = std::regex("^\\s*\\(\\d+\\)->\\(\\d+\\)(\\s+:[^:\\s]+)*(\\s+[^:\\s]+:((\".+\")|[^\\s\"]+))*\\s*$");
+
+    node_expr = std::regex("\\((\\d+)\\)");
+    edge_expr = std::regex("\\((\\d+)\\)->\\((\\d+)\\)");
+
+    label_expr = std::regex("\\s+:([^:\\s]+)");
+    properties_expr = std::regex("\\s+([^\\s]+):((?:\".*\")|\\S+)");
 }
 
 void BulkImport::start_import()
@@ -20,13 +29,19 @@ void BulkImport::start_import()
     edge_count = 0;
     string line;
 
+    int line_number = 1;
     while (getline(nodes_file, line)) {
-        process_node(line);
+        process_node(line, line_number);
+        line_number++;
     }
+    cout << "\n";
 
+    line_number = 1;
     while (getline(edges_file, line)) {
-        process_edge(line);
+        process_edge(line, line_number);
+        line_number++;
     }
+    cout << "\n";
 
     // connect nodes
     for (auto&& [from, to, edge_id] : edges_original_ids) {
@@ -34,20 +49,19 @@ void BulkImport::start_import()
     }
 }
 
-void BulkImport::process_node(const string& line)
+void BulkImport::process_node(const string& line, int line_number)
 {
-    std::regex line_expr ("^\\s*\\(\\d+\\)(\\s+:\\w+)*(\\s+\\w+:((\"(\\w|\\s)*\")|\\S+))*\\s*$");
     std::smatch match;
 
-    std::regex_search(line, match, line_expr);
+    cout << "procesing nodes, line " << line_number << "\n";
+    // cout << "\rprocesing nodes, line " << line_number << "      ";
+
+    std::regex_search(line, match, node_line_expr);
     if (match.empty()) {
-        cout << "ERROR: line has wrong format in nodes file.\n";
+        cout << "ERROR: line " << line_number << " has wrong format in nodes file.\n";
         return;
     }
-
     std::string str = line;
-
-    std::regex node_expr ("\\((\\d+)\\)");
 
     // MATCH NODE ID
     std::regex_search(str, match, node_expr);
@@ -60,14 +74,12 @@ void BulkImport::process_node(const string& line)
     node_dict.insert(pair<uint64_t, uint64_t>(original_id, node_id));
 
     // MATCH LABELS
-    std::regex label_expr ("\\s+:(\\w+)");
     while (std::regex_search (str, match, label_expr)) {
         graph.add_label_to_node(node_id, match[1]);
         str = match.suffix().str();
     }
 
     // MATCH PROPERTIES
-    std::regex properties_expr ("\\s+(\\w+):((?:\"(?:\\w|\\s)*\")|\\S+)");
     while (std::regex_search (str, match, properties_expr)) {
         ValueString value = ValueString(match[2]); // TODO: support other types
         graph.add_property_to_node(node_id, match[1], value);
@@ -75,25 +87,20 @@ void BulkImport::process_node(const string& line)
     }
 }
 
-void BulkImport::process_edge(const string& line)
+void BulkImport::process_edge(const string& line, int line_number)
 {
-
-    // ^\s*\(\d+\)->\(\d+\)(\s+:(\w+))*(\s+\w+:((\"(\w|\s)*\")|\S+))*\s*$
-    std::regex line_expr ("^\\s*\\(\\d+\\)->\\(\\d+\\)(\\s+:(\\w+))*(\\s+\\w+:((\"(\\w|\\s)*\")|\\S+))*\\s*$");
     std::smatch match;
 
-    std::regex_search(line, match, line_expr);
+    std::regex_search(line, match, edge_line_expr);
     if (match.empty()) {
-        cout << "ERROR: line has wrong format in edges filw.\n";
+         cout << "ERROR: line " << line_number << " has wrong format in edges file.\n";
         return;
     }
 
     std::string str = line;
 
-    std::regex node_expr ("\\((\\d+)\\)->\\((\\d+)\\)");
-
     // MATCH NODES IDS
-    std::regex_search(str, match, node_expr);
+    std::regex_search(str, match, edge_expr);
     uint64_t original_id_from = stoul(match[1]);
     uint64_t original_id_to = stoul(match[2]);
 
@@ -104,14 +111,12 @@ void BulkImport::process_edge(const string& line)
     str = match.suffix().str();
 
     // MATCH LABELS
-    std::regex label_expr ("\\s+:(\\w+)");
     while (std::regex_search (str, match, label_expr)) {
         graph.add_label_to_edge(edge_id, match[1]);
         str = match.suffix().str();
     }
 
     // MATCH PROPERTIES
-    std::regex properties_expr ("\\s+(\\w+):((?:\"(?:\\w|\\s)*\")|\\S+)");
     while (std::regex_search (str, match, properties_expr)) {
         ValueString value = ValueString(match[2]); // TODO: support other types
         graph.add_property_to_edge(edge_id, match[1], value);

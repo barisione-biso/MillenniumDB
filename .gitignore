@@ -41,3 +41,4 @@ bin/*
 # End of https://www.gitignore.io/api/c++
 makefile_out
 test_files/*.*
+test_files/*
