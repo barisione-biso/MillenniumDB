@@ -1,6 +1,6 @@
 #include "file/page.h"
 
-Page::Page(int page_number, Buffer& buffer, const std::string& filename)
+Page::Page(uint_fast32_t page_number, Buffer& buffer, const std::string& filename)
     : page_number(page_number), filename(filename), pins(1), dirty(false), buffer(buffer)
 {
 }
