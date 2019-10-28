@@ -1,60 +1,36 @@
-#ifndef FILE__PAGE_
-#define FILE__PAGE_
+#ifndef PAGE_SIZE
+    #define PAGE_SIZE 4096
+#endif
+
+#ifndef FILE__PAGE_H_
+#define FILE__PAGE_H_
 
 #include <iostream>
 #include <string>
-#include <boost/iostreams/device/mapped_file.hpp>
+#include <fstream>
 
-#define PAGE_SIZE 4096
+#include "file/buffer.h"
 
 class Page {
     friend class BufferManager;
     public:
-        const int page_number;
-        char* bytes; // protected ??
-        const std::string& filename;
+        const uint_fast32_t page_number;
+        const std::string filename;
 
-        void unpin() {
-            pins--;
-        }
+        void unpin();
+        void make_dirty();
+        char* get_bytes();
     private:
-        int pins;
-        boost::iostreams::mapped_file mapped_file;
+        uint_fast32_t pins;
+        bool dirty;
+        Buffer &buffer;
 
-        Page(int page_number, const std::string& filename)
-            : page_number(page_number), filename(filename)
-        {
-            boost::iostreams::mapped_file_params params;
-            params.path = filename;
-            params.length = PAGE_SIZE;
-            params.mode = (std::ios_base::out | std::ios_base::in);
-            params.offset = PAGE_SIZE*page_number;
+        Page(uint_fast32_t page_number, Buffer& buffer, const std::string& filename);
+        ~Page();
 
-            mapped_file = *new boost::iostreams::mapped_file();
-            mapped_file.open(params);
-            this->bytes = mapped_file.data();
-            pins = 1;
-        }
+        void pin(); // Only buffer manager should call pin()
 
-        Page(std::string filename)
-            : page_number(0), filename(filename)
-        {
-            boost::iostreams::mapped_file_params params;
-            params.path = filename;
-            params.new_file_size = PAGE_SIZE;
-            params.mode = (std::ios_base::out | std::ios_base::in);
-
-            mapped_file = *new boost::iostreams::mapped_file();
-            mapped_file.open(params);
-            this->bytes = mapped_file.data();
-            pins = 1;
-        }
-
-        ~Page()
-        {
-            std::cout << "destroying page (" << page_number << ", " << filename << ")\n";
-            mapped_file.close();
-        }
+        void flush();
 };
 
-#endif //FILE__PAGE_
+#endif //FILE__PAGE_H_

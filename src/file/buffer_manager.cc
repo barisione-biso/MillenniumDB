@@ -1,72 +1,86 @@
 #include <iostream>
+#include <fstream>
 #include <boost/filesystem.hpp>
-#include <boost/iostreams/device/mapped_file.hpp>
 
 #include "file/page.h"
 #include "file/buffer_manager.h"
 
+#define BUFFER_POOL_SIZE 4096
+
+using namespace std;
 
 BufferManager::BufferManager()
 {
-
+    buffer_pool = new Buffer*[BUFFER_POOL_SIZE];
+    pages_pool = new Page*[BUFFER_POOL_SIZE];
+    clock_pos = 0;
 }
 
-int BufferManager::count_pages(const std::string& filename)
+BufferManager::~BufferManager()
+{
+    cout << "FLUSHING PAGES\n";
+    for (int i = 0; i < PAGE_SIZE; i++) {
+        if (pages_pool[i] != nullptr) {
+            pages_pool[i]->flush();
+        }
+    }
+}
+
+int BufferManager::count_pages(const string& filename)
 {
     return boost::filesystem::file_size(filename)/PAGE_SIZE;
 }
 
-Page& BufferManager::append_page(const std::string& filename)
+Page& BufferManager::append_page(const string& filename)
 {
-    return get_page(file_page_size[filename] ,filename);
+    return get_page(count_pages(filename) ,filename);
 }
 
-Page& BufferManager::get_page(int page_number, const std::string& filename) {
-    std::pair<std::string, int> page_key = std::make_pair(filename, page_number);
-    if (file_page_size.find(filename) == file_page_size.end()) { // file is not open yet
-        if (!boost::filesystem::exists(filename)) { // file do not exist
-            // TODO: if checking throw exceptio
-            if (page_number != 0){
-                std::cout << "INCONSISTENCIA: se llama a BufferManager::get_page de un archivo inexistente con page_number != 0\n";
-            }
-            Page& new_page = *new Page(filename);
-            file_page_size.insert(std::pair<std::string, int>(filename, 1));
-            pages.insert(std::make_pair(page_key, &new_page));
-            return new_page;
+int BufferManager::get_buffer_available()
+{
+    return clock_pos++; // TODO:
+}
+
+Page& BufferManager::get_page(int page_number, const string& filename) {
+    pair<string, int> page_key = pair<string, int>(filename, page_number);
+    map<pair<string, int>, int>::iterator it = pages.find(page_key);
+
+    if (it == pages.end()) {
+        int buffer_available = get_buffer_available();
+        if (buffer_pool[buffer_available] == nullptr) {
+            buffer_pool[buffer_available] = new Buffer();
         }
-        else { // file exists
-            int max_page = count_pages(filename);
-            if (max_page <= page_number) {
-                // need to resize
-                // TODO: if checking throw exception if inserting more than one page
-                boost::filesystem::resize_file(filename, PAGE_SIZE*(page_number+1));
-                file_page_size.insert(std::pair<std::string, int>(filename, page_number+1));
+        fstream file;
+        file.open(filename, fstream::in|fstream::out|fstream::binary|fstream::app);
+
+        // check file has block_size == page_number+1?
+        // cout << "get_page(" <<page_number << ", "<< filename << ")\n";
+        file.seekg (0, file.end);
+        int block_size = file.tellg()/PAGE_SIZE;
+        // cout << "  block_size: " << block_size << "\n";
+
+        if (block_size <= page_number) {
+            for (int i = 0; i < PAGE_SIZE; i++) {
+                buffer_pool[buffer_available]->get_bytes()[i] = 0;
             }
-            else {
-                file_page_size.insert(std::pair<std::string, int>(filename, max_page));
-            }
-            Page& new_page = *new Page(page_number, filename);
-            pages.insert(std::make_pair(page_key, &new_page));
-            return new_page;
+            file.write(buffer_pool[buffer_available]->get_bytes(), PAGE_SIZE);
+            // cout << "  New block created\n";
         }
+        else {
+            // cout << "  buffer_available" << buffer_available << "\n";
+            file.seekg(page_number*PAGE_SIZE);
+            file.readsome(buffer_pool[buffer_available]->get_bytes(), PAGE_SIZE);
+        }
+
+        file.close();
+
+        pages.insert(std::pair<pair<string, int>, int>(page_key, buffer_available));
+        pages_pool[buffer_available] = new Page(page_number, *buffer_pool[buffer_available], filename);
+        // cout << "returned get_page(" <<page_number << ", "<< filename << ")\n";
+        return *pages_pool[buffer_available];
     }
     else { // file is already open
-        // check if page is in buffer
-        std::map<std::pair<std::string, int>, Page*>::iterator it = pages.find(std::pair<std::string, int>(filename, page_number));
-        if (it == pages.end()) { // page not in buffer
-            int max_page = count_pages(filename);
-            if (max_page <= page_number) {
-                // need to resize
-                // TODO: if checking throw exception if inserting more than one page
-                boost::filesystem::resize_file(filename, PAGE_SIZE*(page_number+1));
-                file_page_size[filename] = page_number+1;
-            }
-            Page& new_page = *new Page(page_number, filename);
-            pages.insert(std::make_pair(page_key, &new_page));
-            return new_page;
-        }
-        else { // page in buffer
-            return *(it->second);
-        }
+        pages_pool[it->second]->pin();
+        return *pages_pool[it->second];
     }
 }

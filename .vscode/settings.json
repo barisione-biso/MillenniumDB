@@ -68,5 +68,8 @@
         "variant": "cpp",
         "filesystem": "cpp",
         "regex": "cpp"
-    }
+    },
+    "python.pythonPath": "/usr/bin/python3",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }

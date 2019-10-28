@@ -1,14 +1,13 @@
+- File Manager:
+    - for each file open, have its open pages.
 - Importing graph:
     - remove "" to strings
     - add int support
 - Begin nodes/edges at 1
 - Object File:
     - skip ID 0, reserved to unexisting Label/Key/Value.
+    - use disk if importing more than X nodes
 - Catalog:
     - Stop if having key for node/edge more than X different keys.
-- Revisar generador de grafos que envió Renzo.
-- Initialize BPlusTreeParams correctly:
-    - calculate max_records for dir and leaf.
-- use unsigned int for page numbers
+
 - posible optimización: no usar 3 punteros para los nodos del bpt, sino indices del arreglo que pueden ser 32 bits.
-- incluir datos basura para no checkear casos borde en BPT?

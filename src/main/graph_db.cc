@@ -14,6 +14,7 @@
 #include "relational_model/import/bulk_import.h"
 
 #include <cstdlib>
+#include <climits>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -23,22 +24,13 @@
 using namespace std;
 
 void insert_records(BPlusTree& bpt) {
-	// for (int i = 0; i < 50; i++) {
-	// 	uint64_t* c = new uint64_t[2];
-	// 	c[0] = (uint64_t) rand()/1000;
-	// 	c[1] = (uint64_t) rand()/1000;
-	// 	cout << "> Insertando record (" << (int)c[0] << ", " << (int)c[1] << ")\n";
-	// 	Record record = Record(c, 2);
-	// 	bpt.insert(record);
-	// 	delete[] c;
-	// }
-	for (int i = 0; i < 150; i++) {
+	for (int i = 0; i < 100000; i++) {
 		uint64_t* c = new uint64_t[2];
-		c[0] = (uint64_t) rand()/1000;
-		c[1] = (uint64_t) rand()/1000;
-		cout << "> Insertando record (" << (int)c[0] << ", " << (int)c[1] << ")\n";
+		c[0] = (uint64_t) rand();
+		c[1] = (uint64_t) rand();
+		// cout << "> Insertando record (" << (int)c[0] << ", " << (int)c[1] << ")\n";
 
-		bpt.insert(Record(c[0]), Record(c[1]));
+		bpt.insert(Record(c[0], c[1]));
 		delete[] c;
 	}
 }
@@ -50,8 +42,9 @@ void search_records(BPlusTree& bpt) {
 	//uint64_t max[] = {2044897, 1967514};
 	auto it = bpt.get_range(Record(min[0], min[1]), Record(max[0], max[1]));
 	auto record = it->next();
+	int i = 1;
 	while (record != nullptr) {
-		cout << "(" << (int)record->ids[0] << ", " << (int)record->ids[1] << ")\n";
+		cout << i++ << ": (" << (int)record->ids[0] << ", " << (int)record->ids[1] << ")\n";
 		// bpt.edit(Record(record->ids[0]), Record(record->ids[0]+1));
 		// cout << "(" << bpt.get(Record(record->ids[0]))->ids[0] << ")\n";
 		record = it->next();
@@ -60,10 +53,9 @@ void search_records(BPlusTree& bpt) {
 
 void test_bpt() {
 	BufferManager buffer_manager = BufferManager();
-	BPlusTreeParams bpt_params = BPlusTreeParams(buffer_manager, "test_files/example_bpt", 1, 1);
+	BPlusTreeParams bpt_params = BPlusTreeParams(buffer_manager, "test_files/example_bpt", 2);
     BPlusTree bpt = BPlusTree(bpt_params);
-	insert_records(bpt);
-	cout << "Records insertados!\n";
+	// insert_records(bpt);
 	search_records(bpt);
 }
 
@@ -125,14 +117,14 @@ void test_nested_loop_join() {
 void test_bulk_import() {
 	Config config = Config();
 	RelationalGraph graph = RelationalGraph(0, config);
-	BulkImport import = BulkImport("test_files/graph_creation_example/nodes.txt", "test_files/graph_creation_example/edges.txt", graph);
+	BulkImport import = BulkImport("test_files/graph_creation_1/nodes.txt", "test_files/graph_creation_1/edges.txt", graph);
 	import.start_import();
 }
 
 int main()
 {
-	test_bulk_import();
-	test_nested_loop_join();
-	// test_bpt();
+	//test_bulk_import();
+	// test_nested_loop_join();
+	test_bpt();
 	return 0;
 }

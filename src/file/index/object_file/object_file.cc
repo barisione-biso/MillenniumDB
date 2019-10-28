@@ -6,6 +6,7 @@ using namespace std;
 
 ObjectFile::ObjectFile(const string& filename)
 {
+    // TODO: try file = fstream(filename, fstream::in|fstream::out|fstream::binary|fstream::app); to don't check if exists
     file = fstream(filename, ios::in|ios::out|ios::binary);
     file.seekg (0, file.end);
     int last_pos = file.tellg();

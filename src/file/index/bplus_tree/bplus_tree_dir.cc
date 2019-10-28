@@ -12,9 +12,9 @@
 BPlusTreeDir::BPlusTreeDir(const BPlusTreeParams& params, Page& page)
     : params(params), page(page)
 {
-    count = (int*) &page.bytes[0];
-    records = (uint64_t*) &page.bytes[sizeof(int)];
-    dirs = (int*) &page.bytes[sizeof(int)+((sizeof(uint64_t)*params.dir_max_records*params.key_size))];
+    count = (int*) &page.get_bytes()[0];
+    records = (uint64_t*) &page.get_bytes()[sizeof(int)];
+    dirs = (int*) &page.get_bytes()[sizeof(int)+((sizeof(uint64_t)*params.dir_max_records*params.key_size))];
 }
 
 BPlusTreeDir::~BPlusTreeDir()
@@ -78,6 +78,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
     }
 
     if (split_record_index != nullptr) {
+        this->page.make_dirty();
         int splitted_index = search_dir_index(0, *count, split_record_index->first);
         // Case 1: no need to split this node
         if (*count < params.dir_max_records){
@@ -112,6 +113,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             int middle_index = (*count+1)/2;
             Page& new_left_page = params.buffer_manager.append_page(params.dir_path);
             Page& new_right_page = params.buffer_manager.append_page(params.dir_path);
+            new_left_page.make_dirty();
+            new_right_page.make_dirty();
 
             BPlusTreeDir new_left_dir = BPlusTreeDir(params, new_left_page);
             BPlusTreeDir new_right_dir = BPlusTreeDir(params, new_right_page);
@@ -174,6 +177,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             int middle_index = (*count+1)/2;
 
             Page& new_page = params.buffer_manager.append_page(params.dir_path);
+            new_page.make_dirty();
             BPlusTreeDir new_dir = BPlusTreeDir(params, new_page);
 
             // write records from (middle_index+1) to (*count-1) plus the last record saved before

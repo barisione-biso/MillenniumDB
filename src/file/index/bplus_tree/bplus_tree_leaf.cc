@@ -8,9 +8,9 @@
 BPlusTreeLeaf::BPlusTreeLeaf(const BPlusTreeParams& params, Page& page)
     : params(params), page(page)
 {
-    count = (int*) &page.bytes[0];
-    next = (int*) &page.bytes[sizeof(int)];
-    records = (uint64_t*) &page.bytes[2*sizeof(int)];
+    count = (int*) &page.get_bytes()[0];
+    next = (int*) &page.get_bytes()[sizeof(int)];
+    records = (uint64_t*) &page.get_bytes()[2*sizeof(int)];
 }
 
 BPlusTreeLeaf::~BPlusTreeLeaf()
@@ -71,8 +71,18 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
 {
     int index = search_index(0, *count-1, key);
     if (equal_record(key, index)) {
-        throw std::logic_error("Insertiong record threw error: key duplicated.");
+        for (int i = 0; i < params.key_size; i++) {
+            std::cout << key.ids[i] << " ";
+        }
+        std::cout << "\n";
+        for (int i = 0; i < params.key_size; i++) {
+            std::cout << records[params.total_size*index + i] << " ";
+        }
+        std::cout << "\n";
+
+        throw std::logic_error("Inserting key duplicated into BPlusTree.");
     }
+    this->page.make_dirty();
 
     if (*count < params.leaf_max_records) {
         // shift right from index to *count-1
@@ -115,6 +125,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
 
         // crear nueva hoja
         Page& new_page = params.buffer_manager.append_page(params.leaf_path);
+        new_page.make_dirty();
         BPlusTreeLeaf new_leaf = BPlusTreeLeaf(params, new_page);
 
         *new_leaf.next = *next;
