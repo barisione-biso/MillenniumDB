@@ -84,7 +84,7 @@ void BulkImport::process_edge(const string& line)
 
     std::regex_search(line, match, line_expr);
     if (match.empty()) {
-        cout << "ERROR: line has wrong format in edges filw.\n";
+        cout << "ERROR: line has wrong format in edges file.\n";
         return;
     }
 

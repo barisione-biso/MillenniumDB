@@ -1,6 +1,9 @@
 - Importing graph:
     - remove "" to strings
     - add int support
+- Begin nodes/edges at 1
+- Object File:
+    - skip ID 0, reserved to unexisting Label/Key/Value.
 - Catalog:
     - Stop if having key for node/edge more than X different keys.
 - Revisar generador de grafos que envió Renzo.
