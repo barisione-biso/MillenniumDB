@@ -27,11 +27,11 @@ void Page::pin() {
 
 void Page::flush() {
     if (dirty) {
-        std::cout << "Page::flush() " << page_number << ", " << filename << "\n";
+        // std::cout << "Page::flush() " << page_number << ", " << filename << "\n";
         std::fstream file;
         file.open(filename, std::fstream::in|std::fstream::out|std::fstream::binary);
         file.seekp(page_number*PAGE_SIZE);
-        std::cout << file.tellp() << "\n";
+        // std::cout << file.tellp() << "\n";
         file.write(buffer.get_bytes(), PAGE_SIZE);
         file.close();
     }

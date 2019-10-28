@@ -125,7 +125,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
 
         // crear nueva hoja
         Page& new_page = params.buffer_manager.append_page(params.leaf_path);
-        page.make_dirty();
+        new_page.make_dirty();
         BPlusTreeLeaf new_leaf = BPlusTreeLeaf(params, new_page);
 
         *new_leaf.next = *next;

@@ -42,8 +42,9 @@ void search_records(BPlusTree& bpt) {
 	//uint64_t max[] = {2044897, 1967514};
 	auto it = bpt.get_range(Record(min[0], min[1]), Record(max[0], max[1]));
 	auto record = it->next();
+	int i = 1;
 	while (record != nullptr) {
-		cout << "(" << (int)record->ids[0] << ", " << (int)record->ids[1] << ")\n";
+		cout << i++ << ": (" << (int)record->ids[0] << ", " << (int)record->ids[1] << ")\n";
 		// bpt.edit(Record(record->ids[0]), Record(record->ids[0]+1));
 		// cout << "(" << bpt.get(Record(record->ids[0]))->ids[0] << ")\n";
 		record = it->next();
@@ -54,7 +55,7 @@ void test_bpt() {
 	BufferManager buffer_manager = BufferManager();
 	BPlusTreeParams bpt_params = BPlusTreeParams(buffer_manager, "test_files/example_bpt", 2);
     BPlusTree bpt = BPlusTree(bpt_params);
-	//insert_records(bpt);
+	// insert_records(bpt);
 	search_records(bpt);
 }
 
