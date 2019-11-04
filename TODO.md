@@ -1,14 +1,13 @@
 - Create Grammar
-- Buffer manager preallocating memory
+- Buffer manager:
+    - allocating more space if necesary
 
 - File Manager:
     - for each file open, have its open pages.
 - Importing graph:
     - remove "" to strings
     - add int support
-- Begin nodes/edges at 1
 - Object File:
-    - skip ID 0, reserved to unexisting Label/Key/Value.
     - use disk if importing more than X nodes
 - Catalog:
     - Stop if having key for node/edge more than X different keys.

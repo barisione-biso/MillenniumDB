@@ -28,7 +28,7 @@ void insert_records(BPlusTree& bpt) {
 		uint64_t* c = new uint64_t[2];
 		c[0] = (uint64_t) rand();
 		c[1] = (uint64_t) rand();
-		// cout << "> Insertando record (" << (int)c[0] << ", " << (int)c[1] << ")\n";
+		// cout << "> Insertando record " << i << ": (" << (int)c[0] << ", " << (int)c[1] << ")\n";
 
 		bpt.insert(Record(c[0], c[1]));
 		delete[] c;
@@ -123,8 +123,8 @@ void test_bulk_import() {
 
 int main()
 {
-	//test_bulk_import();
+	test_bulk_import();
 	// test_nested_loop_join();
-	test_bpt();
+	// test_bpt();
 	return 0;
 }

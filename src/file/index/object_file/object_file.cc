@@ -6,15 +6,11 @@ using namespace std;
 
 ObjectFile::ObjectFile(const string& filename)
 {
-    // TODO: try file = fstream(filename, fstream::in|fstream::out|fstream::binary|fstream::app); to don't check if exists
-    file = fstream(filename, ios::in|ios::out|ios::binary);
+    file = fstream(filename, fstream::in|fstream::out|fstream::binary|fstream::app);
     file.seekg (0, file.end);
-    int last_pos = file.tellg();
-    if (last_pos == -1) {
-        file.close();
-        std::ofstream tmp(filename);
-        tmp.close();
-        file = fstream(filename, ios::in|ios::out|ios::binary);
+    if (file.tellg() == 0) { // Write trash to prevent the id = 0
+    char c = 0;
+        file.write(&c, 1);
     }
 }
 

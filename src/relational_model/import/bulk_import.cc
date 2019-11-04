@@ -30,6 +30,7 @@ void BulkImport::start_import()
     string line;
 
     int line_number = 1;
+    cout << "procesing nodes:\n";
     while (getline(nodes_file, line)) {
         process_node(line, line_number);
         line_number++;
@@ -37,6 +38,7 @@ void BulkImport::start_import()
     cout << "\n";
 
     line_number = 1;
+    cout << "procesing edges:\n";
     while (getline(edges_file, line)) {
         process_edge(line, line_number);
         line_number++;
@@ -52,9 +54,7 @@ void BulkImport::start_import()
 void BulkImport::process_node(const string& line, int line_number)
 {
     std::smatch match;
-
-    cout << "procesing nodes, line " << line_number << "\n";
-    // cout << "\rprocesing nodes, line " << line_number << "      ";
+    cout << "\r  line " << line_number << std::flush;
 
     std::regex_search(line, match, node_line_expr);
     if (match.empty()) {
@@ -90,6 +90,7 @@ void BulkImport::process_node(const string& line, int line_number)
 void BulkImport::process_edge(const string& line, int line_number)
 {
     std::smatch match;
+    cout << "\r  line " << line_number << std::flush;
 
     std::regex_search(line, match, edge_line_expr);
     if (match.empty()) {

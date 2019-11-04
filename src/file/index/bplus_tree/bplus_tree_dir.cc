@@ -15,6 +15,9 @@ BPlusTreeDir::BPlusTreeDir(const BPlusTreeParams& params, Page& page)
     count = (int*) &page.get_bytes()[0];
     records = (uint64_t*) &page.get_bytes()[sizeof(int)];
     dirs = (int*) &page.get_bytes()[sizeof(int)+((sizeof(uint64_t)*params.dir_max_records*params.key_size))];
+    // std::cout << "count  : " << (void *)count << "\n";
+    // std::cout << "records: " << (void *)records << "\n";
+    // std::cout << "dirs   : " << (void *)dirs << "\n";
 }
 
 BPlusTreeDir::~BPlusTreeDir()
@@ -78,7 +81,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
     }
 
     if (split_record_index != nullptr) {
-        
+        Page& child_page = params.buffer_manager.get_page(page_pointer, params.leaf_path);
+        BPlusTreeLeaf child =  BPlusTreeLeaf(params, child_page);
         int splitted_index = search_dir_index(0, *count, split_record_index->first);
         // Case 1: no need to split this node
         if (*count < params.dir_max_records){
@@ -90,7 +94,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             return nullptr;
         }
         // Case 2: we need to split this node and this node is the root
-        else if (page.page_number == 0) {
+        else if (page.get_page_number() == 0) {
             // poner nuevo record/dir y guardar el ultimo (que no cabe)
             std::unique_ptr<uint64_t[]> last_key = std::make_unique<uint64_t[]>(params.key_size);
             int last_dir;
@@ -148,8 +152,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             for (int i = 0; i < params.key_size; i++) {
                 records[i] = records[middle_index*params.key_size + i];
             }
-            dirs[0] = new_left_dir.page.page_number * -1;
-            dirs[1] = new_right_dir.page.page_number * -1;
+            dirs[0] = new_left_dir.page.get_page_number() * -1;
+            dirs[1] = new_right_dir.page.get_page_number() * -1;
             this->page.make_dirty();
             new_left_page.make_dirty();
             new_right_page.make_dirty();
@@ -204,7 +208,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
                 split_key[i] = records[middle_index*params.key_size + i];
             }
             new_page.make_dirty();
-            return std::make_unique<std::pair<Record, int>>(Record(split_key), new_page.page_number*-1);
+            return std::make_unique<std::pair<Record, int>>(Record(split_key), new_page.get_page_number()*-1);
         }
     }
     return nullptr;

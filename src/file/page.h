@@ -12,19 +12,19 @@
 class Page {
     friend class BufferManager;
     public:
-        uint_fast32_t page_number;
-        std::string filename;
-
         void unpin();
-        void reuse(uint_fast32_t page_number, const std::string& filename);
+        void reuse(int page_number, const std::string& filename);
         void make_dirty();
         char* get_bytes();
+        uint_fast32_t get_page_number();
     private:
+        uint_fast32_t page_number;
+        std::string filename;
         uint_fast32_t pins;
         bool dirty;
         char* const bytes;
 
-        Page(uint_fast32_t page_number, char* bytes, const std::string& filename);
+        Page(int page_number, char* bytes, const std::string& filename);
         ~Page();
 
         void pin(); // Only buffer manager should call pin()

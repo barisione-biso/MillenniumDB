@@ -11,6 +11,9 @@ BPlusTreeLeaf::BPlusTreeLeaf(const BPlusTreeParams& params, Page& page)
     count = (int*) &page.get_bytes()[0];
     next = (int*) &page.get_bytes()[sizeof(int)];
     records = (uint64_t*) &page.get_bytes()[2*sizeof(int)];
+    // std::cout << "count  : " << (void *)count << "\n";
+    // std::cout << "next   : " << (void *)next << "\n";
+    // std::cout << "records: " << (void *)records << "\n";
 }
 
 BPlusTreeLeaf::~BPlusTreeLeaf()
@@ -128,7 +131,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
         BPlusTreeLeaf new_leaf = BPlusTreeLeaf(params, new_page);
 
         *new_leaf.next = *next;
-        *next = new_leaf.page.page_number;
+        *next = new_leaf.page.get_page_number();
 
         // write records
         int middle_index = (*count+1)/2;
@@ -154,7 +157,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
         Record split_record = Record(split_key);
         this->page.make_dirty();
         new_page.make_dirty();
-        return std::make_unique<std::pair<Record, int>>(split_record, new_page.page_number);
+
+        return std::make_unique<std::pair<Record, int>>(split_record, new_page.get_page_number());
     }
 }
 
@@ -172,7 +176,7 @@ void BPlusTreeLeaf::create_new(const Record& key, const Record& value)
 std::pair<int, int> BPlusTreeLeaf::search_leaf(const Record& min)
 {
     int index = search_index(0, *count-1, min);
-    return std::pair<int, int>(page.page_number, index);
+    return std::pair<int, int>(page.get_page_number(), index);
 }
 
 
@@ -225,4 +229,18 @@ bool BPlusTreeLeaf::equal_record(const Record& record, int index) {
         }
     }
     return true;
+}
+
+void BPlusTreeLeaf::print() const {
+    std::cout << "Printing Leaf:\n";
+    for (int i = 0; i < *count; i++) {
+        std::cout << "  (";
+        for (int j = 0; j < params.total_size; j++) {
+            if (j != 0)
+                std::cout << ", ";
+            std::cout << records[i*params.total_size+j];
+        }
+        std::cout << ")\n";
+        // std::cout << "(" << records[i*2] << "," << records[i*2+1] <<")\n";
+    }
 }

@@ -18,6 +18,7 @@ class Catalog
         uint64_t create_node();
         uint64_t create_edge();
 
+        // Skip id = 0, (reserved)
         uint64_t get_node_count();
         uint64_t get_edge_count();
 

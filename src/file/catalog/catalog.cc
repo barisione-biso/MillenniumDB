@@ -91,11 +91,11 @@ pair<uint64_t, uint64_t> Catalog::read_pair() {
 }
 
 uint64_t Catalog::create_node() {
-    return node_count++;
+    return ++node_count;
 }
 
 uint64_t Catalog::create_edge() {
-    return edge_count++;
+    return ++edge_count;
 }
 
 uint64_t Catalog::get_node_count(){ return node_count; }

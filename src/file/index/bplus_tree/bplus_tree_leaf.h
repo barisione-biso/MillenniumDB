@@ -26,6 +26,7 @@ public:
     bool is_leaf()  { return true; }
     int get_count() { return *count; }
     int has_next()  { return *next != 0; }
+    void print() const;
 
     std::unique_ptr<BPlusTreeLeaf> next_leaf();
     std::unique_ptr<Record> get_record(int pos);

@@ -29,7 +29,7 @@ DEPS := $(OBJS:.o=.d)
 
 # compiler flags
 # CPPFLAGS := $(INC_FLAGS) -MMD -MP -Wall -Wextra
-CPPFLAGS := -std=c++1z -I $(SRC_DIR) -MMD -MP -Wall -Wextra
+CPPFLAGS := -std=c++1z -I $(SRC_DIR) -MMD -MP -Wall -Wextra -O2
 
 # call make as "make DEBUG=1"
 ifdef DEBUG
