@@ -29,11 +29,13 @@ DEPS := $(OBJS:.o=.d)
 
 # compiler flags
 # CPPFLAGS := $(INC_FLAGS) -MMD -MP -Wall -Wextra
-CPPFLAGS := -std=c++1z -I $(SRC_DIR) -MMD -MP -Wall -Wextra -O2
+CPPFLAGS := -std=c++1z -I $(SRC_DIR) -MMD -MP -Wall -Wextra
 
 # call make as "make DEBUG=1"
 ifdef DEBUG
 	CPPFLAGS += -g
+else
+	CPPFLAGS += -O2
 endif
 
 # VPATH built-in variable specifies a list of directories that make should search for both prerequisites and targets of rules

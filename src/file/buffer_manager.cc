@@ -46,7 +46,7 @@ int BufferManager::get_buffer_available()
 {
     int first_lookup = clock_pos;
     while (buffer_pool[clock_pos] != nullptr && buffer_pool[clock_pos]->pins != 0) {
-        clock_pos++;
+        clock_pos = (clock_pos+1)%BUFFER_POOL_INITIAL_SIZE;
         if (clock_pos == first_lookup) {
             throw std::logic_error("No buffer available.");
         }
