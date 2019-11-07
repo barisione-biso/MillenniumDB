@@ -23,6 +23,10 @@ BufferManager::BufferManager()
 
 BufferManager::~BufferManager()
 {
+}
+
+void BufferManager::flush()
+{
     cout << "FLUSHING PAGES\n";
     for (int i = 0; i < PAGE_SIZE; i++) {
         if (buffer_pool[i] != nullptr) {
@@ -75,7 +79,9 @@ Page& BufferManager::get_page(int page_number, const string& filename) {
             // std::cout << "REUSING PAGE\n";
             pair<string, int> old_page_key = pair<string, int>(buffer_pool[buffer_available]->filename, buffer_pool[buffer_available]->page_number);
             pages.erase(old_page_key);
-            buffer_pool[buffer_available]->reuse(page_number, filename);
+            // buffer_pool[buffer_available]->reuse(page_number, filename);
+            delete buffer_pool[buffer_available];
+            buffer_pool[buffer_available] = new Page(page_number, &bytes[buffer_available*PAGE_SIZE], filename);
         }
 
         fstream file(filename, fstream::in|fstream::out|fstream::binary|fstream::app);

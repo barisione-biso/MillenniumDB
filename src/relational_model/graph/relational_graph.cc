@@ -43,6 +43,10 @@ RelationalGraph::RelationalGraph(int graph_id, Config& config)
     to_from_edge = make_unique<BPlusTree>(*bpt_params_to_from_edge);
 }
 
+RelationalGraph::~RelationalGraph() {
+    config.get_buffer_manager().flush();
+}
+
 
 uint64_t RelationalGraph::create_node()
 {

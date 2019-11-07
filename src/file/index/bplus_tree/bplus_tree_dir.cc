@@ -85,12 +85,13 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
         BPlusTreeLeaf child =  BPlusTreeLeaf(params, child_page);
         int splitted_index = search_dir_index(0, *count, split_record_index->first);
         // Case 1: no need to split this node
-        if (*count < params.dir_max_records){
+        if (*count < params.dir_max_records) {
             shift_right_records(splitted_index, *count-1);
             shift_right_dirs(splitted_index+1, *count);
             update_record(splitted_index, split_record_index->first);
             update_dir(splitted_index+1, split_record_index->second);
             (*count)++;
+            this->page.make_dirty();
             return nullptr;
         }
         // Case 2: we need to split this node and this node is the root
@@ -154,9 +155,9 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             }
             dirs[0] = new_left_dir.page.get_page_number() * -1;
             dirs[1] = new_right_dir.page.get_page_number() * -1;
-            this->page.make_dirty();
             new_left_page.make_dirty();
             new_right_page.make_dirty();
+            this->page.make_dirty();
             return nullptr;
         }
         else { // normal split split
@@ -208,6 +209,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
                 split_key[i] = records[middle_index*params.key_size + i];
             }
             new_page.make_dirty();
+            this->page.make_dirty();
             return std::make_unique<std::pair<Record, int>>(Record(split_key), new_page.get_page_number()*-1);
         }
     }
@@ -249,7 +251,7 @@ std::pair<int, int> BPlusTreeDir::search_leaf(const Record& min)
 
     if (page_pointer < 0) { // negative number: pointer to dir
         Page& child_page = params.buffer_manager.get_page(page_pointer*-1, params.dir_path);
-        BPlusTreeDir child =  BPlusTreeDir(params, child_page);
+        BPlusTreeDir child = BPlusTreeDir(params, child_page);
         return child.search_leaf(min);
     }
     else { // positive number: pointer to leaf

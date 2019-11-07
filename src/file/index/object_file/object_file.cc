@@ -9,7 +9,7 @@ ObjectFile::ObjectFile(const string& filename)
     file = fstream(filename, fstream::in|fstream::out|fstream::binary|fstream::app);
     file.seekg (0, file.end);
     if (file.tellg() == 0) { // Write trash to prevent the id = 0
-    char c = 0;
+        char c = 0;
         file.write(&c, 1);
     }
 }

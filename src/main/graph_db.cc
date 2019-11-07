@@ -55,13 +55,16 @@ void test_bpt() {
 	BufferManager buffer_manager = BufferManager();
 	BPlusTreeParams bpt_params = BPlusTreeParams(buffer_manager, "test_files/example_bpt", 2);
     BPlusTree bpt = BPlusTree(bpt_params);
-	// insert_records(bpt);
+	insert_records(bpt);
 	search_records(bpt);
 }
 
 void test_nested_loop_join() {
+	cout << "Testing nested loop join\n";
 	Config config = Config();
+	cout << "Config loaded\n";
 	RelationalGraph graph = RelationalGraph(0, config);
+	cout << "Graph initialized\n";
 
 	map<int, string> var_names;
 	var_names.insert(pair<int, string>(1, "Label:Person"));
@@ -99,7 +102,9 @@ void test_nested_loop_join() {
 	BindingIdIter& root = nlj2;
 	root.init(input);
 	unique_ptr<BindingId const> b = root.next();
-	while (b != nullptr) {
+	int count = 0;
+	int limit = 100;
+	while (b != nullptr && ++count <= limit) {
 		// b->print(var_names);
 		auto n_id = b->search_id(VarId(2));
 		Node node = graph.get_node(n_id->id);
@@ -116,9 +121,9 @@ void test_nested_loop_join() {
 		auto label2_id = b->search_id(VarId(5));
 		Label label2 = graph.get_label(label2_id->id);
 
-		cout << "Node:  " << node.get_id();
-		cout << "[" << label.get_label_name() << "]\t";
-		cout << "[" << label2.get_label_name() << "]\t";
+		cout << count << ") NodeId: " << node.get_id();
+		cout << ":" << label.get_label_name() << "\t";
+		cout << ":" << label2.get_label_name() << "\t";
 		cout << key.get_key_name() << ": " << value->to_string() << "\t";
 		cout << "\n";
 		b = root.next();
@@ -128,7 +133,9 @@ void test_nested_loop_join() {
 void test_bulk_import() {
 	Config config = Config();
 	RelationalGraph graph = RelationalGraph(0, config);
+	cout << "Graph initialized\n";
 	BulkImport import = BulkImport("test_files/graph_creation_1/nodes.txt", "test_files/graph_creation_1/edges.txt", graph);
+	cout << "Starting import\n";
 	import.start_import();
 }
 

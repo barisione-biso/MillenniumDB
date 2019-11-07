@@ -5,7 +5,6 @@
     - bplustree from ordered file
 - Buffer manager:
     - allocating more space if necesary
-    - dont save string in pages
 - File Manager:
     - for each file open, have its open pages.
 - Importing graph:
@@ -15,5 +14,6 @@
     - use disk if importing more than X nodes
 - Catalog:
     - Stop if having key for node/edge more than X different keys.
+- BUG dont initialize if catalog is damaged
 
 - posible optimización: no usar 3 punteros para los nodos del bpt, sino indices del arreglo que pueden ser 32 bits.

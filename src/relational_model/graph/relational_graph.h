@@ -32,7 +32,7 @@ public:
     unique_ptr<BPlusTree> to_from_edge;  // NodeTo|NodeFrom|Edge
 
     RelationalGraph(int graph_id, Config& config);
-    ~RelationalGraph() = default;
+    ~RelationalGraph();
 
     uint64_t create_node();
     uint64_t create_edge();

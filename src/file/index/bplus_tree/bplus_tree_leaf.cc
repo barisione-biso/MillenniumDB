@@ -171,6 +171,7 @@ void BPlusTreeLeaf::create_new(const Record& key, const Record& value)
         records[params.key_size+i] = value.ids[i];
     }
     (*count)++;
+    this->page.make_dirty();
 }
 
 std::pair<int, int> BPlusTreeLeaf::search_leaf(const Record& min)
@@ -241,6 +242,5 @@ void BPlusTreeLeaf::print() const {
             std::cout << records[i*params.total_size+j];
         }
         std::cout << ")\n";
-        // std::cout << "(" << records[i*2] << "," << records[i*2+1] <<")\n";
     }
 }

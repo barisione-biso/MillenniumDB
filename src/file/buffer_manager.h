@@ -14,6 +14,7 @@ public:
     ~BufferManager();
     Page& get_page(int page_number, const std::string& filename);
     Page& append_page(const std::string& filename);
+    void flush();
 
 private:
     int count_pages(const std::string& filename);
