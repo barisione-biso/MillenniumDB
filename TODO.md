@@ -1,7 +1,11 @@
 - Create Grammar
+- Example queries
+- Batch loading:
+    - ordered file
+    - bplustree from ordered file
 - Buffer manager:
     - allocating more space if necesary
-
+    - dont save string in pages
 - File Manager:
     - for each file open, have its open pages.
 - Importing graph:

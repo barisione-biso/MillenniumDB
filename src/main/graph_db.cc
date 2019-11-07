@@ -68,6 +68,7 @@ void test_nested_loop_join() {
 	var_names.insert(pair<int, string>(2, "Var:?n"));
 	var_names.insert(pair<int, string>(3, "Key:name"));
 	var_names.insert(pair<int, string>(4, "Value:?v"));
+	var_names.insert(pair<int, string>(5, "label:?l"));
 
 	vector<VarId> s1_vars;
 	s1_vars.push_back(VarId(1)); // Label:type1
@@ -78,18 +79,24 @@ void test_nested_loop_join() {
 	s2_vars.push_back(VarId(3)); // Key:Name
 	s2_vars.push_back(VarId(4)); // Value:?v
 
+	vector<VarId> s3_vars;
+	s3_vars.push_back(VarId(2)); // Node:?n
+	s3_vars.push_back(VarId(5)); // Label:?l
+
 	GraphScan s1 = GraphScan(graph.graph_id, *graph.label2element, s1_vars);
 	GraphScan s2 = GraphScan(graph.graph_id, *graph.element2prop, s2_vars);
+	GraphScan s3 = GraphScan(graph.graph_id, *graph.element2label, s3_vars);
 
-	IndexNestedLoopJoin nlj = IndexNestedLoopJoin(config, s1, s2);
+	IndexNestedLoopJoin nlj1 = IndexNestedLoopJoin(config, s1, s2);
+	IndexNestedLoopJoin nlj2 = IndexNestedLoopJoin(config, nlj1, s3);
 
 	auto input = make_shared<BindingId>();
-	ObjectId label_type_1 = graph.get_label_id(Label("Person"));
-	ObjectId key_name = graph.get_key_id(Key("name"));
+	ObjectId label_type_1 = graph.get_label_id(Label("moribund"));
+	ObjectId key_name = graph.get_key_id(Key("buddy"));
 	input->add(VarId(1), label_type_1);
 	input->add(VarId(3), key_name);
 
-	BindingIdIter& root = nlj;
+	BindingIdIter& root = nlj2;
 	root.init(input);
 	unique_ptr<BindingId const> b = root.next();
 	while (b != nullptr) {
@@ -106,8 +113,12 @@ void test_nested_loop_join() {
 		auto value_id = b->search_id(VarId(4));
 		auto value = graph.get_value(value_id->id);
 
+		auto label2_id = b->search_id(VarId(5));
+		Label label2 = graph.get_label(label2_id->id);
+
 		cout << "Node:  " << node.get_id();
 		cout << "[" << label.get_label_name() << "]\t";
+		cout << "[" << label2.get_label_name() << "]\t";
 		cout << key.get_key_name() << ": " << value->to_string() << "\t";
 		cout << "\n";
 		b = root.next();
@@ -123,8 +134,8 @@ void test_bulk_import() {
 
 int main()
 {
-	test_bulk_import();
-	// test_nested_loop_join();
+	// test_bulk_import();
+	test_nested_loop_join();
 	// test_bpt();
 	return 0;
 }
