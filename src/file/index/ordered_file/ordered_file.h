@@ -13,20 +13,37 @@ using namespace std;
 class OrderedFile
 {
     public:
-        OrderedFile(const string& filename, uint_fast8_t record_size);
+        OrderedFile(const string& filename, uint_fast8_t tuple_size);
         ~OrderedFile();
 
-        void append(Record& record);
+        void append_record(const Record& record);
         void order(vector<uint_fast8_t> column_order);
-    private:
-        std::fstream file;
-        const uint_fast8_t record_size;
 
-        void order_block(uint_fast32_t block_number, vector<uint_fast8_t>& column_order);
-        bool record_greater(uint_fast32_t buffer_pos, Record& key, uint64_t* buffer, vector<uint_fast8_t>& column_order);
+        void print();
+        void check_order(vector<uint_fast8_t> column_order);
+
+    // class Iter {
+    //     public:
+    //         Iter(OrderedFile& max);
+    //         ~Iter() = default;
+    //         unique_ptr<Record> next();
+
+    //     private:
+    //         int current_pos;
+    // };
+
+    private:
+        std::fstream fileA;
+        std::fstream fileB;
+        const string filename;
+        const uint_fast8_t tuple_size;
+        const uint_fast32_t block_size_in_bytes;
+
+        void order_block(uint64_t* buffer, uint_fast32_t block_number, vector<uint_fast8_t>& column_order);
+        bool record_less_than(uint_fast32_t buffer_pos, const Record& key, uint64_t* buffer, vector<uint_fast8_t>& column_order);
         void move_record_right(uint_fast32_t buffer_pos, uint64_t* buffer);
         void assign_record(Record& key, uint_fast32_t buffer_pos, uint64_t* buffer);
-        void merge_blocks(uint_fast32_t block1_start_pos, uint_fast32_t block2_start_pos, uint_fast32_t merge_size);
+        // void merge_blocks(uint_fast32_t block1_start_pos, uint_fast32_t block2_start_pos, uint_fast32_t merge_size);
 };
 
 #endif //FILE__ORDERED_FILE_H_

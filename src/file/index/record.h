@@ -19,6 +19,10 @@ public:
     Record(const Record& copy);
     ~Record() = default;
 
+    void operator=(const Record& other);
+    bool operator<=(const Record& other);
+
+
 private:
     Record();
     int record_size; // we don't need this if vector is used

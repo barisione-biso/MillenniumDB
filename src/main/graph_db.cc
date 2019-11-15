@@ -3,6 +3,7 @@
 #include "file/index/object_file/object_file.h"
 #include "file/buffer_manager.h"
 #include "file/index/record.h"
+#include "file/index/ordered_file/ordered_file.h"
 #include "file/index/bplus_tree/bplus_tree.h"
 #include "file/index/bplus_tree/bplus_tree_dir.h"
 #include "file/index/bplus_tree/bplus_tree_leaf.h"
@@ -13,6 +14,7 @@
 #include "relational_model/physical_plan/binding_id_iter/operators/index_nested_loop_join.h"
 #include "relational_model/import/bulk_import.h"
 
+#include <chrono>
 #include <cstdlib>
 #include <climits>
 #include <iostream>
@@ -139,10 +141,40 @@ void test_bulk_import() {
 	import.start_import();
 }
 
+void test_ordered_file() {
+	OrderedFile ordered_file = OrderedFile("test_files/ordered_file.bin", 3);
+	uint64_t* c = new uint64_t[3];
+	std::vector<uint_fast8_t> column_order;
+	column_order.push_back(1);
+	column_order.push_back(0);
+	column_order.push_back(2);
+
+	cout << "> Insertando records\n";
+	auto start = std::chrono::system_clock::now();
+	for (int i = 0; i < 100'000'000; i++) {
+		c[0] = (uint64_t) rand();
+		c[1] = (uint64_t) rand();
+		c[2] = (uint64_t) rand();
+		// cout << "> Insertando record " << i << ": (" << (uint64_t)c[0] << ", " << (uint64_t)c[1] << ")\n";
+
+		ordered_file.append_record(Record(c[0], c[1], c[2]));
+	}
+	delete[] c;
+	auto end1 = std::chrono::system_clock::now();
+	std::chrono::duration<float,std::milli> duration = end1 - start;
+    std::cout << duration.count() << "ms " << std::endl;
+
+	std::cout << "Ordering...\n";
+	ordered_file.order(column_order);
+	// ordered_file.print();
+	ordered_file.check_order(column_order);
+}
+
 int main()
 {
 	// test_bulk_import();
-	test_nested_loop_join();
+	// test_nested_loop_join();
 	// test_bpt();
+	test_ordered_file();
 	return 0;
 }

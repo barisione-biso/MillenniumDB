@@ -1,3 +1,4 @@
+- Fix bug caused by opening file in appending mode
 - Create Grammar
 - Example queries
 - Batch loading:

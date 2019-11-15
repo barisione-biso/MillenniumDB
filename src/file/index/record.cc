@@ -48,3 +48,24 @@ Record::Record(const Record& copy) {
 Record& Record::get_empty_record() {
     return empty_record;
 }
+
+void Record::operator=(const Record& other) {
+    // record_size = other.record_size;
+    // ids = std::make_unique<uint64_t[]>(record_size);
+    // TODO: check record size is the same?
+    for (int i = 0; i < record_size; i++) {
+        ids[i] = other.ids[i];
+    }
+}
+
+bool Record::operator<=(const Record& other) {
+    // TODO: check record size is the same?
+    for (int i = 0; i < record_size; i++) {
+        if (ids[i] < other.ids[i]) {
+            return true;
+        } else if (ids[i] > other.ids[i]){
+            return false;
+        }
+    }
+    return true;
+}
