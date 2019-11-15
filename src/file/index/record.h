@@ -20,6 +20,7 @@ public:
     ~Record() = default;
 
     void operator=(const Record& other);
+    bool operator<(const Record& other);
     bool operator<=(const Record& other);
 
 

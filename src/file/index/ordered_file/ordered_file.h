@@ -33,11 +33,15 @@ class OrderedFile
     // };
 
     private:
-        std::fstream fileA;
-        std::fstream fileB;
+        std::fstream file;
+        std::fstream tmp_file;
         const string filename;
         const uint_fast8_t tuple_size;
+        const uint_fast8_t bytes_per_tuple;
         const uint_fast32_t block_size_in_bytes;
+        uint_fast32_t current_output_pos;
+        uint64_t* output_buffer;
+        uint64_t* big_buffer;
 
         void order_block(uint64_t* buffer, uint_fast32_t block_number, vector<uint_fast8_t>& column_order);
         bool record_less_than(uint_fast32_t buffer_pos, const Record& key, uint64_t* buffer, vector<uint_fast8_t>& column_order);

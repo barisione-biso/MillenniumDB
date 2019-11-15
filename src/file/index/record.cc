@@ -69,3 +69,15 @@ bool Record::operator<=(const Record& other) {
     }
     return true;
 }
+
+bool Record::operator<(const Record& other) {
+    // TODO: check record size is the same?
+    for (int i = 0; i < record_size; i++) {
+        if (ids[i] < other.ids[i]) {
+            return true;
+        } else if (ids[i] > other.ids[i]){
+            return false;
+        }
+    }
+    return false;
+}

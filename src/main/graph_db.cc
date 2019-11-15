@@ -151,13 +151,13 @@ void test_ordered_file() {
 
 	cout << "> Insertando records\n";
 	auto start = std::chrono::system_clock::now();
-	for (int i = 0; i < 100'000'000; i++) {
+	for (uint64_t i = 0; i < 100'000'000; i++) {
 		c[0] = (uint64_t) rand();
 		c[1] = (uint64_t) rand();
-		c[2] = (uint64_t) rand();
+		// c[2] = (uint64_t) rand();
 		// cout << "> Insertando record " << i << ": (" << (uint64_t)c[0] << ", " << (uint64_t)c[1] << ")\n";
 
-		ordered_file.append_record(Record(c[0], c[1], c[2]));
+		ordered_file.append_record(Record(c[0], c[1], i));
 	}
 	delete[] c;
 	auto end1 = std::chrono::system_clock::now();
