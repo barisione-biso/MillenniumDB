@@ -18,8 +18,8 @@ OrderedFile::OrderedFile(const string& filename, uint_fast8_t tuple_size)
     buffer = new uint64_t*[MAX_RUNS];
 
     output_buffer = &big_buffer[0];
-    for (uint_fast32_t i = 1; i <= MAX_RUNS; i++) {
-        buffer[i] = &big_buffer[i*TUPLES_PER_BLOCK*tuple_size];
+    for (uint_fast32_t i = 0; i < MAX_RUNS; i++) {
+        buffer[i] = &big_buffer[(i+1)*TUPLES_PER_BLOCK*tuple_size];
     }
 
     current_output_pos = 0;

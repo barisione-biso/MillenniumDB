@@ -61,25 +61,28 @@ std::unique_ptr<Record> BPlusTreeDir::get(const Record& key)
     }
 }
 
-
+// requieres first insert manually
 std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf& leaf)
 {
-    // TODO: fallara si esta vacio. ver caso solo 1 hoja de hijo?
+    // std::cout << "DIR(" << page.get_page_number() << ") bulk insert\n";
+
     int page_pointer = dirs[*count];
     std::unique_ptr<std::pair<Record, int>> split_record_index;
 
     if (page_pointer < 0) { // negative number: pointer to dir
+        // std::cout << "Pointing to dir " << page_pointer << "\n";
         Page& child_page = params.buffer_manager.get_page(page_pointer*-1, params.dir_path);
         BPlusTreeDir child =  BPlusTreeDir(params, child_page);
         split_record_index = child.bulk_insert(leaf);
     }
     else { // positive number: pointer to leaf
-        split_record_index = make_unique<std::pair<Record, int>>(*leaf.get_record(0), leaf.page.get_page_number()*-1);
+        split_record_index = make_unique<std::pair<Record, int>>(*leaf.get_record(0), leaf.page.get_page_number());
     }
 
     if (split_record_index != nullptr) {
         // Case 1: no need to split this node
         if (*count < params.dir_max_records) {
+            // std::cout << "Case 1\n";
             update_record(*count, split_record_index->first);
             (*count)++;
             update_dir(*count, split_record_index->second);
@@ -88,6 +91,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
         }
         // Case 2: we need to split this node and this node is the root
         else if (page.get_page_number() == 0) {
+            // std::cout << "Case 2\n";
             Page& new_left_page = params.buffer_manager.append_page(params.dir_path);
             Page& new_right_page = params.buffer_manager.append_page(params.dir_path);
 
@@ -123,6 +127,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
         }
         // Case 3: normal split
         else {
+            // std::cout << "Case 3\n";
             Page& new_page = params.buffer_manager.append_page(params.dir_path);
             BPlusTreeDir new_dir = BPlusTreeDir(params, new_page);
             new_dir.dirs[0] = split_record_index->second;

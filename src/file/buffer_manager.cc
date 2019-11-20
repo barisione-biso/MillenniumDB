@@ -15,10 +15,9 @@ BufferManager::BufferManager()
     clock_pos = 0;
     bytes = new char[BUFFER_POOL_INITIAL_SIZE*PAGE_SIZE];
 
-    // std::cout << "Size bytes:     " << sizeof(bytes) << "\n";
-    // std::cout << "Size &bytes:    " << sizeof(&bytes) << "\n";
-    // std::cout << "Size bytes[0]:  " << sizeof(bytes[0]) << "\n";
-    // std::cout << "Size &bytes[0]: " << sizeof(&bytes[0]) << "\n";
+    for (int i = 0; i < BUFFER_POOL_INITIAL_SIZE; i++) {
+        buffer_pool[i] = nullptr;
+    }
 }
 
 BufferManager::~BufferManager()

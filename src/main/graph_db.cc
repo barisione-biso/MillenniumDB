@@ -151,7 +151,7 @@ void test_ordered_file() {
 
 	cout << "> Insertando records\n";
 	auto start = std::chrono::system_clock::now();
-	for (uint64_t i = 0; i < 100'000'000; i++) {
+	for (uint64_t i = 0; i < 10'000'000; i++) {
 		c[0] = (uint64_t) rand();
 		c[1] = (uint64_t) rand();
 		// c[2] = (uint64_t) rand();
@@ -168,6 +168,13 @@ void test_ordered_file() {
 	ordered_file.order(column_order);
 	// ordered_file.print();
 	ordered_file.check_order(column_order);
+
+	/**********/
+	BufferManager buffer_manager = BufferManager();
+	BPlusTreeParams bpt_params = BPlusTreeParams(buffer_manager, "test_files/example_bpt", 3);
+    BPlusTree bpt = BPlusTree(bpt_params);
+	bpt.bulk_import(ordered_file);
+	buffer_manager.flush();
 }
 
 int main()
