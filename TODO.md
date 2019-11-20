@@ -1,5 +1,6 @@
 - Fix bug caused by opening file in appending mode
 - Create Grammar
+- Posible optimización: en ordered file create_run usar merge sort+insertion sort
 - Example queries
 - Batch loading:
     - ordered file

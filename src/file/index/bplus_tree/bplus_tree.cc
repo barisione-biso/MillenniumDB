@@ -2,6 +2,7 @@
 
 #include "file/buffer_manager.h"
 #include "file/index/record.h"
+#include "file/index/ordered_file/ordered_file.h"
 #include "file/index/bplus_tree/bplus_tree_dir.h"
 #include "file/index/bplus_tree/bplus_tree_leaf.h"
 #include "file/index/bplus_tree/bplus_tree_params.h"
@@ -19,11 +20,36 @@ BPlusTree::BPlusTree(const BPlusTreeParams& params)
     is_empty = *first_leaf.count == 0;
 }
 
+
+void BPlusTree::bulk_import(OrderedFile& ordered_file)
+{
+    ordered_file.begin_iter();
+    // first leaf
+    BPlusTreeLeaf first_leaf(params, params.buffer_manager.get_page(0, params.leaf_path));
+    *first_leaf.count = ordered_file.next_tuples(first_leaf.records, params.leaf_max_records);
+    // root.dirs[0] = 0;
+    if (ordered_file.has_more_tuples()) {
+        *first_leaf.next = 1;
+    }
+
+    while (ordered_file.has_more_tuples()) {
+        BPlusTreeLeaf new_leaf(params, params.buffer_manager.append_page(params.leaf_path));
+        *new_leaf.count = ordered_file.next_tuples(new_leaf.records, params.leaf_max_records);
+        if (ordered_file.has_more_tuples()) {
+            *new_leaf.next = new_leaf.page.get_page_number() + 1;
+        }
+        root->bulk_insert(new_leaf);
+        new_leaf.page.make_dirty();
+    }
+}
+
+
 unique_ptr<BPlusTree::Iter> BPlusTree::get_range(const Record& min, const Record& max)
 {
     pair<int, int> page_number_and_pos = root->search_leaf(min);
     return make_unique<Iter>(params, page_number_and_pos.first, page_number_and_pos.second, max);
 }
+
 
 void BPlusTree::insert(const Record& record)
 {

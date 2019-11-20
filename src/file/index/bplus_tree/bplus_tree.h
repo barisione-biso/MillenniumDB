@@ -8,6 +8,7 @@
 #include "file/index/bplus_tree/bplus_tree_leaf.h"
 
 class Record;
+class OrderedFile;
 class BPlusTreeParams;
 
 using namespace std;
@@ -17,6 +18,8 @@ class BPlusTree
 public:
     BPlusTree(const BPlusTreeParams& params);
     ~BPlusTree() = default;
+
+    void bulk_import(OrderedFile&);
 
     void insert(const Record& record);
     void insert(const Record& key, const Record& value);

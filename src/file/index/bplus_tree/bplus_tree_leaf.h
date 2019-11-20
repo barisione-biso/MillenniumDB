@@ -10,6 +10,7 @@ class Record;
 class BPlusTreeParams;
 
 class BPlusTreeLeaf {
+friend class BPlusTreeDir;
 friend class BPlusTree;
 public:
     BPlusTreeLeaf(const BPlusTreeParams& params, Page& page);

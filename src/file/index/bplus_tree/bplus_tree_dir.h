@@ -6,6 +6,7 @@
 class BPlusTreeParams;
 class Page;
 class BPlusTree;
+class BPlusTreeLeaf;
 
 class BPlusTreeDir {
 friend class BPlusTree;
@@ -13,6 +14,7 @@ public:
     BPlusTreeDir(const BPlusTreeParams& params, Page& page);
     ~BPlusTreeDir();
 
+    std::unique_ptr<std::pair<Record, int>> bulk_insert(BPlusTreeLeaf& leaf);
     std::unique_ptr<std::pair<Record, int>> insert(const Record& key, const Record& value); // returns not null if needs to split
 
     void edit(const Record& key, const Record& value);

@@ -94,7 +94,7 @@ Page& BufferManager::get_page(int page_number, const string& filename) {
         }
         else { // existing file block
             file.seekg(page_number*PAGE_SIZE);
-            file.readsome(buffer_pool[buffer_available]->get_bytes(), PAGE_SIZE);
+            file.read(buffer_pool[buffer_available]->get_bytes(), PAGE_SIZE);
         }
         file.close();
 

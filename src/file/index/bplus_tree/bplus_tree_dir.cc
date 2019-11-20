@@ -62,6 +62,81 @@ std::unique_ptr<Record> BPlusTreeDir::get(const Record& key)
 }
 
 
+std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf& leaf)
+{
+    // TODO: fallara si esta vacio. ver caso solo 1 hoja de hijo?
+    int page_pointer = dirs[*count];
+    std::unique_ptr<std::pair<Record, int>> split_record_index;
+
+    if (page_pointer < 0) { // negative number: pointer to dir
+        Page& child_page = params.buffer_manager.get_page(page_pointer*-1, params.dir_path);
+        BPlusTreeDir child =  BPlusTreeDir(params, child_page);
+        split_record_index = child.bulk_insert(leaf);
+    }
+    else { // positive number: pointer to leaf
+        split_record_index = make_unique<std::pair<Record, int>>(*leaf.get_record(0), leaf.page.get_page_number()*-1);
+    }
+
+    if (split_record_index != nullptr) {
+        // Case 1: no need to split this node
+        if (*count < params.dir_max_records) {
+            update_record(*count, split_record_index->first);
+            (*count)++;
+            update_dir(*count, split_record_index->second);
+            page.make_dirty();
+            return nullptr;
+        }
+        // Case 2: we need to split this node and this node is the root
+        else if (page.get_page_number() == 0) {
+            Page& new_left_page = params.buffer_manager.append_page(params.dir_path);
+            Page& new_right_page = params.buffer_manager.append_page(params.dir_path);
+
+            BPlusTreeDir new_left_dir = BPlusTreeDir(params, new_left_page);
+            BPlusTreeDir new_right_dir = BPlusTreeDir(params, new_right_page);
+
+            // write left records from 0 to (*count-1)
+            for (int i = 0; i < (*count) * params.key_size; i++) {
+                new_left_dir.records[i] = records[i];
+            }
+            // write left dirs from 0 to (*count)
+            for (int i = 0; i <= *count; i++) {
+                new_left_dir.dirs[i] = dirs[i];
+            }
+
+            // write right dirs
+            new_right_dir.dirs[0] = split_record_index->second;
+
+            // update counts
+            *new_left_dir.count = *count;
+            *count = 1;
+            *new_right_dir.count = 0;
+
+            for (int i = 0; i < params.key_size; i++) {
+                records[i] = split_record_index->first.ids[i];
+            }
+            dirs[0] = new_left_dir.page.get_page_number() * -1;
+            dirs[1] = new_right_dir.page.get_page_number() * -1;
+            new_left_page.make_dirty();
+            new_right_page.make_dirty();
+            this->page.make_dirty();
+            return nullptr;
+        }
+        // Case 3: normal split
+        else {
+            Page& new_page = params.buffer_manager.append_page(params.dir_path);
+            BPlusTreeDir new_dir = BPlusTreeDir(params, new_page);
+            new_dir.dirs[0] = split_record_index->second;
+            *new_dir.count = 0;
+            // *this->count no cambia
+            new_page.make_dirty();
+            this->page.make_dirty();
+            return std::make_unique<std::pair<Record, int>>(split_record_index->first, new_page.get_page_number()*-1);
+        }
+    }
+    return nullptr;
+}
+
+
 std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, const Record& value)
 {
     int index = 0;
@@ -160,7 +235,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             this->page.make_dirty();
             return nullptr;
         }
-        else { // normal split split
+        // Case 3: normal split split
+        else {
             // poner nuevo record/dir y guardar el ultimo (que no cabe)
             std::unique_ptr<uint64_t[]> last_key = std::make_unique<uint64_t[]>(params.key_size);
             int last_dir;
