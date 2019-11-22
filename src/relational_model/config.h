@@ -14,17 +14,18 @@
 class Config {
 public:
     Config() {
-        buffer_manager = std::make_unique<BufferManager>();
         cout << "Buffer Manager ready\n";
         object_file = std::make_unique<ObjectFile>(get_path(object_file_name));
         cout << "Object file ready\n";
         catalog = std::make_unique<Catalog>(get_path(catalog_file_name));
         cout << "Catalog ready\n";
-        bpt_params_hash2id = std::make_unique<BPlusTreeParams>(*buffer_manager, get_path(hash2id_name), 3); // Hash:128 + Key:64
+        bpt_params_hash2id = std::make_unique<BPlusTreeParams>(get_path(hash2id_name), 3); // Hash:128 + Key:64
         hash2id = std::make_unique<BPlusTree>(*bpt_params_hash2id);
         cout << "hash2id ready\n";
     }
-    ~Config() = default;
+    ~Config() {
+        std::cout << "~Config\n";
+    }
 
     string get_path(string filename) {
         return "test_files/" + filename;
@@ -33,7 +34,6 @@ public:
     ObjectFile&     get_object_file()    { return *object_file; }
     Catalog&        get_catalog()        { return *catalog; }
     BPlusTree&      get_hash2id_bpt()    { return *hash2id; }
-    BufferManager&  get_buffer_manager() { return *buffer_manager; }
 
     const std::string object_file_name    = "objects.dat";
     const std::string catalog_file_name   = "catalog.dat";
@@ -46,7 +46,6 @@ public:
     const std::string to_from_edge_name   = "to_from_edge";
 
 private:
-    unique_ptr<BufferManager>    buffer_manager;
     unique_ptr<ObjectFile>       object_file;
     unique_ptr<Catalog>          catalog;
     unique_ptr<BPlusTree>        hash2id; // ObjectHash|ObjectId.

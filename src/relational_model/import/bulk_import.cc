@@ -46,9 +46,13 @@ void BulkImport::start_import()
     cout << "\n";
 
     // connect nodes
+    line_number = 1;
+    cout << "conecting nodes:\n";
     for (auto&& [from, to, edge_id] : edges_original_ids) {
+        cout << "\r  line " << line_number++ << std::flush;
         graph.connect_nodes(node_dict[from], node_dict[to], edge_id);
     }
+    cout << "\nimport finished\n";
 }
 
 void BulkImport::process_node(const string& line, int line_number)

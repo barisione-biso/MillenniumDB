@@ -15,8 +15,8 @@ using namespace std;
 BPlusTree::BPlusTree(const BPlusTreeParams& params)
     : params(params)
 {
-    root = make_unique<BPlusTreeDir>(params, params.buffer_manager.get_page(0, params.dir_path));
-    BPlusTreeLeaf first_leaf(params, params.buffer_manager.get_page(0, params.leaf_path)); // just to see if BPT is empty
+    root = make_unique<BPlusTreeDir>(params, BufferManager::get_page(0, params.dir_path));
+    BPlusTreeLeaf first_leaf(params, BufferManager::get_page(0, params.leaf_path)); // just to see if BPT is empty
     is_empty = *first_leaf.count == 0;
 }
 
@@ -25,7 +25,7 @@ void BPlusTree::bulk_import(OrderedFile& ordered_file)
 {
     ordered_file.begin_iter();
     // first leaf
-    BPlusTreeLeaf first_leaf(params, params.buffer_manager.get_page(0, params.leaf_path));
+    BPlusTreeLeaf first_leaf(params, BufferManager::get_page(0, params.leaf_path));
     *first_leaf.count = ordered_file.next_tuples(first_leaf.records, params.leaf_max_records);
     // root.dirs[0] = 0;
     // cout << *first_leaf.count << "\n";
@@ -35,7 +35,7 @@ void BPlusTree::bulk_import(OrderedFile& ordered_file)
 
     while (ordered_file.has_more_tuples()) {
 
-        BPlusTreeLeaf new_leaf(params, params.buffer_manager.append_page(params.leaf_path));
+        BPlusTreeLeaf new_leaf(params, BufferManager::append_page(params.leaf_path));
         *new_leaf.count = ordered_file.next_tuples(new_leaf.records, params.leaf_max_records);
         // cout << *new_leaf.count << "\n";
 
@@ -78,7 +78,7 @@ void BPlusTree::insert(const Record& key, const Record& value)
 // Insert first key at root, create leaf
 void BPlusTree::create_new(const Record& key, const Record& value)
 {
-    Page& leaf_page = params.buffer_manager.get_page(0, params.leaf_path);
+    Page& leaf_page = BufferManager::get_page(0, params.leaf_path);
     BPlusTreeLeaf first_leaf = BPlusTreeLeaf(params, leaf_page);
     first_leaf.create_new(key, value);
 }
@@ -97,7 +97,7 @@ unique_ptr<Record> BPlusTree::get(const Record& key)
 BPlusTree::Iter::Iter(const BPlusTreeParams& params, int leaf_page_number, int current_pos, const Record& max)
     : params(params), max(max)
 {
-    current_leaf = make_unique<BPlusTreeLeaf>(params, params.buffer_manager.get_page(leaf_page_number, params.leaf_path));
+    current_leaf = make_unique<BPlusTreeLeaf>(params, BufferManager::get_page(leaf_page_number, params.leaf_path));
     this->current_pos = current_pos;
 }
 

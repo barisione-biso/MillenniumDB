@@ -24,15 +24,13 @@ using namespace std;
 RelationalGraph::RelationalGraph(int graph_id, Config& config)
     : graph_id(graph_id), config(config)
 {
-    BufferManager& buffer_manager = config.get_buffer_manager();
+    bpt_params_label2element = make_unique<BPlusTreeParams>(config.get_path(config.label2element_name), 2);
+    bpt_params_element2label = make_unique<BPlusTreeParams>(config.get_path(config.element2label_name), 2);
 
-    bpt_params_label2element = make_unique<BPlusTreeParams>(buffer_manager, config.get_path(config.label2element_name), 2);
-    bpt_params_element2label = make_unique<BPlusTreeParams>(buffer_manager, config.get_path(config.element2label_name), 2);
-
-    bpt_params_element2prop = make_unique<BPlusTreeParams>(buffer_manager, config.get_path(config.element2prop_name), 3);
-    bpt_params_prop2element = make_unique<BPlusTreeParams>(buffer_manager, config.get_path(config.prop2element_name), 3);
-    bpt_params_from_to_edge = make_unique<BPlusTreeParams>(buffer_manager, config.get_path(config.from_to_edge_name), 3);
-    bpt_params_to_from_edge = make_unique<BPlusTreeParams>(buffer_manager, config.get_path(config.to_from_edge_name), 3);
+    bpt_params_element2prop = make_unique<BPlusTreeParams>(config.get_path(config.element2prop_name), 3);
+    bpt_params_prop2element = make_unique<BPlusTreeParams>(config.get_path(config.prop2element_name), 3);
+    bpt_params_from_to_edge = make_unique<BPlusTreeParams>(config.get_path(config.from_to_edge_name), 3);
+    bpt_params_to_from_edge = make_unique<BPlusTreeParams>(config.get_path(config.to_from_edge_name), 3);
 
     label2element = make_unique<BPlusTree>(*bpt_params_label2element);
     element2label = make_unique<BPlusTree>(*bpt_params_element2label);
@@ -44,7 +42,8 @@ RelationalGraph::RelationalGraph(int graph_id, Config& config)
 }
 
 RelationalGraph::~RelationalGraph() {
-    config.get_buffer_manager().flush();
+    std::cout << "~RelationalGraph\n";
+    BufferManager::flush();
 }
 
 

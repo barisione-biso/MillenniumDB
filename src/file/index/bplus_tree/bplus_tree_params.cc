@@ -1,7 +1,7 @@
 #include "file/index/bplus_tree/bplus_tree_params.h"
 
-BPlusTreeParams::BPlusTreeParams(BufferManager& buffer_manager, std::string path, int key_size)
-    : buffer_manager(buffer_manager), dir_path(path + ".dir"), leaf_path(path + ".leaf"),
+BPlusTreeParams::BPlusTreeParams(std::string path, int key_size)
+    : dir_path(path + ".dir"), leaf_path(path + ".leaf"),
     key_size(key_size), value_size(0), total_size(key_size)
 {
     // PAGE_SIZE >= int_size(4) + ulong_size(8)*dir_max_records*key_size + int_size(4)*(dir_max_records+1)
@@ -16,8 +16,8 @@ BPlusTreeParams::BPlusTreeParams(BufferManager& buffer_manager, std::string path
     leaf_max_records = (PAGE_SIZE - 8)/(8*total_size);
 }
 
-BPlusTreeParams::BPlusTreeParams(BufferManager& buffer_manager, std::string path, int key_size, int value_size)
-    : buffer_manager(buffer_manager), dir_path(path + ".dir"), leaf_path(path + ".leaf"),
+BPlusTreeParams::BPlusTreeParams(std::string path, int key_size, int value_size)
+    : dir_path(path + ".dir"), leaf_path(path + ".leaf"),
     key_size(key_size), value_size(value_size), total_size(key_size+value_size)
 {
     dir_max_records = (PAGE_SIZE - 8)/(8*key_size + 4);

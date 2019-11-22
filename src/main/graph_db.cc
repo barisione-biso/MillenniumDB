@@ -54,8 +54,7 @@ void search_records(BPlusTree& bpt) {
 }
 
 void test_bpt() {
-	BufferManager buffer_manager = BufferManager();
-	BPlusTreeParams bpt_params = BPlusTreeParams(buffer_manager, "test_files/example_bpt", 2);
+	BPlusTreeParams bpt_params = BPlusTreeParams("test_files/example_bpt", 2);
     BPlusTree bpt = BPlusTree(bpt_params);
 	insert_records(bpt);
 	search_records(bpt);
@@ -136,9 +135,10 @@ void test_bulk_import() {
 	Config config = Config();
 	RelationalGraph graph = RelationalGraph(0, config);
 	cout << "Graph initialized\n";
-	BulkImport import = BulkImport("test_files/graph_creation_1/nodes.txt", "test_files/graph_creation_1/edges.txt", graph);
+	BulkImport import = BulkImport("test_files/graph_creation_small/nodes.txt", "test_files/graph_creation_small/edges.txt", graph);
 	cout << "Starting import\n";
 	import.start_import();
+	cout << "finish test_bulk_import\n";
 }
 
 void test_ordered_file() {
@@ -170,18 +170,19 @@ void test_ordered_file() {
 	ordered_file.check_order(column_order);
 
 	/**********/
-	BufferManager buffer_manager = BufferManager();
-	BPlusTreeParams bpt_params = BPlusTreeParams(buffer_manager, "test_files/example_bpt", 3);
+	BPlusTreeParams bpt_params = BPlusTreeParams("test_files/example_bpt", 3);
     BPlusTree bpt = BPlusTree(bpt_params);
 	bpt.bulk_import(ordered_file);
-	buffer_manager.flush();
+	BufferManager::flush();
 }
 
 int main()
 {
-	// test_bulk_import();
+	test_bulk_import();
 	// test_nested_loop_join();
 	// test_bpt();
-	test_ordered_file();
+	// test_ordered_file();
+	cout << "finish main\n";
+
 	return 0;
 }

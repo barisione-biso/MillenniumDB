@@ -9,6 +9,8 @@
 
 using namespace std;
 
+BufferManager BufferManager::instance = BufferManager();
+
 BufferManager::BufferManager()
 {
     buffer_pool = new Page*[BUFFER_POOL_INITIAL_SIZE];
@@ -22,9 +24,25 @@ BufferManager::BufferManager()
 
 BufferManager::~BufferManager()
 {
+    cout << "~BufferManager()\n";
 }
 
 void BufferManager::flush()
+{
+    instance._flush();
+}
+
+Page& BufferManager::get_page(int page_number, const std::string& filename)
+{
+    return instance._get_page(page_number, filename);
+}
+
+Page& BufferManager::append_page(const std::string& filename)
+{
+    return instance._append_page(filename);
+}
+
+void BufferManager::_flush()
 {
     cout << "FLUSHING PAGES\n";
     for (int i = 0; i < PAGE_SIZE; i++) {
@@ -39,7 +57,7 @@ int BufferManager::count_pages(const string& filename)
     return boost::filesystem::file_size(filename)/PAGE_SIZE;
 }
 
-Page& BufferManager::append_page(const string& filename)
+Page& BufferManager::_append_page(const string& filename)
 {
     // cout << "append_page(" << filename << ")\n";
     return get_page(count_pages(filename) ,filename);
@@ -59,7 +77,7 @@ int BufferManager::get_buffer_available()
     return res;
 }
 
-Page& BufferManager::get_page(int page_number, const string& filename) {
+Page& BufferManager::_get_page(int page_number, const string& filename) {
     // cout << "get_page(" << page_number << ", " << filename << ")\n";
     if (page_number != 0 && count_pages(filename) < page_number) {
         std::cout << "getting wrong page_number for " << filename << " (" << page_number << "), max: " << count_pages(filename) << ".\n";

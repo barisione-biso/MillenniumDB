@@ -8,11 +8,10 @@ class BufferManager;
 
 class BPlusTreeParams {
     public:
-        BPlusTreeParams(BufferManager& buffer_manager, std::string path, int key_size);
-        BPlusTreeParams(BufferManager& buffer_manager, std::string path, int key_size, int value_size);
+        BPlusTreeParams(std::string path, int key_size);
+        BPlusTreeParams(std::string path, int key_size, int value_size);
         ~BPlusTreeParams() = default;
 
-        BufferManager& buffer_manager;
         std::string const dir_path;
         std::string const leaf_path;
 
