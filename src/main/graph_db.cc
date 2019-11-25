@@ -26,7 +26,7 @@
 using namespace std;
 
 void insert_records(BPlusTree& bpt) {
-	for (int i = 0; i < 100000; i++) {
+	for (int i = 0; i < 100'000; i++) {
 		uint64_t* c = new uint64_t[2];
 		c[0] = (uint64_t) rand();
 		c[1] = (uint64_t) rand();
@@ -173,15 +173,14 @@ void test_ordered_file() {
 	BPlusTreeParams bpt_params = BPlusTreeParams("test_files/example_bpt", 3);
     BPlusTree bpt = BPlusTree(bpt_params);
 	bpt.bulk_import(ordered_file);
-	BufferManager::flush();
 }
 
 int main()
 {
-	test_bulk_import();
+	// test_bulk_import();
 	// test_nested_loop_join();
 	// test_bpt();
-	// test_ordered_file();
+	test_ordered_file();
 	cout << "finish main\n";
 
 	return 0;

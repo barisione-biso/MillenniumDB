@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "file/file_manager.h"
+
 class Record;
 
 using namespace std;
@@ -29,9 +31,11 @@ class OrderedFile
         uint_fast32_t next_tuples(uint64_t* output, uint_fast32_t max_tuples);
 
     private:
-        std::fstream file;
-        std::fstream tmp_file;
-        const string filename;
+        FileId file_id;
+        FileId tmp_file_id;
+        std::fstream& file;
+        std::fstream& tmp_file;
+
         const uint_fast8_t bytes_per_tuple;
         const uint_fast32_t block_size_in_bytes;
         uint_fast32_t current_output_pos;

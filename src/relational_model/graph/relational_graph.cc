@@ -43,7 +43,6 @@ RelationalGraph::RelationalGraph(int graph_id, Config& config)
 
 RelationalGraph::~RelationalGraph() {
     std::cout << "~RelationalGraph\n";
-    BufferManager::flush();
 }
 
 

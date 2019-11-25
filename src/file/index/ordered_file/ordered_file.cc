@@ -10,7 +10,10 @@
 
 OrderedFile::OrderedFile(const string& filename, uint_fast8_t tuple_size)
     : tuple_size(tuple_size),
-      filename(filename),
+      file_id(FileManager::get_file_id(filename)),
+      tmp_file_id(FileManager::get_file_id(filename + ".tmp")),
+      file(FileManager::get_file(file_id)),
+      tmp_file(FileManager::get_file(tmp_file_id)),
       bytes_per_tuple(sizeof(uint64_t)*tuple_size),
       block_size_in_bytes(TUPLES_PER_BLOCK*bytes_per_tuple)
 {
@@ -21,19 +24,14 @@ OrderedFile::OrderedFile(const string& filename, uint_fast8_t tuple_size)
     for (uint_fast32_t i = 0; i < MAX_RUNS; i++) {
         buffer[i] = &big_buffer[(i+1)*TUPLES_PER_BLOCK*tuple_size];
     }
-
     current_output_pos = 0;
-    // Open and close to ensure it exists
-    file.open(filename, std::ios::out | std::ios::app);
-    file.close();
-    file.open(filename, fstream::in|fstream::out|fstream::binary);
 }
 
 
 OrderedFile::~OrderedFile() {
     delete[] buffer;
     delete[] big_buffer;
-    file.close();
+    FileManager::close(file_id);
 }
 
 void OrderedFile::begin_iter() {
@@ -74,9 +72,6 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
     }
 
     auto start = std::chrono::system_clock::now();
-    tmp_file.open("test_files/tmp.bin", std::ios::out | std::ios::app);
-    tmp_file.close();
-    tmp_file.open("test_files/tmp.bin", fstream::in|fstream::out|fstream::binary);
     bool reading_orginal_file = true;
 
     file.seekg(0, ios::end);
@@ -178,16 +173,14 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
         }
         reading_orginal_file = !reading_orginal_file;
     }
-    tmp_file.close();
     if (!reading_orginal_file) {
-        file.close();
-        remove(filename.c_str());
-        rename("test_files/tmp.bin", filename.c_str());
-        file.open(filename, fstream::in|fstream::out|fstream::binary);
+        FileManager::remove(file_id);
+        FileManager::rename(tmp_file_id, file_id);
     }
     else {
-        remove("test_files/tmp.bin");
+        FileManager::remove(tmp_file_id);
     }
+    FileManager::ensure_open(file_id);
 
     auto end = std::chrono::system_clock::now();
     duration = end - end_phase0;
@@ -306,7 +299,7 @@ void OrderedFile::check_order(vector<uint_fast8_t> column_order)
     int count = 2;
     while (a) {
         if (!(recordA < recordB)) {
-            cout << "MAL ORDEN. linea " << count << "\n";
+            cout << "Bad ordering at tuple " << count << "\n";
             for (int i = 0; i < tuple_size; i++) {
                 cout << recordA.ids[i] << "\t";
             }

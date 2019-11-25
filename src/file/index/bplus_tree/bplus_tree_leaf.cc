@@ -65,7 +65,7 @@ std::unique_ptr<Record> BPlusTreeLeaf::get_record(int pos)
 
 std::unique_ptr<BPlusTreeLeaf> BPlusTreeLeaf::next_leaf()
 {
-    Page& new_page = BufferManager::get_page(*next, params.leaf_path);
+    Page& new_page = BufferManager::get_page(*next, params.leaf_file_id);
     return std::make_unique<BPlusTreeLeaf>(params, new_page);
 }
 
@@ -127,7 +127,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
         }
 
         // crear nueva hoja
-        Page& new_page = BufferManager::append_page(params.leaf_path);
+        Page& new_page = BufferManager::append_page(params.leaf_file_id);
         BPlusTreeLeaf new_leaf = BPlusTreeLeaf(params, new_page);
 
         *new_leaf.next = *next;

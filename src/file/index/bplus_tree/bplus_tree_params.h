@@ -1,5 +1,5 @@
-#ifndef FILE__INDEX__B_PLUS_TREE_PARAMS_H_
-#define FILE__INDEX__B_PLUS_TREE_PARAMS_H_
+#ifndef FILE__B_PLUS_TREE_PARAMS_H_
+#define FILE__B_PLUS_TREE_PARAMS_H_
 
 #include <string>
 #include "file/page.h"
@@ -8,12 +8,12 @@ class BufferManager;
 
 class BPlusTreeParams {
     public:
-        BPlusTreeParams(std::string path, int key_size);
-        BPlusTreeParams(std::string path, int key_size, int value_size);
+        BPlusTreeParams(const std::string& path, int key_size);
+        BPlusTreeParams(const std::string& path, int key_size, int value_size);
         ~BPlusTreeParams() = default;
 
-        std::string const dir_path;
-        std::string const leaf_path;
+        FileId const dir_file_id;
+        FileId const leaf_file_id;
 
         int const key_size;
         int const value_size;
@@ -23,4 +23,4 @@ class BPlusTreeParams {
         int leaf_max_records;
 };
 
-#endif //FILE__INDEX__B_PLUS_TREE_PARAMS_H_
+#endif //FILE__B_PLUS_TREE_PARAMS_H_
