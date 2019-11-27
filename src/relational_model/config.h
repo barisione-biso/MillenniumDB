@@ -15,20 +15,16 @@ class Config {
 public:
     Config() {
         cout << "Buffer Manager ready\n";
-        object_file = std::make_unique<ObjectFile>(get_path(object_file_name));
+        object_file = std::make_unique<ObjectFile>(object_file_name);
         cout << "Object file ready\n";
-        catalog = std::make_unique<Catalog>(get_path(catalog_file_name));
+        catalog = std::make_unique<Catalog>(catalog_file_name);
         cout << "Catalog ready\n";
-        bpt_params_hash2id = std::make_unique<BPlusTreeParams>(get_path(hash2id_name), 3); // Hash:128 + Key:64
+        bpt_params_hash2id = std::make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:128 + Key:64
         hash2id = std::make_unique<BPlusTree>(*bpt_params_hash2id);
         cout << "hash2id ready\n";
     }
     ~Config() {
         std::cout << "~Config\n";
-    }
-
-    string get_path(string filename) {
-        return "test_files/" + filename;
     }
 
     ObjectFile&     get_object_file()    { return *object_file; }

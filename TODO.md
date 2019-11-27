@@ -1,6 +1,7 @@
 - Create FileManager
     - Fix bug caused by opening file in appending mode
     - for each file open, have its open pages?
+- Al hacer bulk import hash2id se va insertando 1 a 1
 - Create Grammar
 - Posible optimización: en ordered file create_run usar merge sort y el insertion sort solo cuando el output_buffer hace flush
   ojo que al ordenar otra permutación se debe ordenar si o si

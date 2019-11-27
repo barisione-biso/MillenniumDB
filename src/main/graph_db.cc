@@ -54,7 +54,7 @@ void search_records(BPlusTree& bpt) {
 }
 
 void test_bpt() {
-	BPlusTreeParams bpt_params = BPlusTreeParams("test_files/example_bpt", 2);
+	BPlusTreeParams bpt_params = BPlusTreeParams("example_bpt", 2);
     BPlusTree bpt = BPlusTree(bpt_params);
 	insert_records(bpt);
 	search_records(bpt);
@@ -95,8 +95,8 @@ void test_nested_loop_join() {
 	IndexNestedLoopJoin nlj2 = IndexNestedLoopJoin(config, nlj1, s3);
 
 	auto input = make_shared<BindingId>();
-	ObjectId label_type_1 = graph.get_label_id(Label("moribund"));
-	ObjectId key_name = graph.get_key_id(Key("buddy"));
+	ObjectId label_type_1 = graph.get_label_id(Label("optimist"));
+	ObjectId key_name = graph.get_key_id(Key("briar"));
 	input->add(VarId(1), label_type_1);
 	input->add(VarId(3), key_name);
 
@@ -142,7 +142,7 @@ void test_bulk_import() {
 }
 
 void test_ordered_file() {
-	OrderedFile ordered_file = OrderedFile("test_files/ordered_file.bin", 3);
+	OrderedFile ordered_file = OrderedFile("ordered_file.bin", 3);
 	uint64_t* c = new uint64_t[3];
 	std::vector<uint_fast8_t> column_order;
 	column_order.push_back(1);
@@ -170,7 +170,7 @@ void test_ordered_file() {
 	ordered_file.check_order(column_order);
 
 	/**********/
-	BPlusTreeParams bpt_params = BPlusTreeParams("test_files/example_bpt", 3);
+	BPlusTreeParams bpt_params = BPlusTreeParams("example_bpt", 3);
     BPlusTree bpt = BPlusTree(bpt_params);
 	bpt.bulk_import(ordered_file);
 }
@@ -178,9 +178,9 @@ void test_ordered_file() {
 int main()
 {
 	// test_bulk_import();
-	// test_nested_loop_join();
+	test_nested_loop_join();
 	// test_bpt();
-	test_ordered_file();
+	// test_ordered_file();
 	cout << "finish main\n";
 
 	return 0;

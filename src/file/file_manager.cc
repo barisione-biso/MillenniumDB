@@ -18,13 +18,13 @@ FileManager::~FileManager() {
 }
 
 void FileManager::ensure_open(FileId file_id) {
-    if (!instance.opened_files[file_id.id].is_open()) {
-        instance.opened_files[file_id.id].open(instance.filenames[file_id.id], ios::in|ios::out|ios::binary);
+    if (!instance.opened_files[file_id.id]->is_open()) {
+        instance.opened_files[file_id.id]->open(instance.filenames[file_id.id], ios::in|ios::out|ios::binary);
     }
 }
 
 void FileManager::close(FileId file_id) {
-    instance.opened_files[file_id.id].close();
+    instance.opened_files[file_id.id]->close();
 }
 
 void FileManager::remove(FileId file_id) {
@@ -78,7 +78,7 @@ void FileManager::read_page(FileId file_id, uint_fast32_t page_number, char* byt
 fstream& FileManager::get_file(FileId file_id)
 {
     ensure_open(file_id);
-    return instance.opened_files[file_id.id];
+    return *instance.opened_files[file_id.id];
 }
 
 FileId FileManager::get_file_id(const string& filename)
@@ -91,12 +91,13 @@ FileId FileManager::_get_file_id(const string& filename) {
         throw std::logic_error("duplicated filename");
     }
 
-    filenames.push_back(filename);
-    fstream file;
-    file.open(filename, ios::out|ios::app);
-    file.close();
-    file.open(filename, ios::in|ios::out|ios::binary);
-    opened_files.push_back(std::move(file));
+    string file_path = "test_files/" + filename;
+    filenames.push_back(file_path);
+    fstream* file = new fstream();
+    file->open(file_path, ios::out|ios::app);
+    file->close();
+    file->open(file_path, ios::in|ios::out|ios::binary);
+    opened_files.push_back(file);
 
     return FileId(filenames.size()-1);
 }

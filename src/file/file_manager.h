@@ -32,7 +32,7 @@ public:
     static void flush(FileId file_id, uint_fast32_t page_number, char* bytes);
 private:
     static FileManager instance;
-    std::vector<std::fstream> opened_files;
+    std::vector<std::fstream*> opened_files;
     std::vector<std::string> filenames;
 
     FileManager();
