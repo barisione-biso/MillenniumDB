@@ -40,39 +40,34 @@ void insert_records(BPlusTree& bpt) {
 void search_records(BPlusTree& bpt) {
 	uint64_t min[] = {0, 0};
 	uint64_t max[] = {ULONG_MAX, ULONG_MAX};
-	//uint64_t min[] = {628175,  1656478};
-	//uint64_t max[] = {2044897, 1967514};
 	auto it = bpt.get_range(Record(min[0], min[1]), Record(max[0], max[1]));
 	auto record = it->next();
 	int i = 1;
 	while (record != nullptr) {
 		cout << i++ << ": (" << (int)record->ids[0] << ", " << (int)record->ids[1] << ")\n";
-		// bpt.edit(Record(record->ids[0]), Record(record->ids[0]+1));
-		// cout << "(" << bpt.get(Record(record->ids[0]))->ids[0] << ")\n";
+		cout << i++ << ": (" << record->ids[0] << ", " << record->ids[1] << ")\n";
 		record = it->next();
 	}
 }
 
 void test_bpt() {
-	BPlusTreeParams bpt_params = BPlusTreeParams("example_bpt", 2);
+	BPlusTreeParams bpt_params = BPlusTreeParams("element2label", 2);
+	// BPlusTreeParams bpt_params = BPlusTreeParams("label2element", 2);
     BPlusTree bpt = BPlusTree(bpt_params);
-	insert_records(bpt);
+	// insert_records(bpt);
 	search_records(bpt);
 }
 
 void test_nested_loop_join() {
-	cout << "Testing nested loop join\n";
 	Config config = Config();
-	cout << "Config loaded\n";
 	RelationalGraph graph = RelationalGraph(0, config);
-	cout << "Graph initialized\n";
 
 	map<int, string> var_names;
-	var_names.insert(pair<int, string>(1, "Label:Person"));
+	var_names.insert(pair<int, string>(1, "Label:"));
 	var_names.insert(pair<int, string>(2, "Var:?n"));
-	var_names.insert(pair<int, string>(3, "Key:name"));
+	var_names.insert(pair<int, string>(3, "Key:"));
 	var_names.insert(pair<int, string>(4, "Value:?v"));
-	var_names.insert(pair<int, string>(5, "label:?l"));
+	// var_names.insert(pair<int, string>(5, "label:?l"));
 
 	vector<VarId> s1_vars;
 	s1_vars.push_back(VarId(1)); // Label:type1
@@ -89,18 +84,19 @@ void test_nested_loop_join() {
 
 	GraphScan s1 = GraphScan(graph.graph_id, *graph.label2element, s1_vars);
 	GraphScan s2 = GraphScan(graph.graph_id, *graph.element2prop, s2_vars);
-	GraphScan s3 = GraphScan(graph.graph_id, *graph.element2label, s3_vars);
+	// GraphScan s3 = GraphScan(graph.graph_id, *graph.element2label, s3_vars);
 
 	IndexNestedLoopJoin nlj1 = IndexNestedLoopJoin(config, s1, s2);
-	IndexNestedLoopJoin nlj2 = IndexNestedLoopJoin(config, nlj1, s3);
+	// IndexNestedLoopJoin nlj2 = IndexNestedLoopJoin(config, nlj1, s3);
 
 	auto input = make_shared<BindingId>();
-	ObjectId label_type_1 = graph.get_label_id(Label("optimist"));
-	ObjectId key_name = graph.get_key_id(Key("briar"));
+	ObjectId label_type_1 = graph.get_label_id(Label("slurring"));
+	cout << label_type_1.id << "\n";
+	ObjectId key_name = graph.get_key_id(Key("expansionists"));
 	input->add(VarId(1), label_type_1);
 	input->add(VarId(3), key_name);
 
-	BindingIdIter& root = nlj2;
+	BindingIdIter& root = nlj1;
 	root.init(input);
 	unique_ptr<BindingId const> b = root.next();
 	int count = 0;
@@ -119,12 +115,12 @@ void test_nested_loop_join() {
 		auto value_id = b->search_id(VarId(4));
 		auto value = graph.get_value(value_id->id);
 
-		auto label2_id = b->search_id(VarId(5));
-		Label label2 = graph.get_label(label2_id->id);
+		// auto label2_id = b->search_id(VarId(5));
+		// Label label2 = graph.get_label(label2_id->id);
 
 		cout << count << ") NodeId: " << node.get_id();
 		cout << ":" << label.get_label_name() << "\t";
-		cout << ":" << label2.get_label_name() << "\t";
+		// cout << ":" << label2.get_label_name() << "\t";
 		cout << key.get_key_name() << ": " << value->to_string() << "\t";
 		cout << "\n";
 		b = root.next();
@@ -151,13 +147,14 @@ void test_ordered_file() {
 
 	cout << "> Insertando records\n";
 	auto start = std::chrono::system_clock::now();
-	for (uint64_t i = 0; i < 10'000'000; i++) {
+	for (uint64_t i = 0; i < 10'000; i++) {
 		c[0] = (uint64_t) rand();
-		c[1] = (uint64_t) rand();
+		for (uint64_t j = 0; j < 1'000; j++) {
+			c[1] = (uint64_t) rand();
+			ordered_file.append_record(Record(c[1], c[0], i*1'000 + j));
+		}
 		// c[2] = (uint64_t) rand();
 		// cout << "> Insertando record " << i << ": (" << (uint64_t)c[0] << ", " << (uint64_t)c[1] << ")\n";
-
-		ordered_file.append_record(Record(c[0], c[1], i));
 	}
 	delete[] c;
 	auto end1 = std::chrono::system_clock::now();
@@ -175,9 +172,20 @@ void test_ordered_file() {
 	bpt.bulk_import(ordered_file);
 }
 
+void test_bpts_from_import() {
+	BPlusTreeParams label2element_params = BPlusTreeParams("label2element", 2);
+    BPlusTree label2element = BPlusTree(label2element_params);
+	search_records(label2element);
+
+	BPlusTreeParams element2label_params = BPlusTreeParams("element2label", 2);
+    BPlusTree element2label = BPlusTree(element2label_params);
+	search_records(element2label);
+}
+
 int main()
 {
 	// test_bulk_import();
+	// test_bpts_from_import();
 	test_nested_loop_join();
 	// test_bpt();
 	// test_ordered_file();

@@ -14,14 +14,10 @@
 class Config {
 public:
     Config() {
-        cout << "Buffer Manager ready\n";
         object_file = std::make_unique<ObjectFile>(object_file_name);
-        cout << "Object file ready\n";
         catalog = std::make_unique<Catalog>(catalog_file_name);
-        cout << "Catalog ready\n";
         bpt_params_hash2id = std::make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:128 + Key:64
         hash2id = std::make_unique<BPlusTree>(*bpt_params_hash2id);
-        cout << "hash2id ready\n";
     }
     ~Config() {
         std::cout << "~Config\n";

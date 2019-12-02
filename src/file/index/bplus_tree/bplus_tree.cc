@@ -32,6 +32,7 @@ void BPlusTree::bulk_import(OrderedFile& ordered_file)
     if (ordered_file.has_more_tuples()) {
         *first_leaf.next = 1;
     }
+    first_leaf.page.make_dirty();
 
     while (ordered_file.has_more_tuples()) {
 

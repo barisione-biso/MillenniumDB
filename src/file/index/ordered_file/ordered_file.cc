@@ -35,6 +35,9 @@ OrderedFile::~OrderedFile() {
 }
 
 void OrderedFile::begin_iter() {
+    if (file.eof()) std::cout  << "begin_iter eof bit\n";
+    if (file.fail()) std::cout << "begin_iter fail bit\n";
+    if (file.bad()) std::cout  << "begin_iter bad bit\n";
     file.seekg(0, ios::end);
     filesize = file.tellg();
     file.seekg(0, ios::beg);
@@ -48,6 +51,7 @@ uint_fast32_t OrderedFile::next_tuples(uint64_t* output, uint_fast32_t max_tuple
     file.read((char*)output, max_tuples*bytes_per_tuple);
     auto res = file.gcount()/bytes_per_tuple;
     file.clear(); // clear posible badbit
+
     return res;
 }
 
@@ -65,6 +69,12 @@ void OrderedFile::append_record(const Record& record) {
 }
 
 void OrderedFile::order(vector<uint_fast8_t> column_order) {
+
+    // if (file.eof()) std::cout  << "order eof bit\n";
+    // if (file.fail()) std::cout << "order fail bit\n";
+    // if (file.bad()) std::cout  << "order bad bit\n";
+
+    FileManager::ensure_open(tmp_file_id);
 
     if (current_output_pos > 0) {
         file.write((char*) output_buffer, bytes_per_tuple*current_output_pos);
@@ -126,7 +136,7 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
                             min_run = run;
                         } else {
                             // compare current record at min_run vs record at run
-                            for (uint_fast8_t col : column_order) {
+                            for (uint_fast8_t col = 0; col < tuple_size; col++/*uint_fast8_t col : column_order*/) {
                                 if (buffer[run][buffer_current_pos[run]*tuple_size+col] < buffer[min_run][buffer_current_pos[min_run]*tuple_size+col]) {
                                     min_run = run;
                                     break;
@@ -173,11 +183,23 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
         }
         reading_orginal_file = !reading_orginal_file;
     }
+
     if (!reading_orginal_file) {
+        // std::cout  << "removing and renaming\n";
         FileManager::remove(file_id);
+
+        // if (file.eof()) std::cout  << "after_remove order eof bit\n";
+        // if (file.fail()) std::cout << "after_remove order fail bit\n";
+        // if (file.bad()) std::cout  << "after_remove order bad bit\n";
+
         FileManager::rename(tmp_file_id, file_id);
+
+        // if (file.eof()) std::cout  << "after_rename order eof bit\n";
+        // if (file.fail()) std::cout << "after_rename order fail bit\n";
+        // if (file.bad()) std::cout  << "after_rename order bad bit\n";
     }
     else {
+        // std::cout  << "removing\n";
         FileManager::remove(tmp_file_id);
     }
     FileManager::ensure_open(file_id);
@@ -185,6 +207,10 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
     auto end = std::chrono::system_clock::now();
     duration = end - end_phase0;
     std::cout << duration.count() << "ms " << std::endl;
+
+    if (file.eof()) std::cout  << "end order eof bit\n";
+    if (file.fail()) std::cout << "end order fail bit\n";
+    if (file.bad()) std::cout  << "end order bad bit\n";
 }
 
 // First Step: order (MAX_RUNS) blocks at once
@@ -196,15 +222,24 @@ void OrderedFile::create_run(uint64_t* buffer, uint_fast32_t block_number, vecto
     uint_fast32_t tuples = bytes_readed / bytes_per_tuple;
     file.clear(); // clear posible badbit
 
-
     uint64_t* key = new uint64_t[tuple_size];
+    // reorder according to column_order
+    for (uint_fast32_t i = 0; i < tuples; i++) {
+        for (uint_fast8_t n = 0; n < tuple_size; n++) {
+            key[column_order[n]] = buffer[i*tuple_size + n];
+        }
+        for (uint_fast8_t n = 0; n < tuple_size; n++) {
+            buffer[i*tuple_size + n] = key[n];
+        }
+    }
+
     // insertion sort
     for (uint_fast32_t i = 1; i < tuples; i++) {
         for (uint_fast8_t n = 0; n < tuple_size; n++) {
             key[n] = buffer[i*tuple_size + n];
         }
         uint_fast32_t j = i - 1;
-        while (record_less_than(j, key, buffer, column_order))
+        while (record_less_than(j, key, buffer))
         {
             move_record_right(j, buffer);
             if (j == 0) { // necesary to check this because j is unsigned
@@ -222,13 +257,13 @@ void OrderedFile::create_run(uint64_t* buffer, uint_fast32_t block_number, vecto
 }
 
 // returns true if key is less than the record in the buffer at buffer_pos
-bool OrderedFile::record_less_than(uint_fast32_t buffer_pos, uint64_t* key, uint64_t* buffer, vector<uint_fast8_t>& column_order)
+bool OrderedFile::record_less_than(uint_fast32_t buffer_pos, uint64_t* key, uint64_t* buffer)
 {
-    for (auto column : column_order) {
-        if (key[column] < buffer[buffer_pos*tuple_size + column]) {
+    for (uint_fast8_t col = 0; col < tuple_size; col++) {
+        if (key[col] < buffer[buffer_pos*tuple_size + col]) {
             return true;
         }
-        else if (key[column] > buffer[buffer_pos*tuple_size + column]) {
+        else if (key[col] > buffer[buffer_pos*tuple_size + col]) {
             return false;
         }
     }
@@ -308,6 +343,7 @@ void OrderedFile::check_order(vector<uint_fast8_t> column_order)
                 cout << recordB.ids[i] << "\t";
             }
             cout << "\n";
+            // exit(-1);
         }
         recordA = recordB;
 

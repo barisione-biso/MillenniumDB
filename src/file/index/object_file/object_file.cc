@@ -29,6 +29,7 @@ unique_ptr<vector<char>> ObjectFile::read(uint64_t id)
     file.read(length_b, 4);
 
     int length = *(int *)length_b;
+    // TODO: check if length is reasonable to check for possible errors?
     auto value = make_unique<vector<char>>(length);
     file.read(&(*value)[0], length);
 
