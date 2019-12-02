@@ -7,6 +7,8 @@
 #include <map>
 #include <regex>
 
+#include "file/index/ordered_file/ordered_file.h"
+
 using namespace std;
 
 class RelationalGraph;
@@ -37,6 +39,10 @@ private:
     std::regex edge_expr;
     std::regex label_expr;
     std::regex properties_expr;
+
+    OrderedFile element_labels;
+    OrderedFile element_key_value;
+    OrderedFile from_to_edge;
 };
 
 #endif //RELATIONAL_MODEL__IMPORT__BULK_IMPORT_H

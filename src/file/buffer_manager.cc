@@ -1,13 +1,14 @@
 #include <iostream>
-#include <fstream>
-#include <boost/filesystem.hpp>
 
 #include "file/page.h"
 #include "file/buffer_manager.h"
+#include "file/file_manager.h"
 
 #define BUFFER_POOL_INITIAL_SIZE 4096
 
 using namespace std;
+
+BufferManager BufferManager::instance = BufferManager();
 
 BufferManager::BufferManager()
 {
@@ -15,17 +16,28 @@ BufferManager::BufferManager()
     clock_pos = 0;
     bytes = new char[BUFFER_POOL_INITIAL_SIZE*PAGE_SIZE];
 
-    // std::cout << "Size bytes:     " << sizeof(bytes) << "\n";
-    // std::cout << "Size &bytes:    " << sizeof(&bytes) << "\n";
-    // std::cout << "Size bytes[0]:  " << sizeof(bytes[0]) << "\n";
-    // std::cout << "Size &bytes[0]: " << sizeof(&bytes[0]) << "\n";
+    for (int i = 0; i < BUFFER_POOL_INITIAL_SIZE; i++) {
+        buffer_pool[i] = nullptr;
+    }
 }
 
 BufferManager::~BufferManager()
 {
+    cout << "~BufferManager()\n";
+    _flush();
 }
 
-void BufferManager::flush()
+Page& BufferManager::get_page(uint_fast32_t page_number, FileId file_id)
+{
+    return instance._get_page(page_number, file_id);
+}
+
+Page& BufferManager::append_page(FileId file_id)
+{
+    return instance._append_page(file_id);
+}
+
+void BufferManager::_flush()
 {
     cout << "FLUSHING PAGES\n";
     for (int i = 0; i < PAGE_SIZE; i++) {
@@ -35,15 +47,10 @@ void BufferManager::flush()
     }
 }
 
-int BufferManager::count_pages(const string& filename)
+Page& BufferManager::_append_page(FileId file_id)
 {
-    return boost::filesystem::file_size(filename)/PAGE_SIZE;
-}
-
-Page& BufferManager::append_page(const string& filename)
-{
-    // cout << "append_page(" << filename << ")\n";
-    return get_page(count_pages(filename) ,filename);
+    // cout << "append_page(" << file_path << ")\n";
+    return get_page(FileManager::count_pages(file_id), file_id);
 }
 
 int BufferManager::get_buffer_available()
@@ -60,45 +67,31 @@ int BufferManager::get_buffer_available()
     return res;
 }
 
-Page& BufferManager::get_page(int page_number, const string& filename) {
-    // cout << "get_page(" << page_number << ", " << filename << ")\n";
-    if (page_number != 0 && count_pages(filename) < page_number) {
-        std::cout << "getting wrong page_number for " << filename << " (" << page_number << "), max: " << count_pages(filename) << ".\n";
-
+Page& BufferManager::_get_page(uint_fast32_t page_number, FileId file_id) {
+    // cout << "get_page(" << page_number << ", " << file_path << ")\n";
+    if (page_number != 0 && FileManager::count_pages(file_id) < page_number) {
+        std::cout << "Page Number: " << page_number << ", FileId: " << file_id.id << "(" << FileManager::get_filename(file_id) <<  ")\n";
         throw std::logic_error("getting wrong page_number.");
     }
-    pair<string, int> page_key = pair<string, int>(filename, page_number);
-    map<pair<string, int>, int>::iterator it = pages.find(page_key);
+    pair<FileId, int> page_key = pair<FileId, int>(file_id, page_number);
+    map<pair<FileId, int>, int>::iterator it = pages.find(page_key);
 
     if (it == pages.end()) {
         int buffer_available = get_buffer_available();
         if (buffer_pool[buffer_available] == nullptr) {
-            buffer_pool[buffer_available] = new Page(page_number, &bytes[buffer_available*PAGE_SIZE], filename);
+            buffer_pool[buffer_available] = new Page(page_number, &bytes[buffer_available*PAGE_SIZE], file_id);
         }
         else {
             // std::cout << "REUSING PAGE\n";
-            pair<string, int> old_page_key = pair<string, int>(buffer_pool[buffer_available]->filename, buffer_pool[buffer_available]->page_number);
+            pair<FileId, int> old_page_key = pair<FileId, int>(buffer_pool[buffer_available]->file_id,
+                                                               buffer_pool[buffer_available]->page_number);
             pages.erase(old_page_key);
-            // buffer_pool[buffer_available]->reuse(page_number, filename);
-            delete buffer_pool[buffer_available];
-            buffer_pool[buffer_available] = new Page(page_number, &bytes[buffer_available*PAGE_SIZE], filename);
+            delete buffer_pool[buffer_available]; // TODO: is it necesary?
+            buffer_pool[buffer_available] = new Page(page_number, &bytes[buffer_available*PAGE_SIZE], file_id);
         }
 
-        fstream file(filename, fstream::in|fstream::out|fstream::binary|fstream::app);
-        file.seekg (0, file.end);
-        if (file.tellg()/PAGE_SIZE <= page_number) { // new file block
-            for (int i = 0; i < PAGE_SIZE; i++) {
-                buffer_pool[buffer_available]->get_bytes()[i] = 0;
-            }
-            file.write(buffer_pool[buffer_available]->get_bytes(), PAGE_SIZE);
-        }
-        else { // existing file block
-            file.seekg(page_number*PAGE_SIZE);
-            file.read(buffer_pool[buffer_available]->get_bytes(), PAGE_SIZE);
-        }
-        file.close();
-
-        pages.insert(pair<pair<string, int>, int>(page_key, buffer_available));
+        FileManager::read_page(page_key.first, page_number, buffer_pool[buffer_available]->get_bytes());
+        pages.insert(pair<pair<FileId, int>, int>(page_key, buffer_available));
         return *buffer_pool[buffer_available];
     }
     else { // file is already open

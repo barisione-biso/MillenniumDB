@@ -7,24 +7,24 @@
 
 #include <iostream>
 #include <string>
-#include <fstream>
+
+#include "file/file_manager.h"
 
 class Page {
     friend class BufferManager;
     public:
         void unpin();
-        // void reuse(int page_number, const std::string& filename);
         void make_dirty();
         char* get_bytes();
         uint_fast32_t get_page_number();
     private:
         uint_fast32_t page_number;
-        const std::string& filename;
+        FileId file_id;
         uint_fast32_t pins;
         bool dirty;
         char* const bytes;
 
-        Page(int page_number, char* bytes, const std::string& filename);
+        Page(uint_fast32_t page_number, char* bytes, FileId file_id);
         ~Page();
 
         void pin(); // Only buffer manager should call pin()

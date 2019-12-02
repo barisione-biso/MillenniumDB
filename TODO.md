@@ -1,14 +1,13 @@
-- Fix bug caused by opening file in appending mode
+- Create FileManager
+    - Fix bug caused by opening file in appending mode
+    - for each file open, have its open pages?
+- Al hacer bulk import hash2id se va insertando 1 a 1
 - Create Grammar
-- Posible optimización: en ordered file create_run usar merge sort+insertion sort
+- Posible optimización: en ordered file create_run usar merge sort y el insertion sort solo cuando el output_buffer hace flush
+  ojo que al ordenar otra permutación se debe ordenar si o si
 - Example queries
-- Batch loading:
-    - ordered file
-    - bplustree from ordered file
 - Buffer manager:
     - allocating more space if necesary
-- File Manager:
-    - for each file open, have its open pages.
 - Importing graph:
     - remove "" to strings
     - add int support
@@ -17,5 +16,5 @@
 - Catalog:
     - Stop if having key for node/edge more than X different keys.
 - BUG dont initialize if catalog is damaged
-
+- Usar memcpy cuando sea posible (ordered file y bpt)
 - posible optimización: no usar 3 punteros para los nodos del bpt, sino indices del arreglo que pueden ser 32 bits.

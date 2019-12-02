@@ -1,10 +1,13 @@
 #include "catalog.h"
+#include "file/file_manager.h"
 
-Catalog::Catalog(const string& filename) {
-    file = fstream(filename, ios::in|ios::out|ios::binary);
+
+Catalog::Catalog(const string& filename)
+    : file (FileManager::get_file(FileManager::get_file_id(filename)))
+{
+    // file = fstream(filename, ios::in|ios::out|ios::binary);
     file.seekg (0, file.end);
-    int last_pos = file.tellg();
-    if (last_pos == -1) {
+    if (file.tellg() == 0) {
         file.close();
         std::ofstream tmp(filename);
         tmp.close();

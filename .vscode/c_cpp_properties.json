@@ -9,8 +9,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/inc",
-                "C:\\\\tools\\\\msys64\\\\mingw64\\\\include",
-                "C:\\\\boost\\\\include"
+                "C:\\\\tools\\\\msys64\\\\mingw64\\\\include"
             ],
             "defines": [
                 "_DEBUG",

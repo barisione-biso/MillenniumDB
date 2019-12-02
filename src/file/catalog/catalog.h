@@ -35,7 +35,7 @@ class Catalog
         uint64_t get_edge_count_for_key(uint64_t key_id);
 
     private:
-        fstream file;
+        fstream& file;
 
         uint64_t node_count;
         uint64_t edge_count;

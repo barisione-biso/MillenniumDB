@@ -43,7 +43,7 @@ VPATH = $(dir $(SRCS))
 
  # link
 $(BIN_DIR)/$(TARGET): $(OBJS)
-	$(CXX) $(OBJS) -o $@ $(LDFLAGS) -lboost_filesystem -lboost_iostreams -lboost_system -lssl -lcrypto
+	$(CXX) $(OBJS) -o $@ $(LDFLAGS) -lstdc++fs -lssl -lcrypto
 
 # compile cpp
 $(OBJ_DIR)/%.cc.o: %.cc

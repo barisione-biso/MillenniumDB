@@ -18,7 +18,7 @@ class ObjectFile
         unique_ptr<vector<char>> read(uint64_t id);
         uint64_t write(vector<char>& bytes);
     private:
-        std::fstream file;
+        std::fstream& file;
 };
 
 #endif //FILE__INDEX__OBJECT_FILE_
