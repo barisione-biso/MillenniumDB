@@ -41,7 +41,7 @@ void BPlusTree::bulk_import(OrderedFile& ordered_file)
         // cout << *new_leaf.count << "\n";
 
         if (ordered_file.has_more_tuples()) {
-            *new_leaf.next = new_leaf.page.get_page_number() + 1;
+            *new_leaf.next = new_leaf.page.get_page_number() + 1; //TODO: tener contador para eficiencia
         }
         root->bulk_insert(new_leaf);
         new_leaf.page.make_dirty();
