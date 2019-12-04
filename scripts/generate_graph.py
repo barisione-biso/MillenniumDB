@@ -2,6 +2,9 @@ from random import seed
 from random import randint
 
 # PARAMETERS
+DISTINCT_LABELS = 100
+DISTINCT_KEYS = 200
+
 NODES_GENERATED = 10000
 EDGES_GENERATED = 100000
 
@@ -17,6 +20,8 @@ MAX_PROPERTIES_NODES = 10
 MIN_PROPERTIES_EDGES = 2
 MAX_PROPERTIES_EDGES = 5
 
+def select_random(list):
+    return list[randint(0, len(list)-1)]
 
 # seed random number generator
 seed(1)
@@ -26,7 +31,22 @@ words = []
 with open("/usr/share/dict/words", mode="r") as words_file:
     for line in words_file:
         words.append(line.strip())
-word_count = len(words)
+
+# SELECT RANDOM LABELS
+labels = []
+for i in range(DISTINCT_LABELS):
+    random_label = select_random(words)
+    while random_label in labels:
+        random_label = select_random(words)
+    labels.append(random_label)
+
+# SELECT RANDOM KEYS
+keys = []
+for i in range(DISTINCT_KEYS):
+    random_key = select_random(words)
+    while random_key in keys:
+        random_key = select_random(words)
+    keys.append(random_key)
 
 with open("nodes.txt", mode="w") as nodes_file:
     for i in range(NODES_GENERATED):
@@ -36,9 +56,9 @@ with open("nodes.txt", mode="w") as nodes_file:
         node_label_count = randint(MIN_LABELS_NODES, MAX_LABELS_NODES)
         labels_already_added = []
         for l in range(node_label_count):
-            label = words[randint(0, word_count-1)]
+            label = select_random(labels)
             while label in labels_already_added:
-                label = words[randint(0, word_count-1)]
+                label = select_random(labels)
             labels_already_added.append(label)
             nodes_file.write(" :{}".format(label))
 
@@ -46,10 +66,10 @@ with open("nodes.txt", mode="w") as nodes_file:
         node_property_count = randint(MIN_PROPERTIES_NODES, MAX_PROPERTIES_NODES)
         keys_already_added = []
         for l in range(node_property_count):
-            key = words[randint(0, word_count-1)]
+            key = select_random(keys)
             while key in keys_already_added:
-                key = words[randint(0, word_count-1)]
-            value = words[randint(0, word_count-1)]
+                key = select_random(keys)
+            value = select_random(words)
             keys_already_added.append(key)
             nodes_file.write(" {}:{}".format(key, value))
         nodes_file.write("\n")
@@ -62,9 +82,9 @@ with open("edges.txt", mode="w") as edges_file:
         edge_label_count = randint(MIN_LABELS_EDGES, MAX_LABELS_EDGES)
         labels_already_added = []
         for l in range(edge_label_count):
-            label = words[randint(0, word_count-1)]
+            label = select_random(labels)
             while label in labels_already_added:
-                label = words[randint(0, word_count-1)]
+                label = select_random(labels)
             labels_already_added.append(label)
             edges_file.write(" :{}".format(label))
 
@@ -72,10 +92,10 @@ with open("edges.txt", mode="w") as edges_file:
         edge_property_count = randint(MIN_PROPERTIES_EDGES, MAX_PROPERTIES_EDGES)
         keys_already_added = []
         for l in range(edge_property_count):
-            key = words[randint(0, word_count-1)]
+            key = select_random(keys)
             while key in keys_already_added:
-                key = words[randint(0, word_count-1)]
+                key = select_random(keys)
             keys_already_added.append(key)
-            value = words[randint(0, word_count-1)]
+            value = select_random(words)
             edges_file.write(" {}:{}".format(key, value))
         edges_file.write("\n")
