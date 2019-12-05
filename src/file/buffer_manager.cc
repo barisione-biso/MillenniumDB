@@ -12,19 +12,23 @@ BufferManager BufferManager::instance = BufferManager();
 
 BufferManager::BufferManager()
 {
-    buffer_pool = new Page*[BUFFER_POOL_INITIAL_SIZE];
+    buffer_pool = new Page[BUFFER_POOL_INITIAL_SIZE];
     clock_pos = 0;
     bytes = new char[BUFFER_POOL_INITIAL_SIZE*PAGE_SIZE];
 
-    for (int i = 0; i < BUFFER_POOL_INITIAL_SIZE; i++) {
-        buffer_pool[i] = nullptr;
-    }
+    // for (int i = 0; i < BUFFER_POOL_INITIAL_SIZE; i++) {
+    //     buffer_pool[i] = nullptr;
+    // }
 }
 
 BufferManager::~BufferManager()
 {
-    cout << "~BufferManager()\n";
-    _flush();
+    std::cout << "~BufferManager()\n";
+    if (!instance.flushed_at_exit) {
+        _flush();
+        instance.flushed_at_exit = true;
+        FileManager::instance.flushed_at_exit = true;
+    }
 }
 
 Page& BufferManager::get_page(uint_fast32_t page_number, FileId file_id)
@@ -39,11 +43,9 @@ Page& BufferManager::append_page(FileId file_id)
 
 void BufferManager::_flush()
 {
-    cout << "FLUSHING PAGES\n";
+    // cout << "FLUSHING PAGES\n";
     for (int i = 0; i < PAGE_SIZE; i++) {
-        if (buffer_pool[i] != nullptr) {
-            buffer_pool[i]->flush();
-        }
+        buffer_pool[i].flush();
     }
 }
 
@@ -56,7 +58,7 @@ Page& BufferManager::_append_page(FileId file_id)
 int BufferManager::get_buffer_available()
 {
     int first_lookup = clock_pos;
-    while (buffer_pool[clock_pos] != nullptr && buffer_pool[clock_pos]->pins != 0) {
+    while (buffer_pool[clock_pos].pins != 0) {
         clock_pos = (clock_pos+1)%BUFFER_POOL_INITIAL_SIZE;
         if (clock_pos == first_lookup) {
             throw std::logic_error("No buffer available.");
@@ -78,24 +80,19 @@ Page& BufferManager::_get_page(uint_fast32_t page_number, FileId file_id) {
 
     if (it == pages.end()) {
         int buffer_available = get_buffer_available();
-        if (buffer_pool[buffer_available] == nullptr) {
-            buffer_pool[buffer_available] = new Page(page_number, &bytes[buffer_available*PAGE_SIZE], file_id);
-        }
-        else {
-            // std::cout << "REUSING PAGE\n";
-            pair<FileId, int> old_page_key = pair<FileId, int>(buffer_pool[buffer_available]->file_id,
-                                                               buffer_pool[buffer_available]->page_number);
+        if (buffer_pool[buffer_available].file_id.id == FileId::UNASSIGNED) {
+            pair<FileId, int> old_page_key = pair<FileId, int>(buffer_pool[buffer_available].file_id,
+                                                               buffer_pool[buffer_available].page_number);
             pages.erase(old_page_key);
-            delete buffer_pool[buffer_available]; // TODO: is it necesary?
-            buffer_pool[buffer_available] = new Page(page_number, &bytes[buffer_available*PAGE_SIZE], file_id);
         }
+        buffer_pool[buffer_available] = Page(page_number, &bytes[buffer_available*PAGE_SIZE], file_id);
 
-        FileManager::read_page(page_key.first, page_number, buffer_pool[buffer_available]->get_bytes());
+        FileManager::read_page(page_key.first, page_number, buffer_pool[buffer_available].get_bytes());
         pages.insert(pair<pair<FileId, int>, int>(page_key, buffer_available));
-        return *buffer_pool[buffer_available];
+        return buffer_pool[buffer_available];
     }
     else { // file is already open
-        buffer_pool[it->second]->pin();
-        return *buffer_pool[it->second];
+        buffer_pool[it->second].pin();
+        return buffer_pool[it->second];
     }
 }

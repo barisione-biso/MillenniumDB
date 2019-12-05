@@ -10,6 +10,7 @@ class Page;
 class Buffer;
 
 class BufferManager {
+friend class FileManager;
 public:
     // static void flush(); // TODO: should be automatically called, move to destructor?
     static Page& get_page(uint_fast32_t page_number, FileId file_id);
@@ -19,13 +20,14 @@ private:
     static BufferManager instance;
     std::map<std::pair<FileId, int>, int> pages;
 
-    Page** buffer_pool; // array of pointers
+    Page* buffer_pool;
     char* bytes;
     int clock_pos;
 
     BufferManager();
     ~BufferManager();
 
+    bool flushed_at_exit = false;
     void _flush();
     int get_buffer_available();
     Page& _get_page(uint_fast32_t page_number, FileId file_id);

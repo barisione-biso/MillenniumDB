@@ -16,6 +16,16 @@ BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_n
     nodes_file = ifstream(nodes_file_name);
     edges_file = ifstream(edges_file_name);
 
+    if (nodes_file.fail()) {
+        std::cerr << "Nodes file: \"" << nodes_file_name << "\"could not be opened. Exiting.\n";
+        exit(-1);
+
+    } else if (edges_file.fail()){
+        std::cerr << "Edges file: \"" << edges_file_name << "\"could not be opened. Exiting.\n";
+        exit(-1);
+    }
+
+
     node_line_expr = std::regex("^\\s*\\(\\d+\\)(\\s+:[^:\\s]+)*(\\s+[^:\\s]+:((\".+\")|[^\\s\"]+))*\\s*$");
     edge_line_expr = std::regex("^\\s*\\(\\d+\\)->\\(\\d+\\)(\\s+:[^:\\s]+)*(\\s+[^:\\s]+:((\".+\")|[^\\s\"]+))*\\s*$");
 
@@ -34,7 +44,7 @@ void BulkImport::start_import()
 
     int line_number = 1;
     cout << "procesing nodes:\n";
-    while (getline(nodes_file, line) && line_number < 3) {
+    while (getline(nodes_file, line)/* && line_number < 3*/) {
         process_node(line, line_number);
         line_number++;
     }
@@ -42,7 +52,7 @@ void BulkImport::start_import()
 
     line_number = 1;
     cout << "procesing edges:\n";
-    while (getline(edges_file, line) && line_number < 3) {
+    while (getline(edges_file, line)/* && line_number < 3*/) {
         process_edge(line, line_number);
         line_number++;
     }

@@ -5,8 +5,11 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <climits>
 
 struct FileId {
+    static const uint_fast32_t UNASSIGNED = -1;
+
     uint_fast32_t id;
     FileId(uint_fast32_t _id) {
         id = _id;
@@ -17,6 +20,7 @@ struct FileId {
 };
 
 class FileManager {
+friend class BufferManager;
 public:
     static FileId get_file_id(const std::string& filename);
 
@@ -32,6 +36,7 @@ public:
     static void flush(FileId file_id, uint_fast32_t page_number, char* bytes);
 private:
     static FileManager instance;
+    bool flushed_at_exit = false;
     std::vector<std::fstream*> opened_files;
     std::vector<std::string> filenames;
 

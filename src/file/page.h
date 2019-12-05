@@ -15,15 +15,18 @@ class Page {
     public:
         void unpin();
         void make_dirty();
-        char* get_bytes();
-        uint_fast32_t get_page_number();
+        char* get_bytes() const;
+        uint_fast32_t get_page_number() const;
+
+        Page& operator=(const Page& other);
     private:
         uint_fast32_t page_number;
         FileId file_id;
         uint_fast32_t pins;
         bool dirty;
-        char* const bytes;
+        char* bytes;
 
+        Page();
         Page(uint_fast32_t page_number, char* bytes, FileId file_id);
         ~Page();
 

@@ -1,5 +1,7 @@
+- Ordered file: checkear al cambiar el orden si en verdad es necesario
+- Bulk Import: borrar ordered_files al terminar
+
 - Create FileManager
-    - Fix bug caused by opening file in appending mode
     - for each file open, have its open pages?
 - Al hacer bulk import hash2id se va insertando 1 a 1
 - Create Grammar
@@ -15,11 +17,5 @@
     - use disk if importing more than X nodes
 - Catalog:
     - Stop if having key for node/edge more than X different keys.
-- BUG dont initialize if catalog is damaged
 - Usar memcpy cuando sea posible (ordered file y bpt)
-- posible optimización: no usar 3 punteros para los nodos del bpt, sino indices del arreglo que pueden ser 32 bits.
-- BufferManager: en vez de arreglo de punteros de Page, tener una arreglo de Page (creac convencionde Page null)
-- Ordered file: checkear al cambiar el orden si en verdad es necesario
 - Optimizacion en creacion de bpt hash2id
-- Probar todos los árboles haciendo consultas (en particular y por rango)
-- Generar grafo con conjunto de labels y keys mas chicos

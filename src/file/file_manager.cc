@@ -1,5 +1,7 @@
 #include "file/file_manager.h"
 
+#include "file/buffer_manager.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <experimental/filesystem>
@@ -14,14 +16,14 @@ FileManager::FileManager() {
 }
 
 FileManager::~FileManager() {
-
+    std::cout << "~FileManager()\n";
+    if (!flushed_at_exit) {
+        BufferManager::instance._flush();
+        BufferManager::instance.flushed_at_exit = true;
+    }
 }
 
 void FileManager::ensure_open(FileId file_id) {
-    // if (instance.opened_files[file_id.id]->eof()) std::cout  << "ensure_open eof bit\n";
-    // if (instance.opened_files[file_id.id]->fail()) std::cout << "ensure_open fail bit\n";
-    // if (instance.opened_files[file_id.id]->bad()) std::cout  << "ensure_open bad bit\n";
-
     if (!instance.opened_files[file_id.id]->is_open()) {
         if (!experimental::filesystem::exists(instance.filenames[file_id.id])) {
             instance.opened_files[file_id.id]->open(instance.filenames[file_id.id], ios::out|ios::app);
@@ -30,10 +32,6 @@ void FileManager::ensure_open(FileId file_id) {
         std::cout  << "re opening " << instance.filenames[file_id.id] << " \n";
         instance.opened_files[file_id.id]->open(instance.filenames[file_id.id], ios::in|ios::out|ios::binary);
     }
-
-    // if (instance.opened_files[file_id.id]->eof()) std::cout  << "end ensure_open eof bit\n";
-    // if (instance.opened_files[file_id.id]->fail()) std::cout << "end ensure_open fail bit\n";
-    // if (instance.opened_files[file_id.id]->bad()) std::cout  << "end ensure_open bad bit\n";
 }
 
 void FileManager::close(FileId file_id) {
@@ -46,32 +44,10 @@ void FileManager::remove(FileId file_id) {
 }
 
 void FileManager::rename(FileId old_name_id, FileId new_name_id) {
-//     if (instance.opened_files[old_name_id.id]->eof()) std::cout  << "before_close rename old_name_id eof bit\n";
-//     if (instance.opened_files[old_name_id.id]->fail()) std::cout << "before_close rename old_name_id fail bit\n";
-//     if (instance.opened_files[old_name_id.id]->bad()) std::cout  << "before_close rename old_name_id bad bit\n";
-//     if (instance.opened_files[new_name_id.id]->eof()) std::cout  << "before_close rename new_name_id eof bit\n";
-//     if (instance.opened_files[new_name_id.id]->fail()) std::cout << "before_close rename new_name_id fail bit\n";
-//     if (instance.opened_files[new_name_id.id]->bad()) std::cout  << "before_close rename new_name_id bad bit\n";
-
     close(old_name_id);
     close(new_name_id);
 
-    // if (instance.opened_files[old_name_id.id]->eof()) std::cout  << "rename old_name_id eof bit\n";
-    // if (instance.opened_files[old_name_id.id]->fail()) std::cout << "rename old_name_id fail bit\n";
-    // if (instance.opened_files[old_name_id.id]->bad()) std::cout  << "rename old_name_id bad bit\n";
-    // if (instance.opened_files[new_name_id.id]->eof()) std::cout  << "rename new_name_id eof bit\n";
-    // if (instance.opened_files[new_name_id.id]->fail()) std::cout << "rename new_name_id fail bit\n";
-    // if (instance.opened_files[new_name_id.id]->bad()) std::cout  << "rename new_name_id bad bit\n";
-
     experimental::filesystem::rename(instance.filenames[old_name_id.id], instance.filenames[new_name_id.id]);
-    //std::cout  << "rename " << instance.filenames[old_name_id.id] << " to " << instance.filenames[new_name_id.id] << " result " << res << " \n";
-
-    // if (instance.opened_files[old_name_id.id]->eof()) std::cout  << "rename old_name_id eof bit\n";
-    // if (instance.opened_files[old_name_id.id]->fail()) std::cout << "rename old_name_id fail bit\n";
-    // if (instance.opened_files[old_name_id.id]->bad()) std::cout  << "rename old_name_id bad bit\n";
-    // if (instance.opened_files[new_name_id.id]->eof()) std::cout  << "rename new_name_id eof bit\n";
-    // if (instance.opened_files[new_name_id.id]->fail()) std::cout << "rename new_name_id fail bit\n";
-    // if (instance.opened_files[new_name_id.id]->bad()) std::cout  << "rename new_name_id bad bit\n";
 }
 
 uint_fast32_t FileManager::count_pages(FileId file_id)

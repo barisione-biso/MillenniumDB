@@ -5,15 +5,29 @@ Page::Page(uint_fast32_t page_number, char* bytes, FileId file_id)
 {
 }
 
-Page::~Page(){
-    if (pins > 0) {
-        std::cout << "Destroying pinned page\n";
-    }
-    flush();
-    // std::cout << "destroying page (" << page_number << ", " << filename << ")\n";
+Page::Page()
+    : page_number(0), file_id(FileId(FileId::UNASSIGNED)), pins(0), dirty(false), bytes(nullptr)
+{
 }
 
-uint_fast32_t Page::get_page_number() {
+Page::~Page() {
+    /*if (pins > 0) {
+        std::cout << "ERROR: Destroying pinned page, this is a bug.\n";
+    }
+    flush();*/
+}
+
+Page& Page::operator=(const Page& other) {
+    this->flush();
+    this->page_number = other.page_number;
+    this->file_id = other.file_id;
+    this->pins = other.pins;
+    this->dirty = other.dirty;
+    this->bytes = other.bytes;
+    return *this;
+}
+
+uint_fast32_t Page::get_page_number() const {
     return page_number;
 }
 
@@ -32,7 +46,7 @@ void Page::pin() {
     pins++;
 }
 
-char* Page::get_bytes() {
+char* Page::get_bytes() const {
     return bytes;
 }
 

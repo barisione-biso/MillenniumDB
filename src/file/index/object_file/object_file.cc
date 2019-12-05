@@ -8,7 +8,6 @@ using namespace std;
 ObjectFile::ObjectFile(const string& filename)
     : file (FileManager::get_file(FileManager::get_file_id(filename)))
 {
-    // file = fstream(filename, fstream::in|fstream::out|fstream::binary|fstream::app);
     file.seekg (0, file.end);
     if (file.tellg() == 0) { // Write trash to prevent the id = 0
         char c = 0;
