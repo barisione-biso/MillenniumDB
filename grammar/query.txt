@@ -1,0 +1,1 @@
+SELECT ?x.a ,f(?y.b) MATCH () -[:knows]-> (?n:echanted) <-[?gamma]- ({gut:"full of shit"})
