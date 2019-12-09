@@ -55,14 +55,13 @@ unique_ptr<BindingId::Iter> BindingId::get_values() const
 
 void BindingId::print(map<int, string>& var_names) const
 {
-    cout << "BindingId: ";
+    std::cout << "BindingId: ";
     auto it = dict->cbegin();
     while (it != dict->cend()) {
-        cout << "";
-        cout << var_names[it->first.var_id] << ":[" << ((it->second.id) >> 56) << "]" << (it->second.id & 0x00FFFFFFFFFFFFFFUL) << "\t\t";
+        std::cout << var_names[it->first.var_id] << ":[" << ((it->second.id) >> 56) << "]" << (it->second.id & 0x00FFFFFFFFFFFFFFUL) << "\t\t";
         it++;
     }
-    cout << endl;
+    std::cout << endl;
 }
 
 /******************************* Iter ********************************/

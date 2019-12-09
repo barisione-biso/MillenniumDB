@@ -21,6 +21,7 @@ FileManager::~FileManager() {
         BufferManager::instance._flush();
         BufferManager::instance.flushed_at_exit = true;
     }
+    // TODO: close files still open from opened_files
 }
 
 void FileManager::ensure_open(FileId file_id) {
@@ -29,7 +30,7 @@ void FileManager::ensure_open(FileId file_id) {
             instance.opened_files[file_id.id]->open(instance.filenames[file_id.id], ios::out|ios::app);
             instance.opened_files[file_id.id]->close();
         }
-        std::cout  << "re opening " << instance.filenames[file_id.id] << " \n";
+        // std::cout  << "re opening " << instance.filenames[file_id.id] << " \n";
         instance.opened_files[file_id.id]->open(instance.filenames[file_id.id], ios::in|ios::out|ios::binary);
     }
 }
@@ -98,11 +99,14 @@ FileId FileManager::get_file_id(const string& filename)
 }
 
 FileId FileManager::_get_file_id(const string& filename) {
-    if (std::find(filenames.begin(), filenames.end(), filename) != filenames.end()) {
-        throw std::logic_error("duplicated filename");
+    string file_path = "test_files/" + filename;
+    for (size_t i = 0; i < filenames.size(); i++) {
+        if (file_path.compare(filenames[i]) == 0) {
+            // cout << "duplicated filename\n";
+            return FileId(i);
+        }
     }
 
-    string file_path = "test_files/" + filename;
     filenames.push_back(file_path);
     fstream* file = new fstream();
     if (!experimental::filesystem::exists(file_path)) {

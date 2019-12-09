@@ -5,7 +5,7 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/${workspaceFolderBasename}.exe",
+            "program": "${workspaceFolder}/bin/${workspaceFolderBasename}",
             "preLaunchTask": "Debug.Build",
             "args": [],
             "stopAtEntry": false,

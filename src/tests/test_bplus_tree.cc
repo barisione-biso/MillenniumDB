@@ -24,7 +24,7 @@ void TestBPlusTree::test_order() {
     BPlusTree bpt = BPlusTree(bpt_params);
 
     uint64_t min[] = {0, 0};
-	uint64_t max[] = {ULONG_MAX, ULONG_MAX};
+	uint64_t max[] = {UINT64_MAX, UINT64_MAX};
 	auto it = bpt.get_range(Record(min[0], min[1]), Record(max[0], max[1]));
 	auto x = it->next();
 	auto y = it->next();

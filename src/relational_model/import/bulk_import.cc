@@ -44,7 +44,7 @@ void BulkImport::start_import()
 
     int line_number = 1;
     cout << "procesing nodes:\n";
-    while (getline(nodes_file, line)/* && line_number < 3*/) {
+    while (getline(nodes_file, line)) {
         process_node(line, line_number);
         line_number++;
     }
@@ -52,7 +52,7 @@ void BulkImport::start_import()
 
     line_number = 1;
     cout << "procesing edges:\n";
-    while (getline(edges_file, line)/* && line_number < 3*/) {
+    while (getline(edges_file, line)) {
         process_edge(line, line_number);
         line_number++;
     }
@@ -62,7 +62,7 @@ void BulkImport::start_import()
     line_number = 1;
     cout << "conecting nodes:\n";
     for (auto&& [from, to, edge_id] : edges_original_ids) {
-        cout << "\r  line " << line_number++ << std::flush;
+        // cout << "\r  line " << line_number++ << std::flush;
         from_to_edge.append_record(Record(node_dict[from], node_dict[to], edge_id));
     }
     cout << "\nCreating element2label\n";
@@ -87,7 +87,7 @@ void BulkImport::start_import()
     graph.element2prop->bulk_import(element_key_value);
 
     cout << "Creating prop2element\n";
-    vector<uint_fast8_t> prop2element_order { 1, 2, 0 };
+    vector<uint_fast8_t> prop2element_order { 2, 0, 1 };
     element_key_value.order(prop2element_order);
     // element_key_value.print();
     // element_key_value.check_order(prop2element_order);
@@ -111,7 +111,7 @@ void BulkImport::start_import()
 void BulkImport::process_node(const string& line, int line_number)
 {
     std::smatch match;
-    cout << "\r  line " << line_number << std::flush;
+    // cout << "\r  line " << line_number << std::flush;
 
     std::regex_search(line, match, node_line_expr);
     if (match.empty()) {
@@ -147,7 +147,7 @@ void BulkImport::process_node(const string& line, int line_number)
 void BulkImport::process_edge(const string& line, int line_number)
 {
     std::smatch match;
-    cout << "\r  line " << line_number << std::flush;
+    // cout << "\r  line " << line_number << std::flush;
 
     std::regex_search(line, match, edge_line_expr);
     if (match.empty()) {

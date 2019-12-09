@@ -6,7 +6,7 @@
 #include "file/index/record.h"
 
 #define TUPLES_PER_BLOCK 4096/8
-#define MAX_RUNS 5
+#define MAX_RUNS 8
 
 OrderedFile::OrderedFile(const string& filename, uint_fast8_t tuple_size)
     : tuple_size(tuple_size),
@@ -35,9 +35,6 @@ OrderedFile::~OrderedFile() {
 }
 
 void OrderedFile::begin_iter() {
-    if (file.eof()) std::cout  << "begin_iter eof bit\n";
-    if (file.fail()) std::cout << "begin_iter fail bit\n";
-    if (file.bad()) std::cout  << "begin_iter bad bit\n";
     file.seekg(0, ios::end);
     filesize = file.tellg();
     file.seekg(0, ios::beg);
@@ -69,11 +66,6 @@ void OrderedFile::append_record(const Record& record) {
 }
 
 void OrderedFile::order(vector<uint_fast8_t> column_order) {
-
-    // if (file.eof()) std::cout  << "order eof bit\n";
-    // if (file.fail()) std::cout << "order fail bit\n";
-    // if (file.bad()) std::cout  << "order bad bit\n";
-
     FileManager::ensure_open(tmp_file_id);
 
     if (current_output_pos > 0) {
@@ -90,9 +82,17 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
     std::cout << "size_in_bytes : " << size_in_bytes << "\n";
     std::cout << "total_blocks: " << total_blocks << "\n";
 
+    bool reorder = false;
+    for (size_t i = 0; i < column_order.size(); i++) {
+        if (column_order[i] != i) {
+            reorder = true;
+            break;
+        }
+    }
+
     // Order chunks of size (MAX_RUNS) blocks
-    for (uint_fast32_t i = 0; i < total_blocks; i+= MAX_RUNS) {
-        create_run(big_buffer, i, column_order);
+    for (uint_fast32_t i = 0; i < total_blocks; /*i+= MAX_RUNS*/i++) {
+        create_run(big_buffer, i, column_order, reorder);
     }
 
     auto end_phase0 = std::chrono::system_clock::now();
@@ -104,7 +104,7 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
     uint_fast32_t buffer_current_block[MAX_RUNS];
 
     // MERGE ITERATION
-    for (uint_fast32_t merge_size = MAX_RUNS; merge_size < total_blocks; merge_size *= MAX_RUNS) {
+    for (uint_fast32_t merge_size = 1; merge_size < total_blocks; merge_size *= MAX_RUNS) {
         file.seekg(0, ios::beg);
         tmp_file.seekg(0, ios::beg);
         std::fstream& file_reading = reading_orginal_file? file : tmp_file;
@@ -185,18 +185,8 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
     }
 
     if (!reading_orginal_file) {
-        // std::cout  << "removing and renaming\n";
         FileManager::remove(file_id);
-
-        // if (file.eof()) std::cout  << "after_remove order eof bit\n";
-        // if (file.fail()) std::cout << "after_remove order fail bit\n";
-        // if (file.bad()) std::cout  << "after_remove order bad bit\n";
-
         FileManager::rename(tmp_file_id, file_id);
-
-        // if (file.eof()) std::cout  << "after_rename order eof bit\n";
-        // if (file.fail()) std::cout << "after_rename order fail bit\n";
-        // if (file.bad()) std::cout  << "after_rename order bad bit\n";
     }
     else {
         // std::cout  << "removing\n";
@@ -207,29 +197,27 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
     auto end = std::chrono::system_clock::now();
     duration = end - end_phase0;
     std::cout << duration.count() << "ms " << std::endl;
-
-    if (file.eof()) std::cout  << "end order eof bit\n";
-    if (file.fail()) std::cout << "end order fail bit\n";
-    if (file.bad()) std::cout  << "end order bad bit\n";
 }
 
 // First Step: order (MAX_RUNS) blocks at once
-void OrderedFile::create_run(uint64_t* buffer, uint_fast32_t block_number, vector<uint_fast8_t>& column_order)
+void OrderedFile::create_run(uint64_t* buffer, uint_fast32_t block_number, vector<uint_fast8_t>& column_order, bool reorder)
 {
     file.seekg(block_number*block_size_in_bytes, ios::beg);
-    file.read((char*)buffer, block_size_in_bytes*MAX_RUNS);
+    file.read((char*)buffer, block_size_in_bytes/**MAX_RUNS*/);
     uint_fast32_t bytes_readed = file.gcount();
     uint_fast32_t tuples = bytes_readed / bytes_per_tuple;
     file.clear(); // clear posible badbit
 
     uint64_t* key = new uint64_t[tuple_size];
-    // reorder according to column_order
-    for (uint_fast32_t i = 0; i < tuples; i++) {
-        for (uint_fast8_t n = 0; n < tuple_size; n++) {
-            key[column_order[n]] = buffer[i*tuple_size + n];
-        }
-        for (uint_fast8_t n = 0; n < tuple_size; n++) {
-            buffer[i*tuple_size + n] = key[n];
+    if (reorder) {
+        // reorder according to column_order
+        for (uint_fast32_t i = 0; i < tuples; i++) {
+            for (uint_fast8_t n = 0; n < tuple_size; n++) {
+                key[column_order[n]] = buffer[i*tuple_size + n];
+            }
+            for (uint_fast8_t n = 0; n < tuple_size; n++) {
+                buffer[i*tuple_size + n] = key[n];
+            }
         }
     }
 

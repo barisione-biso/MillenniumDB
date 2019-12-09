@@ -23,24 +23,23 @@ void GraphScan::init(shared_ptr<BindingId const> input)
     vector<uint64_t> max_ids(record_size);
 
     if (input == nullptr) {
-        int i = 0;
-        for (; i < record_size; i++) {
+        for (int i = 0; i < record_size; i++) {
             min_ids[i] = 0;
             max_ids[i] = UINT64_MAX;
         }
     }
     else {
-        int i = 0;
-        for (; i < record_size; i++) {
+        for (int i = 0; i < record_size; i++) {
             const ObjectId* element_id = input->search_id(vars[i]);
             if (element_id != nullptr) {
                 min_ids[i] = element_id->id;
                 max_ids[i] = element_id->id;
             }
             else {
-                for (; i < record_size; i++) {
+                while (i < record_size) {
                     min_ids[i] = 0;
                     max_ids[i] = UINT64_MAX;
+                    i++;
                 }
             }
         }

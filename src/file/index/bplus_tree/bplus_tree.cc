@@ -29,19 +29,20 @@ void BPlusTree::bulk_import(OrderedFile& ordered_file)
     *first_leaf.count = ordered_file.next_tuples(first_leaf.records, params.leaf_max_records);
     // root.dirs[0] = 0;
     // cout << *first_leaf.count << "\n";
+    int next_page_number = 1;
     if (ordered_file.has_more_tuples()) {
-        *first_leaf.next = 1;
+        *first_leaf.next = next_page_number;
     }
     first_leaf.page.make_dirty();
 
     while (ordered_file.has_more_tuples()) {
 
-        BPlusTreeLeaf new_leaf(params, BufferManager::append_page(params.leaf_file_id));
+        BPlusTreeLeaf new_leaf(params, BufferManager::get_page(next_page_number, params.leaf_file_id));
         *new_leaf.count = ordered_file.next_tuples(new_leaf.records, params.leaf_max_records);
         // cout << *new_leaf.count << "\n";
 
         if (ordered_file.has_more_tuples()) {
-            *new_leaf.next = new_leaf.page.get_page_number() + 1; //TODO: tener contador para eficiencia
+            *new_leaf.next = ++next_page_number;
         }
         root->bulk_insert(new_leaf);
         new_leaf.page.make_dirty();

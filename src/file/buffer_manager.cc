@@ -80,7 +80,7 @@ Page& BufferManager::_get_page(uint_fast32_t page_number, FileId file_id) {
 
     if (it == pages.end()) {
         int buffer_available = get_buffer_available();
-        if (buffer_pool[buffer_available].file_id.id == FileId::UNASSIGNED) {
+        if (buffer_pool[buffer_available].file_id.id != FileId::UNASSIGNED) {
             pair<FileId, int> old_page_key = pair<FileId, int>(buffer_pool[buffer_available].file_id,
                                                                buffer_pool[buffer_available].page_number);
             pages.erase(old_page_key);

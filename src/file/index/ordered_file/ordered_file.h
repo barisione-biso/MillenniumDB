@@ -44,7 +44,7 @@ class OrderedFile
         uint64_t** buffer;
         long filesize;
 
-        void create_run(uint64_t* buffer, uint_fast32_t block_number, vector<uint_fast8_t>& column_order);
+        void create_run(uint64_t* buffer, uint_fast32_t block_number, vector<uint_fast8_t>& column_order, bool reorder);
         bool record_less_than(uint_fast32_t buffer_pos, uint64_t* key, uint64_t* buffer);
         void move_record_right(uint_fast32_t buffer_pos, uint64_t* buffer);
         void assign_record(uint64_t* key, uint_fast32_t buffer_pos, uint64_t* buffer);
