@@ -63,7 +63,7 @@ void BulkImport::start_import()
     cout << "conecting nodes:\n";
     for (auto&& [from, to, edge_id] : edges_original_ids) {
         // cout << "\r  line " << line_number++ << std::flush;
-        from_to_edge.append_record(Record(node_dict[from], node_dict[to], edge_id));
+        from_to_edge.append_record(graph.get_record_for_edge(node_dict[from], node_dict[to], edge_id));
     }
     cout << "\nCreating element2label\n";
     vector<uint_fast8_t> element2label_order { 0, 1 };

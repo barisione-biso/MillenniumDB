@@ -236,3 +236,54 @@ void TestGraphImport::test_to_from_edge() {
 	std::chrono::duration<float, std::milli> duration = end - start;
     std::cout << "time: " << duration.count() << "ms" << std::endl;
 }
+
+void TestGraphImport::test_trees() {
+	Config config = Config();
+	RelationalGraph graph = RelationalGraph(0, config);
+
+	cout << "printing label2element:\n";
+	test_tree(*graph.label2element);
+
+	cout << "printing element2label:\n";
+	test_tree(*graph.element2label);
+
+	cout << "printing prop2element:\n";
+	test_tree(*graph.prop2element);
+
+	cout << "printing element2prop:\n";
+	test_tree(*graph.element2prop);
+
+	cout << "printing from_to_edge:\n";
+	test_tree(*graph.from_to_edge);
+
+	cout << "printing to_from_edge:\n";
+	test_tree(*graph.to_from_edge);
+}
+
+
+void TestGraphImport::test_tree(BPlusTree& tree) {
+	vector<VarId> vars;
+	vars.push_back(VarId(1));
+	vars.push_back(VarId(2));
+	vars.push_back(VarId(3));
+
+	map<int, string> var_names;
+	var_names.insert(pair<int, string>(1, "first"));
+	var_names.insert(pair<int, string>(2, "second"));
+	var_names.insert(pair<int, string>(3, "third"));
+
+	GraphScan scan = GraphScan(0, tree, vars);
+	auto input = make_shared<BindingId>();
+
+	BindingIdIter& root = scan;
+	root.init(input);
+	unique_ptr<BindingId const> b = root.next();
+	int count = 0;
+
+	int limit = 20;
+	while (b != nullptr && count < limit) {
+		b->print(var_names);
+		b = root.next();
+		count++;
+	}
+}

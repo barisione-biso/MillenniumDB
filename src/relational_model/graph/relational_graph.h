@@ -40,6 +40,7 @@ public:
     //////////////////////////////  IDS RECEIVED BY THESE METHODS ARE UNMASKED  //////////////////////////////
                                                                                                             //
     // Methods used by bulk import:                                                                         //
+    Record get_record_for_edge      (uint64_t node_from_id, uint64_t node_to_id, uint64_t edge_id);         //
     Record get_record_for_node_label(uint64_t node_id, const string& label);                                //
     Record get_record_for_edge_label(uint64_t edge_id, const string& label);                                //
                                                                                                             //

@@ -55,6 +55,12 @@ uint64_t RelationalGraph::create_edge() {
 }
 
 /******************************************* Methods for bulk import ***************************************/
+Record RelationalGraph::get_record_for_edge(uint64_t node_from_id, uint64_t node_to_id, uint64_t edge_id) {
+    Record record = Record(node_from_id|NODE_MASK, node_to_id|NODE_MASK, edge_id|EDGE_MASK);
+    // config.get_catalog().add_node_label(record.ids[1] & UNMASK); // TODO: add to catalog?
+    return record;
+}
+
 Record RelationalGraph::get_record_for_node_label(uint64_t node_id, const string& label) {
     Record record = get_record_for_element_label(node_id|NODE_MASK, label);
     config.get_catalog().add_node_label(record.ids[1] & UNMASK);
