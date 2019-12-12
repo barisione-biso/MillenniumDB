@@ -1,1 +1,3 @@
-SELECT ?x.a ,f(?y.b) MATCH () -[:knows]-> (?n:echanted) <-[?gamma]- ({gut:"full of shit"})
+SELECT ?x.age ?x.name
+    MATCH (:Person{name: "John"}) <-[:knows]- (?x:Person:Male)
+WHERE ( ?x.age >= 20 AND ?x.name == "Nico") OR (?y.name != "John" AND (?y.age <= 40 OR ?z.gender == "male")) 

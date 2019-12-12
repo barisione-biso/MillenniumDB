@@ -17,6 +17,11 @@ namespace parser
     using x3::int_;
     using x3::double_;
     using x3::attr;
+    using x3::omit;
+    using x3::space;
+    using x3::skip;
+    using x3::no_skip;
+    // using x3::string;
 
     using ascii::char_;
 
@@ -33,11 +38,33 @@ namespace parser
         edge = "edge";
     x3::rule<class property, ast::property> 
         property = "property";
+    x3::rule<class condition, ast::condition> 
+        condition = "condition";
+    x3::rule<class statement, ast::statement> 
+        statement = "statement";
+    x3::rule<class parenthesis, ast::parenthesis>
+        parenthesis = "parenthesis";
+    x3::rule<class value, ast::value>
+        value = "value";
+    x3::rule<class formula, ast::formula>
+        formula = "formula";
     
 
     ///////////////////////////////////////////////////////////
     //   GRAMMAR
     ///////////////////////////////////////////////////////////
+
+    auto const comparator =
+        lit("==") >> attr(ast::eq_()) |
+        lit("<=") >> attr(ast::leq_()) |
+        lit(">=") >> attr(ast::geq_()) |
+        lit("!=") >> attr(ast::neq_()) |
+        lit('<') >> attr(ast::lt_()) |
+        lit('>') >> attr(ast::gt_());
+
+    auto const connector =
+        (omit[+space] >> "AND" >> omit[+space] >> attr(ast::and_())) | 
+        (omit[+space] >> "OR" >> omit[+space] >> attr(ast::or_()));
 
     auto const var =
         '?' >> +(alnum); 
@@ -58,7 +85,7 @@ namespace parser
         (lexeme['"' >> *(char_ - '"') >> '"']) |
         (lexeme['\'' >> *(char_ - '\'') >> '\'']);
     
-    auto const value =
+    auto const value_def =
         string | double_ | int_ | boolean;
     
     auto const property_def =
@@ -66,11 +93,9 @@ namespace parser
     
     auto const nomen = 
         -(var) >> *(':' >> label) >> -("{" >> (property % ',') >> "}");
-        // -(var) >> *(':' >> label);
 
     auto const node_def =
         '(' >>  nomen >> ")";
-        // '(' >> -key >> ':' >> (key % ',') >> ')';  
     
     auto const edge_def = 
         ("-[" >> nomen >> "]->" >> attr(true)) |
@@ -78,25 +103,39 @@ namespace parser
     
     auto const linear_pattern_def =
         node >> *(edge >> node);
-        // edge >> edge;
     
     auto const selection =
-        char_("*") | (element % ',');
+        char_('*') | (element % omit[+space]);
+    
+    auto const statement_def =
+        element >> comparator >> (element | value);
+    
+    auto const parenthesis_def =
+        '(' >> omit[*space] >> formula >> omit[*space] >> ')';
+    
+    auto const condition_def =
+        skip[statement] | ('(' >> omit[*space] >> formula >> omit[*space] >> ')');
+        // statement >> key;
+    
+    auto const formula_def =
+        condition >> *(connector >> condition);
     
     auto const match_statement =
         no_case["match"] >> ( linear_pattern % ',');
-        // no_case["match"] >> key;
 
     auto const select_statement =
-        no_case["select"] >> selection;
+        no_case["select"] >> omit[+space] >> selection;
+
+    auto const where_statement =
+        no_case["where"] >> omit[+space] >> formula; 
 
     auto const root_def = 
-        select_statement >> match_statement;
-        // select_statement; 
+        no_skip[select_statement >> omit[+space] >> skip[match_statement] 
+        >> -(omit[+space] >> where_statement)];
 
     auto const element_def =
-        (attr("") >> var >> '.' >> key) |
-        (func >> '(' >> var >> '.' >> key >> ')');
+        (attr("") >> no_skip[var >> '.' >> key]) |
+        (func >> '(' >> no_skip[var >> '.' >> key] >> ')');
 
     BOOST_SPIRIT_DEFINE(
         root,
@@ -104,7 +143,12 @@ namespace parser
         linear_pattern,
         node,
         edge, 
-        property
+        property,
+        condition, 
+        statement, 
+        parenthesis,
+        value,
+        formula
     );
 }
 
