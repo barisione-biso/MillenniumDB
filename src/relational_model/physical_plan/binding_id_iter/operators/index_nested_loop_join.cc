@@ -13,15 +13,14 @@ IndexNestedLoopJoin::IndexNestedLoopJoin(Config& config, BindingIdIter& left, Bi
 {
 }
 
-void IndexNestedLoopJoin::init(shared_ptr<BindingId const> input)
-{
+void IndexNestedLoopJoin::init(shared_ptr<BindingIdRange const> input) {
     left.init(input);
     current_left = left.next();
     right.init(current_left);
 }
 
-unique_ptr<BindingId const> IndexNestedLoopJoin::next()
-{
+
+unique_ptr<BindingId const> IndexNestedLoopJoin::next() {
     while (current_left != nullptr) {
         current_right = right.next();
 
@@ -37,16 +36,15 @@ unique_ptr<BindingId const> IndexNestedLoopJoin::next()
 }
 
 
-unique_ptr<BindingId const> IndexNestedLoopJoin::construct_binding(BindingId const& lhs, BindingId const& rhs)
-{
+unique_ptr<BindingId const> IndexNestedLoopJoin::construct_binding(BindingId const& lhs, BindingId const& rhs) {
     auto result = make_unique<BindingId>();
     result->add(lhs.get_values());
     result->try_add(rhs.get_values());
     return result;
 }
 
-void IndexNestedLoopJoin::reset(shared_ptr<BindingId const> input)
-{
+
+void IndexNestedLoopJoin::reset(shared_ptr<BindingIdRange const> input) {
     left.reset(input);
     current_left = left.next();
     right.reset(current_left);

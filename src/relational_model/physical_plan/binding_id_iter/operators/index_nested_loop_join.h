@@ -14,8 +14,8 @@ class IndexNestedLoopJoin : public BindingIdIter {
 public:
     IndexNestedLoopJoin(Config& config, BindingIdIter& left, BindingIdIter& right);
     ~IndexNestedLoopJoin() = default;
-    void init(std::shared_ptr<BindingId const> input);
-    void reset(std::shared_ptr<BindingId const> input);
+    void init(std::shared_ptr<BindingIdRange const> input);
+    void reset(std::shared_ptr<BindingIdRange const> input);
     std::unique_ptr<BindingId const> next();
 
 private:

@@ -23,7 +23,7 @@ public:
     void try_add(unique_ptr<BindingIdRange::Iter>);
     void try_add(VarId, ObjectId min, ObjectId max);
 
-    // ObjectId const* search_id(VarId var_name) const;
+    pair<ObjectId, ObjectId> const* search_id(VarId var_name) const;
     unique_ptr<BindingIdRange::Iter> get_values() const;
     // void print(map<int, string>& var_names) const;
 

@@ -6,6 +6,7 @@
 
 #include <base/var/var_id.h>
 #include <relational_model/physical_plan/binding_id.h>
+#include <relational_model/physical_plan/binding_id_range.h>
 
 // Abstract class
 class BindingIdIter {

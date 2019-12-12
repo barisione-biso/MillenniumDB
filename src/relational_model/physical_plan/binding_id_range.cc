@@ -38,15 +38,15 @@ void BindingIdRange::try_add(VarId var_id, ObjectId min_id, ObjectId max_id) {
 }
 
 
-// ObjectId const* BindingIdRange::search_id(VarId var_id) const {
-//     auto it = dict->find(var_id);
-//     if (it == dict->end()) {
-//         return nullptr;
-//     }
-//     else {
-//         return &(it->second);
-//     }
-// }
+pair<ObjectId, ObjectId> const* BindingIdRange::search_id(VarId var_id) const {
+    auto it = dict->find(var_id);
+    if (it == dict->end()) {
+        return nullptr;
+    }
+    else {
+        return &(it->second);
+    }
+}
 
 unique_ptr<BindingIdRange::Iter> BindingIdRange::get_values() const {
     return make_unique<Iter>(*dict);

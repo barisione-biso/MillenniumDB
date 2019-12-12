@@ -16,7 +16,7 @@ GraphScan::GraphScan(int graph_id, BPlusTree& bpt, vector<VarId> vars)
     record_size = bpt.params.total_size;
 }
 
-void GraphScan::init(shared_ptr<BindingId const> input)
+void GraphScan::init(shared_ptr<BindingIdRange const> input)
 {
     this->input = input;
     vector<uint64_t> min_ids(record_size);
@@ -30,10 +30,10 @@ void GraphScan::init(shared_ptr<BindingId const> input)
     }
     else {
         for (int i = 0; i < record_size; i++) {
-            const ObjectId* element_id = input->search_id(vars[i]);
-            if (element_id != nullptr) {
-                min_ids[i] = element_id->id;
-                max_ids[i] = element_id->id;
+            auto min_max = input->search_id(vars[i]);
+            if (min_max != nullptr) {
+                min_ids[i] = min_max->first.id;
+                max_ids[i] = min_max->second.id;
             }
             else {
                 while (i < record_size) {
@@ -67,7 +67,6 @@ unique_ptr<BindingId const> GraphScan::next()
     else return nullptr;
 }
 
-void GraphScan::reset(shared_ptr<BindingId const> input)
-{
+void GraphScan::reset(shared_ptr<BindingIdRange const> input) {
     init(input);
 }
