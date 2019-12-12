@@ -15,34 +15,43 @@ FileManager::FileManager() {
 
 }
 
+
 FileManager::~FileManager() {
-    std::cout << "~FileManager()\n";
     if (!flushed_at_exit) {
         BufferManager::instance._flush();
         BufferManager::instance.flushed_at_exit = true;
     }
-    // TODO: close files still open from opened_files
+    for (auto file : opened_files) {
+        if (file->is_open()) {
+            file->close();
+        }
+    }
 }
+
 
 void FileManager::ensure_open(FileId file_id) {
     if (!instance.opened_files[file_id.id]->is_open()) {
         if (!experimental::filesystem::exists(instance.filenames[file_id.id])) {
+            // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
+            // so we close it and open it again without append mode
             instance.opened_files[file_id.id]->open(instance.filenames[file_id.id], ios::out|ios::app);
             instance.opened_files[file_id.id]->close();
         }
-        // std::cout  << "re opening " << instance.filenames[file_id.id] << " \n";
         instance.opened_files[file_id.id]->open(instance.filenames[file_id.id], ios::in|ios::out|ios::binary);
     }
 }
+
 
 void FileManager::close(FileId file_id) {
     instance.opened_files[file_id.id]->close();
 }
 
+
 void FileManager::remove(FileId file_id) {
     close(file_id);
     std::remove(instance.filenames[file_id.id].c_str());
 }
+
 
 void FileManager::rename(FileId old_name_id, FileId new_name_id) {
     close(old_name_id);
@@ -51,26 +60,25 @@ void FileManager::rename(FileId old_name_id, FileId new_name_id) {
     experimental::filesystem::rename(instance.filenames[old_name_id.id], instance.filenames[new_name_id.id]);
 }
 
-uint_fast32_t FileManager::count_pages(FileId file_id)
-{
+
+uint_fast32_t FileManager::count_pages(FileId file_id) {
     return experimental::filesystem::file_size(instance.filenames[file_id.id])/PAGE_SIZE;
 }
+
 
 string FileManager::get_filename(FileId file_id) {
     return instance.filenames[file_id.id];
 }
 
 
-void FileManager::flush(FileId file_id, uint_fast32_t page_number, char* bytes)
-{
+void FileManager::flush(FileId file_id, uint_fast32_t page_number, char* bytes) {
     fstream& file = get_file(file_id);
     file.seekp(page_number*PAGE_SIZE);
     file.write(bytes, PAGE_SIZE);
 }
 
 
-void FileManager::read_page(FileId file_id, uint_fast32_t page_number, char* bytes)
-{
+void FileManager::read_page(FileId file_id, uint_fast32_t page_number, char* bytes) {
     fstream& file = get_file(file_id);
     file.seekg(0, file.end);
     uint_fast32_t file_pos = file.tellg();
@@ -87,22 +95,21 @@ void FileManager::read_page(FileId file_id, uint_fast32_t page_number, char* byt
 }
 
 
-fstream& FileManager::get_file(FileId file_id)
-{
+fstream& FileManager::get_file(FileId file_id) {
     ensure_open(file_id);
     return *instance.opened_files[file_id.id];
 }
 
-FileId FileManager::get_file_id(const string& filename)
-{
+
+FileId FileManager::get_file_id(const string& filename) {
     return instance._get_file_id(filename);
 }
 
+
 FileId FileManager::_get_file_id(const string& filename) {
-    string file_path = "test_files/" + filename;
+    string file_path = "test_files/" + filename; // TODO: get by config or graph name?
     for (size_t i = 0; i < filenames.size(); i++) {
         if (file_path.compare(filenames[i]) == 0) {
-            // cout << "duplicated filename\n";
             return FileId(i);
         }
     }
