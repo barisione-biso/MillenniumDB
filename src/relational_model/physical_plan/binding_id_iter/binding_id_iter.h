@@ -10,8 +10,8 @@
 // Abstract class
 class BindingIdIter {
 public:
-    virtual void init(std::shared_ptr<BindingId const> input) = 0;
-    virtual void reset(std::shared_ptr<BindingId const> input) = 0;
+    virtual void init(std::shared_ptr<BindingIdRange const> input) = 0;
+    virtual void reset(std::shared_ptr<BindingIdRange const> input) = 0;
     virtual std::unique_ptr<BindingId const> next() = 0; // next returning nullptr means there are not more bindings
 };
 
