@@ -3,43 +3,49 @@
 
 #include <iostream>
 #include <iterator>
-#include <map>
-#include <memory>
+#include <vector>
 
 #include "base/var/var_id.h"
 #include "relational_model/graph/object_id.h"
 
 using namespace std;
 
+class IdRange {
+    public:
+        IdRange(ObjectId min, ObjectId max)
+            : min(min), max(max) { }
+        IdRange()
+            : min(ObjectId(0, UINT64_MAX)), max(ObjectId(0, UINT64_MAX))
+        { }
+        ~IdRange() = default;
+        ObjectId min;
+        ObjectId max;
+
+        void operator=(const IdRange& other) {
+            this->min = other.min;
+            this->max = other.max;
+        }
+        bool unbinded() {
+            return min.id == UINT64_MAX;
+        }
+};
+
 class BindingId {
-public:
-    class Iter;
-    BindingId();
-    // BindingId(unique_ptr<map<VarId, ObjectId>> dict);
-    ~BindingId() = default;
+    private:
+        vector<IdRange> dict;
+    public:
+        class iterator;
+        BindingId(uint_fast32_t var_count);
+        ~BindingId() = default;
 
-    void add(unique_ptr<BindingId::Iter>);
-    void add(VarId, ObjectId);
-    void try_add(unique_ptr<BindingId::Iter>);
-    void try_add(VarId, ObjectId);
+        IdRange operator[](VarId);
 
-    ObjectId const* search_id(VarId var_name) const;
-    unique_ptr<BindingId::Iter> get_values() const;
-    void print(map<int, string>& var_names) const;
+        uint_fast32_t var_count();
+        void add_all(BindingId&);
+        void add(VarId, ObjectId min, ObjectId max);
 
-    class Iter {
-        public:
-            Iter(const map<VarId, ObjectId>& dict);
-            ~Iter() = default;
-            pair<VarId const, ObjectId> const* next();
+        void print(vector<string>& var_names) const;
 
-        private:
-            map<VarId, ObjectId>::const_iterator it;
-            map<VarId, ObjectId> const& dict;
-    };
-
-private:
-    unique_ptr<map<VarId, ObjectId>> dict;
 };
 
 

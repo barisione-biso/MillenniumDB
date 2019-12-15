@@ -14,19 +14,19 @@ class IndexNestedLoopJoin : public BindingIdIter {
 public:
     IndexNestedLoopJoin(Config& config, BindingIdIter& left, BindingIdIter& right);
     ~IndexNestedLoopJoin() = default;
-    void init(std::shared_ptr<BindingIdRange const> input);
-    void reset(std::shared_ptr<BindingIdRange const> input);
-    std::unique_ptr<BindingId const> next();
+    void init(std::shared_ptr<BindingId> input);
+    void reset(std::shared_ptr<BindingId> input);
+    std::unique_ptr<BindingId> next();
 
 private:
-    std::unique_ptr<BindingId const> construct_binding(BindingId const& lhs, BindingId const& rhs);
+    std::unique_ptr<BindingId> construct_binding(BindingId& lhs, BindingId& rhs);
 
-    Config const& config;
+    Config& config;
     BindingIdIter& left;
     BindingIdIter& right;
 
-    std::shared_ptr<BindingId const> current_left;
-    std::unique_ptr<BindingId const> current_right;
+    std::shared_ptr<BindingId> current_left;
+    std::unique_ptr<BindingId> current_right;
 
     std::vector<VarId> vars;
 };

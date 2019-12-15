@@ -27,17 +27,13 @@ void TestGraphImport::test_label2element() {
 	Config config = Config();
 	RelationalGraph graph = RelationalGraph(0, config);
 
-	map<int, string> var_names;
-	var_names.insert(pair<int, string>(1, "Id:"));
-	var_names.insert(pair<int, string>(2, "Label:"));
-
 	vector<VarId> s1_vars;
-	s1_vars.push_back(VarId(2));
 	s1_vars.push_back(VarId(1));
+	s1_vars.push_back(VarId(0));
 
 	GraphScan s1 = GraphScan(graph.graph_id, *graph.label2element, s1_vars);
 
-	auto input = make_shared<BindingId>();
+	auto input = make_shared<BindingId>(2);
 	// ObjectId label_type_1 = graph.get_label_id(Label("Muslims"));
 	// ObjectId label_type_1 = graph.get_label_id(Label("unico07"));
 	// input->add(VarId(1), label_type_1);
@@ -71,17 +67,13 @@ void TestGraphImport::test_element2label() {
 	Config config = Config();
 	RelationalGraph graph = RelationalGraph(0, config);
 
-	map<int, string> var_names;
-	var_names.insert(pair<int, string>(1, "Id:"));
-	var_names.insert(pair<int, string>(2, "Label:"));
-
 	vector<VarId> s1_vars;
+	s1_vars.push_back(VarId(0));
 	s1_vars.push_back(VarId(1));
-	s1_vars.push_back(VarId(2));
 
 	GraphScan s1 = GraphScan(graph.graph_id, *graph.element2label, s1_vars);
 
-	auto input = make_shared<BindingId>();
+	auto input = make_shared<BindingId>(2);
 
 	BindingIdIter& root = s1;
 	root.init(input);
@@ -103,19 +95,14 @@ void TestGraphImport::test_element2prop() {
 	Config config = Config();
 	RelationalGraph graph = RelationalGraph(0, config);
 
-	map<int, string> var_names;
-	var_names.insert(pair<int, string>(1, "Id:"));
-	var_names.insert(pair<int, string>(2, "Key:"));
-	var_names.insert(pair<int, string>(3, "Value:"));
-
-	vector<VarId> s1_vars;
-	s1_vars.push_back(VarId(1));
-	s1_vars.push_back(VarId(2));
-	s1_vars.push_back(VarId(3));
-
+	vector<VarId> s1_vars {
+		VarId(0),
+		VarId(1),
+		VarId(2)
+	};
 	GraphScan s1 = GraphScan(graph.graph_id, *graph.element2prop, s1_vars);
 
-	auto input = make_shared<BindingId>();
+	auto input = make_shared<BindingId>(3);
 
 	BindingIdIter& root = s1;
 	root.init(input);
@@ -137,19 +124,20 @@ void TestGraphImport::test_prop2element() {
 	Config config = Config();
 	RelationalGraph graph = RelationalGraph(0, config);
 
-	map<int, string> var_names;
-	var_names.insert(pair<int, string>(1, "Key"));
-	var_names.insert(pair<int, string>(2, "Value"));
-	var_names.insert(pair<int, string>(3, "Id"));
+	map<VarId, string> var_names {
+		make_pair(VarId(1), "Key"),
+		make_pair(VarId(2), "Value"),
+		make_pair(VarId(3), "Id")
+	};
 
 	vector<VarId> s1_vars;
+	s1_vars.push_back(VarId(0));
 	s1_vars.push_back(VarId(1));
 	s1_vars.push_back(VarId(2));
-	s1_vars.push_back(VarId(3));
 
 
 	GraphScan s1 = GraphScan(graph.graph_id, *graph.prop2element, s1_vars);
-	auto input = make_shared<BindingId>();
+	auto input = make_shared<BindingId>(3);
 	// ObjectId key_id = graph.get_key_id(Key("unsung"));
 	// input->add(VarId(1), key_id);
 
@@ -159,7 +147,7 @@ void TestGraphImport::test_prop2element() {
 	int count = 0;
 
 	while (b != nullptr && count < 1000) {
-		b->print(var_names);
+		// b->print(var_names);
 		b = root.next();
 		count++;
 	}
@@ -180,13 +168,13 @@ void TestGraphImport::test_from_to_edge() {
 	var_names.insert(pair<int, string>(3, "edge:"));
 
 	vector<VarId> s1_vars;
+	s1_vars.push_back(VarId(0));
 	s1_vars.push_back(VarId(1));
 	s1_vars.push_back(VarId(2));
-	s1_vars.push_back(VarId(3));
 
 
 	GraphScan s1 = GraphScan(graph.graph_id, *graph.from_to_edge, s1_vars);
-	auto input = make_shared<BindingId>();
+	auto input = make_shared<BindingId>(3);
 
 	BindingIdIter& root = s1;
 	root.init(input);
@@ -209,18 +197,18 @@ void TestGraphImport::test_to_from_edge() {
 	RelationalGraph graph = RelationalGraph(0, config);
 
 	map<int, string> var_names;
-	var_names.insert(pair<int, string>(1, "from:"));
-	var_names.insert(pair<int, string>(2, "to:"));
-	var_names.insert(pair<int, string>(3, "edge:"));
+	var_names.insert(pair<int, string>(0, "from:"));
+	var_names.insert(pair<int, string>(1, "to:"));
+	var_names.insert(pair<int, string>(2, "edge:"));
 
 	vector<VarId> s1_vars;
-	s1_vars.push_back(VarId(2));
 	s1_vars.push_back(VarId(1));
-	s1_vars.push_back(VarId(3));
+	s1_vars.push_back(VarId(0));
+	s1_vars.push_back(VarId(2));
 
 
 	GraphScan s1 = GraphScan(graph.graph_id, *graph.to_from_edge, s1_vars);
-	auto input = make_shared<BindingId>();
+	auto input = make_shared<BindingId>(3);
 
 	BindingIdIter& root = s1;
 	root.init(input);
@@ -262,18 +250,20 @@ void TestGraphImport::test_trees() {
 
 
 void TestGraphImport::test_tree(BPlusTree& tree) {
-	vector<VarId> vars;
-	vars.push_back(VarId(1));
-	vars.push_back(VarId(2));
-	vars.push_back(VarId(3));
+	vector<VarId> vars {
+		VarId(0),
+		VarId(1),
+		VarId(2)
+	};
 
-	map<int, string> var_names;
-	var_names.insert(pair<int, string>(1, "first"));
-	var_names.insert(pair<int, string>(2, "second"));
-	var_names.insert(pair<int, string>(3, "third"));
+	vector<string> var_names {
+		"first",
+		"second",
+		"third"
+	};
 
 	GraphScan scan = GraphScan(0, tree, vars);
-	auto input = make_shared<BindingId>();
+	auto input = make_shared<BindingId>(3);
 
 	BindingIdIter& root = scan;
 	root.init(input);

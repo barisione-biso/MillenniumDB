@@ -17,9 +17,9 @@ class GraphScan : public BindingIdIter
 public:
     GraphScan(int graph_id, BPlusTree& bpt, std::vector<VarId> vars);
     ~GraphScan() = default;
-    void init(std::shared_ptr<BindingIdRange const> input);
-    void reset(std::shared_ptr<BindingIdRange const> input);
-    std::unique_ptr<BindingId const> next();
+    void init(std::shared_ptr<BindingId> input);
+    void reset(std::shared_ptr<BindingId> input);
+    std::unique_ptr<BindingId> next();
 
 private:
     int graph_id;
@@ -27,7 +27,7 @@ private:
     BPlusTree& bpt;
     std::vector<VarId> vars;
     std::unique_ptr<BPlusTree::Iter> it;
-    std::shared_ptr<BindingIdRange const> input;
+    std::shared_ptr<BindingId> input;
 };
 
 #endif //GRAPH_SCAN_H_
