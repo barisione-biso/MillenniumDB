@@ -8,11 +8,10 @@
 #include <memory>
 #include <vector>
 
-class Config;
 
 class IndexNestedLoopJoin : public BindingIdIter {
 public:
-    IndexNestedLoopJoin(Config& config, BindingIdIter& left, BindingIdIter& right);
+    IndexNestedLoopJoin(unique_ptr<BindingIdIter> left, unique_ptr<BindingIdIter> right);
     ~IndexNestedLoopJoin() = default;
     void init(std::shared_ptr<BindingId> input);
     void reset(std::shared_ptr<BindingId> input);
@@ -21,9 +20,8 @@ public:
 private:
     std::unique_ptr<BindingId> construct_binding(BindingId& lhs, BindingId& rhs);
 
-    Config& config;
-    BindingIdIter& left;
-    BindingIdIter& right;
+    unique_ptr<BindingIdIter> left;
+    unique_ptr<BindingIdIter> right;
 
     std::shared_ptr<BindingId> current_left;
     std::unique_ptr<BindingId> current_right;

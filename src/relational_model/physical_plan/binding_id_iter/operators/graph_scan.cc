@@ -10,38 +10,36 @@
 
 using namespace std;
 
-GraphScan::GraphScan(int graph_id, BPlusTree& bpt, vector<VarId> vars)
-    : graph_id(graph_id), bpt(bpt), vars(vars)
-{
-    record_size = bpt.params.total_size;
-}
+GraphScan::GraphScan(int graph_id, BPlusTree& bpt, std::vector<ObjectId> terms, vector<VarId> vars)
+    : graph_id(graph_id), record_size(bpt.params.total_size), bpt(bpt), terms(terms), vars(vars)
+     // TODO: use move for vectors?
+{ }
 
-void GraphScan::init(shared_ptr<BindingId> input)
-{
+
+void GraphScan::init(shared_ptr<BindingId> input) { // input must not be nullptr
     this->input = input;
     vector<uint64_t> min_ids(record_size);
     vector<uint64_t> max_ids(record_size);
 
-    if (input == nullptr) {
-        for (int i = 0; i < record_size; i++) {
-            min_ids[i] = 0;
-            max_ids[i] = UINT64_MAX;
-        }
+    int i = 0;
+    for (auto& term : terms) {
+        min_ids[i] = term.id;
+        max_ids[i] = term.id;
+        i++;
     }
-    else {
-        for (int i = 0; i < record_size; i++) {
-            auto id_range = (*input)[vars[i]];
-            if (id_range.unbinded()) {
-                while (i < record_size) {
-                    min_ids[i] = 0;
-                    max_ids[i] = UINT64_MAX;
-                    i++;
-                }
+
+    for (; i < record_size; i++) {
+        auto id_range = (*input)[vars[i]];
+        if (id_range.unbinded()) {
+            while (i < record_size) {
+                min_ids[i] = 0;
+                max_ids[i] = UINT64_MAX;
+                i++;
             }
-            else {
-                min_ids[i] = id_range.min;
-                max_ids[i] = id_range.max;
-            }
+        }
+        else {
+            min_ids[i] = id_range.min;
+            max_ids[i] = id_range.max;
         }
     }
 

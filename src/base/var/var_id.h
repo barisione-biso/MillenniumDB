@@ -7,7 +7,10 @@ public:
     ~VarId() = default;
 
     int const var_id;
-    bool is_null();
+    // bool is_null();
+    bool is_term() {
+        return var_id < 0;
+    }
 
     /*VarId& operator=(const VarId& copy) {
         var_id = copy.var_id;

@@ -26,8 +26,10 @@ void TestJoin::get_all_node_properties_by_label(string label) {
 		"third"
 	};
 
+	vector<ObjectId> terms { };
+
     // s1: search all nodes with label
-	GraphScan s1 = GraphScan(0, *graph.label2element, vars);
+	GraphScan s1 = GraphScan(0, *graph.label2element, terms, vars);
 	auto input = make_shared<BindingId>(3);
 
 	BindingIdIter& root = s1;

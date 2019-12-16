@@ -7,6 +7,6 @@ VarId::VarId(int var_id)
 {
 }
 
-bool VarId::is_null() {
-    return var_id == -1;
-}
+// bool VarId::is_null() {
+//     return var_id == -1;
+// }
