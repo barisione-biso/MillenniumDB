@@ -1,28 +1,76 @@
 #include "query_optimizer_label.h"
 
+#include "relational_model/graph/relational_graph.h"
+
 QueryOptimizerLabel::QueryOptimizerLabel
-    (VarId element_var_id, VarId label_var_id, ElementType element_type)
-    : element_var_id(element_var_id),
-      label_var_id(label_var_id),
-      element_type(element_type),
-{ }
-
-int QueryOptimizerLabel::get_heuristic() {
-    if (element_var_id.is_term() && label_var_id.is_term()) {
-        return -1;
-    }
-
-    if (element_var_id.is_term()) return 10; // Label(_,?)
-    if (label_var_id.is_term())   return  5; // Label(?,_)
-    else                          return  2; // Label(?,?)
+    (RelationalGraph& graph, VarId element_var_id, VarId label_var_id, ElementType element_type, ObjectId label_object_id) :
+    graph(graph),
+    element_var_id(element_var_id),
+    label_var_id(label_var_id),
+    element_type(element_type),
+    label_object_id(label_object_id)
+{
+    element_assigned = false;
+    label_assigned = !label_object_id.is_null();
 }
 
 
-void QueryOptimizerLabel::assign(VarId var_id) {
+void QueryOptimizerLabel::assign() {
+    assigned = true;
+}
 
+
+int QueryOptimizerLabel::get_heuristic() {
+    if (assigned) return -1;
+
+    else if (element_assigned && label_assigned) return 99; // Label(_,_)
+    else if (element_assigned)                   return 10; // Label(_,?)
+    else if (label_assigned)                     return  5; // Label(?,_)
+    else                                         return  2; // Label(?,?)
+}
+
+
+std::vector<VarId> QueryOptimizerLabel::get_assigned() {
+    vector<VarId> res;
+
+    if (!element_assigned)
+        res.push_back(element_var_id);
+
+    if (!label_assigned)
+        res.push_back(label_var_id);
+
+    return std::move(res);
+}
+
+
+void QueryOptimizerLabel::try_assign_var(VarId var_id) {
+    if (element_var_id == var_id) {
+        element_assigned = true;
+    }
+    else if (label_var_id == var_id) {
+        label_assigned = true;
+    }
 }
 
 
 unique_ptr<GraphScan> QueryOptimizerLabel::get_scan() {
-    return make_unique<GraphScan>(graph_id, bpt, terms, vars); //TODO: de donde sacar el graph_id y el bpt?
+    std::vector<ObjectId> terms;
+    std::vector<VarId> vars;
+
+    if (label_assigned) { // Label(?,_) or Label(_,_)
+        if (label_object_id.is_null()) {
+            vars.push_back(label_var_id);
+            vars.push_back(element_var_id);
+        }
+        else {
+            terms.push_back(label_object_id);
+            vars.push_back(element_var_id);
+        }
+        return make_unique<GraphScan>(*graph.label2element, std::move(terms), std::move(vars));
+    }
+    else { // Label(?,?) or Label(_,?)
+        vars.push_back(element_var_id);
+        vars.push_back(label_var_id);
+        return make_unique<GraphScan>(*graph.element2label, std::move(terms), std::move(vars));
+    }
 }

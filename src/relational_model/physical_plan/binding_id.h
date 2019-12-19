@@ -15,7 +15,7 @@ class IdRange {
         IdRange(ObjectId min, ObjectId max)
             : min(min), max(max) { }
         IdRange()
-            : min(ObjectId(0, UINT64_MAX)), max(ObjectId(0, UINT64_MAX))
+            : min(ObjectId(UINT64_MAX)), max(ObjectId(UINT64_MAX))
         { }
         ~IdRange() = default;
         ObjectId min;
@@ -26,7 +26,7 @@ class IdRange {
             this->max = other.max;
         }
         bool unbinded() {
-            return min.id == UINT64_MAX;
+            return (uint64_t) min == UINT64_MAX;
         }
 };
 

@@ -236,7 +236,7 @@ ObjectId RelationalGraph::get_label_id(Label const& label) {
     else { // label_name already exists
         label_id = next->ids[2];
     }
-    return ObjectId(graph_id, label_id|LABEL_MASK);
+    return ObjectId(label_id|LABEL_MASK);
 }
 
 ObjectId RelationalGraph::get_key_id(Key const& key)
@@ -261,7 +261,7 @@ ObjectId RelationalGraph::get_key_id(Key const& key)
     else { // label_name already exists
         key_id = next->ids[2];
     }
-    return ObjectId(graph_id, key_id|KEY_MASK);
+    return ObjectId(key_id|KEY_MASK);
 }
 
 ObjectId RelationalGraph::get_value_id(Value const& value)
@@ -286,5 +286,5 @@ ObjectId RelationalGraph::get_value_id(Value const& value)
     else { // label_name already exists
         value_id = next->ids[2];
     }
-    return ObjectId(graph_id, value_id|VALUE_MASK);
+    return ObjectId(value_id|VALUE_MASK);
 }

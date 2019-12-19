@@ -36,7 +36,7 @@ void TestGraphImport::test_label2element() {
 
 	};
 
-	GraphScan s1 = GraphScan(graph.graph_id, *graph.label2element, s1_terms, s1_vars);
+	GraphScan s1 = GraphScan(*graph.label2element, s1_terms, s1_vars);
 
 	auto input = make_shared<BindingId>(2);
 	// ObjectId label_type_1 = graph.get_label_id(Label("Muslims"));
@@ -77,7 +77,7 @@ void TestGraphImport::test_element2label() {
 		VarId(1)
 	};
 	vector<ObjectId> s1_terms { };
-	GraphScan s1 = GraphScan(graph.graph_id, *graph.element2label, s1_terms, s1_vars);
+	GraphScan s1 = GraphScan(*graph.element2label, s1_terms, s1_vars);
 
 	auto input = make_shared<BindingId>(2);
 
@@ -107,7 +107,7 @@ void TestGraphImport::test_element2prop() {
 		VarId(2)
 	};
 	vector<ObjectId> s1_terms { };
-	GraphScan s1 = GraphScan(graph.graph_id, *graph.element2prop, s1_terms, s1_vars);
+	GraphScan s1 = GraphScan(*graph.element2prop, s1_terms, s1_vars);
 
 	auto input = make_shared<BindingId>(3);
 
@@ -145,7 +145,7 @@ void TestGraphImport::test_prop2element() {
 	vector<ObjectId> s1_terms { };
 
 
-	GraphScan s1 = GraphScan(graph.graph_id, *graph.prop2element, s1_terms, s1_vars);
+	GraphScan s1 = GraphScan(*graph.prop2element, s1_terms, s1_vars);
 	auto input = make_shared<BindingId>(3);
 	// ObjectId key_id = graph.get_key_id(Key("unsung"));
 	// input->add(VarId(1), key_id);
@@ -184,7 +184,7 @@ void TestGraphImport::test_from_to_edge() {
 	vector<ObjectId> s1_terms { };
 
 
-	GraphScan s1 = GraphScan(graph.graph_id, *graph.from_to_edge, s1_terms, s1_vars);
+	GraphScan s1 = GraphScan(*graph.from_to_edge, s1_terms, s1_vars);
 	auto input = make_shared<BindingId>(3);
 
 	BindingIdIter& root = s1;
@@ -220,7 +220,7 @@ void TestGraphImport::test_to_from_edge() {
 	vector<ObjectId> s1_terms { };
 
 
-	GraphScan s1 = GraphScan(graph.graph_id, *graph.to_from_edge, s1_terms, s1_vars);
+	GraphScan s1 = GraphScan(*graph.to_from_edge, s1_terms, s1_vars);
 	auto input = make_shared<BindingId>(3);
 
 	BindingIdIter& root = s1;
@@ -277,7 +277,7 @@ void TestGraphImport::test_tree(BPlusTree& tree) {
 
 	vector<ObjectId> terms { };
 
-	GraphScan scan = GraphScan(0, tree, terms, vars);
+	GraphScan scan = GraphScan(tree, terms, vars);
 	auto input = make_shared<BindingId>(3);
 
 	BindingIdIter& root = scan;

@@ -3,29 +3,32 @@
 
 #include <iostream>
 
+#define NULL_OBJECT_ID UINT64_MAX
+
 class ObjectId {
+private:
+    uint64_t id;
 public:
-    ObjectId(int graph_id, uint64_t id)
-        : graph_id(graph_id), id(id){}
+    ObjectId(uint64_t id)
+        : id(id){}
     ~ObjectId() = default;
 
-    int graph_id;
-    uint64_t id;
+    bool is_null() { return id == NULL_OBJECT_ID ;}
 
     operator uint64_t() const { return id; }
 
     void operator=(const ObjectId& other) {
-        this->graph_id = other.graph_id;
         this->id = other.id;
     }
 
     bool operator ==(const ObjectId& rhs) const {
-        return id == rhs.id && graph_id == rhs.graph_id;
+        return id == rhs.id;
     }
 
     bool operator !=(const ObjectId& rhs) const {
-        return id != rhs.id || graph_id != rhs.graph_id;
+        return id != rhs.id;
     }
+
 };
 
 #endif //RELATIONAL_MODEL__OBJECT_ID_H_

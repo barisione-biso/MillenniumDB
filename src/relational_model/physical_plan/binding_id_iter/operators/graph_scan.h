@@ -15,14 +15,13 @@ class VarId;
 class GraphScan : public BindingIdIter
 {
 public:
-    GraphScan(int graph_id, BPlusTree& bpt, std::vector<ObjectId> terms, std::vector<VarId> vars);
+    GraphScan(BPlusTree& bpt, std::vector<ObjectId> terms, std::vector<VarId> vars);
     ~GraphScan() = default;
     void init(std::shared_ptr<BindingId> input);
     void reset(std::shared_ptr<BindingId> input);
     std::unique_ptr<BindingId> next();
 
 private:
-    int graph_id;
     int record_size;
     BPlusTree& bpt;
     std::vector<ObjectId> terms;

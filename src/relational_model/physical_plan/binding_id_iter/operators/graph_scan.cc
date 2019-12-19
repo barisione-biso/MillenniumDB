@@ -10,8 +10,8 @@
 
 using namespace std;
 
-GraphScan::GraphScan(int graph_id, BPlusTree& bpt, std::vector<ObjectId> terms, vector<VarId> vars)
-    : graph_id(graph_id), record_size(bpt.params.total_size), bpt(bpt), terms(terms), vars(vars)
+GraphScan::GraphScan(BPlusTree& bpt, std::vector<ObjectId> terms, vector<VarId> vars)
+    : record_size(bpt.params.total_size), bpt(bpt), terms(terms), vars(vars)
      // TODO: use move for vectors?
 { }
 
@@ -23,8 +23,8 @@ void GraphScan::init(shared_ptr<BindingId> input) { // input must not be nullptr
 
     int i = 0;
     for (auto& term : terms) {
-        min_ids[i] = term.id;
-        max_ids[i] = term.id;
+        min_ids[i] = term;
+        max_ids[i] = term;
         i++;
     }
 
@@ -56,7 +56,7 @@ unique_ptr<BindingId> GraphScan::next()
         auto res = make_unique<BindingId>(input->var_count());
         res->add_all(*input);
         for (int i = 0; i < record_size; i++) {
-            ObjectId element_id = ObjectId(graph_id, next->ids[i]);
+            ObjectId element_id = ObjectId(next->ids[i]);
             res->add(vars[i], element_id, element_id);
         }
         return res;
