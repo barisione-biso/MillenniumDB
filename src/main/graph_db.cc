@@ -14,7 +14,10 @@ int main()
 	// TestGraphImport::test_to_from_edge();
 	// TestGraphImport::test_from_to_edge();
 
-	TestGraphImport::test_trees();
+	// TestGraphImport::test_trees();
+
+	TestQueryOptimizer::Test1();
+
 
 	// TestBPlusTree::create();
 	// TestBPlusTree::test_order();

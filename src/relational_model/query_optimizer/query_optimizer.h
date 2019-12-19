@@ -12,7 +12,7 @@ class QueryOptimizer {
 public:
     QueryOptimizer();
     ~QueryOptimizer() = default;
-    unique_ptr<BindingIdIter> get_query_plan(std::vector<QueryOptimizerElement> elements);
+    unique_ptr<BindingIdIter> get_query_plan(std::vector<QueryOptimizerElement*> elements);
 };
 
 #endif //RELATIONAL_MODEL__QUERY_OPTIMIZER_H_

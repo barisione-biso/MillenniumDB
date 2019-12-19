@@ -13,7 +13,11 @@ public:
         : id(id){}
     ~ObjectId() = default;
 
-    bool is_null() { return id == NULL_OBJECT_ID ;}
+    bool is_null() { return id == NULL_OBJECT_ID; }
+
+    static ObjectId get_null() {
+        return ObjectId(NULL_OBJECT_ID);
+    }
 
     operator uint64_t() const { return id; }
 
