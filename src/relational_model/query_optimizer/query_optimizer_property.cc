@@ -64,27 +64,27 @@ std::vector<VarId> QueryOptimizerProperty::get_assigned() {
 
 
 unique_ptr<GraphScan> QueryOptimizerProperty::get_scan() {
-    std::vector<ObjectId> terms;
-    std::vector<VarId> vars;
+    vector<pair<ObjectId, int>> terms;
+    vector<pair<VarId, int>> vars;
 
     if (key_assigned) { // Property(_,?,_), Property(?,?,_), Property(_,?,?), Property(?,?,?)
         // term, var, var
         if (!key_object_id.is_null()) {
-            terms.push_back(key_object_id);
+            terms.push_back(make_pair(key_object_id, 0));
             if (!value_object_id.is_null()) {
-                terms.push_back(value_object_id);
+                terms.push_back(make_pair(value_object_id, 1));
             }
             else {
-                vars.push_back(value_var_id);
+                vars.push_back(make_pair(value_var_id, 1));
             }
-            vars.push_back(element_var_id);
+            vars.push_back(make_pair(element_var_id, 2));
         }
         return make_unique<GraphScan>(*graph.prop2element, terms, vars);
     }
     else { // Property(_,_,_), Property(?,_,_), Property(_,_,?), Property(?,_,?)
-        vars.push_back(element_var_id);
-        vars.push_back(key_var_id);
-        vars.push_back(value_var_id);
+        vars.push_back(make_pair(element_var_id, 0));
+        vars.push_back(make_pair(key_var_id, 1));
+        vars.push_back(make_pair(value_var_id, 2));
         return make_unique<GraphScan>(*graph.element2prop, terms, vars);
     }
 }

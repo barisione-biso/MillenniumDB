@@ -61,19 +61,19 @@ std::vector<VarId> QueryOptimizerConnection::get_assigned() {
 
 
 unique_ptr<GraphScan> QueryOptimizerConnection::get_scan() {
-    std::vector<ObjectId> terms;
-    std::vector<VarId> vars;
+    vector<pair<ObjectId, int>> terms;
+    vector<pair<VarId, int>> vars;
 
     if (from_assigned) { // Connection(_,_,_), Connection(_,?,_), Connection(_,?,?)
-        vars.push_back(from_var_id);
-        vars.push_back(to_var_id);
-        vars.push_back(edge_var_id);
+        vars.push_back(make_pair(from_var_id, 0));
+        vars.push_back(make_pair(to_var_id, 1));
+        vars.push_back(make_pair(edge_var_id, 2));
         return make_unique<GraphScan>(*graph.prop2element, terms, vars);
     }
     else { // Connection(?,?,_), Connection(?,?,?)
-        vars.push_back(to_var_id);
-        vars.push_back(from_var_id);
-        vars.push_back(edge_var_id);
+        vars.push_back(make_pair(to_var_id, 0));
+        vars.push_back(make_pair(from_var_id, 1));
+        vars.push_back(make_pair(edge_var_id, 2));
         return make_unique<GraphScan>(*graph.element2prop, terms, vars);
     }
 }

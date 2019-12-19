@@ -54,23 +54,22 @@ void QueryOptimizerLabel::try_assign_var(VarId var_id) {
 
 
 unique_ptr<GraphScan> QueryOptimizerLabel::get_scan() {
-    std::vector<ObjectId> terms;
-    std::vector<VarId> vars;
+    vector<pair<ObjectId, int>> terms;
+    vector<pair<VarId, int>> vars;
 
     if (label_assigned) { // Label(?,_) or Label(_,_)
         if (label_object_id.is_null()) {
-            vars.push_back(label_var_id);
-            vars.push_back(element_var_id);
+            vars.push_back(make_pair(label_var_id, 0));
         }
         else {
-            terms.push_back(label_object_id);
-            vars.push_back(element_var_id);
+            terms.push_back(make_pair(label_object_id, 0));
         }
+        vars.push_back(make_pair(element_var_id, 1));
         return make_unique<GraphScan>(*graph.label2element, std::move(terms), std::move(vars));
     }
     else { // Label(?,?) or Label(_,?)
-        vars.push_back(element_var_id);
-        vars.push_back(label_var_id);
+        vars.push_back(make_pair(element_var_id, 0));
+        vars.push_back(make_pair(label_var_id, 1));
         return make_unique<GraphScan>(*graph.element2label, std::move(terms), std::move(vars));
     }
 }
