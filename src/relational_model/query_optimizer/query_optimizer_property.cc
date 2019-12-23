@@ -79,12 +79,22 @@ unique_ptr<GraphScan> QueryOptimizerProperty::get_scan() {
             }
             vars.push_back(make_pair(element_var_id, 2));
         }
-        return make_unique<GraphScan>(*graph.prop2element, terms, vars);
+        if (element_type == ElementType::NODE) {
+            return make_unique<GraphScan>(*graph.prop2node, terms, vars);
+        }
+        else { // if (element_type == ElementType::EDGE)
+            return make_unique<GraphScan>(*graph.prop2edge, terms, vars);
+        }
     }
     else { // Property(_,_,_), Property(?,_,_), Property(_,_,?), Property(?,_,?)
         vars.push_back(make_pair(element_var_id, 0));
         vars.push_back(make_pair(key_var_id, 1));
         vars.push_back(make_pair(value_var_id, 2));
-        return make_unique<GraphScan>(*graph.element2prop, terms, vars);
+        if (element_type == ElementType::NODE) {
+            return make_unique<GraphScan>(*graph.node2prop, terms, vars);
+        }
+        else { // if (element_type == ElementType::EDGE)
+            return make_unique<GraphScan>(*graph.edge2prop, terms, vars);
+        }
     }
 }

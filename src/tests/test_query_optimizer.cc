@@ -23,21 +23,22 @@ void TestQueryOptimizer::Test1() {
     VarId name     { 1 }; // ?n.name
     VarId null_var {-1 };
 
-    ObjectId label_person       { graph.get_label_id(Label("effluent"))            };
-    ObjectId key_age            { graph.get_key_id(Key("subways"))                 };
-    ObjectId key_name           { graph.get_key_id(Key("looters"))                 };
-    ObjectId value_sixty_five   { graph.get_value_id(ValueString("decentralized")) };
+    // (48599)
+    ObjectId label_person       { graph.get_label_id(Label("archeological"))         };
+    ObjectId key_age            { graph.get_key_id(Key("fruits"))                  };
+    ObjectId key_name           { graph.get_key_id(Key("cajoled"))                 };
+    ObjectId value_sixty_five   { graph.get_value_id(ValueString("thresholds")) };
 
 
     std::vector<QueryOptimizerElement*> elements {
-        new QueryOptimizerLabel   (graph, n, null_var, ElementType::NODE, label_person),
+        // new QueryOptimizerLabel   (graph, n, null_var, ElementType::NODE, label_person),
         new QueryOptimizerProperty(graph, n, null_var, null_var, ElementType::NODE, key_age, value_sixty_five),
-        new QueryOptimizerProperty(graph, n, null_var, name, ElementType::NODE, key_name, ObjectId::get_null())
+        // new QueryOptimizerProperty(graph, n, null_var, name, ElementType::NODE, key_name, ObjectId::get_null())
     };
 
 
     auto root = optimizer.get_query_plan(elements);
-    auto input = make_shared<BindingId>(2);
+    auto input = make_shared<BindingId>(1);
 
     std::vector<std::string> var_names {
         "?n",
@@ -52,4 +53,5 @@ void TestQueryOptimizer::Test1() {
 		b = root->next();
 		count++;
 	}
+    cout << "Found " << count << " results.\n";
 }

@@ -22,14 +22,19 @@ public:
     const int graph_id;
     Config& config;
 
-    unique_ptr<BPlusTree> label2element; // Label|Element
-    unique_ptr<BPlusTree> element2label; // Element|Label
+    unique_ptr<BPlusTree> label2node;
+    unique_ptr<BPlusTree> label2edge;
+    unique_ptr<BPlusTree> node2label;
+    unique_ptr<BPlusTree> edge2label;
 
-    unique_ptr<BPlusTree> element2prop;  // Element|Key|Value
-    unique_ptr<BPlusTree> prop2element;  // Key|Value|Element
+    unique_ptr<BPlusTree> prop2node;
+    unique_ptr<BPlusTree> prop2edge;
+    unique_ptr<BPlusTree> node2prop;
+    unique_ptr<BPlusTree> edge2prop;
 
-    unique_ptr<BPlusTree> from_to_edge;  // NodeFrom|NodeTo|Edge
-    unique_ptr<BPlusTree> to_from_edge;  // NodeTo|NodeFrom|Edge
+    unique_ptr<BPlusTree> from_to_edge;
+    unique_ptr<BPlusTree> to_edge_from;
+    unique_ptr<BPlusTree> edge_from_to;
 
     RelationalGraph(int graph_id, Config& config);
     ~RelationalGraph();
@@ -40,7 +45,8 @@ public:
     //////////////////////////////  IDS RECEIVED BY THESE METHODS ARE UNMASKED  //////////////////////////////
                                                                                                             //
     // Methods used by bulk import:                                                                         //
-    Record get_record_for_edge      (uint64_t node_from_id, uint64_t node_to_id, uint64_t edge_id);         //
+    Record get_record_for_connection(uint64_t node_from_id, uint64_t node_to_id, uint64_t edge_id);         //
+                                                                                                            //
     Record get_record_for_node_label(uint64_t node_id, const string& label);                                //
     Record get_record_for_edge_label(uint64_t edge_id, const string& label);                                //
                                                                                                             //
@@ -70,19 +76,24 @@ public:
     ObjectId get_value_id(Value const&); // TODO: define what happens if doesnt exist, ¿special ObjectId = 0?
 
 private:
-    unique_ptr<BPlusTreeParams> bpt_params_label2element;
-    unique_ptr<BPlusTreeParams> bpt_params_element2label;
-    unique_ptr<BPlusTreeParams> bpt_params_element2prop;
-    unique_ptr<BPlusTreeParams> bpt_params_prop2element;
+    unique_ptr<BPlusTreeParams> bpt_params_node2label;
+    unique_ptr<BPlusTreeParams> bpt_params_edge2label;
+    unique_ptr<BPlusTreeParams> bpt_params_label2node;
+    unique_ptr<BPlusTreeParams> bpt_params_label2edge;
+
+    unique_ptr<BPlusTreeParams> bpt_params_node2prop;
+    unique_ptr<BPlusTreeParams> bpt_params_edge2prop;
+    unique_ptr<BPlusTreeParams> bpt_params_prop2node;
+    unique_ptr<BPlusTreeParams> bpt_params_prop2edge;
+
     unique_ptr<BPlusTreeParams> bpt_params_from_to_edge;
-    unique_ptr<BPlusTreeParams> bpt_params_to_from_edge;
+    unique_ptr<BPlusTreeParams> bpt_params_to_edge_from;
+    unique_ptr<BPlusTreeParams> bpt_params_edge_from_to;
 
-    uint64_t add_label   (uint64_t id, const string& label);                   // returns masked label_id
-    uint64_t add_property(uint64_t id, const string& key, const Value& value); // returns masked key_id
-    uint64_t get_or_create_id(unique_ptr< vector<char> > obj_bytes);           // returns unmasked id
-
-    Record get_record_for_element_label   (uint64_t element_id, const string& label);
-    Record get_record_for_element_property(uint64_t element_id, const string& key, const Value& value);
+    // uint64_t add_label   (uint64_t id, const string& label);
+    // uint64_t add_property(uint64_t id, const string& key, const Value& value);
+    uint64_t get_or_create_id(const string& str);
+    uint64_t get_or_create_id(unique_ptr< vector<char> > obj_bytes);
 };
 
 #endif //RELATIONAL_MODEL__GRAPH_H_

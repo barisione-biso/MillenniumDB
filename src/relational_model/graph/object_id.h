@@ -11,6 +11,8 @@ private:
 public:
     ObjectId(uint64_t id)
         : id(id){}
+    ObjectId()
+        : id(NULL_OBJECT_ID){}
     ~ObjectId() = default;
 
     bool is_null() { return id == NULL_OBJECT_ID; }

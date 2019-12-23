@@ -40,8 +40,10 @@ private:
     std::regex label_expr;
     std::regex properties_expr;
 
-    OrderedFile element_labels;
-    OrderedFile element_key_value;
+    OrderedFile node_labels;
+    OrderedFile edge_labels;
+    OrderedFile node_key_value;
+    OrderedFile edge_key_value;
     OrderedFile from_to_edge;
 };
 

@@ -35,10 +35,10 @@ void QueryOptimizerConnection::try_assign_var(VarId var_id) {
     if (from_var_id == var_id) {
         from_assigned = true;
     }
-    else if (to_var_id == var_id) {
+    if (to_var_id == var_id) {
         to_assigned = true;
     }
-    else if (edge_var_id == var_id) { // TODO: can `from` be equal to `to`
+    else if (edge_var_id == var_id) { // TODO: can `from` be equal to `to`?
         edge_assigned = true;
     }
 }
@@ -64,16 +64,30 @@ unique_ptr<GraphScan> QueryOptimizerConnection::get_scan() {
     vector<pair<ObjectId, int>> terms;
     vector<pair<VarId, int>> vars;
 
-    if (from_assigned) { // Connection(_,_,_), Connection(_,?,_), Connection(_,?,?)
-        vars.push_back(make_pair(from_var_id, 0));
-        vars.push_back(make_pair(to_var_id, 1));
-        vars.push_back(make_pair(edge_var_id, 2));
-        return make_unique<GraphScan>(*graph.prop2element, terms, vars);
+    if (from_assigned) {
+        if (edge_assigned) {
+            vars.push_back(make_pair(edge_var_id, 0));
+            vars.push_back(make_pair(from_var_id, 1));
+            vars.push_back(make_pair(to_var_id,   2));
+            return make_unique<GraphScan>(*graph.edge_from_to, terms, vars);
+        }
+        else {
+            vars.push_back(make_pair(from_var_id, 0));
+            vars.push_back(make_pair(to_var_id,   1));
+            vars.push_back(make_pair(edge_var_id, 2));
+            return make_unique<GraphScan>(*graph.from_to_edge, terms, vars);
+        }
     }
-    else { // Connection(?,?,_), Connection(?,?,?)
-        vars.push_back(make_pair(to_var_id, 0));
+    else if (to_assigned) { // from_assigned == false
+        vars.push_back(make_pair(to_var_id,   0));
+        vars.push_back(make_pair(edge_var_id, 1));
+        vars.push_back(make_pair(from_var_id, 2));
+        return make_unique<GraphScan>(*graph.to_edge_from, terms, vars);
+    }
+    else {
+        vars.push_back(make_pair(edge_var_id, 0));
         vars.push_back(make_pair(from_var_id, 1));
-        vars.push_back(make_pair(edge_var_id, 2));
-        return make_unique<GraphScan>(*graph.element2prop, terms, vars);
+        vars.push_back(make_pair(to_var_id,   2));
+        return make_unique<GraphScan>(*graph.edge_from_to, terms, vars);
     }
 }

@@ -17,8 +17,14 @@ GraphScan::GraphScan(BPlusTree& bpt, std::vector<std::pair<ObjectId, int>> terms
 { }
 
 
-void GraphScan::init(shared_ptr<BindingId> input) { // input must not be nullptr
+void GraphScan::init(shared_ptr<BindingId> input) {
     this->input = input;
+
+    if (input == nullptr) {
+        it = nullptr;
+        return;
+    }
+
     vector<uint64_t> min_ids(record_size);
     vector<uint64_t> max_ids(record_size);
 
@@ -33,13 +39,13 @@ void GraphScan::init(shared_ptr<BindingId> input) { // input must not be nullptr
     }
 
     for (auto& var : vars) {
-        auto id_range = (*input)[var.first];
-        if (id_range.unbinded()) {
+        auto obj_id = (*input)[var.first];
+        if (obj_id.is_null()) {
             break;
         }
         else {
-            min_ids[var.second] = id_range.min;
-            max_ids[var.second] = id_range.max;
+            min_ids[var.second] = obj_id;
+            max_ids[var.second] = obj_id;
         }
     }
 
@@ -51,13 +57,16 @@ void GraphScan::init(shared_ptr<BindingId> input) { // input must not be nullptr
 
 unique_ptr<BindingId> GraphScan::next()
 {
+    if (it == nullptr)
+        return nullptr;
+
     auto next = it->next();
     if (next != nullptr) {
         auto res = make_unique<BindingId>(input->var_count());
         res->add_all(*input);
         for (size_t i = 0; i < vars.size(); i++) {
             ObjectId element_id = ObjectId(next->ids[i]);
-            res->add(vars[i].first, element_id, element_id);
+            res->add(vars[i].first, element_id);
         }
         return res;
     }

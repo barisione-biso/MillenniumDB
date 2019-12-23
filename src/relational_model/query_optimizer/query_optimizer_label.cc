@@ -65,11 +65,21 @@ unique_ptr<GraphScan> QueryOptimizerLabel::get_scan() {
             terms.push_back(make_pair(label_object_id, 0));
         }
         vars.push_back(make_pair(element_var_id, 1));
-        return make_unique<GraphScan>(*graph.label2element, std::move(terms), std::move(vars));
+        if (element_type == ElementType::NODE) {
+            return make_unique<GraphScan>(*graph.label2node, std::move(terms), std::move(vars));
+        }
+        else { // if (element_type == ElementType::EDGE)
+            return make_unique<GraphScan>(*graph.label2edge, std::move(terms), std::move(vars));
+        }
     }
     else { // Label(?,?) or Label(_,?)
         vars.push_back(make_pair(element_var_id, 0));
         vars.push_back(make_pair(label_var_id, 1));
-        return make_unique<GraphScan>(*graph.element2label, std::move(terms), std::move(vars));
+        if (element_type == ElementType::NODE) {
+            return make_unique<GraphScan>(*graph.node2label, std::move(terms), std::move(vars));
+        }
+        else { // if (element_type == ElementType::EDGE)
+            return make_unique<GraphScan>(*graph.edge2label, std::move(terms), std::move(vars));
+        }
     }
 }
