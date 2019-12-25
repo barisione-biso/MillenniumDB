@@ -64,9 +64,9 @@ unique_ptr<BindingId> GraphScan::next()
     if (next != nullptr) {
         auto res = make_unique<BindingId>(input->var_count());
         res->add_all(*input);
-        for (size_t i = 0; i < vars.size(); i++) {
-            ObjectId element_id = ObjectId(next->ids[i]);
-            res->add(vars[i].first, element_id);
+        for (auto & var : vars) {
+            ObjectId element_id = ObjectId(next->ids[var.second]);
+            res->add(var.first, element_id);
         }
         return res;
     }

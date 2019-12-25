@@ -28,13 +28,14 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_query_plan(std::vector<QueryOptimi
         if (best_heuristic == -1) {
             throw std::logic_error("something is wrong with query optimizer"); // TODO: delete redundant check
         }
+        elements[best_index]->assign(); // TODO: que assign devuelva la lista de asignados
         auto assigned_vars = elements[best_index]->get_assigned();
+
         for (auto element : elements) {
             for (auto var : assigned_vars) {
                 element->try_assign_var(var);
             }
         }
-        elements[best_index]->assign();
         if (current_root == nullptr) {
             current_root = elements[best_index]->get_scan();
         }
