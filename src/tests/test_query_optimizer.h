@@ -4,6 +4,7 @@
 class TestQueryOptimizer {
 public:
     static void Test1();
+    static void Test2();
 };
 
 #endif //TESTS__QUERY_OPTIMIZER_H_

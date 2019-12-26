@@ -44,6 +44,9 @@ std::vector<VarId> QueryOptimizerLabel::get_assigned() {
 
 
 void QueryOptimizerLabel::try_assign_var(VarId var_id) {
+    if (assigned) {
+        return;
+    }
     if (element_var_id == var_id) {
         element_assigned = true;
     }

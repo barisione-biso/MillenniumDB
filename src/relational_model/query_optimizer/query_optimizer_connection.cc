@@ -32,6 +32,9 @@ void QueryOptimizerConnection::assign() {
 
 
 void QueryOptimizerConnection::try_assign_var(VarId var_id) {
+    if (assigned) {
+        return;
+    }
     if (from_var_id == var_id) {
         from_assigned = true;
     }

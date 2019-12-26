@@ -17,7 +17,8 @@ int main()
 
 	// TestGraphImport::test_trees();
 
-	TestQueryOptimizer::Test1();
+	// TestQueryOptimizer::Test1();
+	TestQueryOptimizer::Test2();
 
 
 	// TestBPlusTree::create();
