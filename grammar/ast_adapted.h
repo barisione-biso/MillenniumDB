@@ -8,10 +8,6 @@ BOOST_FUSION_ADAPT_STRUCT(ast::root,
     selection_, graphPattern_, where_
 )
 
-// BOOST_FUSION_ADAPT_STRUCT(ast::root, 
-//     where_
-// )
-
 BOOST_FUSION_ADAPT_STRUCT(ast::linear_pattern,
     root_, path_
 )
@@ -33,16 +29,12 @@ BOOST_FUSION_ADAPT_STRUCT(ast::property,
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::element, 
-    function, variable, key
+    function_, variable_, key_
 )
 
 
 BOOST_FUSION_ADAPT_STRUCT(ast::statement, 
     lhs_, comparator_, rhs_
-)
-
-BOOST_FUSION_ADAPT_STRUCT(ast::parenthesis, 
-    formula_
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::step_formula,
@@ -52,5 +44,9 @@ BOOST_FUSION_ADAPT_STRUCT(ast::step_formula,
 BOOST_FUSION_ADAPT_STRUCT(ast::formula,
     root_, path_
 )
+
+// BOOST_FUSION_ADAPT_STRUCT(ast::elements,
+//     elements_
+// )
 
 #endif

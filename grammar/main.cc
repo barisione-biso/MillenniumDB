@@ -1,4 +1,5 @@
-#define BOOST_SPIRIT_X3_DEBUG
+// #define BOOST_SPIRIT_X3_DEBUG
+
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 #include <boost/spirit/home/x3.hpp>
@@ -12,6 +13,9 @@
 #include "ast.h"
 #include "ast_adapted.h"
 #include "grammar.h"
+#include "visitors.h"
+
+using namespace std;
 
 int main(int argc, char **argv)
 {
@@ -20,49 +24,65 @@ int main(int argc, char **argv)
         filename = argv[1];
     }
     else {
-        std::cerr << "Error: No input file provided." << std::endl;
+        cerr << "Error: No input file provided." << endl;
         return 1;
     }
 
-    std::ifstream in(filename, std::ios_base::in);
+    ifstream in(filename, ios_base::in);
 
     if (!in) {
-        std::cerr << "Error: Could not open input file: "
-            << filename << std::endl;
+        cerr << "Error: Could not open input file: "
+            << filename << endl;
         return 1;
     }
 
-    std::string storage; // We will read the contents here.
-    in.unsetf(std::ios::skipws); // No white space skipping!
-    std::copy(
-        std::istream_iterator<char>(in),
-        std::istream_iterator<char>(),
-        std::back_inserter(storage));
+    string storage; // We will read the contents here.
+    in.unsetf(ios::skipws); // No white space skipping!
+    copy(
+        istream_iterator<char>(in),
+        istream_iterator<char>(),
+        back_inserter(storage));
 
     ast::root ast; // Our tree
 
     using boost::spirit::x3::ascii::space;
-    std::string::const_iterator iter = storage.begin();
-    std::string::const_iterator end = storage.end();
+    string::const_iterator iter = storage.begin();
+    string::const_iterator end = storage.end();
     bool r = phrase_parse(iter, end, parser::root, space, ast);
 
     if (r && iter == end)
     {
-        std::cout << "-------------------------\n";
-        std::cout << "Parsing succeeded\n";
-        std::cout << "-------------------------\n";
-        // client::ast::rexpr_printer printer;
-        // printer(ast);
+        cout << "-------------------------\n";
+        cout << "Parsing succeeded\n";
+        cout << "-------------------------\n";
+        // Get AST printer
+        visitors::printer printer(cout);
+        
+        // Get visitors 
+        visitors::firstVisitor visit1;
+        visitors::secondVisitor visit2;
+
+        visit1(ast);
+        printer(ast);
+
+        map<string, unsigned> idMap = visit2(ast);
+
+        // Print map obtained
+        cout << "\nMap obtained at second step:\n";
+        for(auto const& t: idMap) {
+            cout << "Variable(" << t.first << ") : " << "ObjectId(" << t.second << "),\n";
+        }
+
         return 0;
     }
     else
     {
-        std::string::const_iterator some = iter+30;
-        std::string context(iter, (some>end)?end:some);
-        std::cout << "-------------------------\n";
-        std::cout << "Parsing failed\n";
-        std::cout << "stopped at: \": " << context << "...\"\n";
-        std::cout << "-------------------------\n";
+        string::const_iterator some = iter+30;
+        string context(iter, (some>end)?end:some);
+        cout << "-------------------------\n";
+        cout << "Parsing failed\n";
+        cout << "stopped at: \": " << context << "...\"\n";
+        cout << "-------------------------\n";
         return 1;
     }
 }

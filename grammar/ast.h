@@ -17,9 +17,9 @@ namespace ast
     typedef boost::variant<std::string, int, double, bool> value;
 
     struct element {
-        std::string function; // If empty string then no function
-        std::string variable;
-        std::string key;
+        std::string function_; // If empty string then no function
+        std::string variable_;
+        std::string key_;
     };    
 
     struct property {
@@ -59,6 +59,10 @@ namespace ast
 
     typedef boost::variant<eq_, neq_, gt_, lt_, geq_, leq_> comparator;
 
+    // struct valueWrap {
+    //     boost::variant<element, value> value_
+    // }
+
     struct statement {
         element lhs_;
         comparator comparator_;
@@ -84,12 +88,10 @@ namespace ast
         std::vector<step_formula> path_;
     };
 
-    struct parenthesis {
-        formula formula_; 
-    };
+    struct all_ {};
 
     struct root {
-        x3::variant<char, std::vector<element>> selection_;
+        boost::variant<all_, std::vector<element>> selection_;
         std::vector<linear_pattern> graphPattern_;
         formula where_;
     };

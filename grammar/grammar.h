@@ -42,8 +42,6 @@ namespace parser
         condition = "condition";
     x3::rule<class statement, ast::statement> 
         statement = "statement";
-    x3::rule<class parenthesis, ast::parenthesis>
-        parenthesis = "parenthesis";
     x3::rule<class value, ast::value>
         value = "value";
     x3::rule<class formula, ast::formula>
@@ -105,13 +103,10 @@ namespace parser
         node >> *(edge >> node);
     
     auto const selection =
-        char_('*') | (element % omit[+space]);
+        lit('*') >> attr(ast::all_()) | (element % omit[+space]);
     
     auto const statement_def =
         element >> comparator >> (element | value);
-    
-    auto const parenthesis_def =
-        '(' >> omit[*space] >> formula >> omit[*space] >> ')';
     
     auto const condition_def =
         skip[statement] | ('(' >> omit[*space] >> formula >> omit[*space] >> ')');
@@ -134,7 +129,7 @@ namespace parser
         >> -(omit[+space] >> where_statement)];
 
     auto const element_def =
-        (attr("") >> no_skip[var >> '.' >> key]) |
+        (attr(std::string()) >> no_skip[var >> '.' >> key]) |
         (func >> '(' >> no_skip[var >> '.' >> key] >> ')');
 
     BOOST_SPIRIT_DEFINE(
@@ -146,7 +141,6 @@ namespace parser
         property,
         condition, 
         statement, 
-        parenthesis,
         value,
         formula
     );
