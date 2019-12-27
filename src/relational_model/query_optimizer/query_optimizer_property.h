@@ -4,22 +4,35 @@
 #include <string>
 #include "relational_model/query_optimizer/query_optimizer_element.h"
 
+class RelationalGraph;
+
 class QueryOptimizerProperty : public QueryOptimizerElement {
 private:
+    RelationalGraph& graph;
+
     VarId element_var_id;
     VarId key_var_id;
     VarId value_var_id;
-    ElementType element_type;
 
-    std::vector<ObjectId> terms;
-    std::vector<VarId> vars;
+    ElementType element_type;
+    ObjectId key_object_id;
+    ObjectId value_object_id;
+
+    bool assigned = false;
+
+    bool element_assigned;
+    bool key_assigned;
+    bool value_assigned;
 
 public:
-    QueryOptimizerProperty(VarId element_var_id, VarId key_var_id, VarId value_var_id, ElementType element_type);
+    QueryOptimizerProperty(RelationalGraph& graph, VarId element_var_id, VarId key_var_id,
+        VarId value_var_id, ElementType element_type, ObjectId key_object_id, ObjectId value_object_id);
     ~QueryOptimizerProperty() = default;
     int get_heuristic();
-    void assign(VarId var_id);
-    unique_ptr<GraphScan> get_scan();
+    void assign();
+    void try_assign_var(VarId var_id);
+    std::vector<VarId> get_assigned();
+    std::unique_ptr<GraphScan> get_scan();
 };
 
 #endif //RELATIONAL_MODEL__QUERY_OPTIMIZER_PROPERTY_H_

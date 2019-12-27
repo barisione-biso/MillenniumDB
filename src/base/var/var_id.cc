@@ -1,9 +1,9 @@
 #include "base/var/var_id.h"
 
-VarId VarId::null_var = VarId(-1);
+// VarId VarId::term = VarId(-1);
 
-VarId::VarId(int var_id)
-    : var_id(var_id)
+VarId::VarId(int_fast32_t id)
+    : id(id)
 {
 }
 

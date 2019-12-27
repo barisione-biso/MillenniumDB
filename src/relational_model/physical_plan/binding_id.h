@@ -10,39 +10,19 @@
 
 using namespace std;
 
-class IdRange {
-    public:
-        IdRange(ObjectId min, ObjectId max)
-            : min(min), max(max) { }
-        IdRange()
-            : min(ObjectId(0, UINT64_MAX)), max(ObjectId(0, UINT64_MAX))
-        { }
-        ~IdRange() = default;
-        ObjectId min;
-        ObjectId max;
-
-        void operator=(const IdRange& other) {
-            this->min = other.min;
-            this->max = other.max;
-        }
-        bool unbinded() {
-            return min.id == UINT64_MAX;
-        }
-};
-
 class BindingId {
     private:
-        vector<IdRange> dict;
+        vector<ObjectId> dict;
     public:
         class iterator;
         BindingId(uint_fast32_t var_count);
         ~BindingId() = default;
 
-        IdRange operator[](VarId);
+        ObjectId operator[](VarId);
 
         uint_fast32_t var_count();
         void add_all(BindingId&);
-        void add(VarId, ObjectId min, ObjectId max);
+        void add(VarId, ObjectId);
 
         void print(vector<string>& var_names) const;
 

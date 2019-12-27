@@ -5,7 +5,7 @@ using namespace std;
 BindingId::BindingId(uint_fast32_t var_count)
     // : dict()
 {
-    dict = vector<IdRange>(var_count);
+    dict = vector<ObjectId>(var_count);
 }
 
 
@@ -22,14 +22,14 @@ void BindingId::add_all(BindingId& other) {
     //     next = iter.next();
     // }
     for (size_t i = 0; i < other.dict.size(); ++i) {
-        if (!other.dict[i].unbinded()) {
+        if (!other.dict[i].is_null()) {
             this->dict[i] = other.dict[i];
         }
     }
 }
 
-void BindingId::add(VarId var_id, ObjectId min_id, ObjectId max_id) {
-    dict[var_id.var_id] = IdRange(min_id, max_id);
+void BindingId::add(VarId var_id, ObjectId id) {
+    dict[var_id] = id;
 }
 
 
@@ -50,8 +50,8 @@ void BindingId::add(VarId var_id, ObjectId min_id, ObjectId max_id) {
 // }
 
 
-IdRange BindingId::operator[](VarId var_id) {
-    return dict[var_id.var_id];
+ObjectId BindingId::operator[](VarId var_id) {
+    return dict[var_id];
 }
 
 // BindingId::iterator BindingId::begin() {
@@ -61,15 +61,8 @@ IdRange BindingId::operator[](VarId var_id) {
 void BindingId::print(vector<string>& var_names) const
 {
     std::cout << "BindingId: ";
-    // auto it = dict.begin();
-    // while (it != dict.end()) {
-    //     std::cout << var_names[it->first.var_id] << ":[" << ((it->second.min.id) >> 56) << "]" << (it->second.min.id & 0x00FFFFFFFFFFFFFFUL);
-    //     std::cout << "~[" << ((it->second.max.id) >> 56) << "]" << (it->second.max.id & 0x00FFFFFFFFFFFFFFUL) << "\t";
-    //     it++;
-    // }
-    for (size_t index = 0; index < dict.size(); ++index) {
-        std::cout << var_names[index] << ":[" << (dict[index].min.id >> 56) << "]" << (dict[index].min.id & 0x00FFFFFFFFFFFFFFUL);
-        std::cout << "~[" << (dict[index].max.id >> 56) << "]" << (dict[index].max.id & 0x00FFFFFFFFFFFFFFUL) << "\t";
+    for (size_t i = 0; i < dict.size(); ++i) {
+        std::cout << var_names[i] << ":[" << (dict[i] >> 56) << "]" << (dict[i] & 0x00FFFFFFFFFFFFFFUL) << "\t";
     }
     std::cout << endl;
 }

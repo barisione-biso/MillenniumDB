@@ -1,15 +1,21 @@
 #ifndef BASE__VAR_ID_H_
 #define BASE__VAR_ID_H_
 
+#include <cstdint>
+
 class VarId {
 public:
-    VarId(int var_id);
+    // static VarId null;
+    // static VarId term;
+
+    int_fast32_t id;
+    VarId(int_fast32_t id);
     ~VarId() = default;
 
-    int const var_id;
     // bool is_null();
-    bool is_term() {
-        return var_id < 0;
+
+    operator int_fast32_t() const {
+        return id;
     }
 
     /*VarId& operator=(const VarId& copy) {
@@ -18,18 +24,17 @@ public:
     }*/
 
     bool operator <(const VarId& rhs) const {
-        return var_id < rhs.var_id;
+        return id < rhs.id;
     }
 
     bool operator ==(const VarId& rhs) const {
-        return var_id == rhs.var_id;
+        return id == rhs.id;
     }
 
     bool operator !=(const VarId& rhs) const {
-        return var_id != rhs.var_id;
+        return id != rhs.id;
     }
 
-    static VarId null_var;
 };
 
 #endif //BASE__VAR_ID_H_

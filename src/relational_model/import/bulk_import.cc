@@ -6,11 +6,12 @@
 #include <iostream>
 
 
-
 BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_name, RelationalGraph& graph)
     : graph(graph),
-      element_labels(OrderedFile("element_labels.dat", 2)),
-      element_key_value(OrderedFile("element_key_value.dat", 3)),
+      node_labels(OrderedFile("node_labels.dat", 2)),
+      edge_labels(OrderedFile("edge_labels.dat", 2)),
+      node_key_value(OrderedFile("node_key_value.dat", 3)),
+      edge_key_value(OrderedFile("edge_key_value.dat", 3)),
       from_to_edge(OrderedFile("from_to_edge.dat", 3))
 {
     nodes_file = ifstream(nodes_file_name);
@@ -36,8 +37,8 @@ BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_n
     properties_expr = std::regex("\\s+([^\\s]+):((?:\".*\")|\\S+)");
 }
 
-void BulkImport::start_import()
-{
+
+void BulkImport::start_import() {
     node_count = 0;
     edge_count = 0;
     string line;
@@ -63,53 +64,54 @@ void BulkImport::start_import()
     cout << "conecting nodes:\n";
     for (auto&& [from, to, edge_id] : edges_original_ids) {
         // cout << "\r  line " << line_number++ << std::flush;
-        from_to_edge.append_record(graph.get_record_for_edge(node_dict[from], node_dict[to], edge_id));
+        from_to_edge.append_record(Record(node_dict[from], node_dict[to], edge_id));
     }
-    cout << "\nCreating element2label\n";
-    vector<uint_fast8_t> element2label_order { 0, 1 };
-    element_labels.order(element2label_order);
-    // element_labels.print();
-    // element_labels.check_order(element2label_order);
-    graph.element2label->bulk_import(element_labels);
+    cout << "\nCreating indexes for labels\n";
+    // NODE LABELS
+    node_labels.order(vector<uint_fast8_t> { 0, 1 });
+    graph.node2label->bulk_import(node_labels);
 
-    cout << "Creating label2element\n";
-    vector<uint_fast8_t> label2element_order { 1, 0 };
-    element_labels.order(label2element_order);
-    // element_labels.print();
-    // element_labels.check_order(label2element_order);
-    graph.label2element->bulk_import(element_labels);
+    node_labels.order(vector<uint_fast8_t> { 1, 0 });
+    graph.label2node->bulk_import(node_labels);
 
-    cout << "Creating element2prop\n";
-    vector<uint_fast8_t> element2prop_order { 0, 1, 2 };
-    element_key_value.order(element2prop_order);
-    // element_key_value.print();
-    // element_key_value.check_order(element2prop_order);
-    graph.element2prop->bulk_import(element_key_value);
+    // EDGE LABELS
+    edge_labels.order(vector<uint_fast8_t> { 0, 1 });
+    graph.edge2label->bulk_import(edge_labels);
 
-    cout << "Creating prop2element\n";
-    vector<uint_fast8_t> prop2element_order { 2, 0, 1 };
-    element_key_value.order(prop2element_order);
-    // element_key_value.print();
-    // element_key_value.check_order(prop2element_order);
-    graph.prop2element->bulk_import(element_key_value);
+    edge_labels.order(vector<uint_fast8_t> { 1, 0 });
+    graph.label2edge->bulk_import(edge_labels);
 
-    cout << "Creating from_to_edge\n";
-    vector<uint_fast8_t> from_to_edge_order { 0, 1, 2 };
-    from_to_edge.order(from_to_edge_order);
-    // from_to_edge.print();
-    // from_to_edge.check_order(from_to_edge_order);
+    cout << "Creating indexes for properties\n";
+
+    // NODE PROPERTIES
+    node_key_value.order(vector<uint_fast8_t> { 0, 1, 2 });
+    graph.node2prop->bulk_import(node_key_value);
+
+    node_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
+    graph.prop2node->bulk_import(node_key_value);
+
+    // EDGE PROPERTIES
+    edge_key_value.order(vector<uint_fast8_t> { 0, 1, 2 });
+    graph.edge2prop->bulk_import(edge_key_value);
+
+    edge_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
+    graph.prop2edge->bulk_import(edge_key_value);
+
+    cout << "Creating indexes for connections\n";
+
+    // CONNECTIONS
+    from_to_edge.order(vector<uint_fast8_t> { 0, 1, 2 });
     graph.from_to_edge->bulk_import(from_to_edge);
 
-    cout << "Creating to_from_edge\n";
-    vector<uint_fast8_t> to_from_edge_order { 1, 0, 2 };
-    from_to_edge.order(to_from_edge_order);
-    // from_to_edge.print();
-    // from_to_edge.check_order(to_from_edge_order);
-    graph.to_from_edge->bulk_import(from_to_edge);
+    from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 }); // TODO: revisar
+    graph.to_edge_from->bulk_import(from_to_edge);
+
+    from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 }); // TODO: revisar
+    graph.edge_from_to->bulk_import(from_to_edge);
 }
 
-void BulkImport::process_node(const string& line, int line_number)
-{
+
+void BulkImport::process_node(const string& line, int line_number) {
     std::smatch match;
     // cout << "\r  line " << line_number << std::flush;
 
@@ -132,20 +134,20 @@ void BulkImport::process_node(const string& line, int line_number)
 
     // MATCH LABELS
     while (std::regex_search (str, match, label_expr)) {
-        element_labels.append_record(graph.get_record_for_node_label(node_id, match[1]));
+        node_labels.append_record(graph.get_record_for_node_label(node_id, match[1]));
         str = match.suffix().str();
     }
 
     // MATCH PROPERTIES
     while (std::regex_search (str, match, properties_expr)) {
         ValueString value = ValueString(match[2]); // TODO: support other types
-        element_key_value.append_record(graph.get_record_for_node_property(node_id, match[1], value));
+        node_key_value.append_record(graph.get_record_for_node_property(node_id, match[1], value));
         str = match.suffix().str();
     }
 }
 
-void BulkImport::process_edge(const string& line, int line_number)
-{
+
+void BulkImport::process_edge(const string& line, int line_number) {
     std::smatch match;
     // cout << "\r  line " << line_number << std::flush;
 
@@ -170,14 +172,14 @@ void BulkImport::process_edge(const string& line, int line_number)
 
     // MATCH LABELS
     while (std::regex_search (str, match, label_expr)) {
-        element_labels.append_record(graph.get_record_for_edge_label(edge_id, match[1]));
+        edge_labels.append_record(graph.get_record_for_edge_label(edge_id, match[1]));
         str = match.suffix().str();
     }
 
     // MATCH PROPERTIES
     while (std::regex_search (str, match, properties_expr)) {
         ValueString value = ValueString(match[2]); // TODO: support other types
-        element_key_value.append_record(graph.get_record_for_edge_property(edge_id, match[1], value));
+        edge_key_value.append_record(graph.get_record_for_edge_property(edge_id, match[1], value));
         str = match.suffix().str();
     }
 }

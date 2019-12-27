@@ -10,36 +10,42 @@
 
 using namespace std;
 
-GraphScan::GraphScan(int graph_id, BPlusTree& bpt, std::vector<ObjectId> terms, vector<VarId> vars)
-    : graph_id(graph_id), record_size(bpt.params.total_size), bpt(bpt), terms(terms), vars(vars)
+GraphScan::GraphScan(BPlusTree& bpt, std::vector<std::pair<ObjectId, int>> terms,
+    std::vector<std::pair<VarId, int>> vars)
+    : record_size(bpt.params.total_size), bpt(bpt), terms(terms), vars(vars)
      // TODO: use move for vectors?
 { }
 
 
-void GraphScan::init(shared_ptr<BindingId> input) { // input must not be nullptr
+void GraphScan::init(shared_ptr<BindingId> input) {
     this->input = input;
+
+    if (input == nullptr) {
+        it = nullptr;
+        return;
+    }
+
     vector<uint64_t> min_ids(record_size);
     vector<uint64_t> max_ids(record_size);
 
-    int i = 0;
-    for (auto& term : terms) {
-        min_ids[i] = term.id;
-        max_ids[i] = term.id;
-        i++;
+    for (int i = 0; i < record_size; i++) {
+        min_ids[i] = 0;
+        max_ids[i] = UINT64_MAX;
     }
 
-    for (; i < record_size; i++) {
-        auto id_range = (*input)[vars[i]];
-        if (id_range.unbinded()) {
-            while (i < record_size) {
-                min_ids[i] = 0;
-                max_ids[i] = UINT64_MAX;
-                i++;
-            }
+    for (auto& term : terms) {
+        min_ids[term.second] = term.first;
+        max_ids[term.second] = term.first;
+    }
+
+    for (auto& var : vars) {
+        auto obj_id = (*input)[var.first];
+        if (obj_id.is_null()) {
+            break;
         }
         else {
-            min_ids[i] = id_range.min;
-            max_ids[i] = id_range.max;
+            min_ids[var.second] = obj_id;
+            max_ids[var.second] = obj_id;
         }
     }
 
@@ -51,13 +57,16 @@ void GraphScan::init(shared_ptr<BindingId> input) { // input must not be nullptr
 
 unique_ptr<BindingId> GraphScan::next()
 {
+    if (it == nullptr)
+        return nullptr;
+
     auto next = it->next();
     if (next != nullptr) {
         auto res = make_unique<BindingId>(input->var_count());
         res->add_all(*input);
-        for (int i = 0; i < record_size; i++) {
-            ObjectId element_id = ObjectId(graph_id, next->ids[i]);
-            res->add(vars[i], element_id, element_id);
+        for (auto & var : vars) {
+            ObjectId element_id = ObjectId(next->ids[var.second]);
+            res->add(var.first, element_id);
         }
         return res;
     }
