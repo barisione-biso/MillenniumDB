@@ -14,15 +14,29 @@ unsigned const tabsize = 2;
 // Typedefs for returning structs
 typedef std::map<std::string, unsigned> StrIntMap;
 typedef std::map<unsigned, std::string> IntStrMap;
+typedef std::map<unsigned, std::map<std::string, ast::value>> IntStrValMap;
 
 enum Entity {NODE, EDGE};
 
 namespace ast {
-    struct TypeError
+    struct EntityError
         : public std::exception
     {
         const char * what() const throw() {
             return "Wrong variable assignation in MATCH statement";
+        }
+    };
+
+     struct TypeError
+        : public std::exception
+    {
+        std::string var;
+
+        TypeError(std::string var)
+            : var(var) {}
+
+        const char * what() const throw() {
+            return "Inconsistent value type in WHERE statement with MATCH statement";
         }
     };
 
@@ -41,6 +55,20 @@ namespace ast {
 }
 
 namespace visitors {
+
+    class whichVisitor
+        : public boost::static_visitor<int>
+    {
+        public:
+
+        int operator()(ast::value const& val) const {
+            return val.which();
+        }
+
+        int operator()(ast::element const& elem) const {return -1;}
+    };
+
+
     class printer
         : public boost::static_visitor<>
     {
@@ -275,7 +303,7 @@ namespace visitors {
                 out << ' ';
             }
         }
-    };
+    }; // class printer
 
     class firstVisitor
 
@@ -312,7 +340,7 @@ namespace visitors {
             auto search = varToType.find(edge.variable_);
             if (search != varToType.end()) {
                 if (search->second != EDGE) 
-                    throw ast::TypeError();
+                    throw ast::EntityError();
             }
             varToType[edge.variable_] = EDGE;
         }
@@ -329,7 +357,7 @@ namespace visitors {
             auto search = varToType.find(node.variable_);
             if (search != varToType.end()) { // Found
                 if (search->second != NODE) 
-                    throw ast::TypeError();
+                    throw ast::EntityError();
             }
             varToType[node.variable_] = NODE;
         }
@@ -382,7 +410,7 @@ namespace visitors {
         void operator() (int & n)  {}
         void operator() (double & n)  {}
         void operator() (bool const& b) const {}
-    };
+    }; // class firstVisitor
 
 
     class secondVisitor
@@ -450,119 +478,176 @@ namespace visitors {
         // void operator() (ast::lt_ const& a) const {}
         // void operator() (ast::geq_ const& a) const {}
         // void operator() (ast::leq_ const& a) const {}
-
         // void operator() (bool const& b) const {}
+
     }; // class secondVisitor
 
-    // class thirdVisitor
-    //     : public boost::static_visitor<>
-    // {
-    //     StrIntMap idMap;
-    //     IntStrMap labelMap;
 
-    //     public:
+    class thirdVisitor
+        : public boost::static_visitor<IntStrMap>
+    {
+        StrIntMap idMap;
+        IntStrMap labelMap;
 
-    //     // Constructor 
-    //     thirdVisitor(StrIntMap & idMap)
-    //         : idMap(idMap) {}
+        public:
+
+        // Constructor 
+        thirdVisitor(StrIntMap & idMap)
+            : idMap(idMap) {}
         
-    //     void operator()(ast::root const& r) {}
+        IntStrMap operator()(ast::root const& r) {
+            for(auto const& lPattern: r.graphPattern_) {
+                (*this)(lPattern);
+            }
+            return labelMap;
+        }
 
-    //     void operator()(ast::formula const& formula) const {}
+        IntStrMap operator()(ast::linear_pattern const& lPattern) {
+            (*this)(lPattern.root_);
+            for(auto &sPath: lPattern.path_) {
+                (*this)(sPath.edge_);
+                (*this)(sPath.node_);
+            }
 
-    //     void operator()(ast::element const& elem) const {}
+            return labelMap;
+        }
 
-    //     void operator()(ast::statement const& stat) const {}
+        IntStrMap operator()(ast::edge const& edge) {
+            for(auto const& label: edge.labels_) {
+                labelMap.insert({idMap.at(edge.variable_), label});
+            }
+            return labelMap;
+        }
 
-    //     void operator()(ast::value const& val) const {}
+        IntStrMap operator()(ast::node const& node) {
+            for(auto const& label: node.labels_) {
+                labelMap.insert({idMap.at(node.variable_), label});
+            }
+            return labelMap;
+        }
 
-    //     void operator()(ast::edge const& edge) const {}
+        // void operator()(ast::formula const& formula) const {}
+        // void operator()(ast::element const& elem) const {}
+        // void operator()(ast::statement const& stat) const {}
+        // void operator()(ast::value const& val) const {}
+        // void operator()(std::vector<ast::element> const& container) const {}
+        // void operator()(std::string const& text) const {}
+        // void operator() (int const& n) const {}
+        // void operator() (double const& n) const {}
+        // void operator() (ast::and_ const& a) const {}
+        // void operator() (ast::or_ const& a) const {}
+        // void operator() (ast::eq_ const& a) const {}
+        // void operator() (ast::neq_ const& a) const {}
+        // void operator() (ast::gt_ const& a) const {}
+        // void operator() (ast::lt_ const& a) const {}
+        // void operator() (ast::geq_ const& a) const {}
+        // void operator() (ast::leq_ const& a) const {}
+        // void operator() (bool const& b) const {}
 
-    //     void operator()(ast::node const& node) const {}
+    }; // class thirdVisitor
 
-    //     void operator()(ast::linear_pattern const& lPattern) const {}
+    class fourthVisitor
+        : public boost::static_visitor<IntStrValMap>
+    {
+        StrIntMap idMap;
+        IntStrValMap propertyMap;
+        int storedWhich;
 
-    //     void operator()(std::vector<ast::element> const& container) const {}
+        public:
 
-    //     void operator()(std::string const& text) const {}
-
-    //     void operator() (int const& n) const {}
-
-    //     void operator() (double const& n) const {}
-
-    //     void operator() (ast::and_ const& a) const {}
-
-    //     void operator() (ast::or_ const& a) const {}
-
-    //     void operator() (ast::eq_ const& a) const {}
-
-    //     void operator() (ast::neq_ const& a) const {}
-
-    //     void operator() (ast::gt_ const& a) const {}
-
-    //     void operator() (ast::lt_ const& a) const {}
-
-    //     void operator() (ast::geq_ const& a) const {}
-
-    //     void operator() (ast::leq_ const& a) const {}
-
-    //     void operator() (bool const& b) const {}
-    // };
-
-    // class secondVisitor
-    //     : public boost::static_visitor<>
-    // {
-    //     unsigned indent;
-    //     std::ostream& out; 
-
-    //     public:
-
-    //     // Constructor 
-    //     secondVisitor(std::ostream& out, unsigned indent = 0)
-    //         : out(out), indent(indent) {}
+        // Constructor 
+        fourthVisitor(StrIntMap & idMap, int which_ = -1)
+            : idMap(idMap), storedWhich(which_) {}
         
-    //     void operator()(ast::root const& r) const {}
+        IntStrValMap operator()(ast::root const& r) {
+            for(auto const& lPattern: r.graphPattern_) {
+                (*this)(lPattern);
+            }
+            return propertyMap;
+        }
 
-    //     void operator()(ast::formula const& formula) const {}
+        IntStrValMap operator()(ast::linear_pattern const& lPattern) {
+            (*this)(lPattern.root_);
+            for(auto &sPath: lPattern.path_) {
+                (*this)(sPath.edge_);
+                (*this)(sPath.node_);
+            }
 
-    //     void operator()(ast::element const& elem) const {}
+            return propertyMap;
+        }
 
-    //     void operator()(ast::statement const& stat) const {}
+        IntStrValMap operator()(ast::edge const& edge) {
+            for(auto & prop: edge.properties_) {
+                propertyMap[idMap.at(edge.variable_)][prop.key_] =  prop.value_;
+            }
+            return propertyMap;
+        }
 
-    //     void operator()(ast::value const& val) const {}
+        IntStrValMap operator()(ast::node const& node) {
+            for(auto & prop: node.properties_) {
+                propertyMap[idMap.at(node.variable_)][prop.key_] = prop.value_;
+            }
+            return propertyMap;
+        }
 
-    //     void operator()(ast::edge const& edge) const {}
+        IntStrValMap operator()(ast::formula & formula) {
+            boost::apply_visitor(*this, formula.root_);
+            for (auto & sFormula: formula.path_) {
+                boost::apply_visitor(*this, sFormula.cond_);
+            }
 
-    //     void operator()(ast::node const& node) const {}
+            return propertyMap;
+        }
 
-    //     void operator()(ast::linear_pattern const& lPattern) const {}
+        IntStrValMap operator()(ast::statement & stat) {
+            int t = boost::apply_visitor(whichVisitor(), stat.rhs_);
+            fourthVisitor(idMap, t)(stat.lhs_);
 
-    //     void operator()(std::vector<ast::element> const& container) const {}
+            return propertyMap;
+        }
 
-    //     void operator()(std::string const& text) const {}
+        IntStrValMap operator()(ast::element & elem) {
+            if(storedWhich > 0) {
+                auto entMap = propertyMap.at(idMap.at(elem.variable_));
+                auto foundIt = entMap.find(elem.key_);
+                if(foundIt != entMap.end()) {
+                    if (storedWhich != foundIt->second.which()) {
+                        throw ast::TypeError(elem.variable_);
+                    }
+                }
+            }
 
-    //     void operator() (int const& n) const {}
 
-    //     void operator() (double const& n) const {}
+            return propertyMap;
+        }
 
-    //     void operator() (ast::and_ const& a) const {}
 
-    //     void operator() (ast::or_ const& a) const {}
+        // void operator()(std::string & text)  {};
+        // void operator() (int & n)  {}
+        // void operator() (double & n)  {}
+        // void operator() (bool const& b) const {}
 
-    //     void operator() (ast::eq_ const& a) const {}
+        // void operator()(ast::formula const& formula) const {}
+        // void operator()(ast::element const& elem) const {}
+        // void operator()(ast::statement const& stat) const {}
+        // void operator()(ast::value const& val) const {}
+        // void operator()(std::vector<ast::element> const& container) const {}
+        // void operator()(std::string const& text) const {}
+        // void operator() (int const& n) const {}
+        // void operator() (double const& n) const {}
+        // void operator() (ast::and_ const& a) const {}
+        // void operator() (ast::or_ const& a) const {}
+        // void operator() (ast::eq_ const& a) const {}
+        // void operator() (ast::neq_ const& a) const {}
+        // void operator() (ast::gt_ const& a) const {}
+        // void operator() (ast::lt_ const& a) const {}
+        // void operator() (ast::geq_ const& a) const {}
+        // void operator() (ast::leq_ const& a) const {}
+        // void operator() (bool const& b) const {}
+        
+    };
 
-    //     void operator() (ast::neq_ const& a) const {}
 
-    //     void operator() (ast::gt_ const& a) const {}
-
-    //     void operator() (ast::lt_ const& a) const {}
-
-    //     void operator() (ast::geq_ const& a) const {}
-
-    //     void operator() (ast::leq_ const& a) const {}
-
-    //     void operator() (bool const& b) const {}
-    // };
 
 } // namespace visitors
 

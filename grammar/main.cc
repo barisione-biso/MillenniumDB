@@ -73,6 +73,20 @@ int main(int argc, char **argv)
             cout << "Variable(" << t.first << ") : " << "ObjectId(" << t.second << "),\n";
         }
 
+        visitors::thirdVisitor visit3(idMap);
+        visitors::fourthVisitor visit4(idMap);
+
+        // 3rd Visitor
+        map<unsigned, string> labelMap = visit3(ast);
+
+        // Print map obtained
+        cout << "\nMap obtained at third step:\n";
+        for(auto const& t: labelMap) {
+            cout << "Label(" << t.first << ", " <<  t.second << "),\n";
+        }
+
+        map<unsigned, map<string, ast::value>> propertyMap = visit4(ast);
+
         return 0;
     }
     else
