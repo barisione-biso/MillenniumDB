@@ -86,8 +86,20 @@ int main(int argc, char **argv)
             cout << "Label(" << t.first << ", " <<  t.second << "),\n";
         }
 
+        // 4th Visitor
         map<unsigned, map<string, ast::value>> propertyMap = visit4(ast);
 
+        cout << "\nMap obtained at fourth step:\n";
+        
+        for(auto const& t: propertyMap) {
+            for(auto const &s: t.second) {
+                cout << "Property(" << t.first << ", " << s.first << ", ";
+                printer(s.second);
+                cout << ")\n";
+            }
+        }
+
+        // 5th Visitor
         vector<array<unsigned, 3>> connections = visit5(ast);
 
         // Print vector obtained

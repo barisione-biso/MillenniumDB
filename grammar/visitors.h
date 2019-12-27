@@ -308,7 +308,6 @@ namespace visitors {
 
 
     class firstVisitor
-
         : public boost::static_visitor<void>
     {
         std::map<std::string, Entity> varToType;
@@ -464,24 +463,6 @@ namespace visitors {
             return objectIdMap;
         }
 
-        // void operator()(ast::formula const& formula) const {}
-        // void operator()(ast::element const& elem) const {}
-        // void operator()(ast::statement const& stat) const {}
-        // void operator()(ast::value const& val) const {}
-        // void operator()(std::vector<ast::element> const& container) const {}
-        // void operator()(std::string const& text) const {}
-        // void operator() (int const& n) const {}
-        // void operator() (double const& n) const {}
-        // void operator() (ast::and_ const& a) const {}
-        // void operator() (ast::or_ const& a) const {}
-        // void operator() (ast::eq_ const& a) const {}
-        // void operator() (ast::neq_ const& a) const {}
-        // void operator() (ast::gt_ const& a) const {}
-        // void operator() (ast::lt_ const& a) const {}
-        // void operator() (ast::geq_ const& a) const {}
-        // void operator() (ast::leq_ const& a) const {}
-        // void operator() (bool const& b) const {}
-
     }; // class secondVisitor
 
 
@@ -528,24 +509,6 @@ namespace visitors {
             return labelMap;
         }
 
-        // void operator()(ast::formula const& formula) const {}
-        // void operator()(ast::element const& elem) const {}
-        // void operator()(ast::statement const& stat) const {}
-        // void operator()(ast::value const& val) const {}
-        // void operator()(std::vector<ast::element> const& container) const {}
-        // void operator()(std::string const& text) const {}
-        // void operator() (int const& n) const {}
-        // void operator() (double const& n) const {}
-        // void operator() (ast::and_ const& a) const {}
-        // void operator() (ast::or_ const& a) const {}
-        // void operator() (ast::eq_ const& a) const {}
-        // void operator() (ast::neq_ const& a) const {}
-        // void operator() (ast::gt_ const& a) const {}
-        // void operator() (ast::lt_ const& a) const {}
-        // void operator() (ast::geq_ const& a) const {}
-        // void operator() (ast::leq_ const& a) const {}
-        // void operator() (bool const& b) const {}
-
     }; // class thirdVisitor
 
 
@@ -559,13 +522,15 @@ namespace visitors {
         public:
 
         // Constructor 
-        fourthVisitor(StrIntMap & idMap, int which_ = -1)
-            : idMap(idMap), storedWhich(which_) {}
+        fourthVisitor(StrIntMap & idMap, int which_ = -1, IntStrValMap pM = IntStrValMap())
+            : idMap(idMap),  propertyMap(pM), storedWhich(which_) {}
         
         IntStrValMap operator()(ast::root const& r) {
             for(auto const& lPattern: r.graphPattern_) {
                 (*this)(lPattern);
             }
+
+            (*this)(r.where_);
             return propertyMap;
         }
 
@@ -593,7 +558,7 @@ namespace visitors {
             return propertyMap;
         }
 
-        IntStrValMap operator()(ast::formula & formula) {
+        IntStrValMap operator()(ast::formula const& formula) {
             boost::apply_visitor(*this, formula.root_);
             for (auto & sFormula: formula.path_) {
                 boost::apply_visitor(*this, sFormula.cond_);
@@ -602,16 +567,17 @@ namespace visitors {
             return propertyMap;
         }
 
-        IntStrValMap operator()(ast::statement & stat) {
+        IntStrValMap operator()(ast::statement const& stat) {
             int t = boost::apply_visitor(whichVisitor(), stat.rhs_);
-            fourthVisitor(idMap, t)(stat.lhs_);
+            fourthVisitor(idMap, t, propertyMap)(stat.lhs_);
 
             return propertyMap;
         }
 
-        IntStrValMap operator()(ast::element & elem) {
+        IntStrValMap operator()(ast::element const& elem) {
             if(storedWhich > 0) {
-                auto entMap = propertyMap.at(idMap.at(elem.variable_));
+                unsigned id_ = idMap.at(elem.variable_);
+                std::map<std::string, ast::value> entMap = propertyMap.at(id_);
                 auto foundIt = entMap.find(elem.key_);
                 if(foundIt != entMap.end()) {
                     if (storedWhich != foundIt->second.which()) {
@@ -619,36 +585,11 @@ namespace visitors {
                     }
                 }
             }
-
-
             return propertyMap;
         }
-
-
-        // void operator()(std::string & text)  {};
-        // void operator() (int & n)  {}
-        // void operator() (double & n)  {}
-        // void operator() (bool const& b) const {}
-
-        // void operator()(ast::formula const& formula) const {}
-        // void operator()(ast::element const& elem) const {}
-        // void operator()(ast::statement const& stat) const {}
-        // void operator()(ast::value const& val) const {}
-        // void operator()(std::vector<ast::element> const& container) const {}
-        // void operator()(std::string const& text) const {}
-        // void operator() (int const& n) const {}
-        // void operator() (double const& n) const {}
-        // void operator() (ast::and_ const& a) const {}
-        // void operator() (ast::or_ const& a) const {}
-        // void operator() (ast::eq_ const& a) const {}
-        // void operator() (ast::neq_ const& a) const {}
-        // void operator() (ast::gt_ const& a) const {}
-        // void operator() (ast::lt_ const& a) const {}
-        // void operator() (ast::geq_ const& a) const {}
-        // void operator() (ast::leq_ const& a) const {}
-        // void operator() (bool const& b) const {}
         
-    };
+    }; // class fourthVisitor
+
 
     class fifthVisitor
         : public boost::static_visitor< connectVect >
@@ -686,7 +627,6 @@ namespace visitors {
         }
         
     }; // class fifthVisitor
-
 
 
 } // namespace visitors
