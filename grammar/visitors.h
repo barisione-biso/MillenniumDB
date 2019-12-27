@@ -15,6 +15,7 @@ unsigned const tabsize = 2;
 typedef std::map<std::string, unsigned> StrIntMap;
 typedef std::map<unsigned, std::string> IntStrMap;
 typedef std::map<unsigned, std::map<std::string, ast::value>> IntStrValMap;
+typedef std::vector<std::array<unsigned, 3>> connectVect;
 
 enum Entity {NODE, EDGE};
 
@@ -66,7 +67,7 @@ namespace visitors {
         }
 
         int operator()(ast::element const& elem) const {return -1;}
-    };
+    }; // class whichVisitor
 
 
     class printer
@@ -304,6 +305,7 @@ namespace visitors {
             }
         }
     }; // class printer
+
 
     class firstVisitor
 
@@ -546,6 +548,7 @@ namespace visitors {
 
     }; // class thirdVisitor
 
+
     class fourthVisitor
         : public boost::static_visitor<IntStrValMap>
     {
@@ -646,6 +649,43 @@ namespace visitors {
         // void operator() (bool const& b) const {}
         
     };
+
+    class fifthVisitor
+        : public boost::static_visitor< connectVect >
+    {
+        StrIntMap idMap;
+        connectVect connections;
+
+        public:
+
+        // Constructor 
+        fifthVisitor(StrIntMap & idMap)
+            : idMap(idMap) {}
+        
+        connectVect operator()(ast::root const& r) {
+            for(auto const& lPattern: r.graphPattern_) {
+                (*this)(lPattern);
+            }
+            return connections;
+        }
+
+        connectVect operator()(ast::linear_pattern const& lPattern) {
+            unsigned id1, id2, id3;
+            id1 = idMap.at(lPattern.root_.variable_);
+            for(auto &sPath: lPattern.path_) {
+                id2 = idMap.at(sPath.edge_.variable_);
+                id3 = idMap.at(sPath.node_.variable_);
+                if(sPath.edge_.isright_)
+                    connections.push_back({id1, id2, id3});
+                else
+                    connections.push_back({id3, id2, id1});
+                id1 = id3;
+            }
+
+            return connections;
+        }
+        
+    }; // class fifthVisitor
 
 
 

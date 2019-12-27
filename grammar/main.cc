@@ -75,6 +75,7 @@ int main(int argc, char **argv)
 
         visitors::thirdVisitor visit3(idMap);
         visitors::fourthVisitor visit4(idMap);
+        visitors::fifthVisitor visit5(idMap);
 
         // 3rd Visitor
         map<unsigned, string> labelMap = visit3(ast);
@@ -86,6 +87,14 @@ int main(int argc, char **argv)
         }
 
         map<unsigned, map<string, ast::value>> propertyMap = visit4(ast);
+
+        vector<array<unsigned, 3>> connections = visit5(ast);
+
+        // Print vector obtained
+        cout << "\nVector obtained at fifth step:\n";
+        for(auto const& t: connections) {
+            cout << "Connection(" << t[0] << ", " << t[1] << ", " << t[2] << "),\n";
+        }
 
         return 0;
     }
