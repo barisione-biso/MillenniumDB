@@ -1,4 +1,4 @@
-- Comentarios Page.cc y Page.h
+- Comentarios Page y OrderedFile
 - Probar joins con reordenamiendo según heuristica
 
 - Ordered file: checkear al cambiar el orden si en verdad es necesario

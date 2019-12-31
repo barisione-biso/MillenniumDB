@@ -59,7 +59,7 @@ void TestQueryOptimizer::Test1() {
 
 void TestQueryOptimizer::Test2() {
     // todos los nodos conectados con el mismo label (aunque lenguaje de consulta no lo permita)
-    // MATCH (?n1 :?label)->(?n2 :?label)
+    // MATCH (?n1 :label)->(?n2 :label)
 
     // Label(?n1, label)
     // Label(?n2, label)

@@ -4,6 +4,7 @@
 #include <iostream>
 
 #define NULL_OBJECT_ID UINT64_MAX
+#define NOT_FOUND_OBJECT_ID UINT64_MAX - 1
 
 class ObjectId {
 private:
@@ -16,6 +17,7 @@ public:
     ~ObjectId() = default;
 
     bool is_null() { return id == NULL_OBJECT_ID; }
+    bool not_found() { return id == NOT_FOUND_OBJECT_ID; }
 
     static ObjectId get_null() {
         return ObjectId(NULL_OBJECT_ID);
