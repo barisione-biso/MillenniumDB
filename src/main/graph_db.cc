@@ -5,23 +5,11 @@
 
 int main()
 {
-	TestGraphImport::bulk_import("test_files/graph_small/nodes.txt", "test_files/graph_small/edges.txt");
-	// TestGraphImport::bulk_import("test_files/graph_creation_big/nodes.txt", "test_files/graph_creation_big/edges.txt");
-	// TestGraphImport::bulk_import("test_files/graph_creation_small/nodes.txt", "test_files/graph_creation_small/edges.txt");
-	// TestGraphImport::test_label2element();
-	// TestGraphImport::test_element2label();
-	// TestGraphImport::test_prop2element();
-	// TestGraphImport::test_element2prop();
-	// TestGraphImport::test_to_from_edge();
-	// TestGraphImport::test_from_to_edge();
+	// Next line imports the graph. When running tests comment this line.
+	TestGraphImport::bulk_import("test_files/graph_creation_example/nodes.txt", "test_files/graph_creation_example/edges.txt");
 
-	// TestGraphImport::test_trees();
-
+	// Uncomment these lines to run tests. Look src/tests/test_query_optimizer.cc to understand what the test does.
 	// TestQueryOptimizer::Test1();
-	TestQueryOptimizer::Test2();
-
-
-	// TestBPlusTree::create();
-	// TestBPlusTree::test_order();
+	// TestQueryOptimizer::Test2();
 	return 0;
 }

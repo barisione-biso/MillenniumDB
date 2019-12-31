@@ -9,6 +9,9 @@
 #include "relational_model/query_optimizer/query_optimizer_connection.h"
 
 void TestQueryOptimizer::Test1() {
+    // This test shows how the next query should execute. (replacing literals with values that actually
+    // exists in the databasa example)
+
     // SELECT ?n.name
     // MATCH (?n:Person {age:"65"} )
 
@@ -24,15 +27,15 @@ void TestQueryOptimizer::Test1() {
     VarId name     { 1 }; // ?n.name
     VarId null_var {-1 };
 
-    // (48599)
-    ObjectId label_person       { graph.get_label_id(Label("archeological"))    };
-    ObjectId key_age            { graph.get_key_id  (Key("fruits"))             };
-    ObjectId key_name           { graph.get_key_id  (Key("calumniates"))        };
-    ObjectId value_sixty_five   { graph.get_value_id(ValueString("thresholds")) };
+    // node (7315)
+    ObjectId label_person       { graph.get_label_id(Label("uncoupled"))     };
+    ObjectId key_age            { graph.get_key_id  (Key("lung"))            };
+    ObjectId key_name           { graph.get_key_id  (Key("expositions"))     };
+    ObjectId value_sixty_five   { graph.get_value_id(ValueString("peering")) };
 
 
     std::vector<QueryOptimizerElement*> elements {
-        new QueryOptimizerLabel   (graph, n, null_var, ElementType::NODE, label_person),
+        new QueryOptimizerLabel   (graph, n, null_var,           ElementType::NODE, label_person),
         new QueryOptimizerProperty(graph, n, null_var, null_var, ElementType::NODE, key_age,  value_sixty_five),
         new QueryOptimizerProperty(graph, n, null_var, name,     ElementType::NODE, key_name, ObjectId::get_null())
     };
@@ -58,7 +61,6 @@ void TestQueryOptimizer::Test1() {
 }
 
 void TestQueryOptimizer::Test2() {
-    // todos los nodos conectados con el mismo label (aunque lenguaje de consulta no lo permita)
     // MATCH (?n1 :label)->(?n2 :label)
 
     // Label(?n1, label)
@@ -74,7 +76,7 @@ void TestQueryOptimizer::Test2() {
     VarId e        { 2 };
     VarId null_var {-1 };
 
-    ObjectId label       { graph.get_label_id(Label("archeological"))    };
+    ObjectId label { graph.get_label_id(Label("greyhounds")) };
 
 
     std::vector<QueryOptimizerElement*> elements {
