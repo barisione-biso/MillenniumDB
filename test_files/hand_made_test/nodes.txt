@@ -1,0 +1,33 @@
+(1) :Person
+(2) :Person name:John
+(3) :Person name:Joe
+(4) :Person :Accountant age:23
+(5) :Person :Accountant name:Joe
+(6) :Person :Accountant name:John
+(7) :Person :Accountant name:John age:27
+(8) :Person :Accountant name:John age:23
+(9) :Person :Accountant age:27
+(10) :Person :Accountant age:27 occupation:accountant
+(11) :Person age:27 occupation:accountant
+(12) :Person salary:27000
+(13) :Person name:John salary:27000 
+(14) :Person name:Joe salary:27000
+(15) :Person :Accountant age:23 salary:27000
+(16) :Person :Accountant name:Joe salary:27000
+(17) :Person :Accountant name:John salary:27000
+(18) :Person :Accountant name:John age:27 salary:27000
+(19) :Person :Accountant name:John age:23 salary:27000
+(20) :Person :Accountant age:27 salary:27000
+(21) :Person :Accountant age:27 occupation:accountant salary:27000
+(22) :Person age:27 occupation:accountant salary:27000
+(23) :Person salary:52000
+(24) :Person name:John salary:52000 
+(25) :Person name:Joe salary:52000
+(26) :Person :Accountant age:23 salary:52000
+(27) :Person :Accountant name:Joe salary:52000
+(28) :Person :Accountant name:John salary:52000
+(29) :Person :Accountant name:John age:27 salary:52000
+(30) :Person :Accountant name:John age:23 salary:52000
+(31) :Person :Accountant age:27 salary:52000
+(32) :Person :Accountant age:27 occupation:accountant salary:52000
+(33) :Person age:27 occupation:accountant salary:52000
