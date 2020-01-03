@@ -60,76 +60,82 @@ int main(int argc, char **argv)
         
         // Get first visitor
         visitors::firstVisitor visit1;
-        
 
-        // printer(ast);
-        map<string, unsigned> idMap = visit1(ast);
-        // printer(ast);
+        try 
+        {
+            // printer(ast);
+            map<string, unsigned> idMap = visit1(ast);
+            // printer(ast);
 
-        // Print map obtained
-        cout << "\nMap obtained at first step:\n";
-        for(auto const& t: idMap) {
-            cout << "Variable(" << t.first << ") -> " << "VarId(" << t.second << "),\n";
-        }
-
-        // Get following visitors
-        visitors::secondVisitor visit2(idMap);
-        visitors::thirdVisitor visit3(idMap);
-        visitors::fourthVisitor visit4(idMap);
-        visitors::fifthVisitor visit5(idMap);
-
-        map<unsigned, unsigned> entMap = visit2(ast);
-
-        cout << "\nMap obtained at second step:\n";
-        string s;
-        for(auto const& t: entMap) {
-            switch (t.second)
-            {
-            case NODE:
-                s = "NODE";
-                break;
-            case EDGE:
-                s = "EDGE";
-                break;
-            default:
-                break;
+            // Print map obtained
+            cout << "\nMap obtained at first step:\n";
+            for(auto const& t: idMap) {
+                cout << "Variable(" << t.first << ") -> " << "VarId(" << t.second << "),\n";
             }
-            cout << "Entity(" << t.first << ", " << s << "),\n"; 
-        }
 
-        // 3rd Visitor
-        map<unsigned, vector<string>> labelMap = visit3(ast);
+            // Get following visitors
+            visitors::secondVisitor visit2(idMap);
+            visitors::thirdVisitor visit3(idMap);
+            visitors::fourthVisitor visit4(idMap);
+            visitors::fifthVisitor visit5(idMap);
 
-        // Print map obtained
-        cout << "\nMap obtained at third step:\n";
-        for(auto const& t: labelMap) {
-            for(auto const& d: t.second) {
-                cout << "Label(" << t.first << ", " <<  d << "),\n";
+            map<unsigned, unsigned> entMap = visit2(ast);
+
+            cout << "\nMap obtained at second step:\n";
+            string s;
+            for(auto const& t: entMap) {
+                switch (t.second)
+                {
+                case NODE:
+                    s = "NODE";
+                    break;
+                case EDGE:
+                    s = "EDGE";
+                    break;
+                default:
+                    break;
+                }
+                cout << "Entity(" << t.first << ", " << s << "),\n"; 
             }
+
+            // 3rd Visitor
+            map<unsigned, vector<string>> labelMap = visit3(ast);
+
+            // Print map obtained
+            cout << "\nMap obtained at third step:\n";
+            for(auto const& t: labelMap) {
+                for(auto const& d: t.second) {
+                    cout << "Label(" << t.first << ", " <<  d << "),\n";
+                }
+                
+            }
+
+            // 4th Visitor
+            map<unsigned, map<string, ast::value>> propertyMap = visit4(ast);
+
+            cout << "\nMap obtained at fourth step:\n";
             
-        }
-
-        // 4th Visitor
-        map<unsigned, map<string, ast::value>> propertyMap = visit4(ast);
-
-        cout << "\nMap obtained at fourth step:\n";
-        
-        for(auto const& t: propertyMap) {
-            for(auto const &s: t.second) {
-                cout << "Property(" << t.first << ", " << s.first << ", ";
-                printer(s.second);
-                cout << ")\n";
+            for(auto const& t: propertyMap) {
+                for(auto const &s: t.second) {
+                    cout << "Property(" << t.first << ", " << s.first << ", ";
+                    printer(s.second);
+                    cout << ")\n";
+                }
             }
-        }
 
-        // 5th Visitor
-        vector<array<unsigned, 3>> connections = visit5(ast);
+            // 5th Visitor
+            vector<array<unsigned, 3>> connections = visit5(ast);
 
-        // Print vector obtained
-        cout << "\nVector obtained at fifth step:\n";
-        for(auto const& t: connections) {
-            cout << "Connection(" << t[0] << ", " << t[1] << ", " << t[2] << "),\n";
+            // Print vector obtained
+            cout << "\nVector obtained at fifth step:\n";
+            for(auto const& t: connections) {
+                cout << "Connection(" << t[0] << ", " << t[1] << ", " << t[2] << "),\n";
+            }
+        } catch (const std::exception& e) {
+            cerr << "Error while processing query:\n" << e.what() << endl;
+            return 1;
         }
+        
 
         return 0;
     }

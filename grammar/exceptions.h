@@ -5,37 +5,49 @@
 #include <string>
 
 namespace ast {
-    struct EntityError
+
+    struct VisitError
         : public std::exception
     {
+        std::string state;
+    };
+
+    struct EntityError
+        : public ast::VisitError
+    {
+        std::string state;
+
+        EntityError(std::string var)
+            : state("Inconsistent entity of of ?" + var) {}
+
         inline const char * what() const throw() {
-            return "Wrong variable assignation in MATCH statement";
+            return state.c_str();
         }
     };
 
      struct TypeError
-        : public std::exception
+        : public ast::VisitError
     {
-        std::string var;
+        std::string state;
 
         TypeError(std::string var)
-            : var(var) {}
+            : state("Inconsistent value type of ?" + var) {}
 
         inline const char * what() const throw() {
-            return "Inconsistent value type in WHERE statement with MATCH statement";
+            return state.c_str();
         }
     };
 
     struct SelectionError
-        : public std::exception
+        : public ast::VisitError
     {
-        std::string var;
+        std::string state;
 
         SelectionError(std::string var)
-            : var(var) {}
+            : state("The variable ?" + var + " is not in any graph pattern.") {}
         
         const char * what() const throw() {
-            return "A referenced variable is not in any MATCH statement";
+            return state.c_str();
         }
     }; // struct SelectionError
 

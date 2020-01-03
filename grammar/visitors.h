@@ -437,7 +437,7 @@ namespace visitors {
             auto search = id2Type.find(idMap.at(edge.variable_));
             if (search != id2Type.end()) {
                 if (search->second != EDGE) 
-                    throw ast::EntityError();
+                    throw ast::EntityError(edge.variable_);
             }
             id2Type[idMap.at(edge.variable_)] = EDGE;
 
@@ -448,7 +448,7 @@ namespace visitors {
             auto search = id2Type.find(idMap.at(node.variable_));
             if (search != id2Type.end()) { // Found
                 if (search->second != NODE) 
-                    throw ast::EntityError();
+                    throw ast::EntityError(node.variable_);
             }
             id2Type[idMap.at(node.variable_)] = NODE;
 
