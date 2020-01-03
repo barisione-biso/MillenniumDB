@@ -602,8 +602,8 @@ namespace visitors {
             for(auto const& lPattern: r.graphPattern_) {
                 (*this)(lPattern);
             }
-            boost::apply_visitor(*this, r.selection_);
             (*this)(r.where_);
+            boost::apply_visitor(*this, r.selection_);
             return propertyMap;
         }
 
