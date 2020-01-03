@@ -60,31 +60,43 @@ int main(int argc, char **argv)
         
         // Get visitors 
         visitors::firstVisitor visit1;
-        visitors::secondVisitor visit2;
+        
 
         printer(ast);
-        visit1(ast);
+        map<string, unsigned> idMap = visit1(ast);
         printer(ast);
 
-        map<string, unsigned> idMap = visit2(ast);
+        
+        
 
         // Print map obtained
-        cout << "\nMap obtained at second step:\n";
+        cout << "\nMap obtained at first step:\n";
         for(auto const& t: idMap) {
-            cout << "Variable(" << t.first << ") : " << "ObjectId(" << t.second << "),\n";
+            cout << "Variable(" << t.first << ") : " << "VarId(" << t.second << "),\n";
         }
 
+        visitors::secondVisitor visit2(idMap);
         visitors::thirdVisitor visit3(idMap);
         visitors::fourthVisitor visit4(idMap);
         visitors::fifthVisitor visit5(idMap);
 
+        map<unsigned, unsigned> entMap = visit2(ast);
+
+        cout << "\nMap obtained at second step:\n";
+        for(auto const& t: entMap) {
+            cout << "Entity(" << t.first << ", " << t.second  << "),\n"; 
+        }
+
         // 3rd Visitor
-        map<unsigned, string> labelMap = visit3(ast);
+        map<unsigned, vector<string>> labelMap = visit3(ast);
 
         // Print map obtained
         cout << "\nMap obtained at third step:\n";
         for(auto const& t: labelMap) {
-            cout << "Label(" << t.first << ", " <<  t.second << "),\n";
+            for(auto const& d: t.second) {
+                cout << "Label(" << t.first << ", " <<  d << "),\n";
+            }
+            
         }
 
         // 4th Visitor

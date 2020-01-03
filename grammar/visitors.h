@@ -2,6 +2,7 @@
 #define VISITOR_H
 
 #include "ast.h"
+#include "exceptions.h"
 
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
@@ -14,47 +15,23 @@ unsigned const tabsize = 2;
 
 // Typedefs for returning structs
 typedef std::map<std::string, unsigned> StrIntMap;
-typedef std::map<unsigned, std::string> IntStrMap;
+typedef std::map<unsigned, std::vector<std::string>> IntVectStrMap;
 typedef std::map<unsigned, std::map<std::string, ast::value>> IntStrValMap;
+typedef std::map<std::string, std::map<std::string, unsigned>> StrStrIntMap;
 typedef std::vector<std::array<unsigned, 3>> connectVect;
+typedef std::map<unsigned, unsigned> IntEntMap;
 
-enum Entity {NODE, EDGE};
 
-namespace ast {
-    struct EntityError
-        : public std::exception
-    {
-        const char * what() const throw() {
-            return "Wrong variable assignation in MATCH statement";
-        }
-    };
-
-     struct TypeError
-        : public std::exception
-    {
-        std::string var;
-
-        TypeError(std::string var)
-            : var(var) {}
-
-        const char * what() const throw() {
-            return "Inconsistent value type in WHERE statement with MATCH statement";
-        }
-    };
-
-    struct SelectionError
-        : public std::exception
-    {
-        std::string var;
-
-        SelectionError(std::string var)
-            : var(var) {}
-        
-        const char * what() const throw() {
-            return "A referenced variable is not in any MATCH statement";
-        }
-    };
-}
+enum Entity {
+    NODE, 
+    EDGE, 
+    LABEL, 
+    KEY, 
+    VALSTRING, 
+    VALINT, 
+    VALFLOAT, 
+    VALBOOL
+};
 
 namespace visitors {
 
@@ -304,25 +281,16 @@ namespace visitors {
             out << '"' << text << '"';
         }
 
-        void operator() (int const& n) const {out << n;}
-
-        void operator() (double const& n) const {out << n;}
-
-        void operator() (ast::and_ const& a) const {out << "AND";}
-
-        void operator() (ast::or_ const& a) const {out << "OR";}
-
-        void operator() (ast::eq_ const& a) const {out << "==";}
-
-        void operator() (ast::neq_ const& a) const {out << "!=";}
-
-        void operator() (ast::gt_ const& a) const {out << ">";}
-
-        void operator() (ast::lt_ const& a) const {out << "<";}
-
-        void operator() (ast::geq_ const& a) const {out << ">=";}
-
-        void operator() (ast::leq_ const& a) const {out << "<=";}
+        void operator() (int const& n)          const {out << n;}
+        void operator() (double const& n)       const {out << n;}
+        void operator() (ast::and_ const& a)    const {out << "AND";}
+        void operator() (ast::or_ const& a)     const {out << "OR";}
+        void operator() (ast::eq_ const& a)     const {out << "==";}
+        void operator() (ast::neq_ const& a)    const {out << "!=";}
+        void operator() (ast::gt_ const& a)     const {out << ">";}
+        void operator() (ast::lt_ const& a)     const {out << "<";}
+        void operator() (ast::geq_ const& a)    const {out << ">=";}
+        void operator() (ast::leq_ const& a)    const {out << "<=";}
 
         void operator() (bool const& b) const {
             if(b)
@@ -339,90 +307,179 @@ namespace visitors {
     }; // class printer
 
 
+    // First visitor assigns VarIDs to variables, 
+    // renames empty variables with _1, _2, etc and
+    // checks for inconsistent calling of variables 
+    // in SELECT and WHERE statements. Outputs the 
+    // variable name to VarID map.
     class firstVisitor
-        : public boost::static_visitor<void>
+        : public boost::static_visitor<StrIntMap>
     {
-        std::map<std::string, Entity> varToType;
+
+        private:
+
+        StrIntMap VarIDMap;
         std::set<std::string> assignedVars;
-        unsigned totUnasignedVars;
+        unsigned totObjects; 
+        unsigned totUnassignedVars;
 
         public:
 
+        // Constructor 
         firstVisitor() 
-            : totUnasignedVars(0) {}
+            : totObjects(0), totUnassignedVars(0) {};
         
-        void operator()(ast::root & r) {
+        StrIntMap operator()(ast::root & r) {
+            for(auto & lPattern: r.graphPattern_) {
+                (*this)(lPattern);
+            }
+            boost::apply_visitor(*this, r.selection_);
+
+            return VarIDMap;
+        }
+
+        StrIntMap operator()(ast::edge & edge) {
+            if(edge.variable_.empty()) {
+                edge.variable_ = "_" + std::to_string(totUnassignedVars+1);
+                totUnassignedVars++;
+            }
+            else {
+                assignedVars.insert(edge.variable_);
+            }
+            const auto ptr = VarIDMap.insert({edge.variable_, totObjects});
+            if (ptr.second) {
+                totObjects++;
+            }
+            return VarIDMap;
+        }
+
+        StrIntMap operator()(ast::node & node) {
+            if(node.variable_.empty()) {
+                node.variable_ = "_" + std::to_string(totUnassignedVars+1);
+                totUnassignedVars++;
+            }
+            else {
+                assignedVars.insert(node.variable_);
+            }
+            const auto ptr = VarIDMap.insert({node.variable_, totObjects});
+            if (ptr.second) {
+                totObjects++;
+            }
+
+            return VarIDMap;
+        }
+
+        StrIntMap operator()(ast::linear_pattern & lPattern) {
+            (*this)(lPattern.root_);
+            for(auto &sPath: lPattern.path_) {
+                (*this)(sPath.edge_);
+                (*this)(sPath.node_);
+            }
+
+            return VarIDMap;
+        }
+
+        StrIntMap operator()(std::vector<ast::element> & container) {
+            for(auto & elem: container) {
+                (*this)(elem);
+            }
+            return VarIDMap;
+        }
+
+        StrIntMap operator()(ast::element & elem) {
+            // Check variable is present in match
+            const bool found = assignedVars.find(elem.variable_) != assignedVars.end();
+            if(!found) {
+                throw ast::SelectionError(elem.variable_);
+            }
+
+            const auto ptr = VarIDMap.insert({elem.variable_ + "." + elem.key_ , totObjects});
+            if (ptr.second) {
+                totObjects++;
+            }
+
+            return VarIDMap;
+        }
+
+        StrIntMap operator()(ast::all_ const& a) {return VarIDMap;}
+
+    }; // class firstVisitor
+
+
+    // Second visitor assigns Entities to VarIDs
+    // and checks for inconsistent entities present
+    // at MATCH statement. Outputs a VarID to Entity map.
+    class secondVisitor
+        : public boost::static_visitor<IntEntMap>
+    {
+        StrIntMap idMap;
+        IntEntMap id2Type;
+        
+        public:
+
+        secondVisitor(StrIntMap & idMap) 
+            : idMap(idMap) {}
+        
+        IntEntMap operator()(ast::root & r) {
             for(auto &lPattern: r.graphPattern_) {
                 (*this)(lPattern);
             }
             boost::apply_visitor(*this, r.selection_);
 
             (*this)(r.where_);
+
+            return id2Type;
             
         }
 
-        void operator()(ast::edge & edge) {
-            if(edge.variable_.empty()) {
-                edge.variable_ = "_" + std::to_string(totUnasignedVars+1);
-                totUnasignedVars++;
-            }
-            else {
-                edge.variable_ = "?" + edge.variable_;
-                assignedVars.insert(edge.variable_);
-            }
-            auto search = varToType.find(edge.variable_);
-            if (search != varToType.end()) {
+        IntEntMap operator()(ast::edge & edge) {
+            
+            auto search = id2Type.find(idMap.at(edge.variable_));
+            if (search != id2Type.end()) {
                 if (search->second != EDGE) 
                     throw ast::EntityError();
             }
-            varToType[edge.variable_] = EDGE;
+            id2Type[idMap.at(edge.variable_)] = EDGE;
+
+            return id2Type;
         }
 
-        void operator()(ast::node & node) {
-            if(node.variable_.empty()) {
-                node.variable_ = "_" + std::to_string(totUnasignedVars+1);
-                totUnasignedVars++;
-            }
-            else {
-                node.variable_ = "?" + node.variable_;
-                assignedVars.insert(node.variable_);
-            }
-            auto search = varToType.find(node.variable_);
-            if (search != varToType.end()) { // Found
+        IntEntMap operator()(ast::node & node) {
+            auto search = id2Type.find(idMap.at(node.variable_));
+            if (search != id2Type.end()) { // Found
                 if (search->second != NODE) 
                     throw ast::EntityError();
             }
-            varToType[node.variable_] = NODE;
+            id2Type[idMap.at(node.variable_)] = NODE;
+
+            return id2Type;
         }
 
-        void operator()(ast::linear_pattern & lPattern) {
+        IntEntMap operator()(ast::linear_pattern & lPattern) {
             (*this)(lPattern.root_);
             for(auto &sPath: lPattern.path_) {
                 (*this)(sPath.edge_);
                 (*this)(sPath.node_);
             }
+
+            return id2Type;
         }
 
-        void operator()(std::vector<ast::element> & container) {
+        IntEntMap operator()(std::vector<ast::element> & container) {
             for(auto &elem: container) {
                 (*this)(elem);
             }
+
+            return id2Type;
         }
 
-        void operator()(ast::element & elem) {
-            if(elem.function_.empty()) {
-                elem.function_ = "_none";
-            } 
-            elem.variable_ = "?" + elem.variable_;
-
+        IntEntMap operator()(ast::element & elem) {
             // Check variable is present in match
-            const bool found = assignedVars.find(elem.variable_) != assignedVars.end();
-            if(!found) {
-                throw ast::SelectionError(elem.variable_);
-            }
+            return id2Type;
+            
         }
 
-        void operator()(boost::optional<ast::formula> & formula) {
+        IntEntMap operator()(boost::optional<ast::formula> & formula) {
             if(formula) {
                 ast::formula realFormula = static_cast<ast::formula>(formula.get());
                 boost::apply_visitor(*this, realFormula.root_);
@@ -430,90 +487,48 @@ namespace visitors {
                     boost::apply_visitor(*this, sFormula.cond_);
                 }
             }
+
+            return id2Type;
             
         }
 
-        void operator()(ast::formula & formula) {
+        IntEntMap operator()(ast::formula & formula) {
             boost::apply_visitor(*this, formula.root_);
             for (auto & sFormula: formula.path_) {
                 boost::apply_visitor(*this, sFormula.cond_);
             }
+
+            return id2Type;
         }
 
-        void operator()(ast::statement & stat) {
+        IntEntMap operator()(ast::statement & stat) {
             (*this)(stat.lhs_);
             boost::apply_visitor(*this, stat.rhs_);
+
+            return id2Type;
         }
 
         // Dummy leaves 
-         void operator()(ast::value & val)  {
+         IntEntMap operator()(ast::value & val)  {
             boost::apply_visitor(*this, val);
+            return id2Type;
         }
-        void operator()(ast::all_ & a) {}
-        void operator()(std::string & text)  {}
-        void operator() (int & n)  {}
-        void operator() (double & n)  {}
-        void operator() (bool const& b) const {}
-    }; // class firstVisitor
-
-
-    class secondVisitor
-        : public boost::static_visitor<StrIntMap>
-    {
-
-        private:
-
-        StrIntMap objectIdMap;
-        unsigned totObjects; 
-
-        public:
-
-        // Constructor 
-        secondVisitor() 
-            : totObjects(0) {};
-        
-        StrIntMap operator()(ast::root const& r) {
-            for(auto const& lPattern: r.graphPattern_) {
-                (*this)(lPattern);
-            }
-            return objectIdMap;
-        }
-
-        StrIntMap operator()(ast::edge const& edge) {
-            const auto ptr = objectIdMap.insert({edge.variable_, totObjects});
-            if (ptr.second) {
-                totObjects++;
-            }
-            return objectIdMap;
-        }
-
-        StrIntMap operator()(ast::node const& node) {
-            const auto ptr = objectIdMap.insert({node.variable_, totObjects});
-            if (ptr.second) {
-                totObjects++;
-            }
-
-            return objectIdMap;
-        }
-
-        StrIntMap operator()(ast::linear_pattern const& lPattern) {
-            (*this)(lPattern.root_);
-            for(auto &sPath: lPattern.path_) {
-                (*this)(sPath.edge_);
-                (*this)(sPath.node_);
-            }
-
-            return objectIdMap;
-        }
-
+        IntEntMap operator()(ast::all_ & a) {return id2Type;}
+        IntEntMap operator()(std::string & text)  {return id2Type;}
+        IntEntMap operator() (int & n)  {return id2Type;}
+        IntEntMap operator() (double & n)  {return id2Type;}
+        IntEntMap operator() (bool const& b) const {return id2Type;}
     }; // class secondVisitor
 
 
+    // Third visitor retrieves the labels asociated to
+    // each VarID where it corresponds. Returns a VarID (unsigned) 
+    // to vector of Labels (str) map.
     class thirdVisitor
-        : public boost::static_visitor<IntStrMap>
+        : public boost::static_visitor<IntVectStrMap>
     {
         StrIntMap idMap;
-        IntStrMap labelMap;
+        IntVectStrMap labelMap;
 
         public:
 
@@ -521,14 +536,14 @@ namespace visitors {
         thirdVisitor(StrIntMap & idMap)
             : idMap(idMap) {}
         
-        IntStrMap operator()(ast::root const& r) {
+        IntVectStrMap operator()(ast::root const& r) {
             for(auto const& lPattern: r.graphPattern_) {
                 (*this)(lPattern);
             }
             return labelMap;
         }
 
-        IntStrMap operator()(ast::linear_pattern const& lPattern) {
+        IntVectStrMap operator()(ast::linear_pattern const& lPattern) {
             (*this)(lPattern.root_);
             for(auto &sPath: lPattern.path_) {
                 (*this)(sPath.edge_);
@@ -538,35 +553,49 @@ namespace visitors {
             return labelMap;
         }
 
-        IntStrMap operator()(ast::edge const& edge) {
-            for(auto const& label: edge.labels_) {
-                labelMap.insert({idMap.at(edge.variable_), label});
-            }
+        IntVectStrMap operator()(ast::edge const& edge) {
+            unsigned varID = idMap.at(edge.variable_);
+            auto found = labelMap.find(varID);
+            if(found != labelMap.end())
+                found->second.insert(found->second.end(), edge.labels_.begin(), edge.labels_.end());
+            else 
+                labelMap.emplace(std::make_pair(varID, std::vector<std::string>(edge.labels_)));
+
             return labelMap;
         }
 
-        IntStrMap operator()(ast::node const& node) {
-            for(auto const& label: node.labels_) {
-                labelMap.insert({idMap.at(node.variable_), label});
-            }
+        IntVectStrMap operator()(ast::node const& node) {
+            unsigned varID = idMap.at(node.variable_);
+            auto found = labelMap.find(varID);
+            if(found != labelMap.end())
+                found->second.insert(found->second.end(), node.labels_.begin(), node.labels_.end());
+            else 
+                labelMap.emplace(std::make_pair(varID, std::vector<std::string>(node.labels_)));
+
             return labelMap;
         }
 
     }; // class thirdVisitor
 
-
+    // Fourth visitor retrieves the properties asociated 
+    // to each VarID and checks consistency in the type
+    // of values at WHERE and MATCH statements. Returns
+    // a VarID to map of Key Values map. 
     class fourthVisitor
         : public boost::static_visitor<IntStrValMap>
     {
         StrIntMap idMap;
         IntStrValMap propertyMap;
         int storedWhich;
+        StrStrIntMap seenStatementValueType;
 
         public:
 
         // Constructor 
-        fourthVisitor(StrIntMap & idMap, int which_ = -1, IntStrValMap pM = IntStrValMap())
-            : idMap(idMap),  propertyMap(pM), storedWhich(which_) {}
+        fourthVisitor(StrIntMap & idMap)
+            : idMap(idMap), storedWhich(-1) 
+        {
+        }
         
         IntStrValMap operator()(ast::root const& r) {
             for(auto const& lPattern: r.graphPattern_) {
@@ -601,7 +630,9 @@ namespace visitors {
             return propertyMap;
         }
 
-        IntStrValMap operator()(boost::optional<ast::formula> const& formula) {
+        // Wrapper for the case of the optional where statement in ast::root 
+        IntStrValMap operator()(boost::optional<ast::formula> const& formula) 
+        {
             if(formula) {
                 ast::formula realFormula = static_cast<ast::formula>(formula.get());
                 boost::apply_visitor(*this, realFormula.root_);
@@ -622,29 +653,50 @@ namespace visitors {
         }
 
         IntStrValMap operator()(ast::statement const& stat) {
-            int t = boost::apply_visitor(whichVisitor(), stat.rhs_);
-            fourthVisitor(idMap, t, propertyMap)(stat.lhs_);
+            storedWhich = boost::apply_visitor(whichVisitor(), stat.rhs_);
+            (*this)(stat.lhs_);
 
             return propertyMap;
         }
 
         IntStrValMap operator()(ast::element const& elem) {
-            if(storedWhich > 0) {
+            if(storedWhich >= 0) {
                 unsigned id_ = idMap.at(elem.variable_);
-                std::map<std::string, ast::value> entMap = propertyMap.at(id_);
-                auto foundIt = entMap.find(elem.key_);
-                if(foundIt != entMap.end()) {
-                    if (storedWhich != foundIt->second.which()) {
-                        throw ast::TypeError(elem.variable_);
+                auto entMap = propertyMap.find(id_);
+                if (entMap != propertyMap.end()) {
+                    auto foundIt = entMap->second.find(elem.key_);
+                    if(foundIt != entMap->second.end()) {
+                        if (storedWhich != foundIt->second.which()) {
+                            throw ast::TypeError(elem.variable_);
+                        }
                     }
                 }
-            }
+                else {
+                    auto foundMap = seenStatementValueType.find(elem.variable_);
+                    if (foundMap != seenStatementValueType.end()) {
+                        auto foundIt = foundMap->second.find(elem.key_);
+                        if (foundIt != foundMap->second.end()) {
+                            if (storedWhich != foundIt->second) {
+                                throw ast::TypeError(elem.variable_);
+                            }
+                        }
+                        else {
+                            foundMap->second[elem.key_] = storedWhich;
+                        }
+                    } 
+                    else {
+                        seenStatementValueType[elem.variable_][elem.key_] = storedWhich;
+                    }
+                }
+            } 
             return propertyMap;
         }
         
     }; // class fourthVisitor
 
-
+    // Fifth visitor retrieves the connections between
+    // nodes with a corresponding edge. Returns an array
+    // of 3 VarIDs: (1, 2, 3)  <-> (1) -[2]-> (3) .
     class fifthVisitor
         : public boost::static_visitor< connectVect >
     {
