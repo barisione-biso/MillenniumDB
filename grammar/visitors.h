@@ -575,6 +575,8 @@ namespace visitors {
             return labelMap;
         }
 
+        
+
     }; // class thirdVisitor
 
     // Fourth visitor retrieves the properties asociated 
@@ -586,14 +588,13 @@ namespace visitors {
     {
         StrIntMap idMap;
         IntStrValMap propertyMap;
-        int storedWhich;
         StrStrIntMap seenStatementValueType;
 
         public:
 
         // Constructor 
         fourthVisitor(StrIntMap & idMap)
-            : idMap(idMap), storedWhich(-1) 
+            : idMap(idMap)
         {
         }
         
@@ -601,7 +602,7 @@ namespace visitors {
             for(auto const& lPattern: r.graphPattern_) {
                 (*this)(lPattern);
             }
-
+            boost::apply_visitor(*this, r.selection_);
             (*this)(r.where_);
             return propertyMap;
         }
@@ -652,45 +653,66 @@ namespace visitors {
             return propertyMap;
         }
 
+        
+
         IntStrValMap operator()(ast::statement const& stat) {
-            storedWhich = boost::apply_visitor(whichVisitor(), stat.rhs_);
-            (*this)(stat.lhs_);
 
-            return propertyMap;
-        }
-
-        IntStrValMap operator()(ast::element const& elem) {
-            if(storedWhich >= 0) {
-                unsigned id_ = idMap.at(elem.variable_);
+            // Check consistencies
+            int storedWhich = boost::apply_visitor(whichVisitor(), stat.rhs_);
+            if(storedWhich >= 0) { // Check type consistency against declared properties
+                unsigned id_ = idMap.at(stat.lhs_.variable_);
                 auto entMap = propertyMap.find(id_);
                 if (entMap != propertyMap.end()) {
-                    auto foundIt = entMap->second.find(elem.key_);
+                    auto foundIt = entMap->second.find(stat.lhs_.key_);
                     if(foundIt != entMap->second.end()) {
                         if (storedWhich != foundIt->second.which()) {
-                            throw ast::TypeError(elem.variable_);
+                            throw ast::TypeError(stat.lhs_.variable_);
                         }
                     }
                 }
-                else {
-                    auto foundMap = seenStatementValueType.find(elem.variable_);
+                else { // Check type consistency against other statements
+                    auto foundMap = seenStatementValueType.find(stat.lhs_.variable_);
                     if (foundMap != seenStatementValueType.end()) {
-                        auto foundIt = foundMap->second.find(elem.key_);
+                        auto foundIt = foundMap->second.find(stat.lhs_.key_);
                         if (foundIt != foundMap->second.end()) {
                             if (storedWhich != foundIt->second) {
-                                throw ast::TypeError(elem.variable_);
+                                throw ast::TypeError(stat.lhs_.variable_);
                             }
                         }
                         else {
-                            foundMap->second[elem.key_] = storedWhich;
+                            foundMap->second[stat.lhs_.key_] = storedWhich;
                         }
                     } 
                     else {
-                        seenStatementValueType[elem.variable_][elem.key_] = storedWhich;
+                        seenStatementValueType[stat.lhs_.variable_][stat.lhs_.key_] = storedWhich;
                     }
                 }
             } 
+
             return propertyMap;
         }
+
+
+        IntStrValMap operator()(std::vector<ast::element> const& container) {
+            unsigned varID;
+            int auxVarID;
+            for(auto const& elem: container) {
+                varID = idMap.at(elem.variable_);
+                auto foundVar = propertyMap.find(varID);
+                if (foundVar != propertyMap.end()) {
+                    auto foundKey = foundVar->second.find(elem.key_); 
+                        if(foundKey != foundVar->second.end())
+                            continue;
+                }
+                auxVarID = idMap.at(elem.variable_ + "." + elem.key_);
+                propertyMap[varID][elem.key_] = auxVarID;
+            }   
+            return propertyMap;
+        }
+            
+        IntStrValMap operator()(ast::all_ const& a) {return propertyMap;}
+
+        
         
     }; // class fourthVisitor
 

@@ -58,23 +58,21 @@ int main(int argc, char **argv)
         // Get AST printer
         visitors::printer printer(cout);
         
-        // Get visitors 
+        // Get first visitor
         visitors::firstVisitor visit1;
         
 
-        printer(ast);
+        // printer(ast);
         map<string, unsigned> idMap = visit1(ast);
-        printer(ast);
-
-        
-        
+        // printer(ast);
 
         // Print map obtained
         cout << "\nMap obtained at first step:\n";
         for(auto const& t: idMap) {
-            cout << "Variable(" << t.first << ") : " << "VarId(" << t.second << "),\n";
+            cout << "Variable(" << t.first << ") -> " << "VarId(" << t.second << "),\n";
         }
 
+        // Get following visitors
         visitors::secondVisitor visit2(idMap);
         visitors::thirdVisitor visit3(idMap);
         visitors::fourthVisitor visit4(idMap);
@@ -83,8 +81,20 @@ int main(int argc, char **argv)
         map<unsigned, unsigned> entMap = visit2(ast);
 
         cout << "\nMap obtained at second step:\n";
+        string s;
         for(auto const& t: entMap) {
-            cout << "Entity(" << t.first << ", " << t.second  << "),\n"; 
+            switch (t.second)
+            {
+            case NODE:
+                s = "NODE";
+                break;
+            case EDGE:
+                s = "EDGE";
+                break;
+            default:
+                break;
+            }
+            cout << "Entity(" << t.first << ", " << s << "),\n"; 
         }
 
         // 3rd Visitor
