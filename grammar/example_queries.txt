@@ -1,3 +1,43 @@
+# Comments on syntax
+
+1)  SELECT has a list with commas
+
+    SELECT ?n.name, ?n.age 
+
+
+2)  Property keys have no commas:
+
+    MATCH (?n {age: 27})
+
+
+3)  Equality in WHERE is ==
+
+    WHERE ?n.age == 27
+
+
+4)  Allow comments in a query with //
+
+    SELECT ?n.name
+    // Comment 1
+    MATCH (?n :Person) // blabla
+
+    Is the same as:
+
+    SELECT ?n.name
+    MATCH (?n :Person)
+
+
+5)  Empty Edge    
+
+    MATCH (?n) -> (?m)
+    MATCH (?n) -[]-> (?m)
+    MATCH (?n) -[{}]-> (?m)
+
+    MATCH () -> (?m)
+    MATCH (?n) -> ()
+    MATCH () -> ()
+
+
 ## Node selection criteria:
 
 (Single label)
@@ -14,7 +54,7 @@ MATCH (?n :Person :Accountant)
 
 (Single property)
 SELECT ?n.name
-MATCH (?n {"age": "27"}})
+MATCH (?n {age: "27"}})
 
 (Single property)
 SELECT ?n.name, ?n.age
