@@ -96,8 +96,8 @@ namespace parser
         '(' >>  nomen >> ")";
     
     auto const edge_def = 
-        ("-[" >> nomen >> "]->" >> attr(true)) |
-        ("<-[" >> nomen >> "]-" >> attr(false));
+        (-("-[" >> nomen >> ']') >> "->" >> attr(true)) |
+        ("<-" >> -('[' >> nomen >> "]-") >> attr(false));
     
     auto const linear_pattern_def =
         node >> *(edge >> node);

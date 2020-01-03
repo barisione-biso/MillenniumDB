@@ -144,8 +144,8 @@ int main(int argc, char **argv)
         string::const_iterator some = iter+30;
         string context(iter, (some>end)?end:some);
         cout << "-------------------------\n";
-        cout << "Parsing failed\n";
-        cout << "stopped at: \": " << context << "...\"\n";
+        cerr << "Parsing failed\n";
+        cerr << "stopped at: \": " << context << "...\"\n";
         cout << "-------------------------\n";
         return 1;
     }
