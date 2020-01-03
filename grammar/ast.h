@@ -2,8 +2,8 @@
 #define AST_H
 
 #include <boost/variant.hpp>
+#include <boost/optional.hpp>
 #include <boost/fusion/include/io.hpp>
-#include <boost/spirit/home/x3/operator/optional.hpp>
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
@@ -93,7 +93,7 @@ namespace ast
     struct root {
         boost::variant<all_, std::vector<element>> selection_;
         std::vector<linear_pattern> graphPattern_;
-        formula where_;
+        boost::optional<formula> where_;
     };
 }
 

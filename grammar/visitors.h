@@ -4,6 +4,7 @@
 #include "ast.h"
 
 #include <boost/variant.hpp>
+#include <boost/optional.hpp>
 
 #include <map>
 #include <set>
@@ -106,6 +107,36 @@ namespace visitors {
             out << '}' << '\n';
         }
 
+        void operator()(boost::optional<ast::formula> const& formula) const {
+            if(formula) {
+                ast::formula realFormula = static_cast<ast::formula>(formula.get());
+                out << '{' << '\n';
+                tab(indent+tabsize);
+                out << "<Formula> = ";
+                boost::apply_visitor(printer(out, indent+tabsize), realFormula.root_);
+                out << ',' << '\n';
+                tab(indent+tabsize);
+                out << "<Path> = [\n";
+                for (auto const& sFormula: realFormula.path_) {
+                    tab(indent+2*tabsize);
+                    out << "<Op> = ";
+                    boost::apply_visitor(printer(out, indent+2*tabsize), sFormula.op_);
+                    out << ',' << '\n';
+                    tab(indent+2*tabsize);
+                    out << "<Formula> = ";
+                    boost::apply_visitor(printer(out, indent+2*tabsize), sFormula.cond_);
+                    out << ',' << '\n';
+                }
+                tab(indent+tabsize);
+                out << ']' << '\n';
+                tab(indent);
+                out << '}';
+            } else 
+            {
+                out << "[not present]" << '\n';
+            }
+        }
+
         void operator()(ast::formula const& formula) const {
             out << '{' << '\n';
             tab(indent+tabsize);
@@ -128,6 +159,7 @@ namespace visitors {
             out << ']' << '\n';
             tab(indent);
             out << '}';
+
         }
 
         void operator()(ast::element const& elem) const {
@@ -390,6 +422,17 @@ namespace visitors {
             }
         }
 
+        void operator()(boost::optional<ast::formula> & formula) {
+            if(formula) {
+                ast::formula realFormula = static_cast<ast::formula>(formula.get());
+                boost::apply_visitor(*this, realFormula.root_);
+                for (auto & sFormula: realFormula.path_) {
+                    boost::apply_visitor(*this, sFormula.cond_);
+                }
+            }
+            
+        }
+
         void operator()(ast::formula & formula) {
             boost::apply_visitor(*this, formula.root_);
             for (auto & sFormula: formula.path_) {
@@ -554,6 +597,17 @@ namespace visitors {
         IntStrValMap operator()(ast::node const& node) {
             for(auto & prop: node.properties_) {
                 propertyMap[idMap.at(node.variable_)][prop.key_] = prop.value_;
+            }
+            return propertyMap;
+        }
+
+        IntStrValMap operator()(boost::optional<ast::formula> const& formula) {
+            if(formula) {
+                ast::formula realFormula = static_cast<ast::formula>(formula.get());
+                boost::apply_visitor(*this, realFormula.root_);
+                for (auto & sFormula: realFormula.path_) {
+                    boost::apply_visitor(*this, sFormula.cond_);
+                }
             }
             return propertyMap;
         }

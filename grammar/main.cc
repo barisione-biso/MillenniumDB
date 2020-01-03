@@ -62,6 +62,7 @@ int main(int argc, char **argv)
         visitors::firstVisitor visit1;
         visitors::secondVisitor visit2;
 
+        printer(ast);
         visit1(ast);
         printer(ast);
 
