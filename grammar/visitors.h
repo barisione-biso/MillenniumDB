@@ -21,7 +21,7 @@ typedef std::map<std::string, std::map<std::string, unsigned>> StrStrIntMap;
 typedef std::vector<std::array<unsigned, 3>> connectVect;
 typedef std::map<unsigned, unsigned> IntEntMap;
 
-
+// TODO: Separate entity from value
 enum Entity {
     NODE, 
     EDGE, 
@@ -334,6 +334,8 @@ namespace visitors {
                 (*this)(lPattern);
             }
             boost::apply_visitor(*this, r.selection_);
+
+            //TODO: Call where statement
 
             return VarIDMap;
         }
