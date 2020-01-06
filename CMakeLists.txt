@@ -25,3 +25,6 @@ target_link_libraries(CreateDB graphdb_shared ssl crypto stdc++fs)
 
 add_executable(Grammar ${CMAKE_SOURCE_DIR}/main/grammar.cc)
 target_link_libraries(Grammar graphdb_shared ssl crypto stdc++fs)
+
+add_executable(Query ${CMAKE_SOURCE_DIR}/main/execute_query.cc)
+target_link_libraries(Query graphdb_shared ssl crypto stdc++fs)

@@ -605,7 +605,7 @@ namespace visitors {
                 (*this)(lPattern);
             }
             (*this)(r.where_);
-            boost::apply_visitor(*this, r.selection_);
+            // boost::apply_visitor(*this, r.selection_);
             return propertyMap;
         }
 

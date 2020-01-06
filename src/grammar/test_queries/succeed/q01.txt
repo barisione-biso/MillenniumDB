@@ -1,2 +1,2 @@
 SELECT ?n.name
-MATCH (?n :Person)
+MATCH (?n :galley)
