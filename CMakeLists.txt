@@ -19,7 +19,9 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 file(GLOB_RECURSE SRCS src/*.cc)
 add_library(graphdb_shared SHARED ${SRCS})
 
-# add the executable
-# add_executable(GraphDB ${SRCS})
+# add the executables
 add_executable(CreateDB ${CMAKE_SOURCE_DIR}/main/create_db.cc)
 target_link_libraries(CreateDB graphdb_shared ssl crypto stdc++fs)
+
+add_executable(Grammar ${CMAKE_SOURCE_DIR}/main/grammar.cc)
+target_link_libraries(Grammar graphdb_shared ssl crypto stdc++fs)

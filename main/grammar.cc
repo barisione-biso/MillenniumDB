@@ -10,10 +10,10 @@
 #include <iterator>
 #include <vector>
 
-#include "ast.h"
-#include "ast_adapted.h"
-#include "grammar.h"
-#include "visitors.h"
+#include "grammar/ast.h"
+#include "grammar/ast_adapted.h"
+#include "grammar/grammar.h"
+#include "grammar/visitors.h"
 
 using namespace std;
 
