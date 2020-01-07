@@ -90,8 +90,8 @@ int main(int argc, char **argv)
                 ElementType element_type = id2type[element_id];
                 VarId element_obj_id = VarId(element_id);
                 for (auto& label : labels) {
-                    VarId label_var = null_var; // TODO: no considera labels con variable
-                    ObjectId label_id = graph.get_label_id(Label(label)); // TODO: no considera labels con variable
+                    VarId label_var = null_var;
+                    ObjectId label_id = graph.get_label_id(Label(label));
 
                     elements.push_back(new QueryOptimizerLabel(
                         graph, element_obj_id, label_var, element_type, label_id
@@ -105,14 +105,19 @@ int main(int argc, char **argv)
                 VarId element_obj_id = VarId(element_id);
 
                 for (auto&& [key, value] : key_value) {
-                    VarId key_var = null_var;   // TODO: no considera con variable
-                    VarId value_var = null_var; // TODO: no considera con variable
-                    ObjectId key_id = graph.get_key_id(Key(key)); // TODO: no considera con variable
+                    VarId key_var = null_var;
+                    VarId value_var = null_var;
+                    ObjectId key_id = graph.get_key_id(Key(key));
                     ObjectId value_id;
+
                     int value_type = value.which();
                     if (value_type == 0) {
                         auto val_str = boost::get<string>(value);
                         value_id = graph.get_value_id(ValueString(val_str));
+                    }
+                    else if (value_type == 1) { // TODO: se asume que no hay ints, hay que diferenciarlos de si es id
+                        auto val_int = boost::get<int>(value);
+                        value_var = VarId(val_int);
                     }
                     else {
                         cerr << "Error: only string values supported for now. got value_type " << value_type << ".\n" ;
