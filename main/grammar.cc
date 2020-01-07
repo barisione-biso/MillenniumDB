@@ -1,3 +1,4 @@
+// Uncomment for parser debugging:
 // #define BOOST_SPIRIT_X3_DEBUG
 
 #include <boost/config/warning_disable.hpp>
@@ -15,6 +16,7 @@
 #include "grammar/ast_adapted.h"
 #include "grammar/grammar.h"
 #include "grammar/visitors.h"
+#include "grammar/visitors/printer.h"
 
 using namespace std;
 
