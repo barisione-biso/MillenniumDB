@@ -8,14 +8,6 @@
 
 #include "relational_model/physical_plan/binding_id_iter/operators/graph_scan.h"
 
-enum class ElementType {
-    // UNKNOWN_NODE,
-    // UNKNOWN_EDGE,
-    // FIXED_NODE,
-    // FIXED_EDGE
-    NODE, EDGE
-};
-
 class QueryOptimizerElement {
 public:
     virtual int get_heuristic() = 0;

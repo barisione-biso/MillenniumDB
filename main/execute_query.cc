@@ -73,7 +73,8 @@ int main(int argc, char **argv)
             visitors::fourthVisitor visit4(id_map);
             visitors::fifthVisitor  visit5(id_map);
 
-            map<unsigned, unsigned> entities_map = visit2(ast);
+            visit2(ast);
+            auto id2type = visit2.get_id2type();
             map<unsigned, vector<string>> labels_map = visit3(ast);
             map<unsigned, map<string, ast::value>> properties_map = visit4(ast);
             vector<array<unsigned, 3>> connections = visit5(ast);
@@ -86,7 +87,7 @@ int main(int argc, char **argv)
 
             // ADD LABELS
             for (auto&& [element_id, labels] : labels_map) {
-                ElementType element_type = ElementType::NODE; // TODO: check
+                ElementType element_type = id2type[element_id];
                 VarId element_obj_id = VarId(element_id);
                 for (auto& label : labels) {
                     VarId label_var = null_var; // TODO: no considera labels con variable
@@ -100,7 +101,7 @@ int main(int argc, char **argv)
 
             // ADD PROPERTIES
             for (auto&& [element_id, key_value] : properties_map) {
-                ElementType element_type = ElementType::NODE; // TODO: check
+                ElementType element_type = id2type[element_id];
                 VarId element_obj_id = VarId(element_id);
 
                 for (auto&& [key, value] : key_value) {
@@ -124,10 +125,6 @@ int main(int argc, char **argv)
             QueryOptimizer optimizer{};
             auto root = optimizer.get_query_plan(elements);
 
-            // std::vector<std::string> var_names {
-            //     "?n",
-            //     "?n.name"
-            // };
             vector<string> var_names(id_map.size());
             for (auto&&[var_name, var_id] : id_map) {
                 cout << "var_names["<<var_id<<"] = " << var_name << endl;

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "base/graph/graph_element.h"
 #include "base/var/var_id.h"
 #include "relational_model/query_optimizer/query_optimizer_element.h"
 
