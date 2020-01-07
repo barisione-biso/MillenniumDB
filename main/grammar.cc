@@ -10,10 +10,11 @@
 #include <iterator>
 #include <vector>
 
-#include "ast.h"
-#include "ast_adapted.h"
-#include "grammar.h"
-#include "visitors.h"
+#include "base/graph/graph_element.h"
+#include "grammar/ast.h"
+#include "grammar/ast_adapted.h"
+#include "grammar/grammar.h"
+#include "grammar/visitors.h"
 
 using namespace std;
 
@@ -79,23 +80,23 @@ int main(int argc, char **argv)
             visitors::fourthVisitor visit4(idMap);
             visitors::fifthVisitor visit5(idMap);
 
-            map<unsigned, unsigned> entMap = visit2(ast);
+            auto id2type = visit2.get_id2type();
 
             cout << "\nMap obtained at second step:\n";
             string s;
-            for(auto const& t: entMap) {
+            for(auto const& t: id2type) {
                 switch (t.second)
                 {
-                case NODE:
+                case ElementType::NODE:
                     s = "NODE";
                     break;
-                case EDGE:
+                case ElementType::EDGE:
                     s = "EDGE";
                     break;
                 default:
                     break;
                 }
-                cout << "Entity(" << t.first << ", " << s << "),\n"; 
+                cout << "Entity(" << t.first << ", " << s << "),\n";
             }
 
             // 3rd Visitor

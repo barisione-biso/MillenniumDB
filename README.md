@@ -1,7 +1,9 @@
 # Compiling
 - Prerequisites:
     - `libssl-dev`
+    - `cmake`
     - makefile works only for linux right now.
+- `cmake .`
 - `make`
 
 # Debugging

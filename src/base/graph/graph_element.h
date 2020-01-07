@@ -9,6 +9,10 @@ class Value;
 class Label;
 class Property;
 
+enum class ElementType {
+    NODE, EDGE
+};
+
 class GraphElement {
 public:
     // virtual void add_label(Label& label) = 0;

@@ -1,6 +1,7 @@
 #ifndef VISITOR_H
 #define VISITOR_H
 
+#include "base/graph/graph_element.h"
 #include "ast.h"
 #include "exceptions.h"
 
@@ -19,18 +20,6 @@ typedef std::map<std::string, std::map<std::string, unsigned>> StrStrIntMap;
 typedef std::vector<std::array<unsigned, 3>> connectVect;
 typedef std::map<unsigned, unsigned> IntEntMap;
 
-// TODO: Separate entity from value
-enum EntityType {
-    NODE, 
-    EDGE, 
-};
-
-enum ValueType {
-    VALSTRING, 
-    VALINT, 
-    VALFLOAT, 
-    VALBOOL
-};
 
 
 // TODO @nicovsj: Add visitor -> given ast::value returns a Value reference 
@@ -157,114 +146,96 @@ namespace visitors {
     // and checks for inconsistent entities present
     // at MATCH statement. Outputs a VarID to Entity map.
     class secondVisitor
-        : public boost::static_visitor<IntEntMap>
+        : public boost::static_visitor<void>
     {
+    private:
         StrIntMap idMap;
-        IntEntMap id2Type;
-        
-        public:
+        std::map<uint_fast32_t, ElementType> id2type;
 
-        secondVisitor(StrIntMap & idMap) 
+    public:
+        secondVisitor(StrIntMap & idMap)
             : idMap(idMap) {}
-        
-        IntEntMap operator()(ast::root & r) {
-            for(auto &lPattern: r.graphPattern_) {
+
+        std::map<uint_fast32_t, ElementType> get_id2type() {
+            return id2type;
+        }
+
+        void operator()(ast::root & r) {
+            for (auto &lPattern: r.graphPattern_) {
                 (*this)(lPattern);
             }
             boost::apply_visitor(*this, r.selection_);
 
             (*this)(r.where_);
-
-            return id2Type;
-            
         }
 
-        IntEntMap operator()(ast::edge & edge) {
-            
-            auto search = id2Type.find(idMap.at(edge.variable_));
-            if (search != id2Type.end()) {
-                if (search->second != EDGE) 
+        void operator()(ast::edge & edge) {
+            auto search = id2type.find(idMap.at(edge.variable_));
+            if (search != id2type.end()) {
+                if (search->second != ElementType::EDGE)
                     throw ast::EntityError(edge.variable_);
             }
-            id2Type[idMap.at(edge.variable_)] = EDGE;
-
-            return id2Type;
+            id2type[idMap.at(edge.variable_)] = ElementType::EDGE;
         }
 
-        IntEntMap operator()(ast::node & node) {
-            auto search = id2Type.find(idMap.at(node.variable_));
-            if (search != id2Type.end()) { // Found
-                if (search->second != NODE) 
+        void operator()(ast::node & node) {
+            auto search = id2type.find(idMap.at(node.variable_));
+            if (search != id2type.end()) { // Found
+                if (search->second != ElementType::NODE)
                     throw ast::EntityError(node.variable_);
             }
-            id2Type[idMap.at(node.variable_)] = NODE;
-
-            return id2Type;
+            id2type[idMap.at(node.variable_)] = ElementType::NODE;
         }
 
-        IntEntMap operator()(ast::linear_pattern & lPattern) {
+        void operator()(ast::linear_pattern & lPattern) {
             (*this)(lPattern.root_);
             for(auto &sPath: lPattern.path_) {
                 (*this)(sPath.edge_);
                 (*this)(sPath.node_);
             }
-
-            return id2Type;
         }
 
-        IntEntMap operator()(std::vector<ast::element> & container) {
+        void operator()(std::vector<ast::element> & container) {
             for(auto &elem: container) {
                 (*this)(elem);
             }
-
-            return id2Type;
         }
 
-        IntEntMap operator()(ast::element & elem) {
+        void operator()(ast::element & elem) {
             // Check variable is present in match
-            return id2Type;
-            
         }
 
-        IntEntMap operator()(boost::optional<ast::formula> & formula) {
-            if(formula) {
+        void operator()(boost::optional<ast::formula> & formula) {
+            if (formula) {
                 ast::formula realFormula = static_cast<ast::formula>(formula.get());
                 boost::apply_visitor(*this, realFormula.root_);
                 for (auto & sFormula: realFormula.path_) {
                     boost::apply_visitor(*this, sFormula.cond_);
                 }
             }
-
-            return id2Type;
-            
         }
 
-        IntEntMap operator()(ast::formula & formula) {
+        void operator()(ast::formula & formula) {
             boost::apply_visitor(*this, formula.root_);
             for (auto & sFormula: formula.path_) {
                 boost::apply_visitor(*this, sFormula.cond_);
             }
-
-            return id2Type;
         }
 
-        IntEntMap operator()(ast::statement & stat) {
+        void operator()(ast::statement & stat) {
             (*this)(stat.lhs_);
             boost::apply_visitor(*this, stat.rhs_);
-
-            return id2Type;
         }
 
-        // Dummy leaves 
-         IntEntMap operator()(ast::value & val)  {
+        // Dummy leaves
+        void operator()(ast::value & val)  {
             boost::apply_visitor(*this, val);
-            return id2Type;
         }
-        IntEntMap operator()(ast::all_ & a) {return id2Type;}
-        IntEntMap operator()(std::string & text)  {return id2Type;}
-        IntEntMap operator() (int & n)  {return id2Type;}
-        IntEntMap operator() (double & n)  {return id2Type;}
-        IntEntMap operator() (bool const& b) const {return id2Type;}
+        void operator()(ast::all_ & a) { }
+        void operator()(std::string & text)  { }
+        void operator() (int & n)  { }
+        void operator() (double & n)  { }
+        void operator() (bool const& b) const { }
     }; // class secondVisitor
 
 

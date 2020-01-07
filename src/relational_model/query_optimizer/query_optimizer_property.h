@@ -2,6 +2,7 @@
 #define RELATIONAL_MODEL__QUERY_OPTIMIZER_PROPERTY_H_
 
 #include <string>
+#include "base/graph/graph_element.h"
 #include "relational_model/query_optimizer/query_optimizer_element.h"
 
 class RelationalGraph;
