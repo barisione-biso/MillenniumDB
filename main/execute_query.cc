@@ -64,20 +64,23 @@ int main(int argc, char **argv)
         cout << "Parsing succeeded\n";
         try
         {
-            visitors::firstVisitor visit1;
+            visitors::assignVarIDs visit1;
+            visit1(ast);
+            map<string, unsigned> id_map = visit1.getVarIDMap(); // variable name -> variable_id
 
-            map<string, unsigned> id_map = visit1(ast); // variable name -> variable_id
-
-            visitors::secondVisitor visit2(id_map);
-            visitors::thirdVisitor  visit3(id_map);
-            visitors::fourthVisitor visit4(id_map);
-            visitors::fifthVisitor  visit5(id_map);
+            visitors::assignEntities visit2(id_map);
+            visitors::assignLabels  visit3(id_map);
+            visitors::asssignProperties visit4(id_map);
+            visitors::assignConnections  visit5(id_map);
 
             visit2(ast);
             auto id2type = visit2.get_id2type();
-            map<unsigned, vector<string>> labels_map = visit3(ast);
-            map<unsigned, map<string, ast::value>> properties_map = visit4(ast);
-            vector<array<unsigned, 3>> connections = visit5(ast);
+            visit3(ast);
+            map<unsigned, vector<string>> labels_map = visit3.get_labelMap();
+            visit4(ast);
+            map<unsigned, map<string, ast::value>> properties_map = visit4.get_propertyMap();
+            visit5(ast);
+            vector<array<unsigned, 3>> connections = visit5.get_connections();
 
             Config config = Config();
             RelationalGraph graph = RelationalGraph(0, config);

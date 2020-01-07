@@ -1,11 +1,12 @@
-#ifndef VISITORS_PRINTER_H
-#define VISITORS_PRINTER_H
+#ifndef GRAMMAR__VISITORS__PRINTER_H
+#define GRAMMAR__VISITORS__PRINTER_H
 
 #include "../ast.h"
 
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
 
+unsigned const tabsize = 2;
 
 namespace visitors {
 
@@ -14,7 +15,7 @@ namespace visitors {
     class printer
         : public boost::static_visitor<void>
     {
-        unsigned const tabsize = 2;
+        
         unsigned indent;
         std::ostream& out; 
 
@@ -271,4 +272,4 @@ namespace visitors {
     }; // class printer
 }
 
-#endif  // VISITORS_PRINTER_H
+#endif  // GRAMMAR__VISITORS__PRINTER_H

@@ -62,13 +62,12 @@ int main(int argc, char **argv)
         visitors::printer printer(cout);
         
         // Get first visitor
-        visitors::firstVisitor visit1;
+        visitors::assignVarIDs varIDs_visitor;
 
         try 
         {
-            // printer(ast);
-            map<string, unsigned> idMap = visit1(ast);
-            // printer(ast);
+            varIDs_visitor(ast);
+            map<string, unsigned> idMap = varIDs_visitor.getVarIDMap();
 
             // Print map obtained
             cout << "\nMap obtained at first step:\n";
@@ -77,12 +76,13 @@ int main(int argc, char **argv)
             }
 
             // Get following visitors
-            visitors::secondVisitor visit2(idMap);
-            visitors::thirdVisitor visit3(idMap);
-            visitors::fourthVisitor visit4(idMap);
-            visitors::fifthVisitor visit5(idMap);
+            visitors::assignEntities entities_visitor(idMap);
+            visitors::assignLabels labels_visitor(idMap);
+            visitors::asssignProperties properties_visitor(idMap);
+            visitors::assignConnections connections_visitor(idMap);
 
-            auto id2type = visit2.get_id2type();
+            entities_visitor(ast);
+            auto id2type = entities_visitor.get_id2type();
 
             cout << "\nMap obtained at second step:\n";
             string s;
@@ -102,7 +102,8 @@ int main(int argc, char **argv)
             }
 
             // 3rd Visitor
-            map<unsigned, vector<string>> labelMap = visit3(ast);
+            labels_visitor(ast);
+            map<unsigned, vector<string>> labelMap = labels_visitor.get_labelMap();
 
             // Print map obtained
             cout << "\nMap obtained at third step:\n";
@@ -114,7 +115,9 @@ int main(int argc, char **argv)
             }
 
             // 4th Visitor
-            map<unsigned, map<string, ast::value>> propertyMap = visit4(ast);
+            properties_visitor(ast);
+            map<unsigned, map<string, ast::value>> propertyMap = 
+                                            properties_visitor.get_propertyMap();
 
             cout << "\nMap obtained at fourth step:\n";
             
@@ -127,19 +130,21 @@ int main(int argc, char **argv)
             }
 
             // 5th Visitor
-            vector<array<unsigned, 3>> connections = visit5(ast);
+            connections_visitor(ast);
+            vector<array<unsigned, 3>> connections = connections_visitor.get_connections();
 
             // Print vector obtained
             cout << "\nVector obtained at fifth step:\n";
             for(auto const& t: connections) {
                 cout << "Connection(" << t[0] << ", " << t[1] << ", " << t[2] << "),\n";
             }
-        } catch (const std::exception& e) {
+
+        } // try
+
+        catch (const std::exception& e) {
             cerr << "Error while processing query:\n" << e.what() << endl;
             return 1;
         }
-        
-
         return 0;
     }
     else

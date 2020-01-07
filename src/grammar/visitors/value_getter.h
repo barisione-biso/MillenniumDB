@@ -12,7 +12,7 @@
 #include <string>
 
 namespace visitors {
-    class GetValue: public boost::static_visitor<Value*> {
+    class getValue: public boost::static_visitor<Value*> {
     public:
         std::unique_ptr<Value> operator() (int const& n) const {
             return std::make_unique<ValueInt>(n);
