@@ -21,9 +21,15 @@ namespace parser
     using x3::space;
     using x3::skip;
     using x3::no_skip;
+    using x3::eol;
+    using x3::eoi;
     // using x3::string;
 
     using ascii::char_;
+
+    // Declare skipper
+    auto const skipper =
+        space | "//" >> *(char_ - eol) >> (eol | eoi);
 
     // Declare rules
     x3::rule<class root, ast::root> 
@@ -103,7 +109,7 @@ namespace parser
         node >> *(edge >> node);
     
     auto const selection =
-        lit('*') >> attr(ast::all_()) | (element % omit[+space]);
+        lit('*') >> attr(ast::all_()) | (element % (',' >> omit[*space]));
     
     auto const statement_def =
         element >> comparator >> (element | value);

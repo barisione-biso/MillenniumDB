@@ -45,8 +45,4 @@ BOOST_FUSION_ADAPT_STRUCT(ast::formula,
     root_, path_
 )
 
-// BOOST_FUSION_ADAPT_STRUCT(ast::elements,
-//     elements_
-// )
-
 #endif

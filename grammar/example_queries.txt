@@ -5,7 +5,7 @@
     SELECT ?n.name, ?n.age 
 
 
-2)  Property keys have no commas:
+2)  Property keys have no quotes:
 
     MATCH (?n {age: 27})
 

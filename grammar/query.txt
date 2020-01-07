@@ -1,2 +1,2 @@
-SELECT ?e.name
-    MATCH (?n:Person:Male:French{name:"John"}), (?x:Dog:German Shepherd)
+SELECT *
+    MATCH () -> ()

@@ -1,2 +1,2 @@
-SELECT ?n.name ?n.age
+SELECT ?n.name, ?n.age
 MATCH (?n {age: 27})
