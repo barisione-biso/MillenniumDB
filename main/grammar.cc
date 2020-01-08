@@ -66,8 +66,7 @@ int main(int argc, char **argv)
 
         try 
         {
-            varIDs_visitor(ast);
-            map<string, unsigned> idMap = varIDs_visitor.getVarIDMap();
+            map<string, uint_fast32_t> idMap = varIDs_visitor.visit(ast);
 
             // Print map obtained
             cout << "\nMap obtained at first step:\n";
@@ -103,7 +102,7 @@ int main(int argc, char **argv)
 
             // 3rd Visitor
             labels_visitor(ast);
-            map<unsigned, vector<string>> labelMap = labels_visitor.get_labelMap();
+            map<uint_fast32_t, vector<string>> labelMap = labels_visitor.get_labelMap();
 
             // Print map obtained
             cout << "\nMap obtained at third step:\n";
@@ -116,7 +115,7 @@ int main(int argc, char **argv)
 
             // 4th Visitor
             properties_visitor(ast);
-            map<unsigned, map<string, ast::value>> propertyMap = 
+            map<uint_fast32_t, map<string, ast::value>> propertyMap = 
                                             properties_visitor.get_propertyMap();
 
             cout << "\nMap obtained at fourth step:\n";
@@ -131,7 +130,7 @@ int main(int argc, char **argv)
 
             // 5th Visitor
             connections_visitor(ast);
-            vector<array<unsigned, 3>> connections = connections_visitor.get_connections();
+            vector<array<uint_fast32_t, 3>> connections = connections_visitor.get_connections();
 
             // Print vector obtained
             cout << "\nVector obtained at fifth step:\n";

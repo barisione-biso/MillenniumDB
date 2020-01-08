@@ -9,8 +9,8 @@
 #include <boost/variant.hpp>
 
 #ifndef GRAMMAR__VISITORS
-    typedef std::vector<std::array<unsigned, 3>> connect_vect;
-    typedef std::map<std::string, unsigned> str_int_map;
+    typedef std::vector<std::array<uint_fast32_t, 3>> connect_vect;
+    typedef std::map<std::string, uint_fast32_t> str_int_map;
 #endif
 
 namespace visitors {
@@ -40,7 +40,7 @@ namespace visitors {
         }
 
         void operator()(ast::linear_pattern const& lPattern) {
-            unsigned id1, id2, id3;
+            uint_fast32_t id1, id2, id3;
             id1 = idMap.at(lPattern.root_.variable_);
             for(auto &sPath: lPattern.path_) {
                 id2 = idMap.at(sPath.edge_.variable_);

@@ -1,2 +1,2 @@
 SELECT ?n.Hermite
-MATCH (?n :galley)-[:campaigns]->(?m)
+MATCH (?n :galley)

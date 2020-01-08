@@ -65,28 +65,27 @@ int main(int argc, char **argv)
         try
         {
             visitors::assignVarIDs visit1;
-            visit1(ast);
-            map<string, unsigned> id_map = visit1.getVarIDMap(); // variable name -> variable_id
+            map<string, uint_fast32_t> id_map = visit1.visit(ast); // variable name -> variable_id
 
-            visitors::assignEntities visit2(id_map);
-            visitors::assignLabels  visit3(id_map);
+            visitors::assignEntities    visit2(id_map);
+            visitors::assignLabels      visit3(id_map);
             visitors::asssignProperties visit4(id_map);
-            visitors::assignConnections  visit5(id_map);
+            visitors::assignConnections visit5(id_map);
 
             visit2(ast);
             auto id2type = visit2.get_id2type();
             visit3(ast);
-            map<unsigned, vector<string>> labels_map = visit3.get_labelMap();
+            map<uint_fast32_t, vector<string>> labels_map = visit3.get_labelMap();
             visit4(ast);
-            map<unsigned, map<string, ast::value>> properties_map = visit4.get_propertyMap();
+            map<uint_fast32_t, map<string, ast::value>> properties_map = visit4.get_propertyMap();
             visit5(ast);
-            vector<array<unsigned, 3>> connections = visit5.get_connections();
+            vector<array<uint_fast32_t, 3>> connections = visit5.get_connections();
 
             Config config = Config();
             RelationalGraph graph = RelationalGraph(0, config);
 
             std::vector<QueryOptimizerElement*> elements {};
-            VarId null_var {-1 };
+            VarId null_var { -1 };
 
             // ADD LABELS
             for (auto&& [element_id, labels] : labels_map) {
@@ -151,7 +150,7 @@ int main(int argc, char **argv)
             unique_ptr<BindingId const> b = root->next();
             int count = 0;
             while (b != nullptr) {
-                b->print(var_names);
+                b->print(var_names, config.get_object_file());
                 b = root->next();
                 count++;
             }

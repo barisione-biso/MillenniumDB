@@ -9,94 +9,89 @@
 
 #include <boost/variant.hpp>
 
-#ifndef GRAMMAR__VISITORS
-    typedef std::map<std::string, unsigned> str_int_map;
-#endif
+using namespace std;
 
 namespace visitors {
 
-    // Assigns VarIDs to variables, renames empty variables with _1, _2, etc 
-    // and checks for inconsistent calling of variables in SELECT and WHERE 
+
+    // Assigns VarIDs to variables, renames empty variables with _1, _2, etc
+    // and checks for inconsistent calling of variables in SELECT and WHERE
     // statements. Outputs the variable name to VarID map.
-    class assignVarIDs
-        : public boost::static_visitor<void> {
+    class assignVarIDs : private boost::static_visitor<void> {
 
     private:
-        str_int_map VarIDMap;
-        std::set<std::string> assignedVars;
-        unsigned totObjects; 
-        unsigned totUnassignedVars;
+        map<string, uint_fast32_t> var2id;
+        set<string> assigned_vars;
+        uint_fast32_t total_vars = 0;
+        uint_fast32_t unassigned_vars = 0;
 
     public:
-        assignVarIDs() 
-            : totObjects(0), totUnassignedVars(0) {};
-        
-        // Getter for VarIDMap
-        str_int_map getVarIDMap() {
-            return VarIDMap;
-        }
-        
-        void operator()(ast::root & r) {
-            for(auto & lPattern: r.graphPattern_) {
-                (*this)(lPattern);
-            }
-            boost::apply_visitor(*this, r.selection_);
+        assignVarIDs() = default;
 
-            (*this)(r.where_);
+        map<string, uint_fast32_t> visit(ast::root & root) {
+            (*this)(root);
+            return var2id;
+        }
+
+        void operator()(ast::root & root) {
+            for (auto & linear_pattern: root.graphPattern_) {
+                (*this)(linear_pattern);
+            }
+            boost::apply_visitor(*this, root.selection_);
+
+            (*this)(root.where_);
         }
 
         void operator()(ast::edge & edge) {
-            if(edge.variable_.empty()) {
-                edge.variable_ = "_" + std::to_string(totUnassignedVars+1);
-                totUnassignedVars++;
+            if (edge.variable_.empty()) {
+                edge.variable_ = "_" + std::to_string(unassigned_vars++);
             }
             else {
-                assignedVars.insert(edge.variable_);
+                assigned_vars.insert(edge.variable_);
             }
-            const auto ptr = VarIDMap.insert({edge.variable_, totObjects});
+            const auto ptr = var2id.insert({edge.variable_, total_vars});
             if (ptr.second) {
-                totObjects++;
+                total_vars++;
             }
         }
 
         void operator()(ast::node & node) {
             if(node.variable_.empty()) {
-                node.variable_ = "_" + std::to_string(totUnassignedVars+1);
-                totUnassignedVars++;
+                node.variable_ = "_" + std::to_string(unassigned_vars++);
             }
             else {
-                assignedVars.insert(node.variable_);
+                assigned_vars.insert(node.variable_);
             }
-            const auto ptr = VarIDMap.insert({node.variable_, totObjects});
+            const auto ptr = var2id.insert({node.variable_, total_vars});
             if (ptr.second) {
-                totObjects++;
+                total_vars++;
             }
         }
 
-        void operator()(ast::linear_pattern & lPattern) {
-            (*this)(lPattern.root_);
-            for(auto &sPath: lPattern.path_) {
+        void operator()(ast::linear_pattern & linear_pattern) {
+            (*this)(linear_pattern.root_);
+            for (auto &sPath: linear_pattern.path_) {
                 (*this)(sPath.edge_);
                 (*this)(sPath.node_);
             }
         }
 
         void operator()(std::vector<ast::element> & container) {
-            for(auto & elem: container) {
+            for (auto & elem: container) {
                 (*this)(elem);
             }
         }
 
         void operator()(ast::element & elem) {
             // Check variable is present in match
-            const bool found = assignedVars.find(elem.variable_) != assignedVars.end();
-            if(!found) {
+            const bool found = assigned_vars.find(elem.variable_) != assigned_vars.end();
+            if (!found) {
                 throw ast::SelectionError(elem.variable_);
             }
 
-            const auto ptr = VarIDMap.insert({elem.variable_ + "." + elem.key_ , totObjects});
+            const auto ptr = var2id.insert({elem.variable_ + "." + elem.key_ , total_vars});
             if (ptr.second) {
-                totObjects++;
+                total_vars++;
             }
         }
 

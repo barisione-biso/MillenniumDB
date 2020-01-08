@@ -9,9 +9,9 @@
 #include <boost/variant.hpp>
 
 #ifndef GRAMMAR__VISITORS
-    typedef std::map<std::string, std::map<std::string, unsigned>> str_str_int_map;
-    typedef std::map<unsigned, std::map<std::string, ast::value>> int_str_value_map;
-    typedef std::map<std::string, unsigned> str_int_map;
+    typedef std::map<std::string, std::map<std::string, uint_fast32_t>> str_str_int_map;
+    typedef std::map<uint_fast32_t, std::map<std::string, ast::value>> int_str_value_map;
+    typedef std::map<std::string, uint_fast32_t> str_int_map;
 #endif
 
 namespace visitors {
@@ -99,7 +99,7 @@ namespace visitors {
             // Check consistencies
             int storedWhich = boost::apply_visitor(whichVisitor(), stat.rhs_);
             if(storedWhich >= 0) { // Check type consistency against declared properties
-                unsigned id_ = idMap.at(stat.lhs_.variable_);
+                uint_fast32_t id_ = idMap.at(stat.lhs_.variable_);
                 auto entMap = propertyMap.find(id_);
                 if (entMap != propertyMap.end()) {
                     auto foundIt = entMap->second.find(stat.lhs_.key_);
@@ -131,7 +131,7 @@ namespace visitors {
 
 
         void operator()(std::vector<ast::element> const& container) {
-            unsigned varID;
+            uint_fast32_t varID;
             int auxVarID;
             for(auto const& elem: container) {
                 varID = idMap.at(elem.variable_);
