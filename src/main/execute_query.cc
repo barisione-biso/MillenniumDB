@@ -132,7 +132,7 @@ int main(int argc, char **argv)
             // ADD CONNECTIONS
             for (auto const& connection: connections) {
                 elements.push_back(new QueryOptimizerConnection(
-                    graph, VarId(connection[0]), VarId(connection[1]), VarId(connection[2])
+                    graph, VarId(connection[0]), VarId(connection[2]), VarId(connection[1])
                 ));
             }
 
