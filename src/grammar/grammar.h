@@ -59,13 +59,15 @@ namespace parser
     ///////////////////////////////////////////////////////////
 
     auto const comparator =
-        lit("==") >> attr(ast::eq_()) |
+        lit("==") >> attr(ast::eq_()) ;
+        /*|
         lit("<=") >> attr(ast::leq_()) |
         lit(">=") >> attr(ast::geq_()) |
         lit("!=") >> attr(ast::neq_()) |
         lit('<') >> attr(ast::lt_()) |
         lit('>') >> attr(ast::gt_());
-
+        */
+       
     auto const connector =
         (omit[+space] >> "AND" >> omit[+space] >> attr(ast::and_()));
 

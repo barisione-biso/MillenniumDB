@@ -57,7 +57,7 @@ namespace ast
     struct geq_ {};
     struct leq_ {};
 
-    typedef boost::variant<eq_, neq_, gt_, lt_, geq_, leq_> comparator;
+    typedef boost::variant<eq_> comparator;
 
     // struct valueWrap {
     //     boost::variant<element, value> value_
