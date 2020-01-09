@@ -7,11 +7,11 @@
 #include <string>
 
 // Typedefs for returning structs
-typedef std::map<std::string, unsigned> str_int_map;
-typedef std::map<unsigned, std::vector<std::string>> int_strs_map;
-typedef std::map<unsigned, std::map<std::string, ast::value>> int_str_value_map;
-typedef std::map<std::string, std::map<std::string, unsigned>> str_str_int_map;
-typedef std::vector<std::array<unsigned, 3>> connect_vect;
+typedef std::map<std::string, uint_fast32_t> str_int_map;
+typedef std::map<uint_fast32_t, std::vector<std::string>> int_strs_map;
+typedef std::map<uint_fast32_t, std::map<std::string, ast::value>> int_str_value_map;
+typedef std::map<std::string, std::map<std::string, uint_fast32_t>> str_str_int_map;
+typedef std::vector<std::array<uint_fast32_t, 3>> connect_vect;
 
 #include "grammar/visitors/printer.h"
 #include "grammar/visitors/assign_ids.h"

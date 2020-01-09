@@ -9,8 +9,8 @@
 #include <boost/variant.hpp>
 
 #ifndef GRAMMAR__VISITORS
-    typedef std::map<unsigned, std::vector<std::string>> int_strs_map;
-    typedef std::map<std::string, unsigned> str_int_map;
+    typedef std::map<uint_fast32_t, std::vector<std::string>> int_strs_map;
+    typedef std::map<std::string, uint_fast32_t> str_int_map;
 #endif
 
 namespace visitors {
@@ -51,7 +51,7 @@ namespace visitors {
         }
 
         void operator()(ast::edge const& edge) {
-            unsigned varID = idMap.at(edge.variable_);
+            uint_fast32_t varID = idMap.at(edge.variable_);
             auto found = labelMap.find(varID);
             if(found != labelMap.end())
                 found->second.insert(found->second.end(), edge.labels_.begin(), edge.labels_.end());
@@ -62,7 +62,7 @@ namespace visitors {
         }
 
         void operator()(ast::node const& node) {
-            unsigned varID = idMap.at(node.variable_);
+            uint_fast32_t varID = idMap.at(node.variable_);
             auto found = labelMap.find(varID);
             if(found != labelMap.end())
                 found->second.insert(found->second.end(), node.labels_.begin(), node.labels_.end());

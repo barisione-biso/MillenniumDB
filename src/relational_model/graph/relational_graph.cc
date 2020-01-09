@@ -223,8 +223,7 @@ ObjectId RelationalGraph::get_label_id(Label const& label) {
     );
     auto next = iter->next();
     if (next == nullptr) { // label_name doesn't exist
-        cout << "ERROR: Label doesn't exist\n";
-        exit(1);
+        return ObjectId::get_not_found();
     }
     else { // label_name already exists
         label_id = next->ids[2];
@@ -248,8 +247,7 @@ ObjectId RelationalGraph::get_key_id(Key const& key)
     );
     auto next = iter->next();
     if (next == nullptr) { // key_name doesn't exist
-        cout << "ERROR: Key doesn't exist";
-        exit(1);
+        return ObjectId::get_not_found();
     }
     else { // label_name already exists
         key_id = next->ids[2];
@@ -273,8 +271,7 @@ ObjectId RelationalGraph::get_value_id(Value const& value)
     );
     auto next = iter->next();
     if (next == nullptr) {
-        cout << "ERROR: Value doesn't exist";
-        exit(1);
+        return ObjectId::get_not_found();
     }
     else { // label_name already exists
         value_id = next->ids[2];

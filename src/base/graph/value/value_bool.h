@@ -11,7 +11,7 @@ public:
     }
     ~ValueBool() = default;
 
-    std::unique_ptr<std::vector<char>> get_bytes() const { 
+    std::unique_ptr<std::vector<char>> get_bytes() const {
         std::unique_ptr<std::vector<char>> res = std::make_unique<std::vector<char>>(1, (char)value);
         return res;
     }

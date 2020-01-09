@@ -6,7 +6,7 @@
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
 
-unsigned const tabsize = 2;
+uint_fast32_t const tabsize = 2;
 
 namespace visitors {
 
@@ -16,13 +16,13 @@ namespace visitors {
         : public boost::static_visitor<void>
     {
         
-        unsigned indent;
+        uint_fast32_t indent;
         std::ostream& out; 
 
         public:
 
         // Constructor 
-        printer(std::ostream& out, unsigned indent = 0)
+        printer(std::ostream& out, uint_fast32_t indent = 0)
             : out(out), indent(indent) {}
         
         inline void operator()(ast::root const& r) const {
@@ -264,7 +264,7 @@ namespace visitors {
                 out << "FALSE";
         }
 
-        inline void tab(unsigned spaces) const {
+        inline void tab(uint_fast32_t spaces) const {
             for(int i = 0; i < spaces; i++) {
                 out << ' ';
             }

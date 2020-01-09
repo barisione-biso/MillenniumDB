@@ -10,6 +10,8 @@
 
 using namespace std;
 
+class ObjectFile;
+
 class BindingId {
     private:
         vector<ObjectId> dict;
@@ -25,6 +27,7 @@ class BindingId {
         void add(VarId, ObjectId);
 
         void print(vector<string>& var_names) const;
+        void print(vector<string>& var_names, ObjectFile& object_file) const;
 
 };
 

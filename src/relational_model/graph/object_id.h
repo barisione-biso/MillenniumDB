@@ -23,6 +23,10 @@ public:
         return ObjectId(NULL_OBJECT_ID);
     }
 
+    static ObjectId get_not_found() {
+        return ObjectId(NOT_FOUND_OBJECT_ID);
+    }
+
     operator uint64_t() const { return id; }
 
     void operator=(const ObjectId& other) {
