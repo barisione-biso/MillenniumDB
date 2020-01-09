@@ -1,2 +1,3 @@
-SELECT ?n.Hermite
-MATCH (?n :galley)
+SELECT *
+MATCH (?x)-[:R]->(?y)-[:S]->(?z),
+      (?x)-[:T]->(?z)

@@ -13,7 +13,7 @@ public:
     }
     ~ValueFloat() = default;
 
-    std::unique_ptr<std::vector<char>> get_bytes() const { 
+    std::unique_ptr<std::vector<char>> get_bytes() const {
         std::unique_ptr<std::vector<char>> res = std::make_unique<std::vector<char>>(sizeof(value));
 	    std::memcpy((*res).data(), &value, sizeof(value));
         return res;

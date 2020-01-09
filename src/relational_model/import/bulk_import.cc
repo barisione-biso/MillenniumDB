@@ -18,11 +18,11 @@ BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_n
     edges_file = ifstream(edges_file_name);
 
     if (nodes_file.fail()) {
-        std::cerr << "Nodes file: \"" << nodes_file_name << "\"could not be opened. Exiting.\n";
+        std::cerr << "Nodes file: \"" << nodes_file_name << "\" could not be opened. Exiting.\n";
         exit(-1);
 
     } else if (edges_file.fail()){
-        std::cerr << "Edges file: \"" << edges_file_name << "\"could not be opened. Exiting.\n";
+        std::cerr << "Edges file: \"" << edges_file_name << "\" could not be opened. Exiting.\n";
         exit(-1);
     }
 

@@ -5,9 +5,11 @@
 
 int main(int argc, char *argv[])
 {
-	// TODO: get names from argv
+	if (argc < 3) {
+        std::cerr << "Error: expected node and edge files.\n";
+        return 1;
+    }
 	// TODO: move import away from tests to its own module
-	// Next line imports the graph. When running tests comment this line.
-	TestGraphImport::bulk_import("test_files/graph_creation_example/nodes.txt", "test_files/graph_creation_example/edges.txt");
+	TestGraphImport::bulk_import(argv[1], argv[2]);
 	return 0;
 }
