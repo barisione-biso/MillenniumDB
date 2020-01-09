@@ -74,13 +74,13 @@ namespace parser
         '?' >> +(alnum); 
     
     auto const key =
-        +(alnum); 
+        +(char_("A-Za-z0-9'./%$&#!|+-")); 
 
     auto const func =
         +(alnum);
     
     auto const label = 
-        +(alnum);
+        +(char_("A-Za-z0-9'./%$&#!|+-")); 
 
     auto const boolean = 
         (no_case["true"] >> attr(true)) | no_case["false"] >> attr(false);

@@ -2,10 +2,6 @@
 #define VISITORS__VALUE_GETTER_H
 
 #include "base/graph/value/value.h"
-#include "base/graph/value/value_int.h"
-#include "base/graph/value/value_float.h"
-#include "base/graph/value/value_bool.h"
-#include "base/graph/value/value_string.h"
 
 #include <boost/variant.hpp>
 
