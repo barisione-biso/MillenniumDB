@@ -249,7 +249,7 @@ namespace visitors {
         inline void operator() (int const& n)          const {out << n;}
         inline void operator() (double const& n)       const {out << n;}
         inline void operator() (ast::and_ const& a)    const {out << "AND";}
-        inline void operator() (ast::or_ const& a)     const {out << "OR";}
+        //inline void operator() (ast::or_ const& a)     const {out << "OR";}
         inline void operator() (ast::eq_ const& a)     const {out << "==";}
         inline void operator() (ast::neq_ const& a)    const {out << "!=";}
         inline void operator() (ast::gt_ const& a)     const {out << ">";}

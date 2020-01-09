@@ -67,8 +67,7 @@ namespace parser
         lit('>') >> attr(ast::gt_());
 
     auto const connector =
-        (omit[+space] >> "AND" >> omit[+space] >> attr(ast::and_())) | 
-        (omit[+space] >> "OR" >> omit[+space] >> attr(ast::or_()));
+        (omit[+space] >> "AND" >> omit[+space] >> attr(ast::and_()));
 
     auto const var =
         '?' >> +(alnum); 

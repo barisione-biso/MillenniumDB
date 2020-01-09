@@ -79,7 +79,7 @@ namespace ast
         boost::recursive_wrapper<formula>> condition;
     
     struct step_formula {
-        boost::variant<and_, or_> op_;
+        boost::variant<and_> op_;
         condition cond_;
     };
     
