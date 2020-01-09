@@ -8,8 +8,10 @@ set(CMAKE_CXX_COMPILER "g++")
 set(EXECUTABLE_OUTPUT_PATH bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -g")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -O2")
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -g")
+# set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -O2")
+
+add_definitions( "-Wall -Wextra -O2" )
 
 # set the project name and version
 project(GraphDB VERSION 0.1)
