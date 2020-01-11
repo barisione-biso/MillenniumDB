@@ -1,3 +1,2 @@
-SELECT *
-MATCH (?x)-[:R]->(?y)-[:S]->(?z),
-      (?x)-[:T]->(?z)
+SELECT ?x.peacemakers
+MATCH (?x :torpedo)

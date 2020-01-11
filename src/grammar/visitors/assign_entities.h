@@ -67,23 +67,23 @@ namespace visitors {
         }
 
         void operator()(std::vector<ast::element> & container) {
-            for(auto &elem: container) {
+            for (auto &elem: container) {
                 (*this)(elem);
             }
         }
 
         void operator()(ast::element & elem) {
             // Check variable is present in match
-        }        
+        }
 
         // Dummy leaves
         void operator()(ast::value & val)  {
             boost::apply_visitor(*this, val);
         }
-        void operator()(ast::all_ & a) {}
-        void operator()(std::string & text)  {}
+        void operator() (ast::all_ & a) {}
+        void operator() (std::string & text)  {}
         void operator() (int & n)  {}
-        void operator() (double & n)  {}
+        void operator() (float & n)  {}
         void operator() (bool const& b) const {}
 
     }; // class assignEntities

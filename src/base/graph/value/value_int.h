@@ -21,6 +21,8 @@ public:
     std::string to_string() {
         return std::to_string(value);
     }
+    bool is_var(){ return false; }
+    VarId get_var() { throw std::bad_cast(); }
 
 
 private:

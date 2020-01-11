@@ -116,7 +116,7 @@ int main(int argc, char **argv)
             // 4th Visitor
             properties_visitor(ast);
             map<uint_fast32_t, map<string, ast::value>> propertyMap = 
-                                            properties_visitor.get_propertyMap();
+                                            properties_visitor.get_property_map();
 
             cout << "\nMap obtained at fourth step:\n";
             

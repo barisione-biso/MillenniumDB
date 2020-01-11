@@ -77,7 +77,7 @@ int main(int argc, char **argv)
             visit3(ast);
             map<uint_fast32_t, vector<string>> labels_map = visit3.get_labelMap();
             visit4(ast);
-            map<uint_fast32_t, map<string, ast::value>> properties_map = visit4.get_propertyMap();
+            map<uint_fast32_t, map<string, ast::value>> properties_map = visit4.get_property_map();
             visit5(ast);
             vector<array<uint_fast32_t, 3>> connections = visit5.get_connections();
 
@@ -112,17 +112,13 @@ int main(int argc, char **argv)
                     ObjectId key_id = graph.get_key_id(Key(key));
                     ObjectId value_id;
 
-                    int value_type = value.which();
-                    if (value_type == 0) {
-                        auto val_str = boost::get<string>(value);
-                        value_id = graph.get_value_id(ValueString(val_str));
-                    }
-                    else if (value_type == 1) { // TODO: se asume que no hay ints, hay que diferenciarlos de si es id
-                        auto val_int = boost::get<int>(value);
-                        value_var = VarId(val_int);
+                    visitors::getValue visit_value;
+                    auto val_ptr = visit_value(value);
+                    if (val_ptr->is_var()) {
+                        value_var = val_ptr->get_var();
                     }
                     else {
-                        cerr << "Error: only string values supported for now. got value_type " << value_type << ".\n" ;
+                        value_id = graph.get_value_id(*val_ptr);
                     }
                     elements.push_back(new QueryOptimizerProperty(
                         graph, element_obj_id, key_var, value_var, element_type, key_id, value_id

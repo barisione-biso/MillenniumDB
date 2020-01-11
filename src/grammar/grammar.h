@@ -15,7 +15,7 @@ namespace parser
     using x3::no_case;
     using x3::alnum;
     using x3::int_;
-    using x3::double_;
+    using x3::float_;
     using x3::attr;
     using x3::omit;
     using x3::space;
@@ -91,7 +91,7 @@ namespace parser
         (lexeme['\'' >> *(char_ - '\'') >> '\'']);
     
     auto const value_def =
-        string | double_ | int_ | boolean;
+        string | float_ | int_ | boolean;
     
     auto const property_def =
         key >> ':' >> value;

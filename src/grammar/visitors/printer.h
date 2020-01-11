@@ -15,9 +15,8 @@ namespace visitors {
     class printer
         : public boost::static_visitor<void>
     {
-        
+        std::ostream& out;
         uint_fast32_t indent;
-        std::ostream& out; 
 
         public:
 
@@ -177,7 +176,7 @@ namespace visitors {
         }
 
         inline void operator()(ast::all_ const& a) const {
-            out << "<All>";
+            out << a.str;
         }
 
         inline void operator()(ast::node const& node) const {
@@ -246,26 +245,27 @@ namespace visitors {
             out << '"' << text << '"';
         }
 
-        inline void operator() (int const& n)          const {out << n;}
-        inline void operator() (double const& n)       const {out << n;}
-        inline void operator() (ast::and_ const& a)    const {out << "AND";}
-        //inline void operator() (ast::or_ const& a)     const {out << "OR";}
-        inline void operator() (ast::eq_ const& a)     const {out << "==";}
-        inline void operator() (ast::neq_ const& a)    const {out << "!=";}
-        inline void operator() (ast::gt_ const& a)     const {out << ">";}
-        inline void operator() (ast::lt_ const& a)     const {out << "<";}
-        inline void operator() (ast::geq_ const& a)    const {out << ">=";}
-        inline void operator() (ast::leq_ const& a)    const {out << "<=";}
+        inline void operator() (VarId const& var_id)   const {out << "VarId(" << var_id.id << ")"; }
+        inline void operator() (int const& n)          const {out << n; }
+        inline void operator() (float const& n)       const {out << n; }
+        inline void operator() (ast::and_ const& a)    const {out << a.str; }
+        //inline void operator() (ast::or_ const& a)     const {out << a.str; }
+        inline void operator() (ast::eq_ const& a)     const {out << a.str; }
+        inline void operator() (ast::neq_ const& a)    const {out << a.str; }
+        inline void operator() (ast::gt_ const& a)     const {out << a.str; }
+        inline void operator() (ast::lt_ const& a)     const {out << a.str; }
+        inline void operator() (ast::geq_ const& a)    const {out << a.str; }
+        inline void operator() (ast::leq_ const& a)    const {out << a.str; }
 
         inline void operator() (bool const& b) const {
-            if(b)
+            if (b)
                 out << "TRUE";
             else
                 out << "FALSE";
         }
 
         inline void tab(uint_fast32_t spaces) const {
-            for(int i = 0; i < spaces; i++) {
+            for (uint_fast32_t i = 0; i < spaces; i++) {
                 out << ' ';
             }
         }
