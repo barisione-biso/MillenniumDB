@@ -72,19 +72,19 @@ namespace visitors {
             }
         }
 
-        void operator()(ast::element & elem) {
-            // Check variable is present in match
+        void operator()(ast::element &) {
+            // TODO: Check variable is present in match
         }
 
         // Dummy leaves
-        void operator()(ast::value & val)  {
-            boost::apply_visitor(*this, val);
-        }
-        void operator() (ast::all_ & a) {}
-        void operator() (std::string & text)  {}
-        void operator() (int & n)  {}
-        void operator() (float & n)  {}
-        void operator() (bool const& b) const {}
+        // void operator()(ast::value & val)  {
+        //     boost::apply_visitor(*this, val);
+        // }
+        void operator() (ast::all_ &) {}
+        // void operator() (std::string & text)  {}
+        // void operator() (int & n)  {}
+        // void operator() (float & n)  {}
+        // void operator() (bool const& b) const {}
 
     }; // class assignEntities
 

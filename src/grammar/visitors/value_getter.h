@@ -17,7 +17,6 @@ namespace visitors {
     public:
         std::unique_ptr<Value> operator() (ast::value value) const {
             return boost::apply_visitor(getValue(), value);
-            // return std::make_unique<ValueInt>(n);
         }
 
         std::unique_ptr<Value> operator() (VarId const& var_id) const {

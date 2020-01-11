@@ -103,5 +103,5 @@ void TestGraphImport::test_trees() {
 }
 
 
-void TestGraphImport::test_tree(BPlusTree& tree) {
+void TestGraphImport::test_tree(BPlusTree&) {
 }

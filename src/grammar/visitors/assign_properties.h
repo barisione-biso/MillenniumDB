@@ -18,10 +18,12 @@ namespace visitors {
     // Auxiliary visitor to get the correspoding index to boost::variant
     // according to value
     class whichVisitor
-        : public boost::static_visitor<int> {
+        : public boost::static_visitor<uint32_t> {
     public:
+        static const uint32_t NOT_VALUE = UINT32_MAX;
+
         int operator()(ast::value const& val) const { return val.which(); }
-        int operator()(ast::element const& elem) const { return -1; }
+        int operator()(ast::element const&) const { return UINT32_MAX; }
     }; // class whichVisitor
 
     // Fourth visitor retrieves the properties asociated
@@ -96,14 +98,14 @@ namespace visitors {
         void operator()(ast::statement const& stat) {
 
             // Check consistencies
-            int storedWhich = boost::apply_visitor(whichVisitor(), stat.rhs_);
-            if (storedWhich >= 0) { // Check type consistency against declared properties
+            auto storedWhich = boost::apply_visitor(whichVisitor(), stat.rhs_);
+            if (storedWhich != whichVisitor::NOT_VALUE) {//>= 0) { // Check type consistency against declared properties
                 uint_fast32_t id_ = id_map.at(stat.lhs_.variable_);
                 auto entMap = property_map.find(id_);
                 if (entMap != property_map.end()) {
                     auto foundIt = entMap->second.find(stat.lhs_.key_);
-                    if(foundIt != entMap->second.end()) {
-                        if (storedWhich != foundIt->second.which()) {
+                    if (foundIt != entMap->second.end()) {
+                        if (storedWhich != (uint_fast32_t) foundIt->second.which()) {
                             throw ast::TypeError(stat.lhs_.variable_);
                         }
                     }
@@ -143,7 +145,7 @@ namespace visitors {
             }
         }
 
-        void operator()(ast::all_ const& a) {}
+        void operator()(ast::all_ const&) {}
 
     }; // class assignProperties
 
