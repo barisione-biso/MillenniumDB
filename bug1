@@ -1,0 +1,2 @@
+SELECT ?n.jealous, ?m.tuns, ?m.tittle
+MATCH (?n :Akiva) -[:unmannerly]-> (?m {tittle:"bifocal"})

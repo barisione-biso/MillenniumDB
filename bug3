@@ -1,0 +1,3 @@
+SELECT ?n.jealous, ?m.tuns
+MATCH (?n :Akiva) -[:unmannerly]-> (?m)
+WHERE ?m.tuns == "invective" AND ?m.tuns == "Ainvective"
