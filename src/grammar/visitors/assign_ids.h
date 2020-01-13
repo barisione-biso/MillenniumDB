@@ -105,9 +105,9 @@ namespace visitors {
         }
 
         void operator()(ast::formula & formula) {
-            boost::apply_visitor(*this, formula.root_);
+            boost::apply_visitor(*this, formula.root_.content_);
             for (auto & sFormula: formula.path_) {
-                boost::apply_visitor(*this, sFormula.cond_);
+                boost::apply_visitor(*this, sFormula.cond_.content_);
             }
         }
 

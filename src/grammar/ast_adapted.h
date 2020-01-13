@@ -45,4 +45,8 @@ BOOST_FUSION_ADAPT_STRUCT(ast::formula,
     root_, path_
 )
 
+BOOST_FUSION_ADAPT_STRUCT(ast::condition,
+    negation_, content_
+)
+
 #endif

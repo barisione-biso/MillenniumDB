@@ -50,32 +50,27 @@ namespace visitors {
             out << '}' << '\n';
         }
 
+        void operator()(ast::condition const& cond) const {
+            if(cond.negation_) {
+                out << '{' << '\n';
+                tab(indent+tabsize);
+                out << "NOT = ";
+                boost::apply_visitor(printer(out, indent+tabsize), cond.content_);  
+                out << '\n';
+                tab(indent);
+                out << '}';
+            }
+            else {
+                boost::apply_visitor(printer(out, indent), cond.content_); 
+            }
+        }
+
         void operator()(boost::optional<ast::formula> const& formula) const {
             if(formula) {
                 ast::formula realFormula = static_cast<ast::formula>(formula.get());
-                out << '{' << '\n';
-                tab(indent+tabsize);
-                out << "<Formula> = ";
-                boost::apply_visitor(printer(out, indent+tabsize), realFormula.root_);
-                out << ',' << '\n';
-                tab(indent+tabsize);
-                out << "<Path> = [\n";
-                for (auto const& sFormula: realFormula.path_) {
-                    tab(indent+2*tabsize);
-                    out << "<Op> = ";
-                    boost::apply_visitor(printer(out, indent+2*tabsize), sFormula.op_);
-                    out << ',' << '\n';
-                    tab(indent+2*tabsize);
-                    out << "<Formula> = ";
-                    boost::apply_visitor(printer(out, indent+2*tabsize), sFormula.cond_);
-                    out << ',' << '\n';
-                }
-                tab(indent+tabsize);
-                out << ']' << '\n';
-                tab(indent);
-                out << '}';
-            } else 
-            {
+                (*this)(realFormula);
+            } 
+            else {
                 out << "[not present]" << '\n';
             }
         }
@@ -84,7 +79,7 @@ namespace visitors {
             out << '{' << '\n';
             tab(indent+tabsize);
             out << "<Formula> = ";
-            boost::apply_visitor(printer(out, indent+tabsize), formula.root_);
+            printer(out, indent+tabsize)(formula.root_);
             out << ',' << '\n';
             tab(indent+tabsize);
             out << "<Path> = [\n";
@@ -95,7 +90,7 @@ namespace visitors {
                 out << ',' << '\n';
                 tab(indent+2*tabsize);
                 out << "<Formula> = ";
-                boost::apply_visitor(printer(out, indent+2*tabsize), sFormula.cond_);
+                printer(out, indent+2*tabsize)(sFormula.cond_);
                 out << ',' << '\n';
             }
             tab(indent+tabsize);

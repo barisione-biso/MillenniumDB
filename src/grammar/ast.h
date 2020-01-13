@@ -74,9 +74,18 @@ namespace ast
     struct and_ {};
     struct or_ {};
 
-    typedef boost::variant<
-        statement,
-        boost::recursive_wrapper<formula>> condition;
+    struct condition {
+        bool negation_;
+        boost::variant <statement, 
+                        boost::recursive_wrapper<formula>> content_;
+        
+        condition()
+            : negation_(false) {}
+    };
+
+    // typedef boost::variant<
+    //     statement,
+    //     boost::recursive_wrapper<formula>> condition;
     
     struct step_formula {
         boost::variant<and_, or_> op_;

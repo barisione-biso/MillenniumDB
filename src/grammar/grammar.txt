@@ -5,6 +5,7 @@ AND              := [Aa][Nn][Dd]
 OR               := [Oo][Rr]
 TRUE             := [Tt][Rr][Uu][Ee]
 FALSE            := [Ff][Aa][Ll][Ss][Ee]
+NOT              := [Nn][Oo][Tt]
 
 EQUAL            := ==
 LESS_OR_EQUAL    := <=
@@ -41,7 +42,7 @@ ELEMENT          := (VAR\.KEY)|(FUNC\s*\(\s*VAR\.KEY\s*\))
 SELECT_STATEMENT := SELECT(\s+\*|\s+ELEMENT(\s*,\s*ELEMENT)*)
 
 WHERE_STATEMENT  := WHERE\s+CONDITIONS
-CONDITIONS       := (\(CONDITIONS\))|(CONDITIONS\s*CONECTOR\s*CONDITIONS)|(STATEMENT)
+CONDITIONS       := ((NOT\s+)?\(CONDITIONS\))|(CONDITIONS\s*CONECTOR\s*CONDITIONS)|((NOT\s+)?STATEMENT)
 STATEMENT        := (ELEMENT\s*COMPARER\s*(ELEMENT|VALUE))|
 
 QUERY_ROOT       := SELECT_STATEMENT\s+MATCH_STATEMENT(\s+WHERE_STATEMENT)?

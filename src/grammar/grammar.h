@@ -116,8 +116,11 @@ namespace parser
         element >> comparator >> (element | value);
     
     auto const condition_def =
-        skip[statement] | ('(' >> omit[*space] >> formula >> omit[*space] >> ')');
-        // statement >> key;
+        -(lit("NOT") >> attr(true) >> omit[*space]) >> 
+        (
+            skip[statement] | 
+            ('(' >> omit[*space] >> formula >> omit[*space] >> ')')
+        );
     
     auto const formula_def =
         condition >> *(connector >> condition);
