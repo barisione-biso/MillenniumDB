@@ -37,7 +37,6 @@ namespace visitors {
             for (auto &lPattern: r.graphPattern_) {
                 (*this)(lPattern);
             }
-            boost::apply_visitor(*this, r.selection_);
         }
 
         void operator()(ast::edge &edge) {
@@ -65,26 +64,6 @@ namespace visitors {
                 (*this)(sPath.node_);
             }
         }
-
-        void operator()(std::vector<ast::element> & container) {
-            for(auto &elem: container) {
-                (*this)(elem);
-            }
-        }
-
-        void operator()(ast::element & elem) {
-            // Check variable is present in match
-        }        
-
-        // Dummy leaves
-        void operator()(ast::value & val)  {
-            boost::apply_visitor(*this, val);
-        }
-        void operator()(ast::all_ & a) {}
-        void operator()(std::string & text)  {}
-        void operator() (int & n)  {}
-        void operator() (double & n)  {}
-        void operator() (bool const& b) const {}
 
     }; // class assignEntities
 

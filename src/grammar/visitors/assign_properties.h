@@ -21,7 +21,7 @@ namespace visitors {
         : public boost::static_visitor<int> {
     public:
         int operator()(ast::value const& val) const {return val.which();}
-        int operator()(ast::element const& elem) const {return -1;}
+        int operator()(ast::element const&) const {return -1;}
     }; // class whichVisitor
 
     // Fourth visitor retrieves the properties asociated 
@@ -114,7 +114,7 @@ namespace visitors {
                     if (foundMap != seenStatementValueType.end()) {
                         auto foundIt = foundMap->second.find(stat.lhs_.key_);
                         if (foundIt != foundMap->second.end()) {
-                            if (storedWhich != foundIt->second) {
+                            if (storedWhich != (int)foundIt->second) {
                                 throw ast::TypeError(stat.lhs_.variable_);
                             }
                         }
@@ -146,7 +146,7 @@ namespace visitors {
             }   
         }
             
-        void operator()(ast::all_ const& a) {}
+        void operator()(ast::all_ const&) {}
 
         
         

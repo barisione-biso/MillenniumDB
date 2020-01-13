@@ -95,7 +95,7 @@ namespace visitors {
             }
         }
 
-        void operator()(ast::all_ const& a) {}
+        void operator()(ast::all_ const&) {}
 
         void operator()(boost::optional<ast::formula> & formula) {
             if (formula) {

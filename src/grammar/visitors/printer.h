@@ -15,17 +15,18 @@ namespace visitors {
     class printer
         : public boost::static_visitor<void>
     {
-        
-        uint_fast32_t indent;
-        std::ostream& out; 
 
-        public:
+    private:
+        std::ostream& out; 
+        uint_fast32_t indent;
+
+    public:
 
         // Constructor 
         printer(std::ostream& out, uint_fast32_t indent = 0)
             : out(out), indent(indent) {}
         
-        inline void operator()(ast::root const& r) const {
+        void operator()(ast::root const& r) const {
             out << '{' << '\n';
             tab(indent+tabsize);
             out << "<Select> = ";
@@ -49,7 +50,7 @@ namespace visitors {
             out << '}' << '\n';
         }
 
-        inline void operator()(boost::optional<ast::formula> const& formula) const {
+        void operator()(boost::optional<ast::formula> const& formula) const {
             if(formula) {
                 ast::formula realFormula = static_cast<ast::formula>(formula.get());
                 out << '{' << '\n';
@@ -79,7 +80,7 @@ namespace visitors {
             }
         }
 
-        inline void operator()(ast::formula const& formula) const {
+        void operator()(ast::formula const& formula) const {
             out << '{' << '\n';
             tab(indent+tabsize);
             out << "<Formula> = ";
@@ -104,7 +105,7 @@ namespace visitors {
 
         }
 
-        inline void operator()(ast::element const& elem) const {
+        void operator()(ast::element const& elem) const {
             out << '{' << '\n';
             tab(indent+tabsize);
             out << "<Function> = ";
@@ -122,7 +123,7 @@ namespace visitors {
             out << '}'; 
         }
 
-        inline void operator()(ast::statement const& stat) const {
+        void operator()(ast::statement const& stat) const {
             out << '{' << '\n';
             tab(indent+tabsize);
             out << "<LHS> = ";
@@ -140,11 +141,11 @@ namespace visitors {
             out << '}'; 
         }
 
-        inline void operator()(ast::value const& val) const {
+        void operator()(ast::value const& val) const {
             boost::apply_visitor(printer(out, indent), val);
         }
 
-        inline void operator()(ast::edge const& edge) const {
+        void operator()(ast::edge const& edge) const {
             out << '{' << '\n';
             tab(indent+tabsize);
             out << "<Variable> = \"" << edge.variable_ << "\",\n";
@@ -176,11 +177,11 @@ namespace visitors {
             out << '}';
         }
 
-        inline void operator()(ast::all_ const& a) const {
+        void operator()(ast::all_ const&) const {
             out << "<All>";
         }
 
-        inline void operator()(ast::node const& node) const {
+        void operator()(ast::node const& node) const {
             out << '{' << '\n';
             tab(indent+tabsize);
             out << "<Variable> = \"" << node.variable_ << "\",\n";
@@ -206,7 +207,7 @@ namespace visitors {
             out << '}';
         }
 
-        inline void operator()(ast::linear_pattern const& lPattern) const {
+        void operator()(ast::linear_pattern const& lPattern) const {
             out << '{' << '\n';
             tab(indent+tabsize);
             out << "<Root> = ";
@@ -230,7 +231,7 @@ namespace visitors {
             out << '}';
         }
 
-        inline void operator()(std::vector<ast::element> const& container) const {
+        void operator()(std::vector<ast::element> const& container) const {
             out << '[' << '\n';
             for(auto const& element: container) {
                 tab(indent+tabsize);
@@ -242,30 +243,30 @@ namespace visitors {
             out << ']';
         }
 
-        inline void operator()(std::string const& text) const {
+        void operator()(std::string const& text) const {
             out << '"' << text << '"';
         }
 
-        inline void operator() (int const& n)          const {out << n;}
-        inline void operator() (double const& n)       const {out << n;}
-        inline void operator() (ast::and_ const& a)    const {out << "AND";}
-        inline void operator() (ast::or_ const& a)     const {out << "OR";}
-        inline void operator() (ast::eq_ const& a)     const {out << "==";}
-        inline void operator() (ast::neq_ const& a)    const {out << "!=";}
-        inline void operator() (ast::gt_ const& a)     const {out << ">";}
-        inline void operator() (ast::lt_ const& a)     const {out << "<";}
-        inline void operator() (ast::geq_ const& a)    const {out << ">=";}
-        inline void operator() (ast::leq_ const& a)    const {out << "<=";}
+        void operator() (int const& n)          const {out << n;}
+        void operator() (double const& n)       const {out << n;}
+        void operator() (ast::and_ const&)      const {out << "AND";}
+        void operator() (ast::or_ const&)       const {out << "OR";}
+        void operator() (ast::eq_ const&)       const {out << "==";}
+        void operator() (ast::neq_ const&)      const {out << "!=";}
+        void operator() (ast::gt_ const&)       const {out << ">";}
+        void operator() (ast::lt_ const&)       const {out << "<";}
+        void operator() (ast::geq_ const&)      const {out << ">=";}
+        void operator() (ast::leq_ const&)      const {out << "<=";}
 
-        inline void operator() (bool const& b) const {
+        void operator() (bool const& b) const {
             if(b)
                 out << "TRUE";
             else
                 out << "FALSE";
         }
 
-        inline void tab(uint_fast32_t spaces) const {
-            for(int i = 0; i < spaces; i++) {
+        void tab(uint_fast32_t spaces) const {
+            for(uint_fast32_t i = 0; i < spaces; i++) {
                 out << ' ';
             }
         }
