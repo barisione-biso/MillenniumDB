@@ -14,6 +14,7 @@ namespace parser
     using x3::lexeme;
     using x3::no_case;
     using x3::alnum;
+    using x3::graph;
     using x3::int_;
     using x3::double_;
     using x3::attr;
@@ -74,13 +75,13 @@ namespace parser
         '?' >> +(alnum); 
     
     auto const key =
-        +(char_("A-Za-z0-9'./%$&#!|+-")); 
+        +(char_("A-Za-z0-9#'&%$!|+-")); 
 
     auto const func =
         +(alnum);
     
     auto const label = 
-        +(char_("A-Za-z0-9'./%$&#!|+-")); 
+        +(char_("A-Za-z0-9#'&%$!|+-")); 
 
     auto const boolean = 
         (no_case["true"] >> attr(true)) | no_case["false"] >> attr(false);
@@ -96,7 +97,7 @@ namespace parser
         key >> ':' >> value;
     
     auto const nomen = 
-        -(var) >> *(':' >> label) >> -("{" >> (property % ',') >> "}");
+        -(var) >> *(':' >> label) >> -("{" >> -(property % ',') >> "}");
 
     auto const node_def =
         '(' >>  nomen >> ")";
