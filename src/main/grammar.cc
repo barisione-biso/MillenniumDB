@@ -60,6 +60,12 @@ int main(int argc, char **argv)
         cout << "-------------------------\n";
         // Get AST printer
         visitors::printer printer(cout);
+        visitors::formulaTree getFormulaTree;
+
+        printer(ast);
+
+        formtree::formula fTree = getFormulaTree(ast);
+        printer(fTree);
         
         // Get first visitor
         visitors::assignVarIDs varIDs_visitor;

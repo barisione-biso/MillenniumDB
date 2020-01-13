@@ -1,7 +1,8 @@
 #ifndef GRAMMAR__VISITORS__PRINTER_H
 #define GRAMMAR__VISITORS__PRINTER_H
 
-#include "../ast.h"
+#include "grammar/ast.h"
+#include "grammar/visitors/formula_tree.h"
 
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
@@ -259,6 +260,62 @@ namespace visitors {
             else
                 out << "FALSE";
         }
+
+        // FORMULA TREE
+
+
+        void operator() (formtree::formula const& f) const {
+            boost::apply_visitor(printer(out, indent), f);
+        }
+
+        void operator() (formtree::and_op const& f) const {
+            out << "<AND> = {\n";
+            for(auto & elem: f.content) {
+                tab(indent+tabsize);
+                boost::apply_visitor(printer(out, indent+tabsize), elem);
+                out << ", " << '\n';
+            } 
+            tab(indent);
+            out << "}\n"; 
+        }
+
+        void operator() (formtree::or_op const& f) const{
+            out << "<OR> = {\n";
+            for(auto & elem: f.content) {
+                tab(indent+tabsize);
+                boost::apply_visitor(printer(out, indent+tabsize), elem);
+                out << ", " << '\n';
+            } 
+            tab(indent);
+            out << "}\n"; 
+        }
+
+        void operator() (formtree::not_op const& f) const {
+            out << "<NOT> = {\n";
+            tab(indent+tabsize);
+            boost::apply_visitor(printer(out, indent+tabsize), f.content);
+            tab(indent);
+            out << "}\n"; 
+        }
+
+        void operator() (formtree::statement const& f) const {
+            out << '{' << '\n';
+            tab(indent+tabsize);
+            out << "<LHS> = ";
+            printer(out, indent+tabsize)(f.lhs);
+            out << ',' << '\n';
+            tab(indent+tabsize);
+            out << "<Comparator> = ";
+            boost::apply_visitor(printer(out, indent+tabsize), f.comp);
+            out << ',' << '\n';
+            tab(indent+tabsize);
+            out << "<RHS> = ";
+            boost::apply_visitor(printer(out, indent+tabsize), f.rhs);
+            out << '\n';
+            tab(indent);
+            out << '}'; 
+        }
+
 
         void tab(uint_fast32_t spaces) const {
             for(uint_fast32_t i = 0; i < spaces; i++) {
