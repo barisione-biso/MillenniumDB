@@ -94,7 +94,8 @@ namespace ast
 
     typedef boost::variant<
         statement,
-        boost::recursive_wrapper<formula>> condition;
+        boost::recursive_wrapper<formula>
+    > condition; // TODO: entender bien esto
 
     struct step_formula {
         boost::variant<and_> op_;

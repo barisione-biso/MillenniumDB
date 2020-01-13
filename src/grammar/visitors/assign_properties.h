@@ -76,21 +76,23 @@ namespace visitors {
         }
 
         // Wrapper for the case of the optional where statement in ast::root
-        void operator()(boost::optional<ast::formula> const& formula)
-        {
-            if(formula) {
-                ast::formula realFormula = static_cast<ast::formula>(formula.get());
-                boost::apply_visitor(*this, realFormula.root_);
-                for (auto & sFormula: realFormula.path_) {
-                    boost::apply_visitor(*this, sFormula.cond_);
+        void operator()(boost::optional<ast::formula> const& formula) {
+            if (formula) {
+                ast::formula real_formula = static_cast<ast::formula>(formula.get());
+                boost::apply_visitor(*this, real_formula.root_);
+                for (auto& step_formula : real_formula.path_) {
+                    // TODO: assuming step_formula.op_ is AND
+                    boost::apply_visitor(*this, step_formula.cond_);
                 }
             }
         }
 
+
         void operator()(ast::formula const& formula) {
             boost::apply_visitor(*this, formula.root_);
-            for (auto & sFormula: formula.path_) {
-                boost::apply_visitor(*this, sFormula.cond_);
+            for (auto& step_formula: formula.path_) {
+                // TODO: assuming step_formula.op_ is AND
+                boost::apply_visitor(*this, step_formula.cond_);
             }
         }
 
@@ -99,7 +101,7 @@ namespace visitors {
 
             // Check consistencies
             auto storedWhich = boost::apply_visitor(whichVisitor(), stat.rhs_);
-            if (storedWhich != whichVisitor::NOT_VALUE) {//>= 0) { // Check type consistency against declared properties
+            if (storedWhich != whichVisitor::NOT_VALUE) { // Check type consistency against declared properties
                 uint_fast32_t id_ = id_map.at(stat.lhs_.variable_);
                 auto entMap = property_map.find(id_);
                 if (entMap != property_map.end()) {
@@ -127,6 +129,19 @@ namespace visitors {
                         seen_value_type[stat.lhs_.variable_][stat.lhs_.key_] = storedWhich;
                     }
                 }
+            }
+
+            // TODO: assuming statemens are in disyuntive normal form and only equals is supported
+            if (stat.comparator_.which() != 0) {
+                throw ast::NotSupportedError("Only equals condition is supported");
+            }
+            // TODO: maybe a another visitor is better
+            // TODO: for now assuming conditions like ?n.name == "John"
+            // uint_fast32_t lhs_aux_var_id = id_map.at(stat.lhs_.variable_ + "." + stat.lhs_.key_);
+            if (stat.rhs_.which() == 1) { // condition like ?var.key == literal
+                uint_fast32_t lhs_var_id = id_map.at(stat.lhs_.variable_);
+                ast::value rhs_value = boost::get<ast::value>(stat.rhs_);
+                property_map[lhs_var_id][stat.lhs_.key_] = rhs_value;
             }
         }
 

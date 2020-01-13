@@ -25,7 +25,7 @@ namespace ast {
         }
     };
 
-     struct TypeError
+    struct TypeError
         : public ast::VisitError
     {
         std::string state;
@@ -37,6 +37,20 @@ namespace ast {
             return state.c_str();
         }
     };
+
+    struct NotSupportedError
+        : public ast::VisitError
+    {
+        std::string state;
+
+        NotSupportedError(std::string err)
+            : state(std::move(err)) {}
+
+        inline const char * what() const throw() {
+            return state.c_str();
+        }
+    };
+
 
     struct SelectionError
         : public ast::VisitError
