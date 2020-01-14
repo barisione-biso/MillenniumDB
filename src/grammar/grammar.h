@@ -33,27 +33,26 @@ namespace parser
         space | "//" >> *(char_ - eol) >> (eol | eoi);
 
     // Declare rules
-    x3::rule<class root, ast::root> 
+    x3::rule<class root, ast::root>
         root = "root";
     x3::rule<class element, ast::element>
         element = "element";
-    x3::rule<class linear_pattern, ast::linear_pattern> 
+    x3::rule<class linear_pattern, ast::linear_pattern>
         linear_pattern = "linear_pattern";
-    x3::rule<class node, ast::node> 
+    x3::rule<class node, ast::node>
         node = "node";
-    x3::rule<class edge, ast::edge> 
+    x3::rule<class edge, ast::edge>
         edge = "edge";
-    x3::rule<class property, ast::property> 
+    x3::rule<class property, ast::property>
         property = "property";
-    x3::rule<class condition, ast::condition> 
+    x3::rule<class condition, ast::condition>
         condition = "condition";
-    x3::rule<class statement, ast::statement> 
+    x3::rule<class statement, ast::statement>
         statement = "statement";
     x3::rule<class value, ast::value>
         value = "value";
     x3::rule<class formula, ast::formula>
         formula = "formula";
-    
 
     ///////////////////////////////////////////////////////////
     //   GRAMMAR
@@ -68,63 +67,63 @@ namespace parser
         lit('>') >> attr(ast::gt_());
 
     auto const connector =
-        (omit[+space] >> "AND" >> omit[+space] >> attr(ast::and_())) | 
+        (omit[+space] >> "AND" >> omit[+space] >> attr(ast::and_())) |
         (omit[+space] >> "OR" >> omit[+space] >> attr(ast::or_()));
 
     auto const var =
-        '?' >> +(alnum); 
-    
+        '?' >> +(alnum);
+
     auto const key =
-        +(char_("A-Za-z0-9#'&%$!|+-")); 
+        +(char_("A-Za-z0-9#'&%$!|+-"));
 
     auto const func =
         +(alnum);
-    
-    auto const label = 
-        +(char_("A-Za-z0-9#'&%$!|+-")); 
 
-    auto const boolean = 
+    auto const label =
+        +(char_("A-Za-z0-9#'&%$!|+-"));
+
+    auto const boolean =
         (no_case["true"] >> attr(true)) | no_case["false"] >> attr(false);
 
-    auto const string = 
+    auto const string =
         (lexeme['"' >> *(char_ - '"') >> '"']) |
         (lexeme['\'' >> *(char_ - '\'') >> '\'']);
-    
+
     auto const value_def =
         string | double_ | int_ | boolean;
-    
+
     auto const property_def =
         key >> ':' >> value;
-    
-    auto const nomen = 
+
+    auto const nomen =
         -(var) >> *(':' >> label) >> -("{" >> -(property % ',') >> "}");
 
     auto const node_def =
         '(' >>  nomen >> ")";
-    
-    auto const edge_def = 
+
+    auto const edge_def =
         (-("-[" >> nomen >> ']') >> "->" >> attr(true)) |
         ("<-" >> -('[' >> nomen >> "]-") >> attr(false));
-    
+
     auto const linear_pattern_def =
         node >> *(edge >> node);
-    
+
     auto const selection =
         lit('*') >> attr(ast::all_()) | (element % (',' >> omit[*space]));
-    
+
     auto const statement_def =
-        element >> comparator >> (element | value);
-    
+        element >> omit[+space] >> comparator >> omit[+space] >> (element | value);
+
     auto const condition_def =
-        -(lit("NOT") >> attr(true) >> omit[*space]) >> 
+        -(lit("NOT") >> attr(true) >> omit[*space]) >>
         (
-            skip[statement] | 
+              statement |
             ('(' >> omit[*space] >> formula >> omit[*space] >> ')')
         );
-    
+
     auto const formula_def =
         condition >> *(connector >> condition);
-    
+
     auto const match_statement =
         no_case["match"] >> ( linear_pattern % ',');
 
@@ -132,10 +131,10 @@ namespace parser
         no_case["select"] >> omit[+space] >> selection;
 
     auto const where_statement =
-        no_case["where"] >> omit[+space] >> formula; 
+        no_case["where"] >> omit[+space] >> formula;
 
-    auto const root_def = 
-        no_skip[select_statement >> omit[+space] >> skip[match_statement] 
+    auto const root_def =
+        no_skip[select_statement >> omit[+space] >> skip[match_statement]
         >> -(omit[+space] >> where_statement)];
 
     auto const element_def =
@@ -147,10 +146,10 @@ namespace parser
         element,
         linear_pattern,
         node,
-        edge, 
+        edge,
         property,
-        condition, 
-        statement, 
+        condition,
+        statement,
         value,
         formula
     );

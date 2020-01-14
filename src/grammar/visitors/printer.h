@@ -18,15 +18,15 @@ namespace visitors {
     {
 
     private:
-        std::ostream& out; 
+        std::ostream& out;
         uint_fast32_t indent;
 
     public:
 
-        // Constructor 
+        // Constructor
         printer(std::ostream& out, uint_fast32_t indent = 0)
             : out(out), indent(indent) {}
-        
+
         void operator()(ast::root const& r) const {
             out << '{' << '\n';
             tab(indent+tabsize);
@@ -39,7 +39,9 @@ namespace visitors {
                 tab(indent+2*tabsize);
                 out << "<LinearPattern> = ";
                 printer(out, indent+2*tabsize)(lPattern);
-                out << ',' << '\n';
+                if(&lPattern != &r.graphPattern_.back())
+                    out << ',';
+                out << '\n';
             }
             tab(indent+tabsize);
             out << ']' << '\n';
@@ -56,13 +58,13 @@ namespace visitors {
                 out << '{' << '\n';
                 tab(indent+tabsize);
                 out << "NOT = ";
-                boost::apply_visitor(printer(out, indent+tabsize), cond.content_);  
+                boost::apply_visitor(printer(out, indent+tabsize), cond.content_);
                 out << '\n';
                 tab(indent);
                 out << '}';
             }
             else {
-                boost::apply_visitor(printer(out, indent), cond.content_); 
+                boost::apply_visitor(printer(out, indent), cond.content_);
             }
         }
 
@@ -70,7 +72,7 @@ namespace visitors {
             if(formula) {
                 ast::formula realFormula = static_cast<ast::formula>(formula.get());
                 (*this)(realFormula);
-            } 
+            }
             else {
                 out << "[not present]" << '\n';
             }
@@ -92,7 +94,9 @@ namespace visitors {
                 tab(indent+2*tabsize);
                 out << "<Formula> = ";
                 printer(out, indent+2*tabsize)(sFormula.cond_);
-                out << ',' << '\n';
+                if(&sFormula != &formula.path_.back())
+                    out << ',';
+                out << '\n';
             }
             tab(indent+tabsize);
             out << ']' << '\n';
@@ -116,7 +120,7 @@ namespace visitors {
             printer(out, indent+tabsize)(elem.key_);
             out << '\n';
             tab(indent);
-            out << '}'; 
+            out << '}';
         }
 
         void operator()(ast::statement const& stat) const {
@@ -134,7 +138,7 @@ namespace visitors {
             boost::apply_visitor(printer(out, indent+tabsize), stat.rhs_);
             out << '\n';
             tab(indent);
-            out << '}'; 
+            out << '}';
         }
 
         void operator()(ast::value const& val) const {
@@ -149,7 +153,10 @@ namespace visitors {
             out << "<Labels> = [" << '\n';
             for (auto const& label: edge.labels_) {
                 tab(indent+2*tabsize);
-                out << label << ",\n";
+                out << label;
+                if(&label != &edge.labels_.back())
+                    out << ',';
+                out << '\n';
             }
             tab(indent+tabsize);
             out << "]," << '\n';
@@ -165,7 +172,9 @@ namespace visitors {
                 tab(indent+2*tabsize);
                 out << '"' <<  prop.key_ << "\" : ";
                 boost::apply_visitor(printer(out, indent+2*tabsize), prop.value_);
-                out << ',' << '\n';
+                if(&prop != &edge.properties_.back())
+                    out << ',';
+                out << '\n';
             }
             tab(indent+tabsize);
             out << '}' << '\n';
@@ -185,7 +194,10 @@ namespace visitors {
             out << "<Labels> = [" << '\n';
             for (auto const& label: node.labels_) {
                 tab(indent+2*tabsize);
-                out << '"' << label << '"' << ",\n";
+                out << '"' << label << '"';
+                if(&label != &node.labels_.back())
+                    out << ',';
+                out << '\n';
             }
             tab(indent+tabsize);
             out << "]," << '\n';
@@ -195,7 +207,9 @@ namespace visitors {
                 tab(indent+2*tabsize);
                 out << '"' <<  prop.key_ << "\" : ";
                 boost::apply_visitor(printer(out, indent+2*tabsize), prop.value_);
-                out << ',' << '\n';
+                if(&prop != &node.properties_.back())
+                    out << ',';
+                out << '\n';
             }
             tab(indent+tabsize);
             out << '}' << '\n';
@@ -210,7 +224,7 @@ namespace visitors {
             printer(out, indent+tabsize)(lPattern.root_);
             out << ',' << '\n';
             tab(indent+tabsize);
-            out << "<Path> = [\n"; 
+            out << "<Path> = [\n";
             for(auto const& stepPath: lPattern.path_) {
                 tab(indent+2*tabsize);
                 out << "<Edge> = ";
@@ -219,7 +233,9 @@ namespace visitors {
                 tab(indent+2*tabsize);
                 out << "<Node> = ";
                 printer(out, indent+2*tabsize)(stepPath.node_);
-                out << ',' << '\n';
+                if(&stepPath != &lPattern.path_.back())
+                    out << ',';
+                out << '\n';
             }
             tab(indent+tabsize);
             out << ']' << '\n';
@@ -266,6 +282,7 @@ namespace visitors {
 
         void operator() (formtree::formula const& f) const {
             boost::apply_visitor(printer(out, indent), f);
+            out << '\n';
         }
 
         void operator() (formtree::and_op const& f) const {
@@ -273,10 +290,12 @@ namespace visitors {
             for(auto & elem: f.content) {
                 tab(indent+tabsize);
                 boost::apply_visitor(printer(out, indent+tabsize), elem);
-                out << ", " << '\n';
-            } 
+                if(&elem != &f.content.back())
+                    out << ',';
+                out << '\n';
+            }
             tab(indent);
-            out << "}\n"; 
+            out << "}";
         }
 
         void operator() (formtree::or_op const& f) const{
@@ -284,36 +303,35 @@ namespace visitors {
             for(auto & elem: f.content) {
                 tab(indent+tabsize);
                 boost::apply_visitor(printer(out, indent+tabsize), elem);
-                out << ", " << '\n';
-            } 
+                if(&elem != &f.content.back())
+                    out << ',';
+                out << '\n';
+            }
             tab(indent);
-            out << "}\n"; 
+            out << "}";
         }
 
         void operator() (formtree::not_op const& f) const {
             out << "<NOT> = {\n";
             tab(indent+tabsize);
             boost::apply_visitor(printer(out, indent+tabsize), f.content);
+            out << '\n';
             tab(indent);
-            out << "}\n"; 
+            out << '}';
         }
 
         void operator() (formtree::statement const& f) const {
-            out << '{' << '\n';
-            tab(indent+tabsize);
-            out << "<LHS> = ";
-            printer(out, indent+tabsize)(f.lhs);
-            out << ',' << '\n';
-            tab(indent+tabsize);
-            out << "<Comparator> = ";
+            out << "?" << f.lhs.variable_ << "." << f.lhs.key_
+                << " ";
             boost::apply_visitor(printer(out, indent+tabsize), f.comp);
-            out << ',' << '\n';
-            tab(indent+tabsize);
-            out << "<RHS> = ";
-            boost::apply_visitor(printer(out, indent+tabsize), f.rhs);
-            out << '\n';
-            tab(indent);
-            out << '}'; 
+            out << " ";
+            if(f.rhs.type() == typeid(ast::element)) {
+                ast::element el = boost::get<ast::element>(f.rhs);
+                out << "?" << el.variable_ << '.' << el.key_;
+            }
+            else {
+                boost::apply_visitor(printer(out, indent+tabsize), f.rhs);
+            }
         }
 
 

@@ -1,5 +1,5 @@
 // Uncomment for parser debugging:
-// #define BOOST_SPIRIT_X3_DEBUG
+#define BOOST_SPIRIT_X3_DEBUG
 
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
@@ -62,7 +62,11 @@ int main(int argc, char **argv)
         visitors::printer printer(cout);
         visitors::formulaTree getFormulaTree;
 
+        cout << "AST:\n\n";
+
         printer(ast);
+
+        cout << "\nFormula Tree:\n\n";
 
         formtree::formula fTree = getFormulaTree(ast);
         printer(fTree);

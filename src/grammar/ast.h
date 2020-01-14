@@ -10,7 +10,7 @@
 #include <iostream>
 #include <string>
 
-namespace ast 
+namespace ast
 {
     namespace x3 = boost::spirit::x3;
 
@@ -20,24 +20,24 @@ namespace ast
         std::string function_; // If empty string then no function
         std::string variable_;
         std::string key_;
-    };    
+    };
 
     struct property {
         std::string key_;
-        value value_; 
+        value value_;
     };
 
     struct edge {
         std::string variable_;
         std::vector<std::string> labels_;
-        std::vector<property> properties_; 
+        std::vector<property> properties_;
         bool isright_; // Points right
     };
 
     struct node {
         std::string variable_;
         std::vector<std::string> labels_;
-        std::vector<property> properties_; 
+        std::vector<property> properties_;
     };
 
     struct step_path {
@@ -76,9 +76,9 @@ namespace ast
 
     struct condition {
         bool negation_;
-        boost::variant <statement, 
+        boost::variant <statement,
                         boost::recursive_wrapper<formula>> content_;
-        
+
         condition()
             : negation_(false) {}
     };
@@ -86,12 +86,12 @@ namespace ast
     // typedef boost::variant<
     //     statement,
     //     boost::recursive_wrapper<formula>> condition;
-    
+
     struct step_formula {
         boost::variant<and_, or_> op_;
         condition cond_;
     };
-    
+
     struct formula {
         condition root_;
         std::vector<step_formula> path_;
