@@ -1,0 +1,53 @@
+#include "index_nested_loop_join.h"
+
+#include <algorithm>
+
+#include "base/var/var_id.h"
+#include "relational_model/physical_plan/binding_id.h"
+
+using namespace std;
+
+IndexNestedLoopJoin::IndexNestedLoopJoin(BindingIdIter& left, BindingIdIter& right)
+    : left(left), right(right)
+{
+}
+
+
+void IndexNestedLoopJoin::init(BindingId& input) {
+    my_binding = make_unique<BindingId>(input.var_count());
+    left.init(input);
+    current_left = left.next();
+    if (current_left != nullptr)
+        right.init(*current_left);
+}
+
+
+void IndexNestedLoopJoin::reset(BindingId& input) {
+    left.reset(input);
+    if (current_left != nullptr)
+        right.reset(*current_left);
+}
+
+
+BindingId* IndexNestedLoopJoin::next() {
+    while (current_left != nullptr) {
+        current_right = right.next();
+
+        if (current_right != nullptr) {
+            construct_binding(*current_left, *current_right);
+            return my_binding.get();
+        }
+        else {
+            current_left = left.next();
+            if (current_left != nullptr)
+                right.reset(*current_left);
+        }
+    }
+    return nullptr;
+}
+
+
+void IndexNestedLoopJoin::construct_binding(BindingId& lhs, BindingId& rhs) {
+    my_binding->add_all(lhs);
+    my_binding->add_all(rhs);
+}

@@ -56,7 +56,7 @@ void QueryOptimizerLabel::try_assign_var(VarId var_id) {
 }
 
 
-unique_ptr<GraphScan> QueryOptimizerLabel::get_scan() {
+GraphScan* QueryOptimizerLabel::get_scan() {
     vector<pair<ObjectId, int>> terms;
     vector<pair<VarId, int>> vars;
 
@@ -69,20 +69,20 @@ unique_ptr<GraphScan> QueryOptimizerLabel::get_scan() {
         }
         vars.push_back(make_pair(element_var_id, 1));
         if (element_type == ElementType::NODE) {
-            return make_unique<GraphScan>(*graph.label2node, std::move(terms), std::move(vars));
+            return new GraphScan(*graph.label2node, std::move(terms), std::move(vars));
         }
         else { // if (element_type == ElementType::EDGE)
-            return make_unique<GraphScan>(*graph.label2edge, std::move(terms), std::move(vars));
+            return new GraphScan(*graph.label2edge, std::move(terms), std::move(vars));
         }
     }
     else { // Label(?,?) or Label(_,?)
         vars.push_back(make_pair(element_var_id, 0));
         vars.push_back(make_pair(label_var_id, 1));
         if (element_type == ElementType::NODE) {
-            return make_unique<GraphScan>(*graph.node2label, std::move(terms), std::move(vars));
+            return new GraphScan(*graph.node2label, std::move(terms), std::move(vars));
         }
         else { // if (element_type == ElementType::EDGE)
-            return make_unique<GraphScan>(*graph.edge2label, std::move(terms), std::move(vars));
+            return new GraphScan(*graph.edge2label, std::move(terms), std::move(vars));
         }
     }
 }

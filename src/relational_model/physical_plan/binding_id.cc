@@ -4,14 +4,14 @@
 
 using namespace std;
 
-BindingId::BindingId(uint_fast32_t var_count)
-    // : dict()
+BindingId::BindingId(int_fast32_t var_count)
 {
+    // TODO: if CHECKING flag is set, check var_count >= 0
     dict = vector<ObjectId>(var_count);
 }
 
 
-uint_fast32_t BindingId::var_count() {
+int_fast32_t BindingId::var_count() {
     return dict.size();
 }
 

@@ -133,21 +133,21 @@ int main(int argc, char **argv)
             }
 
             QueryOptimizer optimizer{};
-            auto root = optimizer.get_query_plan(elements);
+            auto& root = optimizer.get_query_plan(elements);
 
             vector<string> var_names(id_map.size());
             for (auto&&[var_name, var_id] : id_map) {
                 cout << "var_names["<<var_id<<"] = " << var_name << endl;
                 var_names[var_id] = var_name;
             }
-            auto input = make_shared<BindingId>(var_names.size());
+            auto input = BindingId(var_names.size());
 
-            root->init(input);
-            unique_ptr<BindingId const> b = root->next();
+            root.init(input);
+            BindingId* b = root.next();
             int count = 0;
             while (b != nullptr) {
                 b->print(var_names, config.get_object_file());
-                b = root->next();
+                b = root.next();
                 count++;
             }
             cout << "Found " << count << " results.\n";

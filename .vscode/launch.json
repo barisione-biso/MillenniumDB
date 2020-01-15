@@ -2,12 +2,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
+            "name": "Query",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/${workspaceFolderBasename}",
+            "program": "${workspaceFolder}/bin/GraphDB",
             "preLaunchTask": "Debug.Build",
-            "args": [],
+            "args": ["${workspaceFolder}/query_debug"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

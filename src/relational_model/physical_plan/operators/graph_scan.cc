@@ -1,4 +1,4 @@
-#include "relational_model/physical_plan/binding_id_iter/operators/graph_scan.h"
+#include "graph_scan.h"
 
 #include "base/var/var_id.h"
 #include "file/index/record.h"
@@ -12,18 +12,15 @@ using namespace std;
 
 GraphScan::GraphScan(BPlusTree& bpt, std::vector<std::pair<ObjectId, int>> terms,
     std::vector<std::pair<VarId, int>> vars)
-    : record_size(bpt.params.total_size), bpt(bpt), terms(terms), vars(vars)
-     // TODO: use move for vectors?
-{ }
+    : record_size(bpt.params.total_size), bpt(bpt), terms(std::move(terms)),
+      vars(std::move(vars))
+{
+}
 
 
-void GraphScan::init(shared_ptr<BindingId> input) {
-    this->input = input;
-
-    if (input == nullptr) {
-        it = nullptr;
-        return;
-    }
+void GraphScan::init(BindingId& input) {
+    my_input = &input;
+    my_binding = make_unique<BindingId>(input.var_count());
 
     vector<uint64_t> min_ids(record_size);
     vector<uint64_t> max_ids(record_size);
@@ -39,7 +36,7 @@ void GraphScan::init(shared_ptr<BindingId> input) {
     }
 
     for (auto& var : vars) {
-        auto obj_id = (*input)[var.first];
+        auto obj_id = input[var.first];
         if (obj_id.is_null()) {
             break;
         }
@@ -55,24 +52,26 @@ void GraphScan::init(shared_ptr<BindingId> input) {
     );
 }
 
-unique_ptr<BindingId> GraphScan::next()
+BindingId* GraphScan::next()
 {
     if (it == nullptr)
         return nullptr;
 
     auto next = it->next();
     if (next != nullptr) {
-        auto res = make_unique<BindingId>(input->var_count());
-        res->add_all(*input);
-        for (auto & var : vars) {
+        // auto res = make_unique<BindingId>(input->var_count());
+        // res->add_all(*input);
+        my_binding->add_all(*my_input);
+        for (auto& var : vars) {
             ObjectId element_id = ObjectId(next->ids[var.second]);
-            res->add(var.first, element_id);
+            // res->add(var.first, element_id);
+            my_binding->add(var.first, element_id);
         }
-        return res;
+        return my_binding.get();
     }
     else return nullptr;
 }
 
-void GraphScan::reset(shared_ptr<BindingId> input) {
+void GraphScan::reset(BindingId& input) {
     init(input);
 }

@@ -5,8 +5,8 @@
 // #include "relational_model/graph/relational_graph.h"
 // #include "relational_model/import/bulk_import.h"
 // #include "relational_model/physical_plan/binding_id.h"
-// #include "relational_model/physical_plan/binding_id_iter/operators/graph_scan.h"
-// #include "relational_model/physical_plan/binding_id_iter/operators/index_nested_loop_join.h"
+// #include "relational_model/physical_plan/operators/graph_scan.h"
+// #include "relational_model/physical_plan/operators/index_nested_loop_join.h"
 
 // using namespace std;
 

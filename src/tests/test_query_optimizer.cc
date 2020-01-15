@@ -41,20 +41,20 @@ void TestQueryOptimizer::Test1() {
     };
 
 
-    auto root = optimizer.get_query_plan(elements);
-    auto input = make_shared<BindingId>(2);
+    auto& root = optimizer.get_query_plan(elements);
+    auto input = BindingId(2);
 
     std::vector<std::string> var_names {
         "?n",
         "?n.name"
     };
 
-	root->init(input);
-	unique_ptr<BindingId const> b = root->next();
+	root.init(input);
+	BindingId* b = root.next();
 	int count = 0;
 	while (b != nullptr) {
         b->print(var_names);
-		b = root->next();
+		b = root.next();
 		count++;
 	}
     cout << "Found " << count << " results.\n";
@@ -86,8 +86,8 @@ void TestQueryOptimizer::Test2() {
     };
 
 
-    auto root = optimizer.get_query_plan(elements);
-    auto input = make_shared<BindingId>(3);
+    auto& root = optimizer.get_query_plan(elements);
+    auto input = BindingId(3);
 
     std::vector<std::string> var_names {
         "?n1",
@@ -95,12 +95,12 @@ void TestQueryOptimizer::Test2() {
         "?e"
     };
 
-	root->init(input);
-	unique_ptr<BindingId const> b = root->next();
+	root.init(input);
+	BindingId* b = root.next();
 	int count = 0;
 	while (b != nullptr) {
         b->print(var_names);
-		b = root->next();
+		b = root.next();
 		count++;
 	}
     cout << "Found " << count << " results.\n";

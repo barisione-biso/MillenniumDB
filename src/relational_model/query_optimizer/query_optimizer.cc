@@ -2,16 +2,16 @@
 
 #include "relational_model/config.h"
 #include "relational_model/graph/relational_graph.h"
-#include "relational_model/physical_plan/binding_id_iter/operators/graph_scan.h"
-#include "relational_model/physical_plan/binding_id_iter/operators/index_nested_loop_join.h"
+#include "relational_model/physical_plan/operators/graph_scan.h"
+#include "relational_model/physical_plan/operators/index_nested_loop_join.h"
 
 
 QueryOptimizer::QueryOptimizer() {}
 
 
-unique_ptr<BindingIdIter> QueryOptimizer::get_query_plan(std::vector<QueryOptimizerElement*> elements) {
+BindingIdIter& QueryOptimizer::get_query_plan(std::vector<QueryOptimizerElement*> elements) {
 
-    unique_ptr<BindingIdIter> current_root = nullptr;
+    BindingIdIter* current_root = nullptr;
 
     auto elements_size = elements.size();
     for (size_t i = 0; i < elements_size; i++) {
@@ -40,10 +40,9 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_query_plan(std::vector<QueryOptimi
             current_root = elements[best_index]->get_scan();
         }
         else {
-            current_root = make_unique<IndexNestedLoopJoin>(std::move(current_root),
-                            elements[best_index]->get_scan());
+            current_root = new IndexNestedLoopJoin(*current_root, *elements[best_index]->get_scan());
         }
     }
 
-    return current_root;
+    return *current_root;
 }
