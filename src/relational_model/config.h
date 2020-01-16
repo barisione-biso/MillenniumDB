@@ -20,7 +20,6 @@ public:
         hash2id = std::make_unique<BPlusTree>(*bpt_params_hash2id);
     }
     ~Config() {
-        std::cout << "~Config\n";
     }
 
     ObjectFile&     get_object_file()    { return *object_file; }

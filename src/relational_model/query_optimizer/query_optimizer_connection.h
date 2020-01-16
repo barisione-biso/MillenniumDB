@@ -27,7 +27,7 @@ public:
     void assign();
     void try_assign_var(VarId var_id);
     std::vector<VarId> get_assigned();
-    GraphScan* get_scan();
+    std::unique_ptr<GraphScan> get_scan();
 };
 
 #endif //RELATIONAL_MODEL__QUERY_OPTIMIZER_CONNECTION_H_

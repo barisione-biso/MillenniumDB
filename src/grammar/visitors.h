@@ -19,6 +19,7 @@ typedef std::vector<std::array<uint_fast32_t, 3>> connect_vect;
 #include "grammar/visitors/assign_labels.h"
 #include "grammar/visitors/assign_properties.h"
 #include "grammar/visitors/assign_connections.h"
+#include "grammar/visitors/proyection_visitor.h"
 #include "grammar/visitors/value_getter.h"
 
 #endif // GRAMMAR__VISITORS_H

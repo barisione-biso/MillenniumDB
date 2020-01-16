@@ -2,6 +2,7 @@
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 #include <boost/spirit/home/x3.hpp>
 
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -14,6 +15,7 @@
 #include "grammar/visitors.h"
 
 
+#include "base/binding/binding.h"
 #include "base/graph/value/value_string.h"
 #include "relational_model/config.h"
 #include "relational_model/graph/relational_graph.h"
@@ -28,6 +30,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
+    auto start = std::chrono::system_clock::now();
     char const* filename;
     if (argc > 1) {
         filename = argv[1];
@@ -61,7 +64,7 @@ int main(int argc, char **argv)
 
     if (r && iter == end)
     {
-        cout << "Parsing succeeded\n";
+        // cout << "Parsing succeeded\n";
         try
         {
             visitors::assignVarIDs visit1;
@@ -132,25 +135,62 @@ int main(int argc, char **argv)
                 ));
             }
 
-            QueryOptimizer optimizer{};
-            auto& root = optimizer.get_query_plan(elements);
-
             vector<string> var_names(id_map.size());
             for (auto&&[var_name, var_id] : id_map) {
-                cout << "var_names["<<var_id<<"] = " << var_name << endl;
+                // cout << "var_names["<<var_id<<"] = " << var_name << endl;
                 var_names[var_id] = var_name;
             }
-            auto input = BindingId(var_names.size());
 
-            root.init(input);
-            BindingId* b = root.next();
+            QueryOptimizer optimizer { config.get_object_file(), id_map.size() };
+            // auto& join_root = optimizer.get_join_plan(elements);
+            map<string, string> constants;
+            for (auto&& [element_id, key_value] : properties_map) {
+                for (auto&& [key, value] : key_value) {
+                    visitors::getValue visit_value;
+                    auto val_ptr = visit_value(value);
+                    if (!val_ptr->is_var()) {
+                        string var_name;
+                        for (auto&& [name, id] : id_map) {
+                            if (element_id == id) {
+                                var_name = name;
+                            }
+                        }
+                        string var_str = val_ptr->to_string();
+                        constants.insert({ (var_name + "." + key), var_str });
+                    }
+                }
+            }
+
+            visitors::ProyectionVisitor proyection_visitor(id_map, constants);
+            proyection_visitor(ast);
+            auto proyected_names = proyection_visitor.get_names();
+            // cout << "Proyected names:\n";
+            // for (auto& name : proyected_names) {
+            //     cout << name << "\n";
+            // }
+
+            // cout << "Constants:\n";
+            // for (auto&& [k, v] : constants) {
+            //     cout << k << ": " << v << "\n";
+            // }
+            auto var_positions = proyection_visitor.get_var_positions();
+            // for (auto& var_pos : var_positions) {
+            //     cout << "var_pos: " << var_pos << "\n";
+            // }
+            auto root = optimizer.get_query_plan(elements, constants, proyected_names,
+                var_positions);
+
+            root->init();
+            Binding* b = root->next();
             int count = 0;
             while (b != nullptr) {
-                b->print(var_names, config.get_object_file());
-                b = root.next();
+                b->print();
+                b = root->next();
                 count++;
             }
-            cout << "Found " << count << " results.\n";
+            auto end = std::chrono::system_clock::now();
+            std::chrono::duration<float, std::milli> duration = end - start;
+            cout << "Found " << count << " results in " << duration.count() << " milliseconds.\n";
 
 
         } catch (const std::exception& e) {

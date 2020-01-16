@@ -7,40 +7,40 @@
 
 using namespace std;
 
-IndexNestedLoopJoin::IndexNestedLoopJoin(BindingIdIter& left, BindingIdIter& right)
-    : left(left), right(right)
+IndexNestedLoopJoin::IndexNestedLoopJoin(unique_ptr<BindingIdIter> left, unique_ptr<BindingIdIter> right)
+    : left(move(left)), right(move(right))
 {
 }
 
 
 void IndexNestedLoopJoin::init(BindingId& input) {
     my_binding = make_unique<BindingId>(input.var_count());
-    left.init(input);
-    current_left = left.next();
+    left->init(input);
+    current_left = left->next();
     if (current_left != nullptr)
-        right.init(*current_left);
+        right->init(*current_left);
 }
 
 
 void IndexNestedLoopJoin::reset(BindingId& input) {
-    left.reset(input);
+    left->reset(input);
     if (current_left != nullptr)
-        right.reset(*current_left);
+        right->reset(*current_left);
 }
 
 
 BindingId* IndexNestedLoopJoin::next() {
     while (current_left != nullptr) {
-        current_right = right.next();
+        current_right = right->next();
 
         if (current_right != nullptr) {
             construct_binding(*current_left, *current_right);
             return my_binding.get();
         }
         else {
-            current_left = left.next();
+            current_left = left->next();
             if (current_left != nullptr)
-                right.reset(*current_left);
+                right->reset(*current_left);
         }
     }
     return nullptr;

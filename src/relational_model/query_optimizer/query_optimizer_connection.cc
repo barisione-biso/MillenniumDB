@@ -63,7 +63,7 @@ std::vector<VarId> QueryOptimizerConnection::get_assigned() {
 }
 
 
-GraphScan* QueryOptimizerConnection::get_scan() {
+unique_ptr<GraphScan> QueryOptimizerConnection::get_scan() {
     vector<pair<ObjectId, int>> terms;
     vector<pair<VarId, int>> vars;
 
@@ -72,25 +72,25 @@ GraphScan* QueryOptimizerConnection::get_scan() {
             vars.push_back(make_pair(edge_var_id, 0));
             vars.push_back(make_pair(from_var_id, 1));
             vars.push_back(make_pair(to_var_id,   2));
-            return new GraphScan(*graph.edge_from_to, terms, vars);
+            return make_unique<GraphScan>(*graph.edge_from_to, terms, vars);
         }
         else {
             vars.push_back(make_pair(from_var_id, 0));
             vars.push_back(make_pair(to_var_id,   1));
             vars.push_back(make_pair(edge_var_id, 2));
-            return new GraphScan(*graph.from_to_edge, terms, vars);
+            return make_unique<GraphScan>(*graph.from_to_edge, terms, vars);
         }
     }
     else if (to_assigned) { // from_assigned == false
         vars.push_back(make_pair(to_var_id,   0));
         vars.push_back(make_pair(edge_var_id, 1));
         vars.push_back(make_pair(from_var_id, 2));
-        return new GraphScan(*graph.to_edge_from, terms, vars);
+        return make_unique<GraphScan>(*graph.to_edge_from, terms, vars);
     }
     else {
         vars.push_back(make_pair(edge_var_id, 0));
         vars.push_back(make_pair(from_var_id, 1));
         vars.push_back(make_pair(to_var_id,   2));
-        return new GraphScan(*graph.edge_from_to, terms, vars);
+        return make_unique<GraphScan>(*graph.edge_from_to, terms, vars);
     }
 }

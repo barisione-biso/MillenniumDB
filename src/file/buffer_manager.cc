@@ -23,7 +23,6 @@ BufferManager::BufferManager()
 
 BufferManager::~BufferManager()
 {
-    std::cout << "~BufferManager()\n";
     if (!instance.flushed_at_exit) {
         _flush();
         instance.flushed_at_exit = true;

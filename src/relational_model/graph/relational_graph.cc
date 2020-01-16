@@ -55,7 +55,7 @@ RelationalGraph::RelationalGraph(int graph_id, Config& config)
 }
 
 RelationalGraph::~RelationalGraph() {
-    std::cout << "~RelationalGraph\n";
+    // std::cout << "~RelationalGraph\n";
 }
 
 uint64_t RelationalGraph::create_node() {

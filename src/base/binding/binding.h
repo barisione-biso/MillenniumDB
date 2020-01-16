@@ -16,10 +16,8 @@ class Binding { // TODO: abstract class, implemented more efficiently inside Ite
     public:
         Binding();
         ~Binding() = default;
-        // Object operator[](Var);
         int_fast32_t var_count();
-        // void add_all(BindingId&);
-        // void add(VarId, ObjectId);
+        void add(std::string name, std::string value); // por ahora solo string, TODO: variant de valores?
         void print() const;
 };
 

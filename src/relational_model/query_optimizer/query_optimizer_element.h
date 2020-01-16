@@ -14,7 +14,7 @@ public:
     virtual void assign() = 0;
     virtual void try_assign_var(VarId var_id) = 0;
     virtual std::vector<VarId> get_assigned() = 0;
-    virtual GraphScan* get_scan() = 0;
+    virtual std::unique_ptr<GraphScan> get_scan() = 0;
 };
 
 #endif //RELATIONAL_MODEL__QUERY_OPTIMIZER_ELEMENT_H_

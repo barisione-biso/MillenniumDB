@@ -1,26 +1,33 @@
 #ifndef RELATIONAL_MODEL__PROJECTION_H_
 #define RELATIONAL_MODEL__PROJECTION_H_
 
+#include "base/binding/binding_iter.h"
 #include "relational_model/physical_plan/binding_id_iter.h"
 
 #include <memory>
+#include <map>
 
-class Record;
-class VarId;
-class Projection //: public BindingIter
-{
-public:
-    Projection(std::vector<VarId> vars) {
-        
-    }
-    ~Projection() = default;
-    // void init(std::shared_ptr<BindingId> input);
-    // void reset(std::shared_ptr<BindingId> input);
-    // std::unique_ptr<BindingId> next();
+class Projection : public BindingIter {
 
 private:
-    std::vector<VarId> vars;
+    ObjectFile& obj_file;
     std::unique_ptr<BindingIdIter> iter;
+    std::map<std::string, std::string> constants;
+    std::vector<std::string> names;
+    std::vector<int_fast32_t> var_positions;
+    int_fast32_t global_vars;
+
+public:
+    Projection(
+        ObjectFile& obj_file,
+        std::unique_ptr<BindingIdIter> iter,
+        std::map<std::string, std::string> constants,
+        std::vector<std::string> names,
+        std::vector<int_fast32_t> var_positions,
+        int_fast32_t global_vars);
+    ~Projection() = default;
+    void init();
+    Binding* next();
 };
 
 #endif //RELATIONAL_MODEL__PROJECTION_H_
