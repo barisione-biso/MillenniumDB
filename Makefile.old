@@ -11,7 +11,9 @@ OUT_DIRS += $(BIN_DIR)
 $(shell mkdir $(subst /,\,$(OUT_DIRS)) >makefile_out 2>&1 || (exit 0))
 
 # collect source files
-SRCS := $(wildcard src/*.cc src/*/*.cc src/*/*/*.cc src/*/*/*/*.cc src/*/*/*/*/*.cc)
+TMP_SRCS := $(wildcard src/*.cc src/*/*.cc src/*/*/*.cc src/*/*/*/*.cc src/*/*/*/*/*.cc)
+SRCS = $(filter-out src/main/grammar.cc src/main/create_db.cc, $(TMP_SRCS))
+
 
 # collect header file folders
 INC_DIRS := $(wildcard **/*.h)

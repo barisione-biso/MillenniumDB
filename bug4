@@ -1,3 +1,0 @@
-SELECT ?n.jealous
-MATCH (?n :Akiva) -[:unmannerly]-> (?m)
-WHERE ?m.tittle == "bifocal"

@@ -16,6 +16,7 @@ private:
     std::vector<std::string> names;
     std::vector<int_fast32_t> var_positions;
     int_fast32_t global_vars;
+    std::unique_ptr<BindingId> root_input;
 
 public:
     Projection(

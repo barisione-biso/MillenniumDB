@@ -16,8 +16,8 @@ Projection::Projection(ObjectFile& obj_file, unique_ptr<BindingIdIter> iter,
 
 
 void Projection::init() {
-    auto input = BindingId(global_vars);
-    iter->init(input);
+    root_input = make_unique<BindingId>(global_vars);
+    iter->init(*root_input);
 }
 
 
