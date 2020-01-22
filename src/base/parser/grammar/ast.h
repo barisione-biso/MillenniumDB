@@ -99,13 +99,16 @@ namespace ast
         inline static const std::string str = "OR";
     };
 
-    typedef boost::variant<
-        Statement,
-        boost::recursive_wrapper<Formula>
-    > Condition;
+    struct Condition {
+        bool negation;
+        boost::variant <Statement, boost::recursive_wrapper<Formula>> content;
+
+        Condition()
+            : negation(false) {}
+    };
 
     struct StepFormula {
-        boost::variant<And> op;
+        boost::variant<And, Or> op;
         Condition condition;
     };
 

@@ -14,6 +14,7 @@ namespace parser
     using x3::lexeme;
     using x3::no_case;
     using x3::alnum;
+    using x3::graph;
     using x3::int_;
     using x3::float_;
     using x3::attr;
@@ -67,19 +68,20 @@ namespace parser
         lit('>')  >> attr(ast::GT());
 
     auto const connector =
-        (omit[+space] >> "AND" >> omit[+space] >> attr(ast::And()));
+        (omit[+space] >> "AND" >> omit[+space] >> attr(ast::And())) |
+        (omit[+space] >> "OR"  >> omit[+space] >> attr(ast::Or()));
 
     auto const var =
         '?' >> +(alnum);
 
     auto const key =
-        +(alnum);
+        +(char_("A-Za-z0-9#'&%$!|+-"));
 
     auto const func =
         +(alnum);
 
     auto const label =
-        +(alnum);
+        +(char_("A-Za-z0-9#'&%$!|+-"));
 
     auto const boolean =
         (no_case["true"] >> attr(true)) | no_case["false"] >> attr(false);
@@ -95,7 +97,7 @@ namespace parser
         key >> ':' >> value;
 
     auto const nomen =
-        -(var) >> *(':' >> label) >> -("{" >> (property % ',') >> "}");
+        -(var) >> *(':' >> label) >> -("{" >> -(property % ',') >> "}");
 
     auto const node_def =
         '(' >>  nomen >> ")";
@@ -111,11 +113,14 @@ namespace parser
         lit('*') >> attr(ast::All()) | (element % (',' >> omit[*space]));
 
     auto const statement_def =
-        element >> comparator >> (element | value);
+        element >> omit[+space] >> comparator >> omit[+space] >> (element | value);
 
     auto const condition_def =
-        skip[statement] | ('(' >> omit[*space] >> formula >> omit[*space] >> ')');
-        // statement >> key;
+        -(lit("NOT") >> attr(true) >> omit[*space]) >>
+        (
+            statement |
+            ('(' >> omit[*space] >> formula >> omit[*space] >> ')')
+        );
 
     auto const formula_def =
         condition >> *(connector >> condition);
