@@ -9,12 +9,6 @@
 #include <iterator>
 #include <vector>
 
-#include "grammar/ast.h"
-#include "grammar/ast_adapted.h"
-#include "grammar/grammar.h"
-#include "grammar/visitors.h"
-
-
 #include "base/binding/binding.h"
 #include "base/graph/value/value_string.h"
 #include "relational_model/config.h"

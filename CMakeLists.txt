@@ -28,11 +28,11 @@ list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/execute_query.cc)
 add_library(graphdb_shared SHARED ${sources})
 
 # add the executables
-add_executable(CreateDB ${CMAKE_SOURCE_DIR}/src/main/create_db.cc)
-target_link_libraries(CreateDB graphdb_shared ssl crypto stdc++fs)
+# add_executable(CreateDB ${CMAKE_SOURCE_DIR}/src/main/create_db.cc)
+# target_link_libraries(CreateDB graphdb_shared ssl crypto stdc++fs)
 
 add_executable(Grammar ${CMAKE_SOURCE_DIR}/src/main/grammar.cc)
 target_link_libraries(Grammar graphdb_shared ssl crypto stdc++fs)
 
-add_executable(Query ${CMAKE_SOURCE_DIR}/src/main/execute_query.cc)
-target_link_libraries(Query graphdb_shared ssl crypto stdc++fs)
+# add_executable(Query ${CMAKE_SOURCE_DIR}/src/main/execute_query.cc)
+# target_link_libraries(Query graphdb_shared ssl crypto stdc++fs)

@@ -8,16 +8,6 @@ sudo apt-get install libboost-all-dev
 ```
 It uses [Boost's Spirit X3](https://www.boost.org/doc/libs/1_69_0/libs/spirit/doc/x3/html/index.html) as a parsing library, so C++14 is required.
 
-### Testing
-To compile a parser script for testing: 
-```
-g++ -std=c++14 -O3 -o test_parser main.cc
-``` 
-This program recieves only one argument: a file with the query to be parsed:
-```
-./test_parser query.txt
-``` 
-
 The following syntax in EBNF accepted by the parser:
 ```
 SELECT           := [Ss][Ee][Ll][Ee][Cc][Tt]
@@ -68,4 +58,4 @@ CONDITION        := (\(FORMULA\))|STATEMENT
 STATEMENT        := (ELEMENT\s*COMPARATOR\s*(ELEMENT|VALUE))|
 
 QUERY_ROOT       := SELECT_STATEMENT\s+MATCH_STATEMENT(\s+WHERE_STATEMENT)?
-``` 
+```
