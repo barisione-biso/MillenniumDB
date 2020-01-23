@@ -54,29 +54,17 @@ namespace ast
         std::vector<StepPath> path;
     };
 
-    struct EQ {
-        inline static const std::string str = "==";
-    };
+    struct EQ { };
 
-    struct NE {
-        inline static const std::string str = "!=";
-    };
+    struct NE { };
 
-    struct GT {
-        inline static const std::string str = ">";
-    };
+    struct GT { };
 
-    struct LT {
-        inline static const std::string str = "<";
-    };
+    struct LT { };
 
-    struct GE {
-        inline static const std::string str = ">=";
-    };
+    struct GE { };
 
-    struct LE {
-        inline static const std::string str = "<=";
-    };
+    struct LE { };
 
     typedef boost::variant<EQ, NE, GT, LT, GE, LE> Comparator;
 
@@ -92,12 +80,8 @@ namespace ast
 
     struct Formula;
 
-    struct And {
-        inline static const std::string str = "AND";
-    };
-    struct Or {
-        inline static const std::string str = "OR";
-    };
+    struct And { };
+    struct Or { };
 
     struct Condition {
         bool negation;
@@ -117,9 +101,7 @@ namespace ast
         std::vector<StepFormula> path;
     };
 
-    struct All {
-        // inline static const std::string str = "<ALL>";
-    };
+    struct All { };
 
     struct Root {
         boost::variant<All, std::vector<Element>> selection;

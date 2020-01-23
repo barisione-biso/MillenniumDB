@@ -1,5 +1,5 @@
+- Support special letters (áéíóúñäëïöüø)
 - Comentarios Page y OrderedFile
-- Probar joins con reordenamiendo según heuristica
 
 - Ordered file: checkear al cambiar el orden si en verdad es necesario
 - Bulk Import: borrar ordered_files al terminar
