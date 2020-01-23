@@ -1,4 +1,7 @@
-- Support special letters (áéíóúñäëïöüø)
+- Arreglar gramatica:
+    - (no_skip afecta a comentarios //) ¿sacar no_skip?
+    - Support special letters (áéíóúñäëïöüøñ) in labels and keys
+    - labels no necesitan estar separadas ej: (?n:Person) parsea bien
 - Comentarios Page y OrderedFile
 
 - Ordered file: checkear al cambiar el orden si en verdad es necesario

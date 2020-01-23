@@ -4,6 +4,7 @@
 #include <boost/spirit/home/x3.hpp>
 
 #include "base/parser/grammar/ast.h"
+#include "base/parser/grammar/ast_adapted.h"
 
 namespace parser
 {
@@ -97,10 +98,10 @@ namespace parser
         key >> ':' >> value;
 
     auto const nomen =
-        -(var) >> *(':' >> label) >> -("{" >> -(property % ',') >> "}");
+        -(no_skip[var]) >> *(no_skip[omit[*space] >> ':' >> label]) >> -("{" >> -(property % ',') >> "}");
 
     auto const node_def =
-        '(' >>  nomen >> ")";
+        '(' >> omit[*space] >> nomen >> omit[*space] >> ")";
 
     auto const edge_def =
         (-("-[" >> nomen >> ']') >> "->" >> attr(ast::EdgeDirection::right)) |
