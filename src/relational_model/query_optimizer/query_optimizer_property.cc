@@ -29,11 +29,6 @@ int QueryOptimizerProperty::get_heuristic() {
 }
 
 
-void QueryOptimizerProperty::assign() {
-    assigned = true;
-}
-
-
 void QueryOptimizerProperty::try_assign_var(VarId var_id) {
     if (assigned) {
         return;
@@ -50,7 +45,8 @@ void QueryOptimizerProperty::try_assign_var(VarId var_id) {
 }
 
 
-std::vector<VarId> QueryOptimizerProperty::get_assigned() {
+std::vector<VarId> QueryOptimizerProperty::assign() {
+    assigned = true;
     vector<VarId> res;
 
     if (!element_assigned)

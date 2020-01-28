@@ -21,13 +21,13 @@ void Projection::init() {
 }
 
 
-Binding* Projection::next() {
+std::unique_ptr<Binding> Projection::next() {
     auto next = iter->next();
     if (next == nullptr) {
         return nullptr;
     }
     else {
-        auto projected = new Binding(); // TODO: ver forma mas eficiente y eliminar memory leak
+        auto projected = make_unique<Binding>(); // TODO: ver forma mas eficiente y eliminar memory leak
 
         int_fast32_t i = 0;
         for (auto& var_position : var_positions) {

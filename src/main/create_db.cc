@@ -3,8 +3,7 @@
 #include <climits>
 #include <iostream>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	if (argc < 3) {
         std::cerr << "Error: expected node and edge files.\n";
         return 1;

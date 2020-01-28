@@ -28,7 +28,7 @@ public:
         int_fast32_t global_vars);
     ~Projection() = default;
     void init();
-    Binding* next();
+    std::unique_ptr<Binding> next();
 };
 
 #endif //RELATIONAL_MODEL__PROJECTION_H_

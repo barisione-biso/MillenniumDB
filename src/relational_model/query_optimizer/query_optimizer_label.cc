@@ -15,11 +15,6 @@ QueryOptimizerLabel::QueryOptimizerLabel
 }
 
 
-void QueryOptimizerLabel::assign() {
-    assigned = true;
-}
-
-
 int QueryOptimizerLabel::get_heuristic() {
     if (assigned) return -1;
 
@@ -30,7 +25,8 @@ int QueryOptimizerLabel::get_heuristic() {
 }
 
 
-std::vector<VarId> QueryOptimizerLabel::get_assigned() {
+std::vector<VarId> QueryOptimizerLabel::assign() {
+    assigned = true;
     vector<VarId> res;
 
     if (!element_assigned)

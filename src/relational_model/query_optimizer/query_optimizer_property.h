@@ -30,9 +30,8 @@ public:
         VarId value_var_id, ElementType element_type, ObjectId key_object_id, ObjectId value_object_id);
     ~QueryOptimizerProperty() = default;
     int get_heuristic();
-    void assign();
     void try_assign_var(VarId var_id);
-    std::vector<VarId> get_assigned();
+    std::vector<VarId> assign();
     std::unique_ptr<GraphScan> get_scan();
 };
 

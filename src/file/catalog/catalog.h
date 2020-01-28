@@ -6,12 +6,10 @@
 #include <map>
 #include <string>
 
-using namespace std;
-
 class Catalog
 {
     public:
-        Catalog(const string& filename);
+        Catalog(const std::string& filename);
         ~Catalog(); // not defaulted, write to disk
 
         // create_node and create_edge return the new id without the corresponding mask
@@ -35,7 +33,7 @@ class Catalog
         uint64_t get_edge_count_for_key(uint64_t key_id);
 
     private:
-        fstream& file;
+        std::fstream& file;
 
         uint64_t node_count;
         uint64_t edge_count;
@@ -44,16 +42,16 @@ class Catalog
         uint64_t node_key_count;
         uint64_t edge_key_count;
 
-        map<uint64_t, uint64_t> node_label_stats;
-        map<uint64_t, uint64_t> edge_label_stats;
-        map<uint64_t, uint64_t> node_key_stats;
-        map<uint64_t, uint64_t> edge_key_stats;
+        std::map<uint64_t, uint64_t> node_label_stats;
+        std::map<uint64_t, uint64_t> edge_label_stats;
+        std::map<uint64_t, uint64_t> node_key_stats;
+        std::map<uint64_t, uint64_t> edge_key_stats;
 
         void save_changes();
-        void add_to_map(map<uint64_t, uint64_t>& map, uint64_t key);
-        uint64_t get_count(map<uint64_t, uint64_t>& map, uint64_t key);
+        void add_to_map(std::map<uint64_t, uint64_t>& map, uint64_t key);
+        uint64_t get_count(std::map<uint64_t, uint64_t>& map, uint64_t key);
         uint64_t read();
-        pair<uint64_t, uint64_t> read_pair();
+        std::pair<uint64_t, uint64_t> read_pair();
 };
 
 #endif //FILE__CATALOG_H_

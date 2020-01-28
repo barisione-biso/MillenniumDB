@@ -27,7 +27,8 @@
                 "${workspaceFolder}/src/",
                 "/usr/include/"
             ],
-            "defines": []
+            "defines": [],
+            "configurationProvider": "vector-of-bool.cmake-tools"
         }
     ],
     "version": 4

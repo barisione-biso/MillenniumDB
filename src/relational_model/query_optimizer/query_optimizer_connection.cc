@@ -26,11 +26,6 @@ int QueryOptimizerConnection::get_heuristic() {
 }
 
 
-void QueryOptimizerConnection::assign() {
-    assigned = true;
-}
-
-
 void QueryOptimizerConnection::try_assign_var(VarId var_id) {
     if (assigned) {
         return;
@@ -47,7 +42,9 @@ void QueryOptimizerConnection::try_assign_var(VarId var_id) {
 }
 
 
-std::vector<VarId> QueryOptimizerConnection::get_assigned() {
+std::vector<VarId> QueryOptimizerConnection::assign() {
+    assigned = true;
+
     vector<VarId> res;
 
     if (!from_assigned)

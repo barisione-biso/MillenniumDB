@@ -30,9 +30,8 @@ public:
         ElementType element_type, ObjectId label_object_id);
     ~QueryOptimizerLabel() = default;
     int get_heuristic();
-    void assign();
     void try_assign_var(VarId var_id);
-    std::vector<VarId> get_assigned();
+    std::vector<VarId> assign();
     std::unique_ptr<GraphScan> get_scan();
 };
 

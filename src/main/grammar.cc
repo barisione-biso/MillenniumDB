@@ -51,8 +51,7 @@ int main(int argc, char **argv)
     string::const_iterator end = storage.end();
     bool r = phrase_parse(iter, end, parser::root, parser::skipper, ast);
 
-    if (r && iter == end)
-    {
+    if (r && iter == end) {
         cout << "-------------------------\n";
         cout << " Parsing succeeded\n";
         cout << "-------------------------\n";

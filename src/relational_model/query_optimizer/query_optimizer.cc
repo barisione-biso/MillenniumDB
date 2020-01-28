@@ -8,21 +8,26 @@
 
 using namespace std;
 
-QueryOptimizer::QueryOptimizer(ObjectFile& obj_file, int_fast32_t global_vars)
-    : obj_file(obj_file), global_vars(global_vars)
-{}
+QueryOptimizer::QueryOptimizer(ObjectFile& obj_file)
+    : obj_file(obj_file)
+{ }
 
 
-unique_ptr<BindingIter> QueryOptimizer::get_query_plan(vector<QueryOptimizerElement*> elements,
-    map<string, string> constants, vector<string> names, vector<int_fast32_t> var_positions)
-{
-    auto join_plan = get_join_plan(elements);
-    return make_unique<Projection>(obj_file, move(join_plan), move(constants), move(names),
-        move(var_positions), global_vars);
+unique_ptr<BindingIter> QueryOptimizer::get_select_plan(unique_ptr<OpSelect> op_select) {
+    std::vector<unique_ptr<QueryOptimizerElement>> elements;
+    // TODO: fill elements from OpMatch
+    // TODO: get constants?
+    // OpVisitor visitor();
+    // visitor.visit(op_select);
+    // op_select->op
+    // auto join_plan = get_join_plan(elements);
+    // return make_unique<Projection>(obj_file, move(join_plan), move(constants), move(names),
+    //     move(var_positions), global_vars);
+    return nullptr;
 }
 
 
-unique_ptr<BindingIdIter> QueryOptimizer::get_join_plan(vector<QueryOptimizerElement*> elements) {
+unique_ptr<BindingIdIter> QueryOptimizer::get_join_plan(vector<unique_ptr<QueryOptimizerElement>> elements) {
 
     unique_ptr<BindingIdIter> current_root = nullptr;
 
@@ -41,10 +46,9 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_join_plan(vector<QueryOptimizerEle
         if (best_heuristic == -1) {
             throw logic_error("something is wrong with query optimizer"); // TODO: delete redundant check
         }
-        elements[best_index]->assign(); // TODO: que assign devuelva la lista de asignados
-        auto assigned_vars = elements[best_index]->get_assigned();
+        auto assigned_vars = elements[best_index]->assign();
 
-        for (auto element : elements) {
+        for (auto& element : elements) {
             for (auto var : assigned_vars) {
                 element->try_assign_var(var);
             }

@@ -4,11 +4,13 @@
 #include <base/var/var_id.h>
 #include <base/binding/binding.h>
 
+#include <memory>
+
 // Abstract class
 class BindingIter {
 public:
     virtual void init() = 0;
-    virtual Binding* next() = 0; // next returning nullptr means there are not more bindings
+    virtual std::unique_ptr<Binding> next() = 0; // next returning nullptr means there are not more bindings
 };
 
 #endif //BASE__BINDING_ITER_H_

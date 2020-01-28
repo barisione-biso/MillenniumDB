@@ -5,9 +5,9 @@
             "name": "Query",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/GraphDB",
-            "preLaunchTask": "Debug.Build",
-            "args": ["${workspaceFolder}/query_debug"],
+            // Resolved by CMake Tools:
+            "program": "${command:cmake.launchTargetPath}",
+            "args": ["${workspaceFolder}/tests/query_debug"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -24,9 +24,8 @@ public:
     QueryOptimizerConnection(RelationalGraph& graph, VarId from_var_id, VarId to_var_id, VarId edge_var_id);
     ~QueryOptimizerConnection() = default;
     int get_heuristic();
-    void assign();
     void try_assign_var(VarId var_id);
-    std::vector<VarId> get_assigned();
+    std::vector<VarId> assign();
     std::unique_ptr<GraphScan> get_scan();
 };
 

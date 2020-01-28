@@ -22,15 +22,13 @@
 
 class Node;
 
-using namespace std;
-
 class ObjectFile
 {
     public:
-        ObjectFile(const string& filename);
+        ObjectFile(const std::string& filename);
         ~ObjectFile();
-        unique_ptr<vector<char>> read(uint64_t id);
-        uint64_t write(vector<char>& bytes);
+        std::unique_ptr<std::vector<char>> read(uint64_t id);
+        uint64_t write(std::vector<char>& bytes);
     private:
         std::fstream& file;
 };

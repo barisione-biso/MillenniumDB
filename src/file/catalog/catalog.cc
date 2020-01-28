@@ -1,6 +1,8 @@
 #include "catalog.h"
 #include "file/file_manager.h"
 
+using namespace std;
+
 Catalog::Catalog(const string& filename)
     : file (FileManager::get_file(FileManager::get_file_id(filename)))
 {
