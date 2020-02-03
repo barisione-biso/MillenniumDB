@@ -304,7 +304,7 @@ void OrderedFile::check_order(vector<uint_fast8_t> column_order)
     file.read((char*)buffer, bytes_per_tuple);
 
     std::vector<uint64_t> arrA;
-    for (auto col : column_order) {
+    for (auto& col : column_order) {
         arrA.push_back(buffer[col]);
     }
 
@@ -313,7 +313,7 @@ void OrderedFile::check_order(vector<uint_fast8_t> column_order)
     file.read((char*)buffer, bytes_per_tuple);
     auto a = file.gcount();
     std::vector<uint64_t> arrB;
-    for (auto col : column_order) {
+    for (auto& col : column_order) {
         arrB.push_back(buffer[col]);
     }
 
@@ -339,7 +339,7 @@ void OrderedFile::check_order(vector<uint_fast8_t> column_order)
         a = file.gcount();
         std::vector<uint64_t> arr;
         arr.clear();
-        for (auto col : column_order) {
+        for (auto& col : column_order) {
             arr.push_back(buffer[col]);
         }
         recordB = Record(arr);

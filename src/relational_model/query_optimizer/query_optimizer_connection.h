@@ -1,12 +1,16 @@
 #ifndef RELATIONAL_MODEL__QUERY_OPTIMIZER_CONNECTION_H_
 #define RELATIONAL_MODEL__QUERY_OPTIMIZER_CONNECTION_H_
 
-#include <string>
+#include "base/var/var_id.h"
 #include "relational_model/query_optimizer/query_optimizer_element.h"
+
+#include <string>
 
 class RelationalGraph;
 
+
 class QueryOptimizerConnection : public QueryOptimizerElement {
+
 private:
     RelationalGraph& graph;
 

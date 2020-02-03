@@ -12,12 +12,12 @@ class OpConnection;
 
 class OpVisitor {
 public:
-    virtual void visit (OpSelect&);
-    virtual void visit (OpMatch&);
-    virtual void visit (OpFilter&);
-    virtual void visit (OpLabel&);
-    virtual void visit (OpProperty&);
-    virtual void visit (OpConnection&);
+    virtual void visit (const OpSelect&);
+    virtual void visit (const OpMatch&);
+    virtual void visit (const OpFilter&);
+    virtual void visit (const OpLabel&);
+    virtual void visit (const OpProperty&);
+    virtual void visit (const OpConnection&);
 
 };
 

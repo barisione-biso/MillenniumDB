@@ -10,25 +10,24 @@ class Conjunction : public Condition {
 public:
     std::vector<std::unique_ptr<Condition>> conditions;
 
-    Conjunction(std::unique_ptr<Condition> left, std::unique_ptr<Condition> right) {
-        conditions.push_back(std::move(left));
-        conditions.push_back(std::move(right));
-    }
+    Conjunction() { }
+    Conjunction(std::vector<std::unique_ptr<Condition>> conditions)
+        : conditions (std::move(conditions)) { }
 
-    bool eval() {
+    bool eval(Binding& binding) {
         for (auto& condition : conditions) {
-            if (!condition->eval()) {
+            if (!condition->eval(binding)) {
                 return false;
             }
         }
         return true;
     }
 
-    bool is_conjunction() {
-        return true;
+    ConditionType type() {
+        return ConditionType::conjunction;
     }
 
-    void add_to_conjunction(std::unique_ptr<Condition> condition) {
+    void add(std::unique_ptr<Condition> condition) {
         conditions.push_back(std::move(condition));
     }
 

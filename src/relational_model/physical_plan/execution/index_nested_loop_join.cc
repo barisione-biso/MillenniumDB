@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "base/var/var_id.h"
-#include "relational_model/physical_plan/binding_id.h"
+#include "relational_model/binding/binding_id.h"
 
 using namespace std;
 
@@ -13,12 +13,12 @@ IndexNestedLoopJoin::IndexNestedLoopJoin(unique_ptr<BindingIdIter> left, unique_
 }
 
 
-void IndexNestedLoopJoin::init(BindingId& input) {
+void IndexNestedLoopJoin::begin(BindingId& input) {
     my_binding = make_unique<BindingId>(input.var_count());
-    left->init(input);
+    left->begin(input);
     current_left = left->next();
     if (current_left != nullptr)
-        right->init(*current_left);
+        right->begin(*current_left);
 }
 
 

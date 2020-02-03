@@ -33,7 +33,7 @@
 // 	auto input = make_shared<BindingId>(3);
 
 // 	BindingIdIter& root = s1;
-// 	root.init(input);
+// 	root.begin(input);
 // 	unique_ptr<BindingId const> b = root.next();
 // 	int count = 0;
 

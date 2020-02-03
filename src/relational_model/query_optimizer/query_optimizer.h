@@ -1,16 +1,19 @@
 #ifndef RELATIONAL_MODEL__QUERY_OPTIMIZER_H_
 #define RELATIONAL_MODEL__QUERY_OPTIMIZER_H_
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
-#include "base/parser/logical_plan/op/op_select.h"
-#include "base/binding/binding_iter.h"
-#include "relational_model/physical_plan/binding_id_iter.h"
-#include "relational_model/query_optimizer/query_optimizer_element.h"
+class BindingIdIter;
+class BindingIter;
+class ObjectFile;
+class Op;
+class OpSelect;
+class QueryOptimizerElement;
 
 class QueryOptimizer {
+
 private:
     ObjectFile& obj_file;
     std::vector<std::string> names;
@@ -23,6 +26,7 @@ private:
 public:
     QueryOptimizer(ObjectFile&);
     ~QueryOptimizer() = default;
+
     std::unique_ptr<BindingIter> get_select_plan(std::unique_ptr<OpSelect> op_select);
 
 };

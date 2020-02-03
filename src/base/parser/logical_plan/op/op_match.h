@@ -59,11 +59,11 @@ public:
         }
 
         for (auto& label : node.labels) {
-            op_list.push_back(OpLabel(ElementType::NODE, var_name, label));
+            op_list.push_back(OpLabel(ElementType::node, var_name, label));
         }
 
         for (auto& property : node.properties) {
-            op_list.push_back(OpProperty(ElementType::NODE, var_name, property.key, property.value));
+            op_list.push_back(OpProperty(ElementType::node, var_name, property.key, property.value));
         }
 
         return var_name;
@@ -90,11 +90,11 @@ public:
         }
 
         for (auto& label : edge.labels) {
-            op_list.push_back(OpLabel(ElementType::EDGE, var_name, label));
+            op_list.push_back(OpLabel(ElementType::edge, var_name, label));
         }
 
         for (auto& property : edge.properties) {
-            op_list.push_back(OpProperty(ElementType::EDGE, var_name, property.key, property.value));
+            op_list.push_back(OpProperty(ElementType::edge, var_name, property.key, property.value));
         }
 
         return var_name;

@@ -5,6 +5,7 @@
 #include "file/index/bplus_tree/bplus_tree.h"
 #include "file/index/bplus_tree/bplus_tree_leaf.h"
 #include "file/index/bplus_tree/bplus_tree_params.h"
+#include "relational_model/binding/binding_id.h"
 
 #include <vector>
 
@@ -13,14 +14,12 @@ using namespace std;
 GraphScan::GraphScan(BPlusTree& bpt, std::vector<std::pair<ObjectId, int>> terms,
     std::vector<std::pair<VarId, int>> vars)
     : record_size(bpt.params.total_size), bpt(bpt), terms(std::move(terms)),
-      vars(std::move(vars))
-{
-}
+      vars(std::move(vars)) { }
 
 
-void GraphScan::init(BindingId& input) {
-    my_input = &input;
+void GraphScan::begin(BindingId& input) {
     my_binding = make_unique<BindingId>(input.var_count());
+    my_input = &input;
 
     vector<uint64_t> min_ids(record_size);
     vector<uint64_t> max_ids(record_size);
@@ -52,19 +51,16 @@ void GraphScan::init(BindingId& input) {
     );
 }
 
-BindingId* GraphScan::next()
-{
+
+BindingId* GraphScan::next() {
     if (it == nullptr)
         return nullptr;
 
     auto next = it->next();
     if (next != nullptr) {
-        // auto res = make_unique<BindingId>(input->var_count());
-        // res->add_all(*input);
         my_binding->add_all(*my_input);
         for (auto& var : vars) {
             ObjectId element_id = ObjectId(next->ids[var.second]);
-            // res->add(var.first, element_id);
             my_binding->add(var.first, element_id);
         }
         return my_binding.get();
@@ -72,6 +68,8 @@ BindingId* GraphScan::next()
     else return nullptr;
 }
 
+
 void GraphScan::reset(BindingId& input) {
-    init(input);
+    begin(input); // TODO: no es necesario inicializar de nuevo my_binding, solo limpiarlo.
+                  //       Medir tiempos para ver si de verdad es una mejora
 }

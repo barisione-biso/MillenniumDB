@@ -1,10 +1,10 @@
 #ifndef BASE__GRAMMAR_H_
 #define BASE__GRAMMAR_H_
 
-#include <boost/spirit/home/x3.hpp>
-
 #include "base/parser/grammar/ast.h"
 #include "base/parser/grammar/ast_adapted.h"
+
+#include <boost/spirit/home/x3.hpp>
 
 namespace parser
 {

@@ -9,16 +9,12 @@ public:
 
     ConstantCondition (bool constant) : constant(constant) { }
 
-    bool eval() {
+    bool eval(Binding&) {
         return constant;
     }
 
-    bool is_conjunction() {
-        return false;
-    }
-
-    void add_to_conjunction(std::unique_ptr<Condition>) {
-        // TODO: throw error
+    ConditionType type() {
+        return ConditionType::constant;
     }
 };
 

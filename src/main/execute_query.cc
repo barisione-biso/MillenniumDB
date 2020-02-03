@@ -1,12 +1,15 @@
+#include "base/binding/binding.h"
+#include "base/binding/binding_iter.h"
+#include "base/parser/logical_plan/op/op.h"
+#include "base/parser/logical_plan/op/op_select.h"
+#include "relational_model/config.h"
+#include "relational_model/graph/relational_graph.h"
+#include "relational_model/query_optimizer/query_optimizer.h"
+
 #include <chrono>
 #include <fstream>
 #include <iostream>
 
-#include "base/binding/binding.h"
-#include "base/parser/logical_plan/op/op.h"
-#include "relational_model/config.h"
-#include "relational_model/graph/relational_graph.h"
-#include "relational_model/query_optimizer/query_optimizer.h"
 
 using namespace std;
 
@@ -36,7 +39,7 @@ int main(int argc, char **argv) {
     QueryOptimizer optimizer { config.get_object_file() };
     auto root = optimizer.get_select_plan(move(select_plan));
 
-    root->init();
+    root->begin();
     auto binding = root->next();
     int count = 0;
     while (binding != nullptr) {

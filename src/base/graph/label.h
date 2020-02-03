@@ -4,11 +4,17 @@
 #include <string>
 
 class Label {
+private:
+    const std::string label_name;
+
 public:
     Label(std::string label_name)
-        : label_name(label_name){}
+        : label_name(label_name) { }
     ~Label() = default;
-    std::string get_label_name() const { return label_name; }
+
+    std::string get_label_name() const {
+        return label_name;
+    }
 
     bool operator <(const Label& rhs) const {
         return label_name < rhs.label_name;
@@ -21,9 +27,6 @@ public:
     bool operator !=(const Label& rhs) const {
         return label_name != rhs.label_name;
     }
-
-private:
-    const std::string label_name;
 };
 
 #endif //BASE__LABEL_H_

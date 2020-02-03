@@ -1,5 +1,6 @@
 #include "query_optimizer_property.h"
 
+#include "relational_model/binding/binding_id.h"
 #include "relational_model/graph/relational_graph.h"
 
 QueryOptimizerProperty::QueryOptimizerProperty(RelationalGraph& graph, VarId element_var_id, VarId key_var_id,
@@ -58,7 +59,7 @@ std::vector<VarId> QueryOptimizerProperty::assign() {
     if (!value_assigned)
         res.push_back(value_var_id);
 
-    return std::move(res);
+    return res;
 }
 
 
@@ -84,10 +85,10 @@ unique_ptr<GraphScan> QueryOptimizerProperty::get_scan() {
                 terms.push_back(make_pair(value_object_id, 2));
             }
         }
-        if (element_type == ElementType::NODE) {
+        if (element_type == ElementType::node) {
             return make_unique<GraphScan>(*graph.node2prop, terms, vars);
         }
-        else { // if (element_type == ElementType::EDGE)
+        else { // if (element_type == ElementType::edge)
             return make_unique<GraphScan>(*graph.edge2prop, terms, vars);
         }
     }
@@ -112,10 +113,10 @@ unique_ptr<GraphScan> QueryOptimizerProperty::get_scan() {
         }
         vars.push_back(make_pair(element_var_id, 2));
 
-        if (element_type == ElementType::NODE) {
+        if (element_type == ElementType::node) {
             return make_unique<GraphScan>(*graph.prop2node, terms, vars);
         }
-        else { // if (element_type == ElementType::EDGE)
+        else { // if (element_type == ElementType::edge)
             return make_unique<GraphScan>(*graph.prop2edge, terms, vars);
         }
     }

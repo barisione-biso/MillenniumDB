@@ -4,7 +4,6 @@
 #include "base/graph/condition/condition.h"
 
 #include <memory>
-#include <vector>
 
 class Negation : public Condition {
 public:
@@ -13,16 +12,12 @@ public:
     Negation(std::unique_ptr<Condition> condition)
         : condition(std::move(condition)) { }
 
-    bool eval() {
-        return !condition->eval();
+    bool eval(Binding& binding) {
+        return !condition->eval(binding);
     }
 
-    bool is_conjunction() {
-        return false;
-    }
-
-    void add_to_conjunction(std::unique_ptr<Condition>) {
-        // TODO: throw error
+    ConditionType type() {
+        return ConditionType::negation;
     }
 };
 

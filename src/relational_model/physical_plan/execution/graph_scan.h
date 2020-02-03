@@ -2,7 +2,8 @@
 #define RELATIONAL_MODEL__GRAPH_SCAN_H_
 
 #include "file/index/bplus_tree/bplus_tree.h"
-#include "relational_model/physical_plan/binding_id_iter.h"
+#include "relational_model/binding/binding_id_iter.h"
+#include "relational_model/graph/object_id.h"
 
 #include <functional>
 #include <list>
@@ -11,14 +12,9 @@
 
 class Record;
 class VarId;
-class GraphScan : public BindingIdIter
-{
-public:
-    GraphScan(BPlusTree& bpt, std::vector<std::pair<ObjectId, int>> terms, std::vector<std::pair<VarId, int>> vars);
-    ~GraphScan() = default;
-    void init(BindingId& input);
-    void reset(BindingId& input);
-    BindingId* next();
+
+
+class GraphScan : public BindingIdIter {
 
 private:
     int record_size;
@@ -29,6 +25,14 @@ private:
 
     BindingId* my_input;
     std::unique_ptr<BindingId> my_binding;
+
+public:
+    GraphScan(BPlusTree& bpt, std::vector<std::pair<ObjectId, int>> terms, std::vector<std::pair<VarId, int>> vars);
+    ~GraphScan() = default;
+
+    void begin(BindingId& input);
+    void reset(BindingId& input);
+    BindingId* next();
 };
 
 #endif //RELATIONAL_MODEL__GRAPH_SCAN_H_

@@ -4,11 +4,12 @@
 #include "base/graph/value/value.h"
 
 class ValueString : public Value {
+private:
+    std::string value;
+
 public:
     ValueString(std::string value)
-        : value(value)
-    {
-    }
+        : value(value) { }
     ~ValueString() = default;
 
     std::unique_ptr<std::vector<char>> get_bytes() const {
@@ -22,11 +23,9 @@ public:
         return value;
     }
 
-    bool is_var(){ return false; }
-    VarId get_var() { throw std::bad_cast(); }
-
-private:
-    std::string value;
+    ValueType type() {
+        return ValueType::String;
+    }
 };
 
 #endif //BASE__VALUE_STRING_H_

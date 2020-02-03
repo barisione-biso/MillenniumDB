@@ -2,7 +2,7 @@
 #define RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_
 
 #include "base/var/var_id.h"
-#include "relational_model/physical_plan/binding_id_iter.h"
+#include "relational_model/binding/binding_id_iter.h"
 
 #include <map>
 #include <memory>
@@ -10,16 +10,8 @@
 
 
 class IndexNestedLoopJoin : public BindingIdIter {
-public:
-    IndexNestedLoopJoin(std::unique_ptr<BindingIdIter> left, std::unique_ptr<BindingIdIter> right);
-    ~IndexNestedLoopJoin() = default;
-    void init(BindingId& input);
-    void reset(BindingId& input);
-    BindingId* next();
 
 private:
-    void construct_binding(BindingId& lhs, BindingId& rhs);
-
     std::unique_ptr<BindingIdIter> left;
     std::unique_ptr<BindingIdIter> right;
 
@@ -28,6 +20,15 @@ private:
 
     std::vector<VarId> vars;
     std::unique_ptr<BindingId> my_binding;
+
+    void construct_binding(BindingId& lhs, BindingId& rhs);
+
+public:
+    IndexNestedLoopJoin(std::unique_ptr<BindingIdIter> left, std::unique_ptr<BindingIdIter> right);
+    ~IndexNestedLoopJoin() = default;
+    void begin(BindingId& input);
+    void reset(BindingId& input);
+    BindingId* next();
 };
 
 #endif //RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_

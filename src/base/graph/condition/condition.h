@@ -1,15 +1,21 @@
 #ifndef BASE__CONDITION_H_
 #define BASE__CONDITION_H_
 
-#include <memory>
+class Binding;
+
+enum class ConditionType {
+    comparison,
+    conjunction,
+    constant,
+    disjunction,
+    negation
+};
 
 // Abstract class
 class Condition {
 public:
-    /* TODO: pass binding to eval?*/
-    virtual bool eval() = 0;
-    virtual bool is_conjunction() = 0;
-    virtual void add_to_conjunction(std::unique_ptr<Condition>) = 0;
+    virtual bool eval(Binding&) = 0;
+    virtual ConditionType type() = 0;
 };
 
 #endif //BASE__CONDITION_H_

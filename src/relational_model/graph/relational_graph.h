@@ -14,7 +14,6 @@
 
 class Value;
 class Property;
-class GraphElement;
 class Config;
 
 class RelationalGraph {

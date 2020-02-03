@@ -4,9 +4,9 @@
 #include "relational_model/config.h"
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/import/bulk_import.h"
-#include "relational_model/physical_plan/binding_id.h"
-#include "relational_model/physical_plan/operators/graph_scan.h"
-#include "relational_model/physical_plan/operators/index_nested_loop_join.h"
+#include "relational_model/binding/binding_id.h"
+#include "relational_model/physical_plan/execution/graph_scan.h"
+#include "relational_model/physical_plan/execution/index_nested_loop_join.h"
 
 #include <chrono>
 
@@ -44,7 +44,7 @@ void TestGraphImport::test_label2element() {
 	// // input->add(VarId(1), label_type_1);
 
 	// BindingIdIter& root = s1;
-	// root.init(input);
+	// root.begin(input);
 	// unique_ptr<BindingId const> b = root.next();
 	// int count = 0;
 	// // long limit = 100;//0000000000000;

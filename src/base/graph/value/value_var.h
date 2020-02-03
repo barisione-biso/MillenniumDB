@@ -18,11 +18,14 @@ public:
     std::unique_ptr<std::vector<char>> get_bytes() const {
         return nullptr;
     }
+
     std::string to_string() {
         return "VarId(" + std::to_string(var_id) + ")";
     }
-    bool is_var(){ return true; }
-    VarId get_var() { return var_id; }
+
+    ValueType type() {
+        return ValueType::Var;
+    }
 };
 
 

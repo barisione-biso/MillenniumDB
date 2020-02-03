@@ -8,22 +8,27 @@
 
 class Disjunction : public Condition {
 public:
-    std::unique_ptr<Condition> left;
-    std::unique_ptr<Condition> right;
+    std::vector<std::unique_ptr<Condition>> conditions;
 
-    Disjunction(std::unique_ptr<Condition> left, std::unique_ptr<Condition> right)
-        : left(std::move(left)), right(std::move(right)) { }
+    Disjunction() { }
+    Disjunction(std::vector<std::unique_ptr<Condition>> conditions)
+        : conditions (std::move(conditions)) { }
 
-    bool eval() {
-        return left->eval() || right->eval();
-    }
-
-    bool is_conjunction() {
+    bool eval(Binding& binding) {
+        for (auto& condition : conditions) {
+            if (condition->eval(binding)) {
+                return true;
+            }
+        }
         return false;
     }
 
-    void add_to_conjunction(std::unique_ptr<Condition>) {
-        // TODO: throw error
+    ConditionType type() {
+        return ConditionType::disjunction;
+    }
+
+    void add(std::unique_ptr<Condition> condition) {
+        conditions.push_back(std::move(condition));
     }
 
 };

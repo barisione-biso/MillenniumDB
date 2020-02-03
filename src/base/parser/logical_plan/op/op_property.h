@@ -1,8 +1,8 @@
 #ifndef BASE__OP_PROPERTY_H_
 #define BASE__OP_PROPERTY_H_
 
+#include "base/graph/element_type.h"
 #include "base/parser/logical_plan/op/op.h"
-// #include "base/graph/value/variant_value.h"
 
 #include <string>
 

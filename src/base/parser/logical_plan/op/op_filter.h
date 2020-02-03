@@ -44,15 +44,19 @@ public:
                 tmp = std::move(step);
             }
             else { // AND
-                if (tmp->is_conjunction()) { // already AND
-                    tmp->add_to_conjunction(std::move(step));
+                if (tmp->type() == ConditionType::conjunction) { // already AND
+                    Conjunction* conjuction = dynamic_cast<Conjunction*>(tmp.get());
+                    conjuction->add(std::move(step));
                 }
                 else {
-                    tmp = std::make_unique<Conjunction>(std::move(tmp), std::move(step));
+                    tmp = std::make_unique<Conjunction>();
+                    Conjunction* conjuction = dynamic_cast<Conjunction*>(tmp.get());
+                    conjuction->add(std::move(tmp));
+                    conjuction->add(std::move(step));
                 }
             }
         }
-        return tmp;
+        return std::make_unique<Disjunction>(std::move(tmp_disjunction));
     }
 
 

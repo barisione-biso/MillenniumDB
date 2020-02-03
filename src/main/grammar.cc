@@ -11,7 +11,6 @@
 #include <iterator>
 #include <vector>
 
-#include "base/graph/graph_element.h"
 #include "base/parser/grammar/ast.h"
 #include "base/parser/grammar/grammar.h"
 #include "base/parser/grammar/ast_printer.h"

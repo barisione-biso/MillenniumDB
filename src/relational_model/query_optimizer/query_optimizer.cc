@@ -1,10 +1,11 @@
 #include "query_optimizer.h"
 
-#include "relational_model/config.h"
-#include "relational_model/graph/relational_graph.h"
-#include "relational_model/physical_plan/operators/graph_scan.h"
-#include "relational_model/physical_plan/operators/projection.h"
-#include "relational_model/physical_plan/operators/index_nested_loop_join.h"
+#include "base/binding/binding_iter.h"
+#include "base/parser/logical_plan/op/op.h"
+#include "relational_model/binding/binding_id.h"
+#include "relational_model/binding/binding_id_iter.h"
+#include "relational_model/physical_plan/execution/index_nested_loop_join.h"
+#include "relational_model/query_optimizer/query_optimizer_element.h"
 
 using namespace std;
 
@@ -49,7 +50,7 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_join_plan(vector<unique_ptr<QueryO
         auto assigned_vars = elements[best_index]->assign();
 
         for (auto& element : elements) {
-            for (auto var : assigned_vars) {
+            for (auto& var : assigned_vars) {
                 element->try_assign_var(var);
             }
         }

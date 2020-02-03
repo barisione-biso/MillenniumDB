@@ -1,12 +1,11 @@
 #ifndef RELATIONAL_MODEL__QUERY_OPTIMIZER_ELEMENT_H_
 #define RELATIONAL_MODEL__QUERY_OPTIMIZER_ELEMENT_H_
 
+#include "relational_model/physical_plan/execution/graph_scan.h"
+
 #include <string>
 #include <memory>
 #include <vector>
-
-
-#include "relational_model/physical_plan/operators/graph_scan.h"
 
 class QueryOptimizerElement {
 public:

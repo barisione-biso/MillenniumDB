@@ -1,8 +1,9 @@
 #ifndef BASE__AST_ADAPTED_H_
 #define BASE__AST_ADAPTED_H_
 
-#include <boost/fusion/include/adapt_struct.hpp>
 #include "base/parser/grammar/ast.h"
+
+#include <boost/fusion/include/adapt_struct.hpp>
 
 BOOST_FUSION_ADAPT_STRUCT(ast::Root,
     selection, graph_pattern, where

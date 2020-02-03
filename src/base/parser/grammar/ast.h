@@ -1,6 +1,8 @@
 #ifndef BASE__AST_H_
 #define BASE__AST_H_
 
+#include "base/var/var_id.h"
+
 #include <iostream>
 #include <string>
 
@@ -10,7 +12,6 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
-#include "base/var/var_id.h"
 
 namespace ast
 {

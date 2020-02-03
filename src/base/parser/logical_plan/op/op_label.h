@@ -1,10 +1,10 @@
 #ifndef BASE__OP_LABEL_H_
 #define BASE__OP_LABEL_H_
 
-#include <string>
-
+#include "base/graph/element_type.h"
 #include "base/parser/logical_plan/op/op.h"
-#include "base/graph/graph_element.h"
+
+#include <string>
 
 class OpLabel : public Op {
 public:

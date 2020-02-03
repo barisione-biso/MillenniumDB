@@ -4,6 +4,9 @@
 #include "base/graph/value/value.h"
 
 class ValueBool: public Value {
+private:
+    bool value;
+
 public:
     ValueBool(bool value)
         : value(value)
@@ -12,19 +15,16 @@ public:
     ~ValueBool() = default;
 
     std::unique_ptr<std::vector<char>> get_bytes() const {
-        std::unique_ptr<std::vector<char>> res = std::make_unique<std::vector<char>>(1, (char)value);
-        return res;
+        return std::make_unique<std::vector<char>>(1, (char)value);
     }
+
     std::string to_string() {
         return std::to_string(value);
     }
 
-    bool is_var(){ return false; }
-    VarId get_var() { throw std::bad_cast(); }
-
-
-private:
-    bool value;
+    ValueType type() {
+        return ValueType::Bool;
+    }
 };
 
 

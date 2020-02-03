@@ -6,6 +6,9 @@
 #include <cstring>
 
 class ValueInt: public Value {
+private:
+    int32_t value;
+
 public:
     ValueInt(int32_t value)
         : value(value)
@@ -18,15 +21,16 @@ public:
 	    std::memcpy((*res).data(), &value, sizeof(value));
         return res;
     }
+
     std::string to_string() {
         return std::to_string(value);
     }
-    bool is_var(){ return false; }
-    VarId get_var() { throw std::bad_cast(); }
+
+    ValueType type() {
+        return ValueType::Float;
+    }
 
 
-private:
-    int32_t value;
 };
 
 

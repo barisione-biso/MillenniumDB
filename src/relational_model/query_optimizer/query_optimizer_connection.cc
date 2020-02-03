@@ -1,5 +1,6 @@
 #include "query_optimizer_connection.h"
 
+#include "relational_model/binding/binding_id.h"
 #include "relational_model/graph/relational_graph.h"
 
 QueryOptimizerConnection::QueryOptimizerConnection(RelationalGraph& graph, VarId from_var_id, VarId to_var_id,
@@ -56,7 +57,7 @@ std::vector<VarId> QueryOptimizerConnection::assign() {
     if (!edge_assigned)
         res.push_back(edge_var_id);
 
-    return std::move(res);
+    return res;
 }
 
 
