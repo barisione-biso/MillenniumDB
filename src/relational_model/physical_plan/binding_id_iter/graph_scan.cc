@@ -7,6 +7,7 @@
 #include "file/index/bplus_tree/bplus_tree_params.h"
 #include "relational_model/binding/binding_id.h"
 
+#include <iostream>
 #include <vector>
 
 using namespace std;

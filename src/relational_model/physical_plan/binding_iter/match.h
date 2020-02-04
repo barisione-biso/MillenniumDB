@@ -3,6 +3,7 @@
 
 #include "base/binding/binding_iter.h"
 #include "base/var/var_id.h"
+#include "relational_model/binding/binding_id.h"
 #include "relational_model/binding/binding_id_iter.h"
 
 #include <map>
@@ -19,6 +20,7 @@ private:
     std::vector<std::unique_ptr<QueryOptimizerElement>> elements;
     std::unique_ptr<BindingIdIter> root;
     std::map<std::string, VarId> var_pos;
+    std::unique_ptr<BindingId> binding_id;
 
     std::unique_ptr<BindingIdIter> get_join_plan();
 

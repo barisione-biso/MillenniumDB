@@ -18,12 +18,12 @@ Match::Match(ObjectFile& obj_file, vector<unique_ptr<QueryOptimizerElement>> ele
 
 
 void Match::begin() {
-    cout << "Match begin\n";
+    binding_id = make_unique<BindingId>(var_pos.size());
+    root->begin(*binding_id);
 }
 
 
 unique_ptr<Binding> Match::next() {
-    cout << "Match next\n";
     auto binding_id_ptr = root->next();
     if (binding_id_ptr != nullptr) {
         auto binding_id_copy = make_unique<BindingId>(*binding_id_ptr); // TODO: poner print en constructor copia para checkear que ese usa
