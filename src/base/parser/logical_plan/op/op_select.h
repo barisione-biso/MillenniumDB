@@ -17,7 +17,7 @@ public:
 
     OpSelect(const boost::variant<ast::All, std::vector<ast::Element>>& selection, std::unique_ptr<Op> op);
     ~OpSelect() = default;
-    void visit(OpVisitor&);
+    void accept_visitor(OpVisitor&);
 };
 
 #endif //BASE__OP_SELECT_H_

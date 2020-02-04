@@ -13,10 +13,11 @@
 class OpFilter : public Op {
 public:
     std::unique_ptr<Condition> condition;
+    std::unique_ptr<Op> op;
 
-    OpFilter(std::unique_ptr<Condition> condition);
-    OpFilter(boost::optional<ast::Formula> const& optional_formula);
-    void visit(OpVisitor&);
+    OpFilter(boost::optional<ast::Formula> const& optional_formula, std::unique_ptr<Op> op);
+    void accept_visitor(OpVisitor&);
+    std::unique_ptr<Condition> move_condition();
 };
 
 class FormulaVisitor : public boost::static_visitor<std::unique_ptr<Condition>> {
@@ -28,7 +29,7 @@ public:
             return (*this)(formula);
         }
         else {
-            return nullptr;
+            return nullptr;//std::make_unique<ConstantCondition>(true);
         }
     }
 

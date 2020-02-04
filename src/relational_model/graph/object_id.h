@@ -16,7 +16,7 @@ private:
 
 public:
     ObjectId(uint64_t id);
-    ObjectId();
+    ObjectId(); // initialized with NULL_OBJECT_ID
     ~ObjectId() = default;
 
     bool is_null();

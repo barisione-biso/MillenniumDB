@@ -1,18 +1,22 @@
 #ifndef BASE__OP_MATCH_H_
 #define BASE__OP_MATCH_H_
 
+#include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/op/op_label.h"
 #include "base/parser/logical_plan/op/op_property.h"
 #include "base/parser/logical_plan/op/op_connection.h"
 
 #include <set>
+#include <memory>
 #include <variant>
 #include <vector>
 
 class OpMatch : public Op {
 public:
-    std::vector< std::variant<OpLabel, OpProperty, OpConnection> > op_list;
+    std::vector<std::unique_ptr<OpLabel>> labels;
+    std::vector<std::unique_ptr<OpProperty>> properties;
+    std::vector<std::unique_ptr<OpConnection>> connections;
 
     std::set<std::string> nodes;
     std::set<std::string> edges;
@@ -28,10 +32,10 @@ public:
                 auto edge_name         = process_edge(step_path.edge);
 
                 if (step_path.edge.direction == ast::EdgeDirection::right) {
-                    op_list.push_back(OpConnection(last_node_name, edge_name, current_node_name));
+                    connections.push_back(std::make_unique<OpConnection>(last_node_name, edge_name, current_node_name));
                 }
                 else {
-                    op_list.push_back(OpConnection(current_node_name, edge_name, last_node_name));
+                    connections.push_back(std::make_unique<OpConnection>(current_node_name, edge_name, last_node_name));
                 }
                 last_node_name = std::move(current_node_name);
             }
@@ -59,11 +63,11 @@ public:
         }
 
         for (auto& label : node.labels) {
-            op_list.push_back(OpLabel(ElementType::node, var_name, label));
+            labels.push_back(std::make_unique<OpLabel>(ElementType::node, var_name, label));
         }
 
         for (auto& property : node.properties) {
-            op_list.push_back(OpProperty(ElementType::node, var_name, property.key, property.value));
+            properties.push_back(std::make_unique<OpProperty>(ElementType::node, var_name, property.key, property.value));
         }
 
         return var_name;
@@ -90,18 +94,18 @@ public:
         }
 
         for (auto& label : edge.labels) {
-            op_list.push_back(OpLabel(ElementType::edge, var_name, label));
+            labels.push_back(std::make_unique<OpLabel>(ElementType::edge, var_name, label));
         }
 
         for (auto& property : edge.properties) {
-            op_list.push_back(OpProperty(ElementType::edge, var_name, property.key, property.value));
+            properties.push_back(std::make_unique<OpProperty>(ElementType::edge, var_name, property.key, property.value));
         }
 
         return var_name;
     }
 
 
-    void visit(OpVisitor& visitor) {
+    void accept_visitor(OpVisitor& visitor) {
         visitor.visit(*this);
     }
 };

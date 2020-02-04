@@ -17,7 +17,7 @@ public:
 
     ~OpLabel() = default;
 
-    void visit(OpVisitor& visitor) {
+    void accept_visitor(OpVisitor& visitor) {
         visitor.visit(*this);
     }
 };

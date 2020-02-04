@@ -1,7 +1,7 @@
 #ifndef RELATIONAL_MODEL__QUERY_OPTIMIZER_ELEMENT_H_
 #define RELATIONAL_MODEL__QUERY_OPTIMIZER_ELEMENT_H_
 
-#include "relational_model/physical_plan/execution/graph_scan.h"
+#include "relational_model/physical_plan/binding_id_iter/graph_scan.h"
 
 #include <string>
 #include <memory>

@@ -21,6 +21,6 @@ OpSelect::OpSelect(const boost::variant<ast::All, vector<ast::Element>>& selecti
     }
 }
 
-void OpSelect::visit(OpVisitor& visitor) {
+void OpSelect::accept_visitor(OpVisitor& visitor) {
     visitor.visit(*this);
 }

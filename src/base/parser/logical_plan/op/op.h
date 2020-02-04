@@ -17,7 +17,7 @@ private:
     static std::unique_ptr<OpSelect> get_select_plan(ast::Root& ast);
 
 public:
-    virtual void visit(OpVisitor&) = 0;
+    virtual void accept_visitor(OpVisitor&) = 0;
     static std::unique_ptr<OpSelect> get_select_plan(std::string query);
 };
 

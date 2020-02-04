@@ -16,7 +16,7 @@ public:
     OpProperty(ElementType type, std::string var, std::string key, ast::Value value)
         : type(type), var(std::move(var)), key(std::move(key)), value(std::move(value)) { }
 
-    void visit(OpVisitor& visitor) {
+    void accept_visitor(OpVisitor& visitor) {
         visitor.visit(*this);
     }
 };

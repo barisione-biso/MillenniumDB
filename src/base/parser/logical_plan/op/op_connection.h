@@ -14,7 +14,7 @@ public:
     OpConnection(std::string node_from, std::string edge, std::string node_to)
         : node_from(std::move(node_from)), node_to(std::move(node_to)), edge(std::move(edge)) { }
 
-    void visit(OpVisitor& visitor) {
+    void accept_visitor(OpVisitor& visitor) {
         visitor.visit(*this);
     }
 

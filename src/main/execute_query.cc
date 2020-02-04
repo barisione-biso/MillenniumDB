@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 
     Config config = Config();
     RelationalGraph graph = RelationalGraph(0, config);
-    QueryOptimizer optimizer { config.get_object_file() };
+    QueryOptimizer optimizer { graph, config.get_object_file() };
     auto root = optimizer.get_select_plan(move(select_plan));
 
     root->begin();
