@@ -6,6 +6,8 @@
 #include "relational_model/physical_plan/binding_id_iter/index_nested_loop_join.h"
 #include "relational_model/query_optimizer/query_optimizer_element.h"
 
+#include <iostream>
+
 using namespace std;
 
 Match::Match(ObjectFile& obj_file, vector<unique_ptr<QueryOptimizerElement>> elements, std::map<std::string, VarId> var_pos)
@@ -16,14 +18,20 @@ Match::Match(ObjectFile& obj_file, vector<unique_ptr<QueryOptimizerElement>> ele
 
 
 void Match::begin() {
-
+    cout << "Match begin\n";
 }
 
 
 unique_ptr<Binding> Match::next() {
+    cout << "Match next\n";
     auto binding_id_ptr = root->next();
-    auto binding_id_copy = make_unique<BindingId>(*binding_id_ptr); // TODO: poner print en constructor copia para checkear que ese usa
-    return make_unique<BindingMatch>(obj_file, var_pos, move(binding_id_copy));
+    if (binding_id_ptr != nullptr) {
+        auto binding_id_copy = make_unique<BindingId>(*binding_id_ptr); // TODO: poner print en constructor copia para checkear que ese usa
+        return make_unique<BindingMatch>(obj_file, var_pos, move(binding_id_copy));
+    }
+    else {
+        return nullptr;
+    }
 }
 
 

@@ -50,5 +50,5 @@ int main(int argc, char **argv) {
 
     auto end = chrono::system_clock::now();
     chrono::duration<float, std::milli> duration = end - start;
-    cout << "Found " << " results in " << duration.count() << " milliseconds.\n";
+    cout << "Found " << count << " results in " << duration.count() << " milliseconds.\n";
 }

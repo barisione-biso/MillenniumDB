@@ -35,6 +35,7 @@ void PhysicalPlanGenerator::visit (OpSelect& op_select) {
     for (auto&& [key, value] : select_items) {
         projection_vars.insert(key + '.' + value);
     }
+    op_select.op->accept_visitor(*this);
     tmp = make_unique<Projection>(move(tmp), move(projection_vars));
 }
 
@@ -98,6 +99,7 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
 
 
 void PhysicalPlanGenerator::visit(OpFilter& op_filter) {
+    op_filter.op->accept_visitor(*this);
     if (op_filter.condition != nullptr) {
         tmp = make_unique<Filter>(move(tmp), op_filter.move_condition());
     }

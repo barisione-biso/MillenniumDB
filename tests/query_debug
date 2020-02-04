@@ -1,3 +1,2 @@
-SELECT *
-MATCH (?x)-[?e]->(?y)
-WHERE ?e.Crater == "beleaguers"
+SELECT ?x.Crater
+MATCH (?x)
