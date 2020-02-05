@@ -1,18 +1,25 @@
-#ifndef BASE_PARSING_EXCEPTIONS_H_
-#define BASE_PARSING_EXCEPTIONS_H_
+#ifndef BASE__PARSING_EXCEPTIONS_H_
+#define BASE__PARSING_EXCEPTIONS_H_
 
 #include <exception>
 #include <string>
 
 struct ParsingException : public std::exception {
 	const char * what () const throw () {
-    	return "Parsing Exception";
+    	return "Error parsing query";
     }
 };
 
 struct NotSupportedException : public std::exception {
+	std::string error;
+
+	NotSupportedException(std::string operation)
+	{
+		error = "Operation " + operation + " not supported yet.";
+	}
+
 	const char * what () const throw () {
-    	return "Operation still not supported\n";
+    	return error.c_str();
     }
 };
 
@@ -79,4 +86,4 @@ struct NotSupportedException : public std::exception {
 
 // } // namespace ast
 
-#endif
+#endif // BASE__PARSING_EXCEPTIONS_H_

@@ -32,23 +32,28 @@ int main(int argc, char **argv) {
     str_stream << in.rdbuf();
     string query = str_stream.str();
 
-    auto select_plan = Op::get_select_plan(query);
+    try {
+        auto select_plan = Op::get_select_plan(query);
 
-    Config config = Config();
-    RelationalGraph graph = RelationalGraph(0, config);
-    QueryOptimizer optimizer { graph, config.get_object_file() };
-    auto root = optimizer.get_select_plan(move(select_plan));
+        Config config = Config();
+        RelationalGraph graph = RelationalGraph(0, config);
+        QueryOptimizer optimizer { graph, config.get_object_file() };
+        auto root = optimizer.get_select_plan(move(select_plan));
 
-    root->begin();
-    auto binding = root->next();
-    int count = 0;
-    while (binding != nullptr) {
-        binding->print();
-        binding = root->next();
-        count++;
+        root->begin();
+        auto binding = root->next();
+        int count = 0;
+        while (binding != nullptr) {
+            binding->print();
+            binding = root->next();
+            count++;
+        }
+
+        auto end = chrono::system_clock::now();
+        chrono::duration<float, std::milli> duration = end - start;
+        cout << "Found " << count << " results in " << duration.count() << " milliseconds.\n";
     }
-
-    auto end = chrono::system_clock::now();
-    chrono::duration<float, std::milli> duration = end - start;
-    cout << "Found " << count << " results in " << duration.count() << " milliseconds.\n";
+    catch (std::exception& e) {
+        cout << "Exception in query excecution: " << e.what() << endl;
+    }
 }

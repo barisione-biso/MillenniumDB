@@ -1,2 +1,2 @@
-SELECT ?x.Crater
+SELECT *
 MATCH (?x)

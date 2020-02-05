@@ -9,7 +9,7 @@ OpSelect::OpSelect(const boost::variant<ast::All, vector<ast::Element>>& selecti
 {
     if (selection.type() == typeid(ast::All)) {
         select_all = true;
-        throw NotSupportedException();
+        throw NotSupportedException("Select *");
     }
     else {
         select_all = false;
