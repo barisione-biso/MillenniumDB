@@ -13,6 +13,9 @@ BindingMatch::BindingMatch(ObjectFile& object_file, map<string, VarId>& var_pos,
 
 void BindingMatch::print() const {
     cout << "BindingMatch should not be called to be printed.\n";
+    for (auto&& [a, b] : var_pos) {
+        cout << a << ", " << b.id << "\n";
+    }
 }
 
 

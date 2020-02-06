@@ -4,6 +4,7 @@
 #include "base/graph/condition/condition.h"
 
 #include <memory>
+#include <iostream>
 
 class Negation : public Condition {
 public:
@@ -13,6 +14,7 @@ public:
         : condition(std::move(condition)) { }
 
     bool eval(Binding& binding) {
+        std::cout << "eval nagation\n";
         return !condition->eval(binding);
     }
 

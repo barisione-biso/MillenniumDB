@@ -29,7 +29,7 @@ public:
             return (*this)(formula);
         }
         else {
-            return nullptr;//std::make_unique<ConstantCondition>(true);
+            return nullptr;
         }
     }
 
@@ -57,7 +57,12 @@ public:
                 }
             }
         }
-        return std::make_unique<Disjunction>(std::move(tmp_disjunction));
+        if (tmp_disjunction.size() == 0) {
+            return tmp;
+        }
+        else {
+            return std::make_unique<Disjunction>(std::move(tmp_disjunction));
+        }
     }
 
 

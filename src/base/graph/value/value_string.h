@@ -19,12 +19,20 @@ public:
         return res;
     }
 
-    std::string to_string() {
+    std::string to_string() const {
         return value;
     }
 
-    ValueType type() {
+    ValueType type() const {
         return ValueType::String;
+    }
+
+    bool operator==(const Value& rhs) const {
+        if (rhs.type() == ValueType::String) {
+            const auto& casted_rhs = dynamic_cast<const ValueString&>(rhs);
+            return this->value == casted_rhs.value;
+        }
+        return false;
     }
 };
 

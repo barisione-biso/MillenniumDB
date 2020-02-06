@@ -2,6 +2,7 @@
 #define BASE__CONSTANT_CONDITION_H_
 
 #include "base/graph/condition/condition.h"
+#include <iostream>
 
 class ConstantCondition : public Condition {
 public:
@@ -10,6 +11,8 @@ public:
     ConstantCondition (bool constant) : constant(constant) { }
 
     bool eval(Binding&) {
+        std::cout << "eval constant\n";
+
         return constant;
     }
 

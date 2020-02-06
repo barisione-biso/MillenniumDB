@@ -1,5 +1,5 @@
-#ifndef BASE__VALUE_INT_H
-#define BASE__VALUE_INT_H
+#ifndef BASE__VALUE_INT_H_
+#define BASE__VALUE_INT_H_
 
 #include "base/graph/value/value.h"
 
@@ -11,9 +11,7 @@ private:
 
 public:
     ValueInt(int32_t value)
-        : value(value)
-    {
-    }
+        : value(value) { }
     ~ValueInt() = default;
 
     std::unique_ptr<std::vector<char>> get_bytes() const {
@@ -22,16 +20,21 @@ public:
         return res;
     }
 
-    std::string to_string() {
+    std::string to_string() const {
         return std::to_string(value);
     }
 
-    ValueType type() {
-        return ValueType::Float;
+    ValueType type() const {
+        return ValueType::Int;
     }
 
-
+    bool operator==(const Value& rhs) const {
+        if (rhs.type() == ValueType::Int) {
+            const auto& casted_rhs = dynamic_cast<const ValueInt&>(rhs);
+            return this->value == casted_rhs.value;
+        }
+        return false;
+    }
 };
 
-
-#endif // BASE__VALUE_INT_H
+#endif // BASE__VALUE_INT_H_

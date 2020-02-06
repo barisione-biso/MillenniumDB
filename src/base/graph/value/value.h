@@ -12,15 +12,16 @@ enum class ValueType {
     Bool,
     Float,
     Int,
-    String,
-    Var
+    String
 };
 
 class Value {
 public:
     virtual std::unique_ptr<std::vector<char>> get_bytes() const = 0;
-    virtual std::string to_string() = 0;
-    virtual ValueType type() = 0;
+    virtual std::string to_string() const = 0;
+    virtual ValueType type() const = 0;
+
+    virtual bool operator==(const Value& rhs) const = 0;
 };
 
 #endif //BASE__VALUE_H_

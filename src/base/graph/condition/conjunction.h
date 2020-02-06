@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <vector>
+#include <iostream>
 
 class Conjunction : public Condition {
 public:
@@ -15,6 +16,7 @@ public:
         : conditions (std::move(conditions)) { }
 
     bool eval(Binding& binding) {
+        std::cout << "eval conjunction\n";
         for (auto& condition : conditions) {
             if (!condition->eval(binding)) {
                 return false;

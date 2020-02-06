@@ -17,7 +17,7 @@ namespace ast
 {
     namespace x3 = boost::spirit::x3;
 
-    typedef boost::variant<std::string, int, float, bool, VarId> Value;
+    typedef boost::variant<std::string, int, float, bool> Value;
 
     struct Element {
         std::string function; // If empty string then no function

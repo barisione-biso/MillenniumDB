@@ -6,11 +6,13 @@
 #include <cstring>
 
 class ValueFloat: public Value {
+
+private:
+    float value;
+
 public:
     ValueFloat(float value)
-        : value(value)
-    {
-    }
+        : value(value) { }
     ~ValueFloat() = default;
 
     std::unique_ptr<std::vector<char>> get_bytes() const {
@@ -19,16 +21,21 @@ public:
         return res;
     }
 
-    std::string to_string() {
+    std::string to_string() const {
         return std::to_string(value);
     }
 
-    ValueType type() {
+    ValueType type() const {
         return ValueType::Float;
     }
 
-private:
-    float value;
+    bool operator==(const Value& rhs) const {
+        if (rhs.type() == ValueType::Float) {
+            const auto& casted_rhs = dynamic_cast<const ValueFloat&>(rhs);
+            return this->value == casted_rhs.value;
+        }
+        return false;
+    }
 };
 
 

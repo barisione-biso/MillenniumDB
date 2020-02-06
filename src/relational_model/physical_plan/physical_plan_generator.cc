@@ -14,6 +14,7 @@
 #include "relational_model/query_optimizer/query_optimizer_label.h"
 #include "relational_model/query_optimizer/query_optimizer_property.h"
 
+#include <iostream>
 #include <set>
 
 using namespace std;
@@ -100,6 +101,14 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
 
 void PhysicalPlanGenerator::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
+
+    if (tmp == nullptr) {
+        cout << "ERROR: tmp null\n";
+    }
+    else {
+        cout << "tmp not null\n";
+    }
+
     if (op_filter.condition != nullptr) {
         tmp = make_unique<Filter>(move(tmp), op_filter.move_condition());
     }
