@@ -1,18 +1,40 @@
-# Compiling
-- Prerequisites:
-    - `libssl-dev`
-    - `cmake`
-    - makefile works only for linux right now.
-- `cmake .`
-- `make`
-
-# Debugging
-    - sudo sysctl -w kernel.core_pattern=/tmp/core-%e.%p.%h.%t
-    - ulimit -c unlimited
-    - make clean
-    - make cleanfiles
-    - make DEBUG=1
-    - gdb bin/GraphDB /tmp/core-GraphDB[autocomplete]
-        - bt
-        - frame <number_from_backtrace>
-        - print <variable_name>
+# Working on Windows 10 (with WSL and Visual Studio Code)
+- Install WSL:
+    - Open PowerShell as administrator and run `Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux`
+    - Restart when prompted.
+    - Install Ubuntu from Microsoft Store.
+- Install Visual Studio Code
+    - Download and install from https://code.visualstudio.com/
+    - Install the extension Remote-WSL
+- Open Ubuntu app
+    - Important: how to copy-paste in the console 
+        - To copy text from the console you can select the text dragging left-click, then right-click.
+        - To paste some copied text, just right-click (having no text selected, otherwise selected text will be copied).
+    - install prerrequisites to compile:
+        - `sudo apt update`
+        - `sudo apt install g++ cmake libssl-dev libboost-dev gdb`
+    - (OPTIONAL) set up ssh key:
+        - `cd $HOME`
+        - `ssh-keygen -t rsa -b 4096 -C "your_email@example.com"` (replace your_email@example.com with your real email).
+        - `eval $(ssh-agent -s)`
+        - `ssh-add ~/.ssh/id_rsa`
+        - `cat .ssh/id_rsa.pub`
+        - Import your ssh key at https://github.com/settings/keys (copy and paste the output from the last command)
+    - clone the repository:
+        - using ssh key: `git clone git@github.com:DomagojVrgoc/GraphDB.git`
+        - without ssh key: `git clone https://github.com/DomagojVrgoc/GraphDB.git`
+    - enter to the project folder `cd GraphDB`
+    - compile
+        - `cmake .`
+        - `make`
+    - open the project in Visual Studio Code: `code .`
+    - (OPTIONAL) Install recomended Visual Studio Code Extensions:
+        - `ms-vscode.cpptools`
+        - `ms-vscode.cmake-tools`
+        - `twxs.cmake`
+        - `wayou.vscode-todo-highlight`
+        - `shardulm94.trailing-spaces`
+        - Reload VS Code
+    - TODO: Create example database
+    - TODO: Run example query
+    - TODO: Example debug
