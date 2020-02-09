@@ -32,7 +32,6 @@
     - Open the project in Visual Studio Code: `code .`
     - Install recomended Visual Studio Code Extensions (optional, highly recomended):
         - `ms-vscode.cpptools`
-        - `ms-vscode.cmake-tools`
         - `twxs.cmake`
         - `wayou.vscode-todo-highlight`
         - `shardulm94.trailing-spaces`
@@ -40,13 +39,26 @@
 
 - Reopening the project (after first setup have been completed)
     - Open Ubuntu app
-    - Change to project folder `cd $HOME/GraphDB`
-    - Open VS Code `code .`
+    - Open Visual Studio Code `code ./path/to/project/folder`
 
-- Compile the project
-    - `cmake .`
-    - `make`
+- Compiling the project:
+    - Release version:
+        - `cmake -H. -Bbuild/Release -DCMAKE_BUILD_TYPE=Release`
+        - `cmake --build build/Release/`
+    - Debug version:
+        - `cmake -H. -Bbuild/Debug -DCMAKE_BUILD_TYPE=Debug`
+        - `cmake --build build/Debug/`
+    - Cleaning:
+        - `cmake --build build/Release/ --target clean`
+        - `cmake --build build/Debug/ --target clean`
 
-- TODO: Create example database
-- TODO: Run example query
-- TODO: Example debug
+- Create Database
+    - Delete previous database files `rm -r test_files/*.*`
+    - `build/Release/bin/CreateDB ./path/to/nodes_file ./path/to/edges_file`
+
+- Run Query
+    - `build/Release/bin/Query ./path/to/query_file`
+
+- Debug Query Execution
+    - edit the file `./query_debug` and write a query.
+    - press F5
