@@ -59,42 +59,42 @@ RelationalGraph::~RelationalGraph() {
 }
 
 uint64_t RelationalGraph::create_node() {
-    return config.get_catalog().create_node();
+    return Config::get_catalog().create_node();
 }
 
 uint64_t RelationalGraph::create_edge() {
-    return config.get_catalog().create_edge();
+    return Config::get_catalog().create_edge();
 }
 
 /******************************************* Methods for bulk import ***************************************/
 Record RelationalGraph::get_record_for_node_label(uint64_t node_id, const string& label) {
     uint64_t label_id = get_or_create_id(label);
-    config.get_catalog().add_node_label(label_id);
+    Config::get_catalog().add_node_label(label_id);
     return Record(node_id, label_id);
 }
 
+
 Record RelationalGraph::get_record_for_edge_label(uint64_t edge_id, const string& label) {
     uint64_t label_id = get_or_create_id(label);
-    config.get_catalog().add_edge_label(label_id);
+    Config::get_catalog().add_edge_label(label_id);
     return Record(edge_id, label_id);
 }
 
-Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const string& key, const Value& value)
-{
+
+Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const string& key, const Value& value) {
     uint64_t key_id = get_or_create_id(key);
     uint64_t value_id = get_or_create_id(value.get_bytes());
 
-    config.get_catalog().add_node_key(key_id);
+    Config::get_catalog().add_node_key(key_id);
     return Record(node_id, key_id, value_id);
-
 }
 
-Record RelationalGraph::get_record_for_edge_property(uint64_t edge_id, const string& key, const Value& value)
-{
+
+Record RelationalGraph::get_record_for_edge_property(uint64_t edge_id, const string& key, const Value& value) {
     uint64_t key_id = get_or_create_id(key);
     uint64_t value_id = get_or_create_id(value.get_bytes());
 
-    config.get_catalog().add_edge_key(key_id);
+    Config::get_catalog().add_edge_key(key_id);
     return Record(edge_id, key_id, value_id);
 }
 
@@ -114,7 +114,7 @@ void RelationalGraph::add_label_to_node(uint64_t node_id, const string& label) {
     label2node->insert( Record(label_id, node_id) );
     node2label->insert( Record(node_id, label_id) );
 
-    config.get_catalog().add_node_label(label_id);
+    Config::get_catalog().add_node_label(label_id);
 }
 
 
@@ -129,7 +129,7 @@ void RelationalGraph::add_label_to_edge(uint64_t edge_id, const string& label) {
     label2edge->insert( Record(label_id, edge_id) );
     edge2label->insert( Record(edge_id, label_id) );
 
-    config.get_catalog().add_edge_label(label_id);
+    Config::get_catalog().add_edge_label(label_id);
 }
 
 void RelationalGraph::add_property_to_node(uint64_t node_id, const string& key, const Value& value) {
@@ -139,7 +139,7 @@ void RelationalGraph::add_property_to_node(uint64_t node_id, const string& key, 
     node2prop->insert( Record(node_id, key_id, value_id) );
     prop2node->insert( Record(key_id, value_id, node_id) );
 
-    config.get_catalog().add_node_key(key_id);
+    Config::get_catalog().add_node_key(key_id);
 }
 
 void RelationalGraph::add_property_to_edge(uint64_t edge_id, const string& key, const Value& value) {
@@ -149,7 +149,7 @@ void RelationalGraph::add_property_to_edge(uint64_t edge_id, const string& key, 
     edge2prop->insert( Record(edge_id, key_id, value_id) );
     prop2edge->insert( Record(key_id, value_id, edge_id) );
 
-    config.get_catalog().add_edge_key(key_id);
+    Config::get_catalog().add_edge_key(key_id);
 }
 
 uint64_t RelationalGraph::get_or_create_id(unique_ptr< vector<char> > obj_bytes) {
@@ -157,7 +157,7 @@ uint64_t RelationalGraph::get_or_create_id(unique_ptr< vector<char> > obj_bytes)
     MD5((const unsigned char*)obj_bytes->data(), obj_bytes->size(), (unsigned char *)hash);
 
     // check if bpt contains object
-    BPlusTree& hash2id = config.get_hash2id_bpt();
+    BPlusTree& hash2id = Config::get_hash2id_bpt();
     auto iter = hash2id.get_range(
         Record(hash[0], hash[1], 0),
         Record(hash[0], hash[1], UINT64_MAX)
@@ -165,7 +165,7 @@ uint64_t RelationalGraph::get_or_create_id(unique_ptr< vector<char> > obj_bytes)
     auto next = iter->next();
     if (next == nullptr) { // obj doesn't exist
         // Insert in object file
-        uint64_t obj_id = config.get_object_file().write(*obj_bytes);
+        uint64_t obj_id = Config::get_object_file().write(*obj_bytes);
         // Insert in bpt
         hash2id.insert( Record(hash[0], hash[1], obj_id) );
         return obj_id;
@@ -190,33 +190,36 @@ Node RelationalGraph::get_node(uint64_t id) {
     return Node(id);
 }
 
+
 Label RelationalGraph::get_label(uint64_t id) {
-    auto bytes = config.get_object_file().read(id);
+    auto bytes = Config::get_object_file().read(id);
     string label_name(bytes->begin(), bytes->end());
     return Label(label_name);
 }
 
+
 Key RelationalGraph::get_key(uint64_t id) {
-    auto bytes = config.get_object_file().read(id);
+    auto bytes = Config::get_object_file().read(id);
     string key_name(bytes->begin(), bytes->end());
     return Key(key_name);
 }
 
+
 unique_ptr<Value> RelationalGraph::get_value(uint64_t id) {
-    auto bytes = config.get_object_file().read(id);
+    auto bytes = Config::get_object_file().read(id);
     string str(bytes->begin(), bytes->end());
     return make_unique<ValueString>(str);
 }
 
-ObjectId RelationalGraph::get_label_id(Label const& label) {
-    uint64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
-    string label_name = label.get_label_name();
-    MD5((const unsigned char*)label_name.c_str(), label_name.size(), (unsigned char *)hash);
 
-    uint64_t label_id;
+ObjectId RelationalGraph::get_id(const std::string& str) {
+    uint64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
+    MD5((const unsigned char*)str.c_str(), str.size(), (unsigned char *)hash);
+
+    uint64_t id;
 
     // check if bpt contains object
-    BPlusTree& bpt = config.get_hash2id_bpt();
+    BPlusTree& bpt = Config::get_hash2id_bpt();
     auto iter = bpt.get_range(
         Record(hash[0], hash[1], 0),
         Record(hash[0], hash[1], UINT64_MAX)
@@ -226,34 +229,11 @@ ObjectId RelationalGraph::get_label_id(Label const& label) {
         return ObjectId::get_not_found();
     }
     else { // label_name already exists
-        label_id = next->ids[2];
+        id = next->ids[2];
     }
-    return ObjectId(label_id);
+    return ObjectId(id);
 }
 
-ObjectId RelationalGraph::get_key_id(Key const& key)
-{
-    uint64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
-    string key_name = key.get_key_name();
-    MD5((const unsigned char*)key_name.c_str(), key_name.size(), (unsigned char *)hash);
-
-    uint64_t key_id;
-
-    // check if bpt contains object
-    BPlusTree& bpt = config.get_hash2id_bpt();
-    auto iter = bpt.get_range(
-        Record(hash[0], hash[1], 0),
-        Record(hash[0], hash[1], UINT64_MAX)
-    );
-    auto next = iter->next();
-    if (next == nullptr) { // key_name doesn't exist
-        return ObjectId::get_not_found();
-    }
-    else { // label_name already exists
-        key_id = next->ids[2];
-    }
-    return ObjectId(key_id);
-}
 
 ObjectId RelationalGraph::get_value_id(Value const& value)
 {
@@ -264,7 +244,7 @@ ObjectId RelationalGraph::get_value_id(Value const& value)
     uint64_t value_id;
 
     // check if bpt contains object
-    BPlusTree& bpt = config.get_hash2id_bpt();
+    BPlusTree& bpt = Config::get_hash2id_bpt();
     auto iter = bpt.get_range(
         Record(hash[0], hash[1], 0),
         Record(hash[0], hash[1], UINT64_MAX)

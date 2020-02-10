@@ -63,7 +63,7 @@ void BulkImport::start_import() {
     line_number = 1;
     cout << "conecting nodes:\n";
     for (auto&& [from, to, edge_id] : edges_original_ids) {
-        // cout << "\r  line " << line_number++ << std::flush;
+        cout << "\r  line " << line_number++ << std::flush;
         from_to_edge.append_record(Record(node_dict[from], node_dict[to], edge_id));
     }
     cout << "\nCreating indexes for labels\n";
@@ -113,7 +113,7 @@ void BulkImport::start_import() {
 
 void BulkImport::process_node(const string& line, int line_number) {
     std::smatch match;
-    // cout << "\r  line " << line_number << std::flush;
+    cout << "\r  line " << line_number << std::flush;
 
     std::regex_search(line, match, node_line_expr);
     if (match.empty()) {
@@ -149,7 +149,7 @@ void BulkImport::process_node(const string& line, int line_number) {
 
 void BulkImport::process_edge(const string& line, int line_number) {
     std::smatch match;
-    // cout << "\r  line " << line_number << std::flush;
+    cout << "\r  line " << line_number << std::flush;
 
     std::regex_search(line, match, edge_line_expr);
     if (match.empty()) {

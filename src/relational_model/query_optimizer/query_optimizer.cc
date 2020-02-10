@@ -2,6 +2,7 @@
 
 #include "base/binding/binding_iter.h"
 #include "base/parser/logical_plan/op/op.h"
+#include "relational_model/config.h"
 #include "relational_model/binding/binding_id.h"
 #include "relational_model/binding/binding_id_iter.h"
 #include "relational_model/physical_plan/physical_plan_generator.h"
@@ -10,11 +11,10 @@
 
 using namespace std;
 
-QueryOptimizer::QueryOptimizer(RelationalGraph& graph, ObjectFile& obj_file)
-    : graph(graph), obj_file(obj_file) { }
+QueryOptimizer::QueryOptimizer() { }
 
 
 unique_ptr<BindingIter> QueryOptimizer::get_select_plan(unique_ptr<OpSelect> op_select) {
-    PhysicalPlanGenerator generator = PhysicalPlanGenerator(graph, obj_file);
+    PhysicalPlanGenerator generator = PhysicalPlanGenerator();
     return generator.exec(*op_select);
 }

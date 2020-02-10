@@ -20,8 +20,7 @@
 using namespace std;
 
 
-PhysicalPlanGenerator::PhysicalPlanGenerator(RelationalGraph& graph, ObjectFile& obj_file)
-    : graph(graph), obj_file(obj_file) { }
+PhysicalPlanGenerator::PhysicalPlanGenerator() { }
 
 
 unique_ptr<BindingIter> PhysicalPlanGenerator::exec(OpSelect& op_select) {
@@ -54,7 +53,7 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
     }
 
     for (auto& op_label : op_match.labels) {
-        ObjectId label_id = graph.get_label_id(Label(op_label->label));
+        ObjectId label_id = graph.get_id(op_label->label);
         VarId element_obj_id = get_var_id(op_label->var);
         elements.push_back(make_unique<QueryOptimizerLabel>(graph, element_obj_id, null_var, op_label->type, label_id));
     }
@@ -62,7 +61,7 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
     for (auto& op_property : op_match.properties) {
         VarId element_obj_id = get_var_id(op_property->var);
         // VarId value_var = null_var;
-        ObjectId key_id = graph.get_key_id(Key(op_property->key));
+        ObjectId key_id = graph.get_id(op_property->key);
         ObjectId value_id;
 
         // if (op_property->value.type() == typeid(VarId)) {// ESTE CASO NO OCURRE EN EL MATCH SOLO EN SELECT
@@ -84,18 +83,18 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
     for (auto&& [var, key] : select_items) {
         VarId element_obj_id = get_var_id(var);
         VarId value_var = get_var_id(var + '.' + key);
-        ObjectId key_id = graph.get_key_id(Key(key));
+        ObjectId key_id = graph.get_id(key);
 
         elements.push_back(make_unique<QueryOptimizerProperty>(
-            graph, element_obj_id, null_var, value_var, var_types[var], key_id, ObjectId::get_null() ));
+            graph_id, element_obj_id, null_var, value_var, var_types[var], key_id, ObjectId::get_null() ));
     }
 
     for (auto& op_connection : op_match.connections) {
         elements.push_back(make_unique<QueryOptimizerConnection>(
-            graph, get_var_id(op_connection->node_from), get_var_id(op_connection->node_to), get_var_id(op_connection->edge) ));
+            graph_id, get_var_id(op_connection->node_from), get_var_id(op_connection->node_to), get_var_id(op_connection->edge) ));
     }
 
-    tmp = make_unique<Match>(obj_file, move(elements), move(id_map));
+    tmp = make_unique<Match>(move(elements), move(id_map));
 }
 
 

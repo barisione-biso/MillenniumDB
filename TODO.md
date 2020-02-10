@@ -1,4 +1,3 @@
-- Seg Fault build/Release/bin/CreateDB test_files/graph_creation_example/nodes.txt test_files/graph_creation_example/edges.txt
 - Probar si usando constructores con rvalue references para unique_ptrs se mejora la performance.
 - Arreglar gramatica:
     - (no_skip afecta a comentarios //) ¿sacar no_skip?

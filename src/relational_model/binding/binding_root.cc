@@ -15,3 +15,7 @@ void BindingRoot::print() const {
 shared_ptr<Value> BindingRoot::operator[](const string& ) {
     return nullptr;
 }
+
+shared_ptr<Value> BindingRoot::try_extend(const string& , const string& ) {
+    return nullptr;
+}

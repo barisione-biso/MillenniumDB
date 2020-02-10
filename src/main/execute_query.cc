@@ -35,9 +35,9 @@ int main(int argc, char **argv) {
     try {
         auto select_plan = Op::get_select_plan(query);
 
-        Config config = Config();
-        RelationalGraph graph = RelationalGraph(0, config);
-        QueryOptimizer optimizer { graph, config.get_object_file() };
+        Config::init();
+        // RelationalGraph graph = RelationalGraph(0, config);
+        QueryOptimizer optimizer { };
         auto root = optimizer.get_select_plan(move(select_plan));
 
         root->begin();

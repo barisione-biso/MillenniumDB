@@ -18,7 +18,6 @@ Match::Match(ObjectFile& obj_file, vector<unique_ptr<QueryOptimizerElement>> ele
 
 
 void Match::begin() {
-    cout << "Match begin\n";
     binding_id = make_unique<BindingId>(var_pos.size());
     root->begin(*binding_id);
 }

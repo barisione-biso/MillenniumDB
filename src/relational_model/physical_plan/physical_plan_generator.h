@@ -18,9 +18,7 @@ class ObjectFile;
 
 class PhysicalPlanGenerator : OpVisitor {
 private:
-    RelationalGraph& graph;
-    ObjectFile& obj_file;
-    // std::stack<std::unique_ptr<BindingIter>> results_stack;
+    // ObjectFile& obj_file;
     std::unique_ptr<BindingIter> tmp;
     std::map<std::string, VarId> id_map;
     int_fast32_t id_count = 0;
@@ -30,7 +28,7 @@ private:
     VarId get_var_id(const std::string& var);
 
 public:
-    PhysicalPlanGenerator(RelationalGraph& graph, ObjectFile& obj_file); // TODO: conceptualmente no debería recibir el grafo aca
+    PhysicalPlanGenerator(); // TODO: conceptualmente no debería recibir el grafo aca
     ~PhysicalPlanGenerator() = default;
 
     std::unique_ptr<BindingIter> exec(OpSelect&);

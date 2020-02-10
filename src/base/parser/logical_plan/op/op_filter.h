@@ -4,7 +4,7 @@
 #include "base/parser/logical_plan/op/op.h"
 #include "base/graph/condition/constant_condition.h"
 #include "base/graph/condition/conjunction.h"
-#include "base/graph/condition/comparison.h"
+#include "base/graph/condition/comparisons/equals.h"
 #include "base/graph/condition/disjunction.h"
 #include "base/graph/condition/negation.h"
 
@@ -78,7 +78,7 @@ public:
 
 
     std::unique_ptr<Condition> operator()(ast::Statement const& statement) const {
-        return std::make_unique<Comparison>(statement);
+        return std::make_unique<Equals>(statement); // TODO: check comparison type
     }
 };
 

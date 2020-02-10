@@ -70,9 +70,8 @@ public:
     unique_ptr<Value> get_value(uint64_t id);                                                               //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    ObjectId get_label_id(Label const&); // TODO: define what happens if doesnt exist, ¿special ObjectId = 0?
-    ObjectId get_key_id  (Key   const&); // TODO: define what happens if doesnt exist, ¿special ObjectId = 0?
     ObjectId get_value_id(Value const&); // TODO: define what happens if doesnt exist, ¿special ObjectId = 0?
+    ObjectId get_id(std::string const&); // TODO: define what happens if doesnt exist, ¿special ObjectId = 0?
 
 private:
     unique_ptr<BPlusTreeParams> bpt_params_node2label;

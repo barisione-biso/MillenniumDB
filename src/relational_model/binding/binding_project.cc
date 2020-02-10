@@ -1,5 +1,6 @@
 #include "binding_project.h"
 
+#include "base/binding/binding.h"
 #include "base/graph/value/value.h"
 
 #include <iostream>
@@ -30,4 +31,9 @@ shared_ptr<Value> BindingProject::operator[](const string& var) {
         return (*current_binding)[var];
     }
     else return nullptr;
+}
+
+
+shared_ptr<Value> BindingProject::try_extend(const string& var, const string& key) {
+    return current_binding->try_extend(var, key);
 }

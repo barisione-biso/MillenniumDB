@@ -16,15 +16,13 @@ class RelationalGraph;
 class QueryOptimizer {
 
 private:
-    RelationalGraph& graph;
-    ObjectFile& obj_file;
     std::vector<std::string> names;
     std::vector<int_fast32_t> var_positions;
     int_fast32_t global_vars;
     std::unique_ptr<Op> op;
 
 public:
-    QueryOptimizer(RelationalGraph&, ObjectFile&);
+    QueryOptimizer();
     ~QueryOptimizer() = default;
 
     std::unique_ptr<BindingIter> get_select_plan(std::unique_ptr<OpSelect> op_select);

@@ -21,9 +21,6 @@ file(GLOB_RECURSE SRCS src/*.cc)
 
 set(sources ${SRCS})
 list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/*)
-# list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/grammar.cc)
-# list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/execute_query.cc)
-
 add_library(graphdb STATIC ${sources})
 
 # add the executables

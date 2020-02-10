@@ -12,19 +12,36 @@
 
 
 class Config {
+
+private:
+    static std::unique_ptr<Config> instance;
+
+    unique_ptr<ObjectFile>       object_file;
+    unique_ptr<Catalog>          catalog;
+    unique_ptr<BPlusTree>        hash2id; // ObjectHash|ObjectId.
+    unique_ptr<BPlusTreeParams>  bpt_params_hash2id;
+
+    
+
 public:
+
+    // constructor should be private but needed for make_unique
     Config() {
         object_file = std::make_unique<ObjectFile>(object_file_name);
         catalog = std::make_unique<Catalog>(catalog_file_name);
-        bpt_params_hash2id = std::make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:128 + Key:64
+        bpt_params_hash2id = std::make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:2*64 + Key:64
         hash2id = std::make_unique<BPlusTree>(*bpt_params_hash2id);
     }
-    ~Config() {
+
+    ~Config() { }
+
+    static void init() {
+        instance = std::make_unique<Config>();
     }
 
-    ObjectFile&     get_object_file()    { return *object_file; }
-    Catalog&        get_catalog()        { return *catalog; }
-    BPlusTree&      get_hash2id_bpt()    { return *hash2id; }
+    static ObjectFile& get_object_file()    { return *instance->object_file; }
+    static Catalog&    get_catalog()        { return *instance->catalog; }
+    static BPlusTree&  get_hash2id_bpt()    { return *instance->hash2id; }
 
     const std::string object_file_name    = "objects.dat";
     const std::string catalog_file_name   = "catalog.dat";
@@ -44,12 +61,6 @@ public:
     const std::string from_to_edge_name   = "FTE";
     const std::string to_edge_from_name   = "TEF";
     const std::string edge_from_to_name   = "EFT";
-
-private:
-    unique_ptr<ObjectFile>       object_file;
-    unique_ptr<Catalog>          catalog;
-    unique_ptr<BPlusTree>        hash2id; // ObjectHash|ObjectId.
-    unique_ptr<BPlusTreeParams>  bpt_params_hash2id;
 };
 
 #endif //RELATIONAL_MODEL__CONFIG_H_
