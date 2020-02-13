@@ -8,7 +8,7 @@
 
 using namespace std;
 
-BindingMatch::BindingMatch(map<string, VarId>& var_pos, unique_ptr<BindingId> binding_id)
+BindingMatch::BindingMatch(const map<string, VarId>& var_pos, unique_ptr<BindingId> binding_id)
     : var_pos(var_pos), binding_id(move(binding_id)) { }
 
 

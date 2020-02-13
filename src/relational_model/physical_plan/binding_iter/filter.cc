@@ -7,20 +7,13 @@
 
 using namespace std;
 
-Filter::Filter(std::unique_ptr<BindingIter> iter, std::unique_ptr<Condition> condition)
-    : iter(move(iter)), condition(move(condition)) {
-    // if (this->iter == nullptr) {
-    //     cout << "Filter: iter null\n";
-    // }
-    // else {
-    //     cout << "Filter: iter not null\n";
-    // }
-}
+Filter::Filter(unique_ptr<BindingIter> iter, unique_ptr<Condition> condition, map<string, VarId> id_map)
+    : iter(move(iter)), condition(move(condition)), id_map(move(id_map)) { }
+
 
 void Filter::begin() {
-    cout << "Filter begin\n";
-
     iter->begin();
+    // TODO: construct list of bindings needed to eval the filter that are not present in the binding
 }
 
 
@@ -29,9 +22,6 @@ std::unique_ptr<Binding> Filter::next() {
     while (next != nullptr) {
         if (condition->eval(*next)) {
             return next;
-        }
-        else {
-            cout << "Filtered result\n";
         }
         next = iter->next();
     }

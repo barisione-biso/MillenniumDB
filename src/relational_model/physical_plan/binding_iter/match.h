@@ -16,10 +16,9 @@ class ObjectFile;
 class Match : public BindingIter {
 
 private:
-    // ObjectFile& obj_file;
     std::vector<std::unique_ptr<QueryOptimizerElement>> elements;
     std::unique_ptr<BindingIdIter> root;
-    std::map<std::string, VarId> var_pos;
+    const std::map<std::string, VarId> var_pos;
     std::unique_ptr<BindingId> binding_id;
 
     std::unique_ptr<BindingIdIter> get_join_plan();

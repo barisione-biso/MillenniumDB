@@ -12,13 +12,12 @@ class ObjectFile;
 class BindingMatch : public Binding {
 
 private:
-    // ObjectFile& object_file;
-    std::map<std::string, VarId> var_pos; // TODO: maybe is better to use a vector?
+    const std::map<std::string, VarId> var_pos;
     std::unique_ptr<BindingId> binding_id;
     std::map<std::string, std::shared_ptr<Value>> cache;
 
 public:
-    BindingMatch(std::map<std::string, VarId>& var_pos,
+    BindingMatch(const std::map<std::string, VarId>& var_pos,
         std::unique_ptr<BindingId> binding_id);
     ~BindingMatch() = default;
 

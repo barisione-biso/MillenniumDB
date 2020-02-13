@@ -13,8 +13,7 @@ struct ParsingException : public std::exception {
 struct NotSupportedException : public std::exception {
 	std::string error;
 
-	NotSupportedException(std::string operation)
-	{
+	NotSupportedException(std::string operation) {
 		error = "Operation " + operation + " not supported yet.";
 	}
 

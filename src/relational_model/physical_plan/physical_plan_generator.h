@@ -14,14 +14,12 @@ class OpMatch;
 class OpFilter;
 class OpSelect;
 class RelationalGraph;
-class ObjectFile;
 
 class PhysicalPlanGenerator : OpVisitor {
 private:
-    // ObjectFile& object_file;
     std::unique_ptr<BindingIter> tmp;
     std::map<std::string, VarId> id_map;
-    std::map<std::string, VarId> var2graph;
+    // std::map<std::string, VarId> var2graph; // TODO:
     int_fast32_t id_count = 0;
     std::vector<std::pair<std::string, std::string>> select_items;
     std::map<std::string, ElementType> var_types;

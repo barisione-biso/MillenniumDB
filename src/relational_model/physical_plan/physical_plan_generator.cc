@@ -19,7 +19,6 @@
 
 using namespace std;
 
-
 PhysicalPlanGenerator::PhysicalPlanGenerator() { }
 
 
@@ -45,11 +44,11 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
     vector<unique_ptr<QueryOptimizerElement>> elements;
 
     for (auto& node_name : op_match.nodes) {
-        var_types.insert({ node_name, ElementType::node});
+        var_types.insert({ node_name, ElementType::node });
     }
 
     for (auto& edge_name : op_match.edges) {
-        var_types.insert({ edge_name, ElementType::edge});
+        var_types.insert({ edge_name, ElementType::edge });
     }
 
     for (auto& op_label : op_match.labels) {
@@ -85,7 +84,7 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
         VarId value_var = get_var_id(var + '.' + key);
         ObjectId key_id = RelationalModel::get_id(key);
 
-        // TODO: como sacar el graph_id?
+        // TODO: crear map para sacar el graph_id
         elements.push_back(make_unique<QueryOptimizerProperty>(
             GraphId(0), element_obj_id, null_var, value_var, var_types[var], key_id, ObjectId::get_null() ));
     }
@@ -95,22 +94,15 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
             op_connection->graph_id, get_var_id(op_connection->node_from), get_var_id(op_connection->node_to), get_var_id(op_connection->edge) ));
     }
 
-    tmp = make_unique<Match>(move(elements), move(id_map));
+    tmp = make_unique<Match>(move(elements), id_map); // TODO: duplicating id_map
 }
 
 
 void PhysicalPlanGenerator::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
-
-    if (tmp == nullptr) {
-        cout << "ERROR: tmp null\n";
-    }
-    else {
-        cout << "tmp not null\n";
-    }
-
     if (op_filter.condition != nullptr) {
-        tmp = make_unique<Filter>(move(tmp), op_filter.move_condition());
+        // TODO: armar vector con par <var,key> de las properties que no estan en id_map
+        tmp = make_unique<Filter>(move(tmp), move(op_filter.condition), id_map);
     }
     // else tmp stays the same
 }

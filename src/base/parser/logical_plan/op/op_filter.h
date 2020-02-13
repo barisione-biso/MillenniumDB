@@ -8,7 +8,9 @@
 #include "base/graph/condition/disjunction.h"
 #include "base/graph/condition/negation.h"
 
+#include <map>
 #include <memory>
+#include <vector>
 
 class OpFilter : public Op {
 public:
@@ -17,12 +19,17 @@ public:
 
     OpFilter(boost::optional<ast::Formula> const& optional_formula, std::unique_ptr<Op> op);
     void accept_visitor(OpVisitor&);
-    std::unique_ptr<Condition> move_condition();
 };
 
 class FormulaVisitor : public boost::static_visitor<std::unique_ptr<Condition>> {
 
 public:
+    // std::vector<std::pair<std::string, std::string>> properties; // to save properties used only on Filter
+    // std::map<std::string, VarId>& id_map;
+
+    FormulaVisitor() { }
+
+
     std::unique_ptr<Condition> operator()(boost::optional<ast::Formula> const& optional_formula) const {
         if (optional_formula) {
             ast::Formula formula = static_cast<ast::Formula>(optional_formula.get());
