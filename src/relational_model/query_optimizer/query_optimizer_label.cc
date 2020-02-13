@@ -2,10 +2,13 @@
 
 #include "relational_model/binding/binding_id.h"
 #include "relational_model/graph/relational_graph.h"
+#include "relational_model/relational_model.h"
+
+using namespace std;
 
 QueryOptimizerLabel::QueryOptimizerLabel
-    (RelationalGraph& graph, VarId element_var_id, VarId label_var_id, ElementType element_type, ObjectId label_object_id) :
-    graph(graph),
+    (GraphId graph_id, VarId element_var_id, VarId label_var_id, ElementType element_type, ObjectId label_object_id) :
+    graph_id(graph_id),
     element_var_id(element_var_id),
     label_var_id(label_var_id),
     element_type(element_type),
@@ -66,20 +69,20 @@ unique_ptr<GraphScan> QueryOptimizerLabel::get_scan() {
         }
         vars.push_back(make_pair(element_var_id, 1));
         if (element_type == ElementType::node) {
-            return make_unique<GraphScan>(*graph.label2node, std::move(terms), std::move(vars));
+            return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).label2node, std::move(terms), std::move(vars));
         }
         else { // if (element_type == ElementType::edge)
-            return make_unique<GraphScan>(*graph.label2edge, std::move(terms), std::move(vars));
+            return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).label2edge, std::move(terms), std::move(vars));
         }
     }
     else { // Label(?,?) or Label(_,?)
         vars.push_back(make_pair(element_var_id, 0));
         vars.push_back(make_pair(label_var_id, 1));
         if (element_type == ElementType::node) {
-            return make_unique<GraphScan>(*graph.node2label, std::move(terms), std::move(vars));
+            return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).node2label, std::move(terms), std::move(vars));
         }
         else { // if (element_type == ElementType::edge)
-            return make_unique<GraphScan>(*graph.edge2label, std::move(terms), std::move(vars));
+            return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).edge2label, std::move(terms), std::move(vars));
         }
     }
 }

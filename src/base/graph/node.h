@@ -1,6 +1,8 @@
 #ifndef BASE__NODE_H_
 #define BASE__NODE_H_
 
+ #include <cstdint>
+
 class Node {
 private:
     uint64_t id;

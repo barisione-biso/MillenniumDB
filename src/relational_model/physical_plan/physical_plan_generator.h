@@ -1,7 +1,7 @@
 #ifndef BASE__PHYSICAL_PLAN_GENERATOR_H_
 #define BASE__PHYSICAL_PLAN_GENERATOR_H_
 
-#include "base/var/var_id.h"
+#include "base/ids/var_id.h"
 #include "base/graph/element_type.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 
@@ -18,9 +18,10 @@ class ObjectFile;
 
 class PhysicalPlanGenerator : OpVisitor {
 private:
-    // ObjectFile& obj_file;
+    // ObjectFile& object_file;
     std::unique_ptr<BindingIter> tmp;
     std::map<std::string, VarId> id_map;
+    std::map<std::string, VarId> var2graph;
     int_fast32_t id_count = 0;
     std::vector<std::pair<std::string, std::string>> select_items;
     std::map<std::string, ElementType> var_types;
@@ -28,7 +29,7 @@ private:
     VarId get_var_id(const std::string& var);
 
 public:
-    PhysicalPlanGenerator(); // TODO: conceptualmente no debería recibir el grafo aca
+    PhysicalPlanGenerator();
     ~PhysicalPlanGenerator() = default;
 
     std::unique_ptr<BindingIter> exec(OpSelect&);

@@ -2,18 +2,16 @@
 #define RELATIONAL_MODEL__QUERY_OPTIMIZER_PROPERTY_H_
 
 #include "base/graph/element_type.h"
-#include "base/var/var_id.h"
+#include "base/ids/graph_id.h"
+#include "base/ids/var_id.h"
 #include "relational_model/query_optimizer/query_optimizer_element.h"
 
 #include <string>
 
-class RelationalGraph;
-
-
 class QueryOptimizerProperty : public QueryOptimizerElement {
 
 private:
-    RelationalGraph& graph;
+    GraphId graph_id;
 
     VarId element_var_id;
     VarId key_var_id;
@@ -30,7 +28,7 @@ private:
     bool value_assigned;
 
 public:
-    QueryOptimizerProperty(RelationalGraph& graph, VarId element_var_id, VarId key_var_id,
+    QueryOptimizerProperty(GraphId graph_id, VarId element_var_id, VarId key_var_id,
         VarId value_var_id, ElementType element_type, ObjectId key_object_id, ObjectId value_object_id);
     ~QueryOptimizerProperty() = default;
 

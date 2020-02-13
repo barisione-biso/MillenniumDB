@@ -2,7 +2,7 @@
 
 #include "base/binding/binding_iter.h"
 #include "base/parser/logical_plan/op/op.h"
-#include "relational_model/config.h"
+#include "relational_model/relational_model.h"
 #include "relational_model/binding/binding_id.h"
 #include "relational_model/binding/binding_id_iter.h"
 #include "relational_model/physical_plan/physical_plan_generator.h"

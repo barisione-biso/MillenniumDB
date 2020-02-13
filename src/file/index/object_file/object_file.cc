@@ -1,4 +1,6 @@
-#include "file/index/object_file/object_file.h"
+#include "object_file.h"
+
+#include "file/index/bplus_tree/bplus_tree.h"
 
 #include <iostream>
 #include <file/file_manager.h>
@@ -14,11 +16,6 @@ ObjectFile::ObjectFile(const string& filename)
         char c = 0;
         file.write(&c, 1);
     }
-}
-
-
-ObjectFile::~ObjectFile()  {
-    file.close();
 }
 
 

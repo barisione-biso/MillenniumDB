@@ -108,7 +108,7 @@ namespace parser
         ("<-" >> -('[' >> nomen >> "]-") >> attr(ast::EdgeDirection::left));
 
     auto const linear_pattern_def =
-        node >> *(edge >> node);
+        attr(GraphId(0)) >> node >> *(edge >> node);
 
     auto const selection =
         lit('*') >> attr(ast::All()) | (element % (',' >> omit[*space]));

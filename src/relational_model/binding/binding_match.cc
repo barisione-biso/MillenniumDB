@@ -1,6 +1,6 @@
 #include "binding_match.h"
 
-#include "file/index/object_file/object_file.h"
+#include "relational_model/relational_model.h"
 #include "relational_model/binding/binding_id.h"
 #include "relational_model/physical_plan/binding_id_iter/graph_scan.h"
 
@@ -8,8 +8,8 @@
 
 using namespace std;
 
-BindingMatch::BindingMatch(ObjectFile& object_file, map<string, VarId>& var_pos, unique_ptr<BindingId> binding_id)
-    : object_file(object_file), var_pos(var_pos), binding_id(move(binding_id)) { }
+BindingMatch::BindingMatch(map<string, VarId>& var_pos, unique_ptr<BindingId> binding_id)
+    : var_pos(var_pos), binding_id(move(binding_id)) { }
 
 
 void BindingMatch::print() const {
@@ -32,7 +32,7 @@ shared_ptr<Value> BindingMatch::operator[](const string& var) {
         if (var_pos_search != var_pos.end()) {
             auto var_id = (*var_pos_search).second;
             auto object_id = (*binding_id)[var_id];
-            return object_id.get_value(object_file);
+            return RelationalModel::get_value(object_id);
         }
         else return nullptr;
     }

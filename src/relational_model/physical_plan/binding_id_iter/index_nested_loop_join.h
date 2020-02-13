@@ -1,7 +1,7 @@
 #ifndef RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_
 #define RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_
 
-#include "base/var/var_id.h"
+#include "base/ids/var_id.h"
 #include "relational_model/binding/binding_id_iter.h"
 
 #include <map>

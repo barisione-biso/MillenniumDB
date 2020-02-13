@@ -2,7 +2,7 @@
 #include "base/binding/binding_iter.h"
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/op/op_select.h"
-#include "relational_model/config.h"
+#include "relational_model/relational_model.h"
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/query_optimizer/query_optimizer.h"
 
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     try {
         auto select_plan = Op::get_select_plan(query);
 
-        Config::init();
+        RelationalModel::init();
         // RelationalGraph graph = RelationalGraph(0, config);
         QueryOptimizer optimizer { };
         auto root = optimizer.get_select_plan(move(select_plan));

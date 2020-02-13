@@ -2,11 +2,16 @@
 
 #include "file/index/bplus_tree/bplus_tree.h"
 #include "file/index/bplus_tree/bplus_tree_params.h"
+
 #include <climits>
+#include <memory>
+
+
+using namespace std;
 
 void TestBPlusTree::create() {
-    BPlusTreeParams bpt_params = BPlusTreeParams("test_bpt", 2);
-    BPlusTree bpt = BPlusTree(bpt_params);
+    auto bpt_params =  make_unique<BPlusTreeParams>("test_bpt", 2);
+    BPlusTree bpt = BPlusTree(move(bpt_params));
 
     for (int i = 0; i < 100'000; i++) {
         uint64_t* c = new uint64_t[2];
@@ -20,8 +25,8 @@ void TestBPlusTree::create() {
 }
 
 void TestBPlusTree::test_order() {
-    BPlusTreeParams bpt_params = BPlusTreeParams("test_bpt", 2);
-    BPlusTree bpt = BPlusTree(bpt_params);
+    auto bpt_params = make_unique<BPlusTreeParams>("test_bpt", 2);
+    BPlusTree bpt = BPlusTree(move(bpt_params));
 
     uint64_t min[] = {0, 0};
 	uint64_t max[] = {UINT64_MAX, UINT64_MAX};

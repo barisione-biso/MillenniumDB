@@ -8,6 +8,8 @@
 #define TUPLES_PER_BLOCK 4096/8
 #define MAX_RUNS 8
 
+using namespace std;
+
 OrderedFile::OrderedFile(const string& filename, uint_fast8_t tuple_size)
     : tuple_size(tuple_size),
       file_id(FileManager::get_file_id(filename)),

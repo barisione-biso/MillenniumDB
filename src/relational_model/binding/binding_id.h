@@ -5,8 +5,8 @@
 #include <iterator>
 #include <vector>
 
-#include "base/var/var_id.h"
-#include "relational_model/graph/object_id.h"
+#include "base/ids/var_id.h"
+#include "base/ids/object_id.h"
 
 class ObjectFile;
 

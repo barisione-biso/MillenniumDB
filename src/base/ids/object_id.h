@@ -1,5 +1,5 @@
-#ifndef RELATIONAL_MODEL__OBJECT_ID_H_
-#define RELATIONAL_MODEL__OBJECT_ID_H_
+#ifndef BASE__OBJECT_ID_H_
+#define BASE__OBJECT_ID_H_
 
 #include <memory>
 
@@ -25,7 +25,6 @@ public:
     static ObjectId get_null();
     static ObjectId get_not_found();
 
-    std::shared_ptr<Value> get_value(ObjectFile& object_file);
     operator uint64_t() const;
 
     void operator = (const ObjectId& other);
@@ -34,4 +33,4 @@ public:
 
 };
 
-#endif //RELATIONAL_MODEL__OBJECT_ID_H_
+#endif //BASE__OBJECT_ID_H_

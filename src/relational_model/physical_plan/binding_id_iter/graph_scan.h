@@ -3,7 +3,7 @@
 
 #include "file/index/bplus_tree/bplus_tree.h"
 #include "relational_model/binding/binding_id_iter.h"
-#include "relational_model/graph/object_id.h"
+#include "base/ids/object_id.h"
 
 #include <functional>
 #include <list>

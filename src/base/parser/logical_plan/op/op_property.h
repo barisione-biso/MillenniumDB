@@ -1,6 +1,7 @@
 #ifndef BASE__OP_PROPERTY_H_
 #define BASE__OP_PROPERTY_H_
 
+#include "base/ids/graph_id.h"
 #include "base/graph/element_type.h"
 #include "base/parser/logical_plan/op/op.h"
 
@@ -8,13 +9,14 @@
 
 class OpProperty : public Op {
 public:
+    const GraphId graph_id;
     const ElementType type;
     const std::string var;
     const std::string key;
     const ast::Value value;
 
-    OpProperty(ElementType type, std::string var, std::string key, ast::Value value)
-        : type(type), var(std::move(var)), key(std::move(key)), value(std::move(value)) { }
+    OpProperty(GraphId graph_id, ElementType type, std::string var, std::string key, ast::Value value)
+        : graph_id(graph_id), type(type), var(std::move(var)), key(std::move(key)), value(std::move(value)) { }
 
     void accept_visitor(OpVisitor& visitor) {
         visitor.visit(*this);

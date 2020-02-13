@@ -25,17 +25,18 @@ public:
 
     OpMatch(const std::vector<ast::LinearPattern>& graph_pattern) {
         for (auto& linear_pattern : graph_pattern) {
-            auto last_node_name = process_node(linear_pattern.root);
+            auto graph_id = linear_pattern.graph_id;
+            auto last_node_name = process_node(graph_id, linear_pattern.root);
 
             for (auto& step_path : linear_pattern.path) {
-                auto current_node_name = process_node(step_path.node);
-                auto edge_name         = process_edge(step_path.edge);
+                auto current_node_name = process_node(graph_id, step_path.node);
+                auto edge_name         = process_edge(graph_id, step_path.edge);
 
                 if (step_path.edge.direction == ast::EdgeDirection::right) {
-                    connections.push_back(std::make_unique<OpConnection>(last_node_name, edge_name, current_node_name));
+                    connections.push_back(std::make_unique<OpConnection>(graph_id, last_node_name, edge_name, current_node_name));
                 }
                 else {
-                    connections.push_back(std::make_unique<OpConnection>(current_node_name, edge_name, last_node_name));
+                    connections.push_back(std::make_unique<OpConnection>(graph_id, current_node_name, edge_name, last_node_name));
                 }
                 last_node_name = std::move(current_node_name);
             }
@@ -43,7 +44,7 @@ public:
     }
 
 
-    std::string process_node(const ast::Node& node) {
+    std::string process_node(const GraphId graph_id, const ast::Node& node) {
         std::string var_name;
         if (node.var.empty()) {
             var_name = "_" + (anonymous_var_count++);
@@ -63,18 +64,18 @@ public:
         }
 
         for (auto& label : node.labels) {
-            labels.push_back(std::make_unique<OpLabel>(ElementType::node, var_name, label));
+            labels.push_back(std::make_unique<OpLabel>(graph_id, ElementType::node, var_name, label));
         }
 
         for (auto& property : node.properties) {
-            properties.push_back(std::make_unique<OpProperty>(ElementType::node, var_name, property.key, property.value));
+            properties.push_back(std::make_unique<OpProperty>(graph_id, ElementType::node, var_name, property.key, property.value));
         }
 
         return var_name;
     }
 
 
-    std::string process_edge(const ast::Edge& edge) {
+    std::string process_edge(const GraphId graph_id, const ast::Edge& edge) {
         std::string var_name;
         if (edge.var.empty()) {
             var_name = "_" + (anonymous_var_count++);
@@ -94,11 +95,11 @@ public:
         }
 
         for (auto& label : edge.labels) {
-            labels.push_back(std::make_unique<OpLabel>(ElementType::edge, var_name, label));
+            labels.push_back(std::make_unique<OpLabel>(graph_id, ElementType::edge, var_name, label));
         }
 
         for (auto& property : edge.properties) {
-            properties.push_back(std::make_unique<OpProperty>(ElementType::edge, var_name, property.key, property.value));
+            properties.push_back(std::make_unique<OpProperty>(graph_id, ElementType::edge, var_name, property.key, property.value));
         }
 
         return var_name;

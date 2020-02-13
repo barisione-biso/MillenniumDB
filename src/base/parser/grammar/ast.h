@@ -1,7 +1,8 @@
 #ifndef BASE__AST_H_
 #define BASE__AST_H_
 
-#include "base/var/var_id.h"
+#include "base/ids/graph_id.h"
+#include "base/ids/var_id.h"
 
 #include <iostream>
 #include <string>
@@ -51,6 +52,7 @@ namespace ast
     };
 
     struct LinearPattern {
+        GraphId graph_id;
         Node root;
         std::vector<StepPath> path;
     };

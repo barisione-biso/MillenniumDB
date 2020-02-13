@@ -1,11 +1,14 @@
 #include "query_optimizer_connection.h"
 
 #include "relational_model/binding/binding_id.h"
+#include "relational_model/relational_model.h"
 #include "relational_model/graph/relational_graph.h"
 
-QueryOptimizerConnection::QueryOptimizerConnection(RelationalGraph& graph, VarId from_var_id, VarId to_var_id,
+using namespace std;
+
+QueryOptimizerConnection::QueryOptimizerConnection(GraphId graph_id, VarId from_var_id, VarId to_var_id,
         VarId edge_var_id) :
-    graph(graph),
+    graph_id(graph_id),
     from_var_id(from_var_id),
     to_var_id(to_var_id),
     edge_var_id(edge_var_id)
@@ -70,25 +73,25 @@ unique_ptr<GraphScan> QueryOptimizerConnection::get_scan() {
             vars.push_back(make_pair(edge_var_id, 0));
             vars.push_back(make_pair(from_var_id, 1));
             vars.push_back(make_pair(to_var_id,   2));
-            return make_unique<GraphScan>(*graph.edge_from_to, terms, vars);
+            return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).edge_from_to, terms, vars);
         }
         else {
             vars.push_back(make_pair(from_var_id, 0));
             vars.push_back(make_pair(to_var_id,   1));
             vars.push_back(make_pair(edge_var_id, 2));
-            return make_unique<GraphScan>(*graph.from_to_edge, terms, vars);
+            return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).from_to_edge, terms, vars);
         }
     }
     else if (to_assigned) { // from_assigned == false
         vars.push_back(make_pair(to_var_id,   0));
         vars.push_back(make_pair(edge_var_id, 1));
         vars.push_back(make_pair(from_var_id, 2));
-        return make_unique<GraphScan>(*graph.to_edge_from, terms, vars);
+        return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).to_edge_from, terms, vars);
     }
     else {
         vars.push_back(make_pair(edge_var_id, 0));
         vars.push_back(make_pair(from_var_id, 1));
         vars.push_back(make_pair(to_var_id,   2));
-        return make_unique<GraphScan>(*graph.edge_from_to, terms, vars);
+        return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).edge_from_to, terms, vars);
     }
 }

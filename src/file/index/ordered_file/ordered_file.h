@@ -10,21 +10,18 @@
 
 class Record;
 
-using namespace std;
-
-class OrderedFile
-{
+class OrderedFile {
     public:
         const uint_fast8_t tuple_size;
 
-        OrderedFile(const string& filename, uint_fast8_t tuple_size);
+        OrderedFile(const std::string& filename, uint_fast8_t tuple_size);
         ~OrderedFile();
 
         void append_record(const Record& record);
-        void order(vector<uint_fast8_t> column_order);
+        void order(std::vector<uint_fast8_t> column_order);
 
         void print();
-        void check_order(vector<uint_fast8_t> column_order);
+        void check_order(std::vector<uint_fast8_t> column_order);
 
         void begin_iter();
         bool has_more_tuples();
@@ -44,7 +41,7 @@ class OrderedFile
         uint64_t** buffer;
         long filesize;
 
-        void create_run(uint64_t* buffer, uint_fast32_t block_number, vector<uint_fast8_t>& column_order, bool reorder);
+        void create_run(uint64_t* buffer, uint_fast32_t block_number, std::vector<uint_fast8_t>& column_order, bool reorder);
         bool record_less_than(uint_fast32_t buffer_pos, uint64_t* key, uint64_t* buffer);
         void move_record_right(uint_fast32_t buffer_pos, uint64_t* buffer);
         void assign_record(uint64_t* key, uint_fast32_t buffer_pos, uint64_t* buffer);

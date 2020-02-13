@@ -1,6 +1,6 @@
 #include "graph_scan.h"
 
-#include "base/var/var_id.h"
+#include "base/ids/var_id.h"
 #include "file/index/record.h"
 #include "file/index/bplus_tree/bplus_tree.h"
 #include "file/index/bplus_tree/bplus_tree_leaf.h"
@@ -14,7 +14,7 @@ using namespace std;
 
 GraphScan::GraphScan(BPlusTree& bpt, std::vector<std::pair<ObjectId, int>> terms,
     std::vector<std::pair<VarId, int>> vars)
-    : record_size(bpt.params.total_size), bpt(bpt), terms(std::move(terms)),
+    : record_size(bpt.params->total_size), bpt(bpt), terms(std::move(terms)),
       vars(std::move(vars)) { }
 
 

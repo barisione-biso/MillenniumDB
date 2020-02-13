@@ -1,6 +1,7 @@
 #ifndef BASE__OP_LABEL_H_
 #define BASE__OP_LABEL_H_
 
+#include "base/ids/graph_id.h"
 #include "base/graph/element_type.h"
 #include "base/parser/logical_plan/op/op.h"
 
@@ -8,12 +9,13 @@
 
 class OpLabel : public Op {
 public:
+    const GraphId graph_id;
     const ElementType type;
     const std::string var;
     const std::string label;
 
-    OpLabel(ElementType type, std::string var, std::string label)
-        : type(type), var(std::move(var)), label(std::move(label)) { }
+    OpLabel(GraphId graph_id, ElementType type, std::string var, std::string label)
+        : graph_id(graph_id), type(type), var(std::move(var)), label(std::move(label)) { }
 
     ~OpLabel() = default;
 

@@ -6,7 +6,7 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "relational_model/graph/relational_graph.h"
-#include "file/index/object_file/object_file.h"
+#include "relational_model/relational_model.h"
 #include "relational_model/physical_plan/binding_iter/filter.h"
 #include "relational_model/physical_plan/binding_iter/match.h"
 #include "relational_model/physical_plan/binding_iter/projection.h"
@@ -53,15 +53,15 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
     }
 
     for (auto& op_label : op_match.labels) {
-        ObjectId label_id = graph.get_id(op_label->label);
+        ObjectId label_id = RelationalModel::get_id(op_label->label);
         VarId element_obj_id = get_var_id(op_label->var);
-        elements.push_back(make_unique<QueryOptimizerLabel>(graph, element_obj_id, null_var, op_label->type, label_id));
+        elements.push_back(make_unique<QueryOptimizerLabel>(op_label->graph_id, element_obj_id, null_var, op_label->type, label_id));
     }
 
     for (auto& op_property : op_match.properties) {
         VarId element_obj_id = get_var_id(op_property->var);
         // VarId value_var = null_var;
-        ObjectId key_id = graph.get_id(op_property->key);
+        ObjectId key_id = RelationalModel::get_id(op_property->key);
         ObjectId value_id;
 
         // if (op_property->value.type() == typeid(VarId)) {// ESTE CASO NO OCURRE EN EL MATCH SOLO EN SELECT
@@ -69,29 +69,30 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
         // }
         if (op_property->value.type() == typeid(string)) {
             auto val_str = boost::get<string>(op_property->value);
-            value_id = graph.get_value_id(ValueString(val_str));
+            value_id = RelationalModel::get_id(ValueString(val_str));
         }
         else {
             throw logic_error("only strings supported for now.");
         }
 
         elements.push_back(make_unique<QueryOptimizerProperty>(
-            graph, element_obj_id, null_var, null_var, op_property->type, key_id, value_id ));
+            op_property->graph_id, element_obj_id, null_var, null_var, op_property->type, key_id, value_id ));
     }
 
     // Properties from select
     for (auto&& [var, key] : select_items) {
         VarId element_obj_id = get_var_id(var);
         VarId value_var = get_var_id(var + '.' + key);
-        ObjectId key_id = graph.get_id(key);
+        ObjectId key_id = RelationalModel::get_id(key);
 
+        // TODO: como sacar el graph_id?
         elements.push_back(make_unique<QueryOptimizerProperty>(
-            graph_id, element_obj_id, null_var, value_var, var_types[var], key_id, ObjectId::get_null() ));
+            GraphId(0), element_obj_id, null_var, value_var, var_types[var], key_id, ObjectId::get_null() ));
     }
 
     for (auto& op_connection : op_match.connections) {
         elements.push_back(make_unique<QueryOptimizerConnection>(
-            graph_id, get_var_id(op_connection->node_from), get_var_id(op_connection->node_to), get_var_id(op_connection->edge) ));
+            op_connection->graph_id, get_var_id(op_connection->node_from), get_var_id(op_connection->node_to), get_var_id(op_connection->edge) ));
     }
 
     tmp = make_unique<Match>(move(elements), move(id_map));

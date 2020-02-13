@@ -1,7 +1,7 @@
 #ifndef BASE__VALUE_H_
 #define BASE__VALUE_H_
 
-#include "base/var/var_id.h"
+#include "base/ids/var_id.h"
 #include "base/graph/value/value.h"
 
 #include <memory>

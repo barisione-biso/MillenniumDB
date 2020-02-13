@@ -10,8 +10,8 @@
 
 using namespace std;
 
-Match::Match(ObjectFile& obj_file, vector<unique_ptr<QueryOptimizerElement>> elements, std::map<std::string, VarId> var_pos)
-    : obj_file(obj_file), elements(move(elements)), var_pos(move(var_pos)) {
+Match::Match(vector<unique_ptr<QueryOptimizerElement>> elements, std::map<std::string, VarId> var_pos)
+    : elements(move(elements)), var_pos(move(var_pos)) {
 
     root = get_join_plan();
 }
@@ -28,7 +28,7 @@ unique_ptr<Binding> Match::next() {
     auto binding_id_ptr = root->next();
     if (binding_id_ptr != nullptr) {
         auto binding_id_copy = make_unique<BindingId>(*binding_id_ptr); // TODO: poner print en constructor copia para checkear que ese usa
-        return make_unique<BindingMatch>(obj_file, var_pos, move(binding_id_copy));
+        return make_unique<BindingMatch>(var_pos, move(binding_id_copy));
     }
     else {
         return nullptr;

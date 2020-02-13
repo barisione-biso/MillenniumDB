@@ -15,6 +15,9 @@
 #ifndef FILE__OBJECT_FILE_
 #define FILE__OBJECT_FILE_
 
+#include "base/graph/value/value.h"
+#include "base/ids/object_id.h"
+
 #include <fstream>
 #include <memory>
 #include <string>
@@ -26,9 +29,10 @@ class ObjectFile
 {
     public:
         ObjectFile(const std::string& filename);
-        ~ObjectFile();
+        ~ObjectFile() = default;
         std::unique_ptr<std::vector<char>> read(uint64_t id);
         uint64_t write(std::vector<char>& bytes);
+
     private:
         std::fstream& file;
 };

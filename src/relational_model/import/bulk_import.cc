@@ -5,6 +5,7 @@
 
 #include <iostream>
 
+using namespace std;
 
 BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_name, RelationalGraph& graph)
     : graph(graph),

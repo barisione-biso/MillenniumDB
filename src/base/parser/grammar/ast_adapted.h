@@ -10,7 +10,7 @@ BOOST_FUSION_ADAPT_STRUCT(ast::Root,
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::LinearPattern,
-    root, path
+    graph_id, root, path
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::StepPath,

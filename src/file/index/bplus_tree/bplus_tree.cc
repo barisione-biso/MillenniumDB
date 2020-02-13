@@ -12,21 +12,20 @@
 
 using namespace std;
 
-BPlusTree::BPlusTree(const BPlusTreeParams& params)
-    : params(params)
+BPlusTree::BPlusTree(unique_ptr<BPlusTreeParams> params)
+    : params(move(params))
 {
-    root = make_unique<BPlusTreeDir>(params, BufferManager::get_page(0, params.dir_file_id));
-    BPlusTreeLeaf first_leaf(params, BufferManager::get_page(0, params.leaf_file_id)); // just to see if BPT is empty
+    root = make_unique<BPlusTreeDir>(*params, BufferManager::get_page(0, params->dir_file_id));
+    BPlusTreeLeaf first_leaf(*params, BufferManager::get_page(0, params->leaf_file_id)); // just to see if BPT is empty
     is_empty = *first_leaf.count == 0;
 }
 
 
-void BPlusTree::bulk_import(OrderedFile& ordered_file)
-{
+void BPlusTree::bulk_import(OrderedFile& ordered_file) {
     ordered_file.begin_iter();
     // first leaf
-    BPlusTreeLeaf first_leaf(params, BufferManager::get_page(0, params.leaf_file_id));
-    *first_leaf.count = ordered_file.next_tuples(first_leaf.records, params.leaf_max_records);
+    BPlusTreeLeaf first_leaf(*params, BufferManager::get_page(0, params->leaf_file_id));
+    *first_leaf.count = ordered_file.next_tuples(first_leaf.records, params->leaf_max_records);
     // root.dirs[0] = 0;
     // cout << *first_leaf.count << "\n";
     int next_page_number = 1;
@@ -37,8 +36,8 @@ void BPlusTree::bulk_import(OrderedFile& ordered_file)
 
     while (ordered_file.has_more_tuples()) {
 
-        BPlusTreeLeaf new_leaf(params, BufferManager::get_page(next_page_number, params.leaf_file_id));
-        *new_leaf.count = ordered_file.next_tuples(new_leaf.records, params.leaf_max_records);
+        BPlusTreeLeaf new_leaf(*params, BufferManager::get_page(next_page_number, params->leaf_file_id));
+        *new_leaf.count = ordered_file.next_tuples(new_leaf.records, params->leaf_max_records);
         // cout << *new_leaf.count << "\n";
 
         if (ordered_file.has_more_tuples()) {
@@ -50,15 +49,13 @@ void BPlusTree::bulk_import(OrderedFile& ordered_file)
 }
 
 
-unique_ptr<BPlusTree::Iter> BPlusTree::get_range(const Record& min, const Record& max)
-{
+unique_ptr<BPlusTree::Iter> BPlusTree::get_range(const Record& min, const Record& max) {
     pair<int, int> page_number_and_pos = root->search_leaf(min);
-    return make_unique<Iter>(params, page_number_and_pos.first, page_number_and_pos.second, max);
+    return make_unique<Iter>(*params, page_number_and_pos.first, page_number_and_pos.second, max);
 }
 
 
-void BPlusTree::insert(const Record& record)
-{
+void BPlusTree::insert(const Record& record) {
     if (is_empty) {
         create_new(record, Record::get_empty_record());
         is_empty = false;
@@ -67,8 +64,8 @@ void BPlusTree::insert(const Record& record)
     root->insert(record, Record::get_empty_record());
 }
 
-void BPlusTree::insert(const Record& key, const Record& value)
-{
+
+void BPlusTree::insert(const Record& key, const Record& value) {
     if (is_empty) {
         create_new(key, value);
         is_empty = false;
@@ -78,20 +75,19 @@ void BPlusTree::insert(const Record& key, const Record& value)
 }
 
 // Insert first key at root, create leaf
-void BPlusTree::create_new(const Record& key, const Record& value)
-{
-    Page& leaf_page = BufferManager::get_page(0, params.leaf_file_id);
-    BPlusTreeLeaf first_leaf = BPlusTreeLeaf(params, leaf_page);
+void BPlusTree::create_new(const Record& key, const Record& value) {
+    Page& leaf_page = BufferManager::get_page(0, params->leaf_file_id);
+    BPlusTreeLeaf first_leaf = BPlusTreeLeaf(*params, leaf_page);
     first_leaf.create_new(key, value);
 }
 
-void BPlusTree::edit(const Record& key, const Record& value)
-{
+
+void BPlusTree::edit(const Record& key, const Record& value) {
     root->edit(key, value);
 }
 
-unique_ptr<Record> BPlusTree::get(const Record& key)
-{
+
+unique_ptr<Record> BPlusTree::get(const Record& key) {
     return root->get(key);
 }
 
@@ -103,8 +99,8 @@ BPlusTree::Iter::Iter(const BPlusTreeParams& params, int leaf_page_number, int c
     this->current_pos = current_pos;
 }
 
-unique_ptr<Record> BPlusTree::Iter::next()
-{
+
+unique_ptr<Record> BPlusTree::Iter::next() {
     if (current_pos < current_leaf->get_count()) {
         unique_ptr<Record> res = current_leaf->get_record(current_pos);
         // check if res is less than max

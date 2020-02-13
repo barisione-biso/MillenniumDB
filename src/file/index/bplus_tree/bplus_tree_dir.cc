@@ -9,24 +9,21 @@
 #include "file/index/bplus_tree/bplus_tree_leaf.h"
 #include "file/index/bplus_tree/bplus_tree_params.h"
 
+using namespace std;
+
 BPlusTreeDir::BPlusTreeDir(const BPlusTreeParams& params, Page& page)
     : params(params), page(page)
 {
     count = (int*) &page.get_bytes()[0];
     records = (uint64_t*) &page.get_bytes()[sizeof(int)];
     dirs = (int*) &page.get_bytes()[sizeof(int)+((sizeof(uint64_t)*params.dir_max_records*params.key_size))];
-    // std::cout << "count  : " << (void *)count << "\n";
-    // std::cout << "records: " << (void *)records << "\n";
-    // std::cout << "dirs   : " << (void *)dirs << "\n";
 }
 
-BPlusTreeDir::~BPlusTreeDir()
-{
+BPlusTreeDir::~BPlusTreeDir() {
     page.unpin();
 }
 
-void BPlusTreeDir::edit(const Record& key, const Record& value)
-{
+void BPlusTreeDir::edit(const Record& key, const Record& value) {
     int index = search_dir_index(0, *count, key);
 
     int page_pointer = dirs[index];
@@ -43,8 +40,7 @@ void BPlusTreeDir::edit(const Record& key, const Record& value)
     }
 }
 
-std::unique_ptr<Record> BPlusTreeDir::get(const Record& key)
-{
+std::unique_ptr<Record> BPlusTreeDir::get(const Record& key){
     int index = search_dir_index(0, *count, key);
 
     int page_pointer = dirs[index];
@@ -62,10 +58,7 @@ std::unique_ptr<Record> BPlusTreeDir::get(const Record& key)
 }
 
 // requieres first insert manually
-std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf& leaf)
-{
-    // std::cout << "DIR(" << page.get_page_number() << ") bulk insert\n";
-
+std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf& leaf) {
     int page_pointer = dirs[*count];
     std::unique_ptr<std::pair<Record, int>> split_record_index;
 
@@ -142,8 +135,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
 }
 
 
-std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, const Record& value)
-{
+std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, const Record& value) {
     int index = 0;
     if (*count > 0) index = search_dir_index(0, *count, key);
     int page_pointer = dirs[index];
@@ -295,20 +287,20 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
     return nullptr;
 }
 
-void BPlusTreeDir::update_record(int index, const Record& record)
-{
+
+void BPlusTreeDir::update_record(int index, const Record& record) {
     for (int i = 0; i < params.key_size; i++) {
         records[index*params.key_size + i] = record.ids[i];
     }
 }
 
-void BPlusTreeDir::update_dir(int index, int dir)
-{
+
+void BPlusTreeDir::update_dir(int index, int dir) {
     dirs[index] = dir;
 }
 
-void BPlusTreeDir::shift_right_records(int from, int to)
-{
+
+void BPlusTreeDir::shift_right_records(int from, int to) {
     for (int i = to; i >= from; i--) {
         for (int j = 0; j < params.key_size; j++) {
             records[(i+1)*params.key_size + j] = records[i*params.key_size + j];
@@ -316,15 +308,15 @@ void BPlusTreeDir::shift_right_records(int from, int to)
     }
 }
 
-void BPlusTreeDir::shift_right_dirs(int from, int to)
-{
+
+void BPlusTreeDir::shift_right_dirs(int from, int to) {
     for (int i = to; i >= from; i--) {
         dirs[i+1] = dirs[i];
     }
 }
 
-std::pair<int, int> BPlusTreeDir::search_leaf(const Record& min)
-{
+
+std::pair<int, int> BPlusTreeDir::search_leaf(const Record& min) {
     int dir_index = search_dir_index(0, *count, min);
     int page_pointer = dirs[dir_index];
 
@@ -340,8 +332,8 @@ std::pair<int, int> BPlusTreeDir::search_leaf(const Record& min)
     }
 }
 
-int BPlusTreeDir::search_dir_index(int dir_from, int dir_to, const Record& record)
-{
+
+int BPlusTreeDir::search_dir_index(int dir_from, int dir_to, const Record& record) {
     if (dir_from == dir_to) {
         return dir_from;
     }

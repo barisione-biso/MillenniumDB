@@ -38,13 +38,6 @@ ObjectId::operator uint64_t() const {
 }
 
 
-shared_ptr<Value> ObjectId::get_value(ObjectFile& object_file) { // TODO: mover a relational graph?
-    auto bytes = object_file.read(id);
-    string value_string(bytes->begin(), bytes->end());
-    return make_shared<ValueString>(move(value_string)); // TODO: revisar prefijo y soportar todos los tipos de valores
-}
-
-
 void ObjectId::operator=(const ObjectId& other) {
     this->id = other.id;
 }

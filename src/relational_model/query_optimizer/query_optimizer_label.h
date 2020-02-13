@@ -5,14 +5,15 @@
 #include <vector>
 
 #include "base/graph/element_type.h"
-#include "base/var/var_id.h"
+#include "base/ids/graph_id.h"
+#include "base/ids/var_id.h"
 #include "relational_model/query_optimizer/query_optimizer_element.h"
 
 class RelationalGraph;
 
 class QueryOptimizerLabel : public QueryOptimizerElement {
 private:
-    RelationalGraph& graph;
+    GraphId graph_id;
 
     VarId element_var_id;
     VarId label_var_id;
@@ -26,7 +27,7 @@ private:
     bool label_assigned;
 
 public:
-    QueryOptimizerLabel(RelationalGraph& graph, VarId element_var_id, VarId label_var_id,
+    QueryOptimizerLabel(GraphId graph_id, VarId element_var_id, VarId label_var_id,
         ElementType element_type, ObjectId label_object_id);
     ~QueryOptimizerLabel() = default;
     int get_heuristic();
