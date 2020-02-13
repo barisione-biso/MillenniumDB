@@ -26,23 +26,18 @@ public:
     std::unique_ptr<ValueAssign> lhs;
 
     Equals(ast::Statement const& statement) {
-        // left_var = statement.lhs.variable;
-        // left_key = statement.lhs.key;
-        // left_name = left_var + "." + left_key;
+        lhs = ValueAssignVariable(statement.lhs.variable, statement.lhs.key);
 
         if (statement.rhs.type() == typeid(ast::Element)) {
-            // rhs = nullptr;
             auto casted_rhs = boost::get<ast::Element>(statement.rhs);
-            // right_var = right.variable;
-            // right_key = right.variable;
-            // right_name = right_var + "." + right_key;
+            rhs = std::make_unique<ValueAssignVariable>(casted_rhs.variable, casted_rhs.key);
         }
         else {
             auto casted_rhs = boost::get<ast::Value>(statement.rhs);
             auto visitor = ValueVisitor();
-            auto a = visitor(casted_rhs);
+            auto value = visitor(casted_rhs);
+            rhs = std::make_unique<ValueAssignConstant>(value);
         }
-
      }
 
     bool eval(Binding& binding) {

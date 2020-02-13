@@ -7,7 +7,6 @@
 #include <map>
 
 class BindingId;
-class ObjectFile;
 
 class BindingMatch : public Binding {
 
