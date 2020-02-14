@@ -2,7 +2,6 @@
 
 #include "file/index/object_file/object_file.h"
 #include "relational_model/binding/binding_project.h"
-#include "relational_model/binding/binding_root.h"
 
 #include <iostream>
 
@@ -13,9 +12,7 @@ Projection::Projection(unique_ptr<BindingIter> iter, set<string> projection_vars
 
 
 void Projection::begin() {
-    // root_input = make_unique<BindingRoot>();
-    cout << "Projection begin\n";
-    iter->begin(/**root_input*/);
+    iter->begin();
 }
 
 

@@ -9,6 +9,7 @@
 
 #include <set>
 #include <memory>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -18,8 +19,9 @@ public:
     std::vector<std::unique_ptr<OpProperty>> properties;
     std::vector<std::unique_ptr<OpConnection>> connections;
 
-    std::set<std::string> nodes;
-    std::set<std::string> edges;
+    // std::set<std::string> nodes;
+    // std::set<std::string> edges;
+    std::map<std::string, std::pair<GraphId, ElementType>> var_info;
     int_fast32_t anonymous_var_count = 0;
 
 
@@ -52,14 +54,16 @@ public:
         else {
             var_name = node.var;
 
-            // check no edge has the same name
-            if (edges.find(var_name) != edges.end()) {
-                throw ParsingException();
-            }
+            auto search = var_info.find(var_name);
 
-            auto found = nodes.find(var_name);
-            if (found == nodes.end()) { // not found
-                nodes.insert(var_name);
+            if (search != var_info.end()) {
+                // check is a node
+                if ((*search).second.second != ElementType::node) {
+                    throw ParsingException();
+                }
+            }
+            else { // not found
+                var_info.insert({ var_name, std::make_pair(graph_id , ElementType::node) });
             }
         }
 
@@ -83,14 +87,16 @@ public:
         else {
             var_name = edge.var;
 
-            // check no node has the same name
-            if (nodes.find(var_name) != nodes.end()) {
-                throw ParsingException();
-            }
+            auto search = var_info.find(var_name);
 
-            auto found = edges.find(var_name);
-            if (found == edges.end()) { // not found
-                edges.insert(var_name);
+            if (search != var_info.end()) {
+                // check is an edge
+                if ((*search).second.second != ElementType::edge) {
+                    throw ParsingException();
+                }
+            }
+            else { // not found
+                var_info.insert({ var_name, std::make_pair(graph_id , ElementType::edge) });
             }
         }
 

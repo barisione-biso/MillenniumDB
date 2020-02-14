@@ -2,7 +2,9 @@
 #define RELATIONAL_MODEL__FILTER_H_
 
 #include "base/binding/binding_iter.h"
+#include "base/ids/graph_id.h"
 #include "base/ids/var_id.h"
+#include "base/graph/element_type.h"
 #include "relational_model/binding/binding_id_iter.h"
 
 #include <map>
@@ -15,10 +17,10 @@ class Filter : public BindingIter {
 private:
     std::unique_ptr<BindingIter> iter;
     std::unique_ptr<Condition> condition;
-    std::map<std::string, VarId> id_map;
+    std::map<std::string, std::pair<GraphId, ElementType>> var_info;
 
 public:
-    Filter(std::unique_ptr<BindingIter> iter, std::unique_ptr<Condition> condition, std::map<std::string, VarId> id_map);
+    Filter(std::unique_ptr<BindingIter> iter, std::unique_ptr<Condition> condition, std::map<std::string, std::pair<GraphId, ElementType>> var_info);
     ~Filter() = default;
 
     void begin();

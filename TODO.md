@@ -1,3 +1,4 @@
+- Ver bien lo de los prefijos al crear y al obtener values
 - Probar si usando constructores con rvalue references para unique_ptrs se mejora la performance.
 - Arreglar gramatica:
     - (no_skip afecta a comentarios //) ¿sacar no_skip?

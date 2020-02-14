@@ -12,7 +12,8 @@ enum class ValueType {
     Bool,
     Float,
     Int,
-    String
+    String,
+    Element
 };
 
 class Value {

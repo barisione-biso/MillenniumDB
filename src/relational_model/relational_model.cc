@@ -103,6 +103,7 @@ uint64_t RelationalModel::get_or_create_id(const string& str) {
 
 
 shared_ptr<Value> RelationalModel::get_value(ObjectId object_id) {
+    // TODO: ver prefijo
     auto bytes = instance->object_file->read(object_id);
     string value_string(bytes->begin(), bytes->end());
     return make_shared<ValueString>(move(value_string)); // TODO: only supporting ValueString

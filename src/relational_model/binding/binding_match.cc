@@ -27,7 +27,7 @@ shared_ptr<Value> BindingMatch::operator[](const string& var) {
         return (*cache_search).second;
     }
     else {                             // Not found in the cache
-        // search in the
+        // search in the binding_id
         auto var_pos_search = var_pos.find(var);
         if (var_pos_search != var_pos.end()) {
             auto var_id = (*var_pos_search).second;
@@ -41,25 +41,6 @@ shared_ptr<Value> BindingMatch::operator[](const string& var) {
 }
 
 
-shared_ptr<Value> BindingMatch::try_extend(const string& var, const string& key) {
-    auto var_pos_search = var_pos.find(var);
-    if (var_pos_search != var_pos.end()) {
-        /*auto element_var_id = (*var_pos_search).second;
-        auto element_object_id = (*binding_id)[element_var_id];
-
-        auto key_object_id = graph.get_id(key);
-        // TODO: search in EKV / NKV, need to differientate
-        vector<pair<ObjectId, int>> terms;
-        vector<pair<VarId, int>> vars;
-
-        terms.push_back(make_pair(element_object_id, 0));
-        terms.push_back(make_pair(key_object_id, 1));
-        vars.push_back(make_pair(var_pos[var + "." + key], 2)); // TODO: que hacer espacio porque el array ya esta lleno
-
-        GraphScan scan = GraphScan(bpt, terms, vars);*/
-        return nullptr;
-    }
-    else {
-        return nullptr;
-    }
+shared_ptr<Value> BindingMatch::get(const string& var, const string& key) {
+    return (*this)[var + "." + key];
 }

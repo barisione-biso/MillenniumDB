@@ -34,6 +34,6 @@ shared_ptr<Value> BindingProject::operator[](const string& var) {
 }
 
 
-shared_ptr<Value> BindingProject::try_extend(const string& var, const string& key) {
-    return current_binding->try_extend(var, key);
+shared_ptr<Value> BindingProject::get(const string& var, const string& key) {
+    return (*this)[var + "." + key];
 }

@@ -11,7 +11,6 @@ class Projection : public BindingIter {
 
 private:
     std::unique_ptr<BindingIter> iter;
-    std::unique_ptr<Binding> root_input;
     std::set<std::string> projection_vars;
 
 public:

@@ -12,14 +12,6 @@
 #include "file/index/bplus_tree/bplus_tree.h"
 #include "relational_model/relational_model.h"
 
-// #define NODE_MASK  0x0100000000000000UL
-// #define EDGE_MASK  0x0200000000000000UL
-// #define LABEL_MASK 0x0300000000000000UL
-// #define KEY_MASK   0x0400000000000000UL
-// #define VALUE_MASK 0x0500000000000000UL
-// #define UNMASK     0x00FFFFFFFFFFFFFFUL
-// TODO: ver posibles submasks de VALUE (int, char, float, string, date, bool)
-
 using namespace std;
 
 RelationalGraph::RelationalGraph(GraphId graph_id)

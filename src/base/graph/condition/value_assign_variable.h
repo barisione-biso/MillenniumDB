@@ -5,14 +5,15 @@
 
 class ValueAssignVariable : public ValueAssign {
 private:
-    std::shared_ptr<Value> value;
+    std::string var;
+    std::string key;
 public:
-    ValueAssignConstant(std::shared_ptr<Value> value)
-        : value(value) { }
-    ~ValueAssignConstant() = default;
+    ValueAssignVariable(std::string var, std::string key)
+        : var(std::move(var)), key(std::move(key)) { }
+    ~ValueAssignVariable() = default;
 
-    std::shared_ptr<Value> get_value(Binding&) {
-        return value;
+    std::shared_ptr<Value> get_value(Binding& binding) {
+        return binding.get(var, key);
     }
 };
 
