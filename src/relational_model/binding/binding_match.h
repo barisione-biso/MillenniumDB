@@ -13,7 +13,7 @@ class BindingMatch : public Binding {
 private:
     const std::map<std::string, VarId> var_pos;
     std::unique_ptr<BindingId> binding_id;
-    std::map<std::string, std::shared_ptr<Value>> cache;
+    std::map<std::string, std::shared_ptr<GraphObject>> cache;
 
 public:
     BindingMatch(const std::map<std::string, VarId>& var_pos,
@@ -21,8 +21,8 @@ public:
     ~BindingMatch() = default;
 
     void print() const;
-    std::shared_ptr<Value> operator[](const std::string& var);
-    std::shared_ptr<Value> get(const std::string& var, const std::string& key);
+    std::shared_ptr<GraphObject> operator[](const std::string& var);
+    std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key);
 };
 
 #endif //RELATIONAL_MODEL__BINDING_MATCH_H_

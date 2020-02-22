@@ -32,7 +32,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/bin/CreateDB",
             "args": [
-                "${workspaceFolder}/test_files/graph_creation_example/nodes.txt", 
+                "${workspaceFolder}/test_files/graph_creation_example/nodes.txt",
                 "${workspaceFolder}/test_files/graph_creation_example/edges.txt"
             ],
             "stopAtEntry": false,

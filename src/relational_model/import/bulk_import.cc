@@ -62,7 +62,7 @@ void BulkImport::start_import() {
 
     // connect nodes
     line_number = 1;
-    cout << "conecting nodes:\n";
+    cout << "connecting nodes:\n";
     for (auto&& [from, to, edge_id] : edges_original_ids) {
         cout << "\r  line " << line_number++ << std::flush;
         from_to_edge.append_record(Record(node_dict[from], node_dict[to], edge_id));
@@ -104,10 +104,10 @@ void BulkImport::start_import() {
     from_to_edge.order(vector<uint_fast8_t> { 0, 1, 2 });
     graph.from_to_edge->bulk_import(from_to_edge);
 
-    from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 }); // TODO: revisar
+    from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 });
     graph.to_edge_from->bulk_import(from_to_edge);
 
-    from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 }); // TODO: revisar
+    from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 });
     graph.edge_from_to->bulk_import(from_to_edge);
 }
 

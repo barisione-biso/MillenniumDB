@@ -12,7 +12,7 @@ public:
         : var(std::move(var)), key(std::move(key)) { }
     ~ValueAssignVariable() = default;
 
-    std::shared_ptr<Value> get_value(Binding& binding) {
+    std::shared_ptr<GraphObject> get_value(Binding& binding) {
         return binding.get(var, key);
     }
 };

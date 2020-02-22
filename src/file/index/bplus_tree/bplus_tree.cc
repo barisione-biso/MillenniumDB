@@ -12,8 +12,8 @@
 
 using namespace std;
 
-BPlusTree::BPlusTree(unique_ptr<BPlusTreeParams> params)
-    : params(move(params))
+BPlusTree::BPlusTree(unique_ptr<BPlusTreeParams> _params)
+    : params(move(_params))
 {
     root = make_unique<BPlusTreeDir>(*params, BufferManager::get_page(0, params->dir_file_id));
     BPlusTreeLeaf first_leaf(*params, BufferManager::get_page(0, params->leaf_file_id)); // just to see if BPT is empty

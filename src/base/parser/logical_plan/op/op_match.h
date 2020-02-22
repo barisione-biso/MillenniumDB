@@ -21,7 +21,7 @@ public:
 
     // std::set<std::string> nodes;
     // std::set<std::string> edges;
-    std::map<std::string, std::pair<GraphId, ElementType>> var_info;
+    std::map<std::string, std::pair<GraphId, ObjectType>> var_info;
     int_fast32_t anonymous_var_count = 0;
 
 
@@ -58,21 +58,21 @@ public:
 
             if (search != var_info.end()) {
                 // check is a node
-                if ((*search).second.second != ElementType::node) {
+                if ((*search).second.second != ObjectType::node) {
                     throw ParsingException();
                 }
             }
             else { // not found
-                var_info.insert({ var_name, std::make_pair(graph_id , ElementType::node) });
+                var_info.insert({ var_name, std::make_pair(graph_id , ObjectType::node) });
             }
         }
 
         for (auto& label : node.labels) {
-            labels.push_back(std::make_unique<OpLabel>(graph_id, ElementType::node, var_name, label));
+            labels.push_back(std::make_unique<OpLabel>(graph_id, ObjectType::node, var_name, label));
         }
 
         for (auto& property : node.properties) {
-            properties.push_back(std::make_unique<OpProperty>(graph_id, ElementType::node, var_name, property.key, property.value));
+            properties.push_back(std::make_unique<OpProperty>(graph_id, ObjectType::node, var_name, property.key, property.value));
         }
 
         return var_name;
@@ -91,21 +91,21 @@ public:
 
             if (search != var_info.end()) {
                 // check is an edge
-                if ((*search).second.second != ElementType::edge) {
+                if ((*search).second.second != ObjectType::edge) {
                     throw ParsingException();
                 }
             }
             else { // not found
-                var_info.insert({ var_name, std::make_pair(graph_id , ElementType::edge) });
+                var_info.insert({ var_name, std::make_pair(graph_id , ObjectType::edge) });
             }
         }
 
         for (auto& label : edge.labels) {
-            labels.push_back(std::make_unique<OpLabel>(graph_id, ElementType::edge, var_name, label));
+            labels.push_back(std::make_unique<OpLabel>(graph_id, ObjectType::edge, var_name, label));
         }
 
         for (auto& property : edge.properties) {
-            properties.push_back(std::make_unique<OpProperty>(graph_id, ElementType::edge, var_name, property.key, property.value));
+            properties.push_back(std::make_unique<OpProperty>(graph_id, ObjectType::edge, var_name, property.key, property.value));
         }
 
         return var_name;

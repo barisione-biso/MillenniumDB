@@ -1,9 +1,10 @@
-#include "file/index/ordered_file/ordered_file.h"
+#include "ordered_file.h"
+
+#include "file/index/record.h"
 
 #include <chrono>
 #include <climits>
 #include <memory>
-#include "file/index/record.h"
 
 #define TUPLES_PER_BLOCK 4096/8
 #define MAX_RUNS 8
@@ -75,14 +76,12 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
         current_output_pos = 0;
     }
 
-    auto start = std::chrono::system_clock::now();
+    // auto start = std::chrono::system_clock::now();
     bool reading_orginal_file = true;
 
     file.seekg(0, ios::end);
     const uint64_t size_in_bytes = file.tellg();
     uint_fast32_t total_blocks = size_in_bytes/block_size_in_bytes + (size_in_bytes%block_size_in_bytes != 0);
-    std::cout << "size_in_bytes : " << size_in_bytes << "\n";
-    std::cout << "total_blocks: " << total_blocks << "\n";
 
     bool reorder = false;
     for (size_t i = 0; i < column_order.size(); i++) {
@@ -97,9 +96,9 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
         create_run(big_buffer, i, column_order, reorder);
     }
 
-    auto end_phase0 = std::chrono::system_clock::now();
-    std::chrono::duration<float,std::milli> duration = end_phase0 - start;
-    std::cout << duration.count() << "ms " << std::endl;
+    // auto end_phase0 = std::chrono::system_clock::now();
+    // std::chrono::duration<float,std::milli> duration = end_phase0 - start;
+    // std::cout << duration.count() << "ms " << std::endl;
 
     uint_fast32_t buffer_size[MAX_RUNS];
     uint_fast32_t buffer_current_pos[MAX_RUNS];
@@ -191,14 +190,13 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
         FileManager::rename(tmp_file_id, file_id);
     }
     else {
-        // std::cout  << "removing\n";
         FileManager::remove(tmp_file_id);
     }
     FileManager::ensure_open(file_id);
 
-    auto end = std::chrono::system_clock::now();
-    duration = end - end_phase0;
-    std::cout << duration.count() << "ms " << std::endl;
+    // auto end = std::chrono::system_clock::now();
+    // duration = end - end_phase0;
+    // std::cout << duration.count() << "ms " << std::endl;
 }
 
 // First Step: order (MAX_RUNS) blocks at once

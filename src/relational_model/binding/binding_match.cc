@@ -20,7 +20,7 @@ void BindingMatch::print() const {
 }
 
 
-shared_ptr<Value> BindingMatch::operator[](const string& var) {
+shared_ptr<GraphObject> BindingMatch::operator[](const string& var) {
     // search in the cache map
     auto cache_search = cache.find(var);
     if (cache_search != cache.end()) { // Found in the cache
@@ -41,6 +41,6 @@ shared_ptr<Value> BindingMatch::operator[](const string& var) {
 }
 
 
-shared_ptr<Value> BindingMatch::get(const string& var, const string& key) {
+shared_ptr<GraphObject> BindingMatch::get(const string& var, const string& key) {
     return (*this)[var + "." + key];
 }

@@ -1,28 +1,19 @@
 #ifndef BASE__VALUE_H_
 #define BASE__VALUE_H_
 
-#include "base/ids/var_id.h"
-#include "base/graph/value/value.h"
+#include "base/graph/graph_object.h"
 
 #include <memory>
 #include <string>
 #include <vector>
 
-enum class ValueType {
-    Bool,
-    Float,
-    Int,
-    String,
-    Element
-};
-
-class Value {
+class Value : public GraphObject {
 public:
     virtual std::unique_ptr<std::vector<char>> get_bytes() const = 0;
     virtual std::string to_string() const = 0;
-    virtual ValueType type() const = 0;
+    virtual ObjectType type() const = 0;
 
-    virtual bool operator==(const Value& rhs) const = 0;
+    virtual bool operator==(const GraphObject& rhs) const = 0;
 };
 
 #endif //BASE__VALUE_H_

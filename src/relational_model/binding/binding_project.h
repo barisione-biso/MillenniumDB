@@ -21,8 +21,8 @@ public:
 
     // void update_binding(); ?
     void print() const;
-    std::shared_ptr<Value> operator[](const std::string& var);
-    std::shared_ptr<Value> get(const std::string& var, const std::string& key);
+    std::shared_ptr<GraphObject> operator[](const std::string& var);
+    std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key);
 };
 
 #endif //RELATIONAL_MODEL__BINDING_PROJECT_H_

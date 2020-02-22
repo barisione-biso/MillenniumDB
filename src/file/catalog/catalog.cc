@@ -1,6 +1,8 @@
 #include "catalog.h"
 #include "file/file_manager.h"
 
+#include <iostream>
+
 using namespace std;
 
 Catalog::Catalog(const string& filename)
@@ -43,7 +45,7 @@ Catalog::Catalog(const string& filename)
 
 Catalog::~Catalog() {
     save_changes();
-    file.close();
+    cout << "saving catalog\n";
 }
 
 void Catalog::save_changes(){

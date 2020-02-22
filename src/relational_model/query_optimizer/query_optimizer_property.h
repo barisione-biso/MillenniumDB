@@ -1,7 +1,7 @@
 #ifndef RELATIONAL_MODEL__QUERY_OPTIMIZER_PROPERTY_H_
 #define RELATIONAL_MODEL__QUERY_OPTIMIZER_PROPERTY_H_
 
-#include "base/graph/element_type.h"
+#include "base/graph/graph_object.h"
 #include "base/ids/graph_id.h"
 #include "base/ids/var_id.h"
 #include "relational_model/query_optimizer/query_optimizer_element.h"
@@ -17,7 +17,7 @@ private:
     VarId key_var_id;
     VarId value_var_id;
 
-    ElementType element_type;
+    ObjectType element_type;
     ObjectId key_object_id;
     ObjectId value_object_id;
 
@@ -29,7 +29,7 @@ private:
 
 public:
     QueryOptimizerProperty(GraphId graph_id, VarId element_var_id, VarId key_var_id,
-        VarId value_var_id, ElementType element_type, ObjectId key_object_id, ObjectId value_object_id);
+        VarId value_var_id, ObjectType element_type, ObjectId key_object_id, ObjectId value_object_id);
     ~QueryOptimizerProperty() = default;
 
     int get_heuristic();

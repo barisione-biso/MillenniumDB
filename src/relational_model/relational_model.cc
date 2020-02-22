@@ -1,5 +1,6 @@
 #include "relational_model.h"
 
+#include "base/graph/value/value_int.h"
 #include "base/graph/value/value_string.h"
 #include "relational_model/graph/relational_graph.h"
 
@@ -7,7 +8,8 @@
 
 using namespace std;
 
-unique_ptr<RelationalModel> RelationalModel::instance = nullptr;
+unique_ptr<RelationalModel> RelationalModel::instance = nullptr; // can't use static object because dependency with BufferManager
+// TODO: need to destruct catalog to write to disk
 
 RelationalModel::RelationalModel() {
     object_file = make_unique<ObjectFile>(object_file_name);
@@ -103,10 +105,19 @@ uint64_t RelationalModel::get_or_create_id(const string& str) {
 
 
 shared_ptr<Value> RelationalModel::get_value(ObjectId object_id) {
-    // TODO: ver prefijo
     auto bytes = instance->object_file->read(object_id);
-    string value_string(bytes->begin(), bytes->end());
-    return make_shared<ValueString>(move(value_string)); // TODO: only supporting ValueString
+    auto prefix = object_id >> 56;
+    if (prefix == VALUE_STR_MASK >> 56) {
+        string value_string(bytes->begin(), bytes->end());
+        return make_shared<ValueString>(move(value_string));
+    }
+    else if (prefix == VALUE_INT_MASK >> 56) {
+        int i = 0;
+        return make_shared<ValueInt>(i);
+    }
+    else {
+        throw logic_error("wrong value prefix.");
+    }
 }
 
 

@@ -4,32 +4,31 @@
 #include "base/graph/value/value.h"
 
 class ValueString : public Value {
-private:
-    std::string value;
-
 public:
+    const std::string value;
+
     ValueString(std::string value)
-        : value(value) { }
+        : value(std::move(value)) { }
     ~ValueString() = default;
 
-    std::unique_ptr<std::vector<char>> get_bytes() const {
+    std::unique_ptr<std::vector<char>> get_bytes() const override {
         int string_len = value.length();
         std::unique_ptr<std::vector<char>> res = std::make_unique<std::vector<char>>(string_len);
 	    std::copy(value.begin(), value.end(), (*res).begin());
         return res;
     }
 
-    std::string to_string() const {
+    std::string to_string() const override {
         return value;
     }
 
-    ValueType type() const {
-        return ValueType::String;
+    ObjectType type() const override {
+        return ObjectType::value_string;
     }
 
-    bool operator==(const Value& rhs) const {
-        if (rhs.type() == ValueType::String) {
-            const auto& casted_rhs = dynamic_cast<const ValueString&>(rhs);
+    bool operator==(const GraphObject& rhs) const override {
+        if (rhs.type() == ObjectType::value_string) {
+            const auto& casted_rhs = static_cast<const ValueString&>(rhs);
             return this->value == casted_rhs.value;
         }
         return false;

@@ -3,7 +3,7 @@
 
 #include "base/ids/var_id.h"
 #include "base/ids/graph_id.h"
-#include "base/graph/element_type.h"
+#include "base/graph/graph_object.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 
 #include <map>
@@ -20,7 +20,7 @@ class PhysicalPlanGenerator : OpVisitor {
 private:
     std::unique_ptr<BindingIter> tmp;
     std::map<std::string, VarId> id_map;
-    std::map<std::string, std::pair<GraphId, ElementType>> var_info; // graph_id and element_type
+    std::map<std::string, std::pair<GraphId, ObjectType>> var_info; // graph_id and element_type
     std::vector<std::pair<std::string, std::string>> select_items;
     int_fast32_t id_count = 0;
 

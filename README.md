@@ -38,7 +38,7 @@
     - Install the extension Remote-WSL
 - First time Setup
     - Open Ubuntu app
-    - Important: how to copy-paste in the console 
+    - Important: how to copy-paste in the console
         - To copy text from the console you can select the text dragging left-click, then right-click.
         - To paste some copied text, just right-click (having no text selected, otherwise selected text will be copied).
     - Install prerrequisites to compile:

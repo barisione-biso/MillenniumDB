@@ -9,7 +9,7 @@
 using namespace std;
 
 Filter::Filter(unique_ptr<BindingIter> iter, unique_ptr<Condition> condition,
-    map<string, pair<GraphId, ElementType>> var_info)
+    map<string, pair<GraphId, ObjectType>> var_info)
     : iter(move(iter)), condition(move(condition)), var_info(move(var_info)) { }
 
 

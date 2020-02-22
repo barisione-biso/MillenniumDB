@@ -85,10 +85,10 @@ int main(int argc, char **argv)
         //     for(auto const& t: id2type) {
         //         switch (t.second)
         //         {
-        //         case ElementType::NODE:
+        //         case ObjectType::NODE:
         //             s = "NODE";
         //             break;
-        //         case ElementType::EDGE:
+        //         case ObjectType::EDGE:
         //             s = "EDGE";
         //             break;
         //         default:

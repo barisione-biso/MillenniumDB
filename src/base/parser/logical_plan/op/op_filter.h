@@ -53,12 +53,12 @@ public:
             }
             else { // AND
                 if (tmp->type() == ConditionType::conjunction) { // already AND
-                    Conjunction* conjuction = dynamic_cast<Conjunction*>(tmp.get());
+                    Conjunction* conjuction = static_cast<Conjunction*>(tmp.get());
                     conjuction->add(std::move(step));
                 }
                 else {
                     tmp = std::make_unique<Conjunction>();
-                    Conjunction* conjuction = dynamic_cast<Conjunction*>(tmp.get());
+                    Conjunction* conjuction = static_cast<Conjunction*>(tmp.get());
                     conjuction->add(std::move(tmp));
                     conjuction->add(std::move(step));
                 }

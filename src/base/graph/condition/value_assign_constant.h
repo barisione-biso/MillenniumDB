@@ -5,13 +5,13 @@
 
 class ValueAssignConstant : public ValueAssign {
 private:
-    std::shared_ptr<Value> value;
+    std::shared_ptr<GraphObject> value;
 public:
     ValueAssignConstant(std::unique_ptr<Value> value)
         : value(std::move(value)) { }
     ~ValueAssignConstant() = default;
 
-    std::shared_ptr<Value> get_value(Binding&) {
+    std::shared_ptr<GraphObject> get_value(Binding&) {
         return value;
     }
 };

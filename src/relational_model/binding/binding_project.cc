@@ -26,7 +26,7 @@ void BindingProject::print() const {
 }
 
 
-shared_ptr<Value> BindingProject::operator[](const string& var) {
+shared_ptr<GraphObject> BindingProject::operator[](const string& var) {
     if (projection_vars.find(var) != projection_vars.end()) {
         return (*current_binding)[var];
     }
@@ -34,6 +34,6 @@ shared_ptr<Value> BindingProject::operator[](const string& var) {
 }
 
 
-shared_ptr<Value> BindingProject::get(const string& var, const string& key) {
+shared_ptr<GraphObject> BindingProject::get(const string& var, const string& key) {
     return (*this)[var + "." + key];
 }

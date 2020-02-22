@@ -7,7 +7,7 @@
 using namespace std;
 
 QueryOptimizerProperty::QueryOptimizerProperty(GraphId graph_id, VarId element_var_id, VarId key_var_id,
-    VarId value_var_id, ElementType element_type, ObjectId key_object_id, ObjectId value_object_id) :
+    VarId value_var_id, ObjectType element_type, ObjectId key_object_id, ObjectId value_object_id) :
     graph_id(graph_id),
     element_var_id(element_var_id),
     key_var_id(key_var_id),
@@ -88,10 +88,10 @@ unique_ptr<GraphScan> QueryOptimizerProperty::get_scan() {
                 terms.push_back(make_pair(value_object_id, 2));
             }
         }
-        if (element_type == ElementType::node) {
+        if (element_type == ObjectType::node) {
             return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).node2prop, terms, vars);
         }
-        else { // if (element_type == ElementType::edge)
+        else { // if (element_type == ObjectType::edge)
             return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).edge2prop, terms, vars);
         }
     }
@@ -116,10 +116,10 @@ unique_ptr<GraphScan> QueryOptimizerProperty::get_scan() {
         }
         vars.push_back(make_pair(element_var_id, 2));
 
-        if (element_type == ElementType::node) {
+        if (element_type == ObjectType::node) {
             return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).prop2node, terms, vars);
         }
-        else { // if (element_type == ElementType::edge)
+        else { // if (element_type == ObjectType::edge)
             return make_unique<GraphScan>(*RelationalModel::get_graph(graph_id).prop2edge, terms, vars);
         }
     }

@@ -1,3 +1,5 @@
+- use nifty counter for singletons?
+- add override to virtual functions overrided?
 - Ver bien lo de los prefijos al crear y al obtener values
 - Probar si usando constructores con rvalue references para unique_ptrs se mejora la performance.
 - Arreglar gramatica:
