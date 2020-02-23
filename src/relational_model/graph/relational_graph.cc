@@ -46,12 +46,12 @@ RelationalGraph::RelationalGraph(GraphId graph_id)
 
 
 uint64_t RelationalGraph::create_node() {
-    return RelationalModel::get_catalog().create_node();
+    return RelationalModel::get_catalog().create_node() | NODE_MASK;
 }
 
 
 uint64_t RelationalGraph::create_edge() {
-    return RelationalModel::get_catalog().create_edge();
+    return RelationalModel::get_catalog().create_edge() | EDGE_MASK;
 }
 
 /******************************************* Methods for bulk import ***************************************/

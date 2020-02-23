@@ -1,5 +1,7 @@
 #include "relational_model.h"
 
+#include "base/graph/edge.h"
+#include "base/graph/node.h"
 #include "base/graph/value/value_int.h"
 #include "base/graph/value/value_string.h"
 #include "relational_model/graph/relational_graph.h"
@@ -115,10 +117,16 @@ shared_ptr<GraphObject> RelationalModel::get_object(ObjectId object_id) {
         int i = 0;
         return make_shared<ValueInt>(i);
     }
+    else if (prefix == NODE_MASK >> 56) {
+        return make_shared<Node>(object_id);
+    }
+    else if (prefix == EDGE_MASK >> 56) {
+        return make_shared<Edge>(object_id);
+    }
     else {
-        cout << "wrong value prefix:" << std::to_string(prefix);
-        auto bytes = instance->object_file->read(object_id & UNMASK);
-        string value_string(bytes->begin(), bytes->end());
+        cout << "wrong value prefix:" << std::to_string(prefix) << endl;
+        // auto bytes = instance->object_file->read(object_id & UNMASK);
+        string value_string = "";
         return make_shared<ValueString>(move(value_string));
         // throw logic_error("wrong value prefix:" + std::to_string(prefix));
     }

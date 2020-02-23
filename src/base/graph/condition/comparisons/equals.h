@@ -39,7 +39,7 @@ public:
         auto right_value = rhs->get_value(binding);
 
         if (left_value != nullptr) {
-            return left_value == right_value;
+            return *left_value == *right_value;
         }
         else {
             return false;

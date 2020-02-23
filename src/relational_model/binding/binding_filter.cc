@@ -21,6 +21,7 @@ std::shared_ptr<GraphObject> BindingFilter::operator[](const std::string&) {
 
 std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const std::string& key) {
     auto search_var = var + "." + key;
+    cout << "searching in BindingFilter " << search_var << endl;
     auto value = binding[search_var];
     if (value != nullptr) {
         return value;
@@ -31,8 +32,13 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
     }
     else { // no esta en el cache ni el el binding original
         auto info = var_info[var];
-        auto key_object_id = RelationalModel::get_id(key);
-
+        auto key_object_id = RelationalModel::get_id(key); // TODO: esta busqueda se debería hacer solo 1 vez por consulta
+        if (key_object_id.is_null()) {
+            cout << "key_object_id null\n";
+        }
+        if (key_object_id.not_found()) {
+            cout << "key_object_id not found\n";
+        }
         auto var_value = binding[var];
 
         // TODO: add to cache
@@ -59,6 +65,7 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
         auto res = it->next();
         if (res != nullptr) {
             auto value_obj_id = ObjectId(res->ids[2]);
+            cout << "Found obj_id " << value_obj_id << endl;
             return RelationalModel::get_object(value_obj_id);
         }
         else {

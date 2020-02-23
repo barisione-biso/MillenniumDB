@@ -5,7 +5,7 @@
             "label": "Release Configure",
             "type": "shell",
             "command": "cmake -H. -Bbuild/Release -DCMAKE_BUILD_TYPE=Release",
-            "presentation":{
+            "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": true,
@@ -18,7 +18,7 @@
             "label": "Release Build",
             "type": "shell",
             "command": "cmake --build build/Release/",
-            "presentation":{
+            "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": true,
@@ -27,13 +27,16 @@
                 "clear": false
             },
             "group": "build",
-            "dependsOn": ["Release Configure"]
+            "dependsOn": [
+                "Release Configure"
+            ],
+            "problemMatcher": []
         },
         {
             "label": "Debug Configure",
             "type": "shell",
             "command": "cmake -H. -Bbuild/Debug -DCMAKE_BUILD_TYPE=Debug",
-            "presentation":{
+            "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": true,
@@ -46,7 +49,7 @@
             "label": "Debug Build",
             "type": "shell",
             "command": "cmake --build build/Debug/",
-            "presentation":{
+            "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": true,
@@ -55,7 +58,9 @@
                 "clear": false
             },
             "group": "build",
-            "dependsOn": ["Debug Configure"]
+            "dependsOn": [
+                "Debug Configure"
+            ]
         }
     ]
 }
