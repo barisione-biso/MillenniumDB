@@ -11,8 +11,6 @@ public:
     ConstantCondition (bool constant) : constant(constant) { }
 
     bool eval(Binding&) {
-        std::cout << "eval constant\n";
-
         return constant;
     }
 

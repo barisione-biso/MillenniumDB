@@ -125,10 +125,8 @@ shared_ptr<GraphObject> RelationalModel::get_object(ObjectId object_id) {
     }
     else {
         cout << "wrong value prefix:" << std::to_string(prefix) << endl;
-        // auto bytes = instance->object_file->read(object_id & UNMASK);
         string value_string = "";
         return make_shared<ValueString>(move(value_string));
-        // throw logic_error("wrong value prefix:" + std::to_string(prefix));
     }
 }
 

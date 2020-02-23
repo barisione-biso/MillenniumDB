@@ -57,19 +57,20 @@ public:
                     conjuction->add(std::move(step));
                 }
                 else {
-                    tmp = std::make_unique<Conjunction>();
-                    Conjunction* conjuction = static_cast<Conjunction*>(tmp.get());
-                    conjuction->add(std::move(tmp));
-                    conjuction->add(std::move(step));
+                    auto tmp2 = std::make_unique<Conjunction>();
+                    tmp2->add(std::move(tmp));
+                    tmp2->add(std::move(step));
+                    tmp = std::move(tmp2);
                 }
             }
         }
-        if (tmp_disjunction.size() == 0) {
-            return tmp;
+        if (tmp_disjunction.size() > 0) {
+            auto res = std::make_unique<Disjunction>(std::move(tmp_disjunction));
+            res->add(std::move(tmp));
+            return res;
         }
-        else {
-            return std::make_unique<Disjunction>(std::move(tmp_disjunction));
-        }
+        else return tmp;
+
     }
 
 
