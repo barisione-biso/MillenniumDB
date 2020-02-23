@@ -1,4 +1,4 @@
-#include "tests/test_bplus_tree.h"
+#include "test_bplus_tree.h"
 
 #include "file/index/bplus_tree/bplus_tree.h"
 #include "file/index/bplus_tree/bplus_tree_params.h"

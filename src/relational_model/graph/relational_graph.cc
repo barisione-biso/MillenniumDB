@@ -71,7 +71,7 @@ Record RelationalGraph::get_record_for_edge_label(uint64_t edge_id, const string
 
 Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const string& key, const Value& value) {
     uint64_t key_id = RelationalModel::get_or_create_id(key);
-    uint64_t value_id = RelationalModel::get_or_create_id(value.get_bytes()) & get_mask(value);
+    uint64_t value_id = RelationalModel::get_or_create_id(value.get_bytes()) | get_mask(value);
 
     RelationalModel::get_catalog().add_node_key(key_id);
     return Record(node_id, key_id, value_id);
@@ -80,7 +80,7 @@ Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const str
 
 Record RelationalGraph::get_record_for_edge_property(uint64_t edge_id, const string& key, const Value& value) {
     uint64_t key_id = RelationalModel::get_or_create_id(key);
-    uint64_t value_id = RelationalModel::get_or_create_id(value.get_bytes()) & get_mask(value);
+    uint64_t value_id = RelationalModel::get_or_create_id(value.get_bytes()) | get_mask(value);
 
     RelationalModel::get_catalog().add_edge_key(key_id);
     return Record(edge_id, key_id, value_id);

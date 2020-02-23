@@ -12,14 +12,16 @@
 #include <memory>
 #include <map>
 
-#define NODE_MASK      0x0100000000000000UL
-#define EDGE_MASK      0x0200000000000000UL
-#define LABEL_MASK     0x0300000000000000UL
-#define KEY_MASK       0x0400000000000000UL
-#define VALUE_STR_MASK 0x0500000000000000UL
-#define VALUE_INT_MASK 0x0600000000000000UL
-#define UNMASK         0x00FFFFFFFFFFFFFFUL
-// TODO: ver posibles submasks de VALUE (int, char, float, string, date, bool)
+#define NODE_MASK        0x0100000000000000UL
+#define EDGE_MASK        0x0200000000000000UL
+#define LABEL_MASK       0x0300000000000000UL
+#define KEY_MASK         0x0400000000000000UL
+#define VALUE_STR_MASK   0x0500000000000000UL
+#define VALUE_INT_MASK   0x0600000000000000UL
+#define VALUE_FLOAT_MASK 0x0700000000000000UL
+#define VALUE_CHAR_MASK  0x0800000000000000UL
+#define VALUE_BOOL_MASK  0x0900000000000000UL
+#define UNMASK           0x00FFFFFFFFFFFFFFUL
 
 class RelationalGraph;
 
@@ -49,7 +51,7 @@ public:
     static ObjectId get_id(const Value&);
     static ObjectId get_id(const std::string&);
 
-    static std::shared_ptr<Value> get_value(ObjectId);
+    static std::shared_ptr<GraphObject> get_object(ObjectId);
 
     static ObjectFile& get_object_file();
     static Catalog&    get_catalog();

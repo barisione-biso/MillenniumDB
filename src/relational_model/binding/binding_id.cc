@@ -4,9 +4,7 @@
 
 using namespace std;
 
-BindingId::BindingId(int_fast32_t var_count)
-{
-    // TODO: if CHECKING flag is set, check var_count >= 0
+BindingId::BindingId(int_fast32_t var_count) {
     dict = vector<ObjectId>(var_count);
 }
 

@@ -5,11 +5,11 @@
 #include "relational_model/graph/relational_graph.h"
 
 #include <openssl/md5.h>
+#include <iostream>
 
 using namespace std;
 
 unique_ptr<RelationalModel> RelationalModel::instance = nullptr; // can't use static object because dependency with BufferManager
-// TODO: need to destruct catalog to write to disk
 
 RelationalModel::RelationalModel() {
     object_file = make_unique<ObjectFile>(object_file_name);
@@ -104,10 +104,10 @@ uint64_t RelationalModel::get_or_create_id(const string& str) {
 }
 
 
-shared_ptr<Value> RelationalModel::get_value(ObjectId object_id) {
-    auto bytes = instance->object_file->read(object_id);
+shared_ptr<GraphObject> RelationalModel::get_object(ObjectId object_id) {
     auto prefix = object_id >> 56;
     if (prefix == VALUE_STR_MASK >> 56) {
+        auto bytes = instance->object_file->read(object_id & UNMASK);
         string value_string(bytes->begin(), bytes->end());
         return make_shared<ValueString>(move(value_string));
     }
@@ -116,7 +116,11 @@ shared_ptr<Value> RelationalModel::get_value(ObjectId object_id) {
         return make_shared<ValueInt>(i);
     }
     else {
-        throw logic_error("wrong value prefix.");
+        cout << "wrong value prefix:" << std::to_string(prefix);
+        auto bytes = instance->object_file->read(object_id & UNMASK);
+        string value_string(bytes->begin(), bytes->end());
+        return make_shared<ValueString>(move(value_string));
+        // throw logic_error("wrong value prefix:" + std::to_string(prefix));
     }
 }
 

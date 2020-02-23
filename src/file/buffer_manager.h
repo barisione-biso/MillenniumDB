@@ -12,7 +12,6 @@ class Buffer;
 class BufferManager {
 friend class FileManager;
 public:
-    // static void flush(); // TODO: should be automatically called, move to destructor?
     static Page& get_page(uint_fast32_t page_number, FileId file_id);
     static Page& append_page(FileId file_id);
 

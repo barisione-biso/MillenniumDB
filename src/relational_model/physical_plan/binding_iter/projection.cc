@@ -22,6 +22,6 @@ std::unique_ptr<Binding> Projection::next() {
         return nullptr;
     }
     else {
-        return make_unique<BindingProject>(projection_vars, move(next_binding));;
+        return make_unique<BindingProject>(projection_vars, move(next_binding));
     }
 }

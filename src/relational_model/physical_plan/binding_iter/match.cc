@@ -53,7 +53,7 @@ unique_ptr<BindingIdIter> Match::get_join_plan() {
             }
         }
         if (best_heuristic == -1) {
-            throw logic_error("something is wrong with query optimizer"); // TODO: delete redundant check
+            throw logic_error("something is wrong with query optimizer"); // TODO: delete redundant check ?
         }
         auto assigned_vars = elements[best_index]->assign();
 

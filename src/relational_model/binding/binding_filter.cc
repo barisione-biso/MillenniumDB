@@ -59,7 +59,7 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
         auto res = it->next();
         if (res != nullptr) {
             auto value_obj_id = ObjectId(res->ids[2]);
-            return RelationalModel::get_value(value_obj_id);
+            return RelationalModel::get_object(value_obj_id);
         }
         else {
             return nullptr;
