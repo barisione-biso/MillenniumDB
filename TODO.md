@@ -1,3 +1,5 @@
+- refactoring a Record
+- sacar = default de los .h y pasalos al .cc
 - use nifty counter for singletons?
 - add override to virtual functions overrided?
 - Ver bien lo de los prefijos al crear y al obtener values
@@ -19,9 +21,6 @@
 - Example queries
 - Buffer manager:
     - allocating more space if necesary
-- Importing graph:
-    - remove "" to strings
-    - add int support
 - Object File:
     - use disk if importing more than X nodes?
 - Catalog:

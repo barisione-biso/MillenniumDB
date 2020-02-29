@@ -11,8 +11,8 @@ public:
         : value(value) { }
     ~ValueBool() = default;
 
-    std::unique_ptr<std::vector<char>> get_bytes() const override {
-        return std::make_unique<std::vector<char>>(1, (char)value);
+    std::unique_ptr<std::vector<unsigned char>> get_bytes() const override {
+        return std::make_unique<std::vector<unsigned char>>(1, (unsigned char)value);
     }
 
     std::string to_string() const override {

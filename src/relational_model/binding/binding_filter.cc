@@ -66,7 +66,7 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
         if (res != nullptr) {
             auto value_obj_id = ObjectId(res->ids[2]);
             cout << "Found obj_id " << value_obj_id << endl;
-            return RelationalModel::get_object(value_obj_id);
+            return RelationalModel::get_graph_object(value_obj_id);
         }
         else {
             return nullptr;

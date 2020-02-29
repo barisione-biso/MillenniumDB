@@ -13,10 +13,12 @@ BindingMatch::BindingMatch(const map<string, VarId>& var_pos, unique_ptr<Binding
 
 
 void BindingMatch::print() const {
-    cout << "BindingMatch should not be called to be printed.\n";
-    for (auto&& [a, b] : var_pos) {
-        cout << a << ", " << b.id << "\n";
+    cout << "{";
+    for (auto&& [var, varid] : var_pos) {
+        auto a = (*binding_id)[varid] & UNMASK;
+        cout << var << ":Id(" << a << ")";
     }
+    cout << "}\n";
 }
 
 
@@ -32,7 +34,7 @@ shared_ptr<GraphObject> BindingMatch::operator[](const string& var) {
         if (var_pos_search != var_pos.end()) {
             auto var_id = (*var_pos_search).second;
             auto object_id = (*binding_id)[var_id];
-            auto value = RelationalModel::get_object(object_id);
+            auto value = RelationalModel::get_graph_object(object_id);
             cache.insert({ var, value });
             return value;
         }

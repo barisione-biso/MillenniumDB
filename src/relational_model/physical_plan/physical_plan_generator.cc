@@ -29,13 +29,19 @@ unique_ptr<BindingIter> PhysicalPlanGenerator::exec(OpSelect& op_select) {
 
 
 void PhysicalPlanGenerator::visit (OpSelect& op_select) {
-    set<std::string> projection_vars;
-    select_items = move(op_select.select_items);
-    for (auto&& [key, value] : select_items) {
-        projection_vars.insert(key + '.' + value);
+    if (op_select.select_all) {
+        op_select.op->accept_visitor(*this);
+        tmp = make_unique<Projection>(move(tmp));
     }
-    op_select.op->accept_visitor(*this);
-    tmp = make_unique<Projection>(move(tmp), move(projection_vars));
+    else {
+        set<std::string> projection_vars;
+        select_items = move(op_select.select_items);
+        for (auto&& [key, value] : select_items) {
+            projection_vars.insert(key + '.' + value);
+        }
+        op_select.op->accept_visitor(*this);
+        tmp = make_unique<Projection>(move(tmp), move(projection_vars));
+    }
 }
 
 

@@ -57,11 +57,11 @@ unique_ptr<BPlusTree::Iter> BPlusTree::get_range(const Record& min, const Record
 
 void BPlusTree::insert(const Record& record) {
     if (is_empty) {
-        create_new(record, Record::get_empty_record());
+        create_new(record, Record());
         is_empty = false;
         return;
     }
-    root->insert(record, Record::get_empty_record());
+    root->insert(record, Record());
 }
 
 

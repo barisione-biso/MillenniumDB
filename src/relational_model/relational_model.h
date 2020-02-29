@@ -12,16 +12,17 @@
 #include <memory>
 #include <map>
 
-#define NODE_MASK        0x0100000000000000UL
-#define EDGE_MASK        0x0200000000000000UL
-#define LABEL_MASK       0x0300000000000000UL
-#define KEY_MASK         0x0400000000000000UL
-#define VALUE_STR_MASK   0x0500000000000000UL
-#define VALUE_INT_MASK   0x0600000000000000UL
-#define VALUE_FLOAT_MASK 0x0700000000000000UL
-#define VALUE_CHAR_MASK  0x0800000000000000UL
-#define VALUE_BOOL_MASK  0x0900000000000000UL
-#define UNMASK           0x00FFFFFFFFFFFFFFUL
+const uint64_t NODE_MASK                 = 0x0100000000000000UL;
+const uint64_t EDGE_MASK                 = 0x0200000000000000UL;
+const uint64_t LABEL_MASK                = 0x0300000000000000UL;
+const uint64_t KEY_MASK                  = 0x0400000000000000UL;
+const uint64_t VALUE_EXTERNAL_STR_MASK   = 0x0500000000000000UL;
+const uint64_t VALUE_INLINE_STR_MASK     = 0x0600000000000000UL;
+const uint64_t VALUE_INT_MASK            = 0x0700000000000000UL;
+const uint64_t VALUE_FLOAT_MASK          = 0x0800000000000000UL;
+const uint64_t VALUE_BOOL_MASK           = 0x0900000000000000UL;
+const uint64_t UNMASK                    = 0x00FFFFFFFFFFFFFFUL;
+const uint64_t MASK                      = 0xFF00000000000000UL;
 
 class RelationalGraph;
 
@@ -35,6 +36,8 @@ private:
     std::unique_ptr<BPlusTree>  hash2id; // ObjectHash|ObjectId.
     std::map<GraphId, std::unique_ptr<RelationalGraph>> graphs;
 
+    static uint64_t get_or_create_external_id(std::unique_ptr< std::vector<unsigned char> > obj_bytes);
+
 public:
 
     // constructor should be private but needed for make_unique
@@ -43,15 +46,17 @@ public:
 
     static void init();
 
+    // id won't be masked
     static uint64_t get_or_create_id(const std::string& str);
-    static uint64_t get_or_create_id(std::unique_ptr< std::vector<char> > obj_bytes);
+    // id will be masked
+    static uint64_t get_or_create_id(const Value& value);
 
     static RelationalGraph& get_graph(GraphId);
 
     static ObjectId get_id(const Value&);
     static ObjectId get_id(const std::string&);
 
-    static std::shared_ptr<GraphObject> get_object(ObjectId);
+    static std::shared_ptr<GraphObject> get_graph_object(ObjectId);
 
     static ObjectFile& get_object_file();
     static Catalog&    get_catalog();

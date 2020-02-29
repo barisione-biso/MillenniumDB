@@ -11,10 +11,9 @@ class Value;
 
 class ObjectId {
 
-private:
+public:
     uint64_t id;
 
-public:
     ObjectId(uint64_t id);
     ObjectId(); // initialized with NULL_OBJECT_ID
     ~ObjectId() = default;

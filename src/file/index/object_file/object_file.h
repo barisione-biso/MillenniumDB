@@ -30,8 +30,8 @@ class ObjectFile
     public:
         ObjectFile(const std::string& filename);
         ~ObjectFile() = default;
-        std::unique_ptr<std::vector<char>> read(uint64_t id);
-        uint64_t write(std::vector<char>& bytes);
+        std::unique_ptr<std::vector<unsigned char>> read(uint64_t id);
+        uint64_t write(std::vector<unsigned char>& bytes);
 
     private:
         std::fstream& file;

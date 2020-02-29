@@ -58,7 +58,7 @@ public:
     void connect_nodes(uint64_t id_from, uint64_t id_to, uint64_t id_edge);
 
 private:
-    uint64_t get_mask(const Value& value);
+    uint64_t get_value_mask(const Value& value);
 };
 
 #endif //RELATIONAL_MODEL__GRAPH_H_

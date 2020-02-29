@@ -14,9 +14,9 @@ public:
         : value(value) { }
     ~ValueFloat() = default;
 
-    std::unique_ptr<std::vector<char>> get_bytes() const override {
-        std::unique_ptr<std::vector<char>> res = std::make_unique<std::vector<char>>(sizeof(value));
-	    std::memcpy((*res).data(), &value, sizeof(value));
+    std::unique_ptr<std::vector<unsigned char>> get_bytes() const override {
+        auto res = std::make_unique<std::vector<unsigned char>>(sizeof(value));
+	    std::memcpy(res->data(), &value, sizeof(value));
         return res;
     }
 

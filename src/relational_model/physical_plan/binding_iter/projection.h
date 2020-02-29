@@ -12,10 +12,12 @@ class Projection : public BindingIter {
 private:
     std::unique_ptr<BindingIter> iter;
     std::set<std::string> projection_vars;
+    const bool select_all;
 
 public:
+    Projection(std::unique_ptr<BindingIter> iter); // constructor for select *
     Projection(std::unique_ptr<BindingIter> iter, std::set<std::string> projection_vars);
-    ~Projection() = default;
+    ~Projection();
 
     void begin();
     std::unique_ptr<Binding> next();

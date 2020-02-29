@@ -22,15 +22,14 @@ RelationalModel::RelationalModel() {
 
 
 void RelationalModel::init() {
-    instance = std::make_unique<RelationalModel>();
+    instance = make_unique<RelationalModel>();
 }
 
-
+// TODO: fusionar con get_id(Value)
 ObjectId RelationalModel::get_id(const string& str) {
-    uint64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
+    static_assert(MD5_DIGEST_LENGTH == 16, "Hash is expected to use 16 bytes.");
+    uint64_t hash[2];
     MD5((const unsigned char*)str.c_str(), str.size(), (unsigned char *)hash);
-
-    uint64_t id;
 
     // check if bpt contains object
     BPlusTree& bpt = get_hash2id_bpt();
@@ -39,23 +38,21 @@ ObjectId RelationalModel::get_id(const string& str) {
         Record(hash[0], hash[1], UINT64_MAX)
     );
     auto next = iter->next();
-    if (next == nullptr) { // label_name doesn't exist
+    if (next == nullptr) { // object doesn't exists
         return ObjectId::get_not_found();
     }
-    else { // label_name already exists
-        id = next->ids[2];
+    else {                 // object already exists
+        return ObjectId(next->ids[2]);
     }
-    return ObjectId(id);
 }
 
 
-ObjectId RelationalModel::get_id(Value const& value) {
-    uint64_t hash[2]; // check MD5_DIGEST_LENGTH == 16?
+ObjectId RelationalModel::get_id(const Value& value) {
+    static_assert(MD5_DIGEST_LENGTH == 16, "Hash is expected to use 16 bytes.");
+    uint64_t hash[2];
     auto bytes = value.get_bytes();
     MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
 
-    uint64_t value_id;
-
     // check if bpt contains object
     BPlusTree& bpt = get_hash2id_bpt();
     auto iter = bpt.get_range(
@@ -63,17 +60,33 @@ ObjectId RelationalModel::get_id(Value const& value) {
         Record(hash[0], hash[1], UINT64_MAX)
     );
     auto next = iter->next();
-    if (next == nullptr) {
+    if (next == nullptr) { // object doesn't exists
         return ObjectId::get_not_found();
     }
-    else { // label_name already exists
-        value_id = next->ids[2];
+    else {                 // object already exists
+        return ObjectId(next->ids[2]);
     }
-    return ObjectId(value_id);
 }
 
 
-uint64_t RelationalModel::get_or_create_id(unique_ptr< vector<char> > obj_bytes) {
+uint64_t RelationalModel::get_or_create_id(const Value& value) { // will not include mask
+    auto obj_bytes = value.get_bytes();
+    if (obj_bytes->size() > 7) { // MAX 7 bytes inlined
+        return get_or_create_external_id(move(obj_bytes));
+    }
+    else {
+        uint64_t res = 0;
+        int shift_size = 0;
+        for (uint64_t byte : *obj_bytes) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            res |= byte << shift_size;
+            shift_size += 8;
+        }
+        return res;
+    }
+}
+
+
+uint64_t RelationalModel::get_or_create_external_id(unique_ptr< vector<unsigned char> > obj_bytes) {
     uint64_t hash[2];
     MD5((const unsigned char*)obj_bytes->data(), obj_bytes->size(), (unsigned char *)hash);
 
@@ -99,32 +112,71 @@ uint64_t RelationalModel::get_or_create_id(unique_ptr< vector<char> > obj_bytes)
 
 uint64_t RelationalModel::get_or_create_id(const string& str) {
     int string_len = str.length();
-    std::unique_ptr<std::vector<char>> bytes = std::make_unique<std::vector<char>>(string_len);
-    std::copy(str.begin(), str.end(), (*bytes).begin());
+    auto bytes = make_unique<vector<unsigned char>>(string_len);
+    copy(str.begin(), str.end(), bytes->begin());
 
-    return get_or_create_id(std::move(bytes));
+    return get_or_create_external_id(move(bytes));
 }
 
 
-shared_ptr<GraphObject> RelationalModel::get_object(ObjectId object_id) {
-    auto prefix = object_id >> 56;
-    if (prefix == VALUE_STR_MASK >> 56) {
+shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
+    auto mask = object_id.id & MASK;
+
+    if (mask == VALUE_EXTERNAL_STR_MASK) {
         auto bytes = instance->object_file->read(object_id & UNMASK);
         string value_string(bytes->begin(), bytes->end());
         return make_shared<ValueString>(move(value_string));
     }
-    else if (prefix == VALUE_INT_MASK >> 56) {
-        int i = 0;
+    else if (mask == VALUE_INLINE_STR_MASK) {
+        string value_string = "";
+        int shift_size = 0;
+        for (int i = 0; i < 7; i++) {
+            uint8_t byte = (object_id >> shift_size) & 0xFF;
+            if (byte == 0x00) {
+                break;
+            }
+            value_string.push_back(byte);
+            shift_size += 8;
+        }
+        // value_string.push_back('\0');
+        return make_shared<ValueString>(move(value_string));
+    }
+    else if (mask == VALUE_INT_MASK) {
+        static_assert(sizeof(int) == 4, "int must be 4 bytes");
+        int i;
+        uint8_t* dest = (uint8_t*)&i;
+        dest[0] = object_id & 0xFF;
+        dest[1] = (object_id >> 8) & 0xFF;
+        dest[2] = (object_id >> 16) & 0xFF;
+        dest[3] = (object_id >> 24) & 0xFF;
         return make_shared<ValueInt>(i);
     }
-    else if (prefix == NODE_MASK >> 56) {
-        return make_shared<Node>(object_id);
+    else if (mask == VALUE_FLOAT_MASK) {
+        static_assert(sizeof(float) == 4, "float must be 4 bytes");
+        float f;
+        uint8_t* dest = (uint8_t*)&f;
+        dest[0] = object_id & 0xFF;
+        dest[1] = (object_id >> 8) & 0xFF;
+        dest[2] = (object_id >> 16) & 0xFF;
+        dest[3] = (object_id >> 24) & 0xFF;
+        return make_shared<ValueFloat>(f);
     }
-    else if (prefix == EDGE_MASK >> 56) {
-        return make_shared<Edge>(object_id);
+    else if (mask == VALUE_BOOL_MASK) {
+        bool b;
+        uint8_t* dest = (uint8_t*)&b;
+        *dest = object_id & 0xFF;
+        return make_shared<ValueFloat>(b);
+    }
+    else if (mask == NODE_MASK) {
+        return make_shared<Node>(object_id & UNMASK);
+    }
+    else if (mask == EDGE_MASK) {
+        return make_shared<Edge>(object_id & UNMASK);
     }
     else {
-        cout << "wrong value prefix:" << std::to_string(prefix) << endl;
+        cout << "wrong value prefix:\n"; //<< to_string(prefix) << endl;
+        printf("  obj_id: %lX\n", object_id.id);
+        printf("  mask: %lX\n", mask);
         string value_string = "";
         return make_shared<ValueString>(move(value_string));
     }
@@ -141,6 +193,7 @@ RelationalGraph& RelationalModel::get_graph(GraphId graph_id) {
         return *instance->graphs[graph_id].get();
     }
 }
+
 
 ObjectFile& RelationalModel::get_object_file() { return *instance->object_file; }
 Catalog&    RelationalModel::get_catalog()     { return *instance->catalog; }

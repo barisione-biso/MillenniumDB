@@ -1,4 +1,3 @@
 SELECT ?x.Agassiz
 MATCH (?x :molluscs)
-WHERE NOT(?x.Agassiz == "calcium" AND (?x.Agassiz == "nosing" AND ?x.Agassiz == "permuting") )
-
+// WHERE NOT(?x.Agassiz == "calcium" AND (?x.Agassiz == "nosing" AND ?x.Agassiz == "permuting") )

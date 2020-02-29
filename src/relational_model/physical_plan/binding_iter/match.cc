@@ -27,7 +27,7 @@ unique_ptr<Binding> Match::next() {
 
     auto binding_id_ptr = root->next();
     if (binding_id_ptr != nullptr) {
-        auto binding_id_copy = make_unique<BindingId>(*binding_id_ptr); // TODO: poner print en constructor copia para checkear que ese usa
+        auto binding_id_copy = make_unique<BindingId>(*binding_id_ptr);
         return make_unique<BindingMatch>(var_pos, move(binding_id_copy));
     }
     else {

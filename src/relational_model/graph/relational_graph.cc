@@ -71,7 +71,7 @@ Record RelationalGraph::get_record_for_edge_label(uint64_t edge_id, const string
 
 Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const string& key, const Value& value) {
     uint64_t key_id = RelationalModel::get_or_create_id(key);
-    uint64_t value_id = RelationalModel::get_or_create_id(value.get_bytes()) | get_mask(value);
+    uint64_t value_id = RelationalModel::get_or_create_id(value) | get_value_mask(value);
 
     RelationalModel::get_catalog().add_node_key(key_id);
     return Record(node_id, key_id, value_id);
@@ -80,7 +80,7 @@ Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const str
 
 Record RelationalGraph::get_record_for_edge_property(uint64_t edge_id, const string& key, const Value& value) {
     uint64_t key_id = RelationalModel::get_or_create_id(key);
-    uint64_t value_id = RelationalModel::get_or_create_id(value.get_bytes()) | get_mask(value);
+    uint64_t value_id = RelationalModel::get_or_create_id(value) | get_value_mask(value);
 
     RelationalModel::get_catalog().add_edge_key(key_id);
     return Record(edge_id, key_id, value_id);
@@ -118,7 +118,7 @@ void RelationalGraph::add_label_to_edge(uint64_t edge_id, const string& label) {
 
 void RelationalGraph::add_property_to_node(uint64_t node_id, const string& key, const Value& value) {
     uint64_t key_id   = RelationalModel::get_or_create_id(key);
-    uint64_t value_id = RelationalModel::get_or_create_id(value.get_bytes());
+    uint64_t value_id = RelationalModel::get_or_create_id(value) | get_value_mask(value);
 
     node2prop->insert( Record(node_id, key_id, value_id) );
     prop2node->insert( Record(key_id, value_id, node_id) );
@@ -129,7 +129,7 @@ void RelationalGraph::add_property_to_node(uint64_t node_id, const string& key, 
 
 void RelationalGraph::add_property_to_edge(uint64_t edge_id, const string& key, const Value& value) {
     uint64_t key_id   = RelationalModel::get_or_create_id(key);
-    uint64_t value_id = RelationalModel::get_or_create_id(value.get_bytes());
+    uint64_t value_id = RelationalModel::get_or_create_id(value) | get_value_mask(value);
 
     edge2prop->insert( Record(edge_id, key_id, value_id) );
     prop2edge->insert( Record(key_id, value_id, edge_id) );
@@ -138,16 +138,25 @@ void RelationalGraph::add_property_to_edge(uint64_t edge_id, const string& key, 
 }
 /********************************** End methods to add elements one by one *********************************/
 
-
-uint64_t RelationalGraph::get_mask(const Value& value) {
+uint64_t RelationalGraph::get_value_mask(const Value& value) {
     auto type = value.type();
     if (type == ObjectType::value_string) {
-        return VALUE_STR_MASK;
+        const auto& string_value = static_cast<const ValueString&>(value);
+        if (string_value.value.size() < 8) { // 7 bytes availables
+            return VALUE_INLINE_STR_MASK;
+        }
+        else return VALUE_EXTERNAL_STR_MASK;
     }
     else if (type == ObjectType::value_int) {
         return VALUE_INT_MASK;
     }
+    else if (type == ObjectType::value_float) {
+        return VALUE_FLOAT_MASK;
+    }
+    else if (type == ObjectType::value_bool) {
+        return VALUE_BOOL_MASK;
+    }
     else {
-        throw std::logic_error("Only supported int and strings");
+        throw logic_error("Unexpected value type.");
     }
 }

@@ -8,9 +8,9 @@
 
 class Record {
 public:
-    std::unique_ptr<uint64_t[]> ids; // TODO: ver si usar vector del valor es más rápido
-    static Record& get_empty_record();
+    std::unique_ptr<uint64_t[]> ids;
 
+    Record();
     Record(std::vector<uint64_t> arr);
     Record(uint64_t e1);
     Record(uint64_t e1, uint64_t e2);
@@ -25,7 +25,6 @@ public:
 
 
 private:
-    Record();
     int record_size; // we don't need this if vector is used
     static Record empty_record;
 };

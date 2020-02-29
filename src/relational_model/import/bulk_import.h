@@ -1,13 +1,13 @@
-#ifndef RELATIONAL_MODEL__IMPORT__BULK_IMPORT_H
-#define RELATIONAL_MODEL__IMPORT__BULK_IMPORT_H
+#ifndef RELATIONAL_MODEL__BULK_IMPORT_H_
+#define RELATIONAL_MODEL__BULK_IMPORT_H_
+
+#include "file/index/ordered_file/ordered_file.h"
+#include "relational_model/import/bulk_import_ast.h"
 
 #include <string>
 #include <fstream>
 #include <list>
 #include <map>
-#include <regex>
-
-#include "file/index/ordered_file/ordered_file.h"
 
 class RelationalGraph;
 
@@ -23,20 +23,11 @@ private:
     std::ifstream edges_file;
     RelationalGraph& graph;
 
-    void process_node(const std::string& line, int line_number);
-    void process_edge(const std::string& line, int line_number);
+    void process_node(const bulk_import_ast::Node& node);
+    void process_edge(const bulk_import_ast::Edge& edge);
 
-    uint64_t node_count;
-    uint64_t edge_count;
     std::map<uint64_t, uint64_t> node_dict;
     std::list<std::tuple<uint64_t, uint64_t, uint64_t>> edges_original_ids;
-
-    std::regex edge_line_expr;
-    std::regex node_line_expr;
-    std::regex node_expr;
-    std::regex edge_expr;
-    std::regex label_expr;
-    std::regex properties_expr;
 
     OrderedFile node_labels;
     OrderedFile edge_labels;
@@ -45,4 +36,4 @@ private:
     OrderedFile from_to_edge;
 };
 
-#endif //RELATIONAL_MODEL__IMPORT__BULK_IMPORT_H
+#endif //RELATIONAL_MODEL__BULK_IMPORT_H_

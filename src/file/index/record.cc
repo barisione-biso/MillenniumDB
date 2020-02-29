@@ -10,6 +10,7 @@ Record::Record(std::vector<uint64_t> arr) {
     }
 }
 
+
 Record::Record() { // only for empty Record
     record_size = 0;
     ids = nullptr;
@@ -22,12 +23,14 @@ Record::Record(uint64_t e1) {
     ids[0] = e1;
 }
 
+
 Record::Record(uint64_t e1, uint64_t e2) {
     record_size = 2;
     ids = std::make_unique<uint64_t[]>(2);
     ids[0] = e1;
     ids[1] = e2;
 }
+
 
 Record::Record(uint64_t e1, uint64_t e2, uint64_t e3) {
     record_size = 3;
@@ -37,6 +40,7 @@ Record::Record(uint64_t e1, uint64_t e2, uint64_t e3) {
     ids[2] = e3;
 }
 
+
 Record::Record(const Record& copy) {
     record_size = copy.record_size;
     ids = std::make_unique<uint64_t[]>(record_size);
@@ -45,21 +49,15 @@ Record::Record(const Record& copy) {
     }
 }
 
-Record& Record::get_empty_record() {
-    return empty_record;
-}
 
 void Record::operator=(const Record& other) {
-    // record_size = other.record_size;
-    // ids = std::make_unique<uint64_t[]>(record_size);
-    // TODO: check record size is the same?
     for (int i = 0; i < record_size; i++) {
         ids[i] = other.ids[i];
     }
 }
 
+
 bool Record::operator<=(const Record& other) {
-    // TODO: check record size is the same?
     for (int i = 0; i < record_size; i++) {
         if (ids[i] < other.ids[i]) {
             return true;
@@ -70,8 +68,8 @@ bool Record::operator<=(const Record& other) {
     return true;
 }
 
+
 bool Record::operator<(const Record& other) {
-    // TODO: check record size is the same?
     for (int i = 0; i < record_size; i++) {
         if (ids[i] < other.ids[i]) {
             return true;

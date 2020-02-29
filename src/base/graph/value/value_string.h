@@ -11,10 +11,10 @@ public:
         : value(std::move(value)) { }
     ~ValueString() = default;
 
-    std::unique_ptr<std::vector<char>> get_bytes() const override {
-        int string_len = value.length();
-        std::unique_ptr<std::vector<char>> res = std::make_unique<std::vector<char>>(string_len);
-	    std::copy(value.begin(), value.end(), (*res).begin());
+    std::unique_ptr<std::vector<unsigned char>> get_bytes() const override {
+        uint8_t string_len = value.length();
+        auto res = std::make_unique<std::vector<unsigned char>>(string_len);
+	    std::copy(value.begin(), value.end(), res->begin());
         return res;
     }
 
