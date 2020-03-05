@@ -16,7 +16,10 @@ public:
     }
 
     std::string to_string() const override {
-        return std::to_string(value);
+        if (value)
+            return "true";
+        else
+            return "false";
     }
 
     ObjectType type() const override {
