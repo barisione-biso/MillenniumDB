@@ -21,7 +21,6 @@ std::shared_ptr<GraphObject> BindingFilter::operator[](const std::string&) {
 
 std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const std::string& key) {
     auto search_var = var + "." + key;
-    cout << "searching in BindingFilter " << search_var << endl;
     auto value = binding[search_var];
     if (value != nullptr) {
         return value;

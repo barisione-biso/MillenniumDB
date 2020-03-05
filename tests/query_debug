@@ -1,3 +1,4 @@
-SELECT ?x.Agassiz
-MATCH (?x :molluscs)
+SELECT ?x.cottages
+MATCH (?x)
+WHERE ?x.cottages <= 7000 AND ?x.cottages >= 6000
 // WHERE NOT(?x.Agassiz == "calcium" AND (?x.Agassiz == "nosing" AND ?x.Agassiz == "permuting") )

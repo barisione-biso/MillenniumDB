@@ -19,6 +19,11 @@ public:
     virtual ObjectType type() const = 0;
 
     virtual bool operator==(const GraphObject& rhs) const = 0;
+    virtual bool operator!=(const GraphObject& rhs) const = 0;
+    virtual bool operator<=(const GraphObject& rhs) const = 0;
+    virtual bool operator>=(const GraphObject& rhs) const = 0;
+    virtual bool operator<(const GraphObject& rhs) const = 0;
+    virtual bool operator>(const GraphObject& rhs) const = 0;
 };
 
 #endif //BASE__OBJECT_TYPE_H_

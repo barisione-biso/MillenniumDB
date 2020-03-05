@@ -2,7 +2,6 @@
 #define BASE__VALUE_FLOAT_H_
 
 #include "base/graph/value/value.h"
-#include "base/graph/value/value_int.h"
 
 #include <cstring>
 
@@ -10,35 +9,21 @@ class ValueFloat: public Value {
 public:
     const float value;
 
-    ValueFloat(float value)
-        : value(value) { }
-    ~ValueFloat() = default;
+    ValueFloat(float value);
+    ~ValueFloat();
 
-    std::unique_ptr<std::vector<unsigned char>> get_bytes() const override {
-        auto res = std::make_unique<std::vector<unsigned char>>(sizeof(value));
-	    std::memcpy(res->data(), &value, sizeof(value));
-        return res;
-    }
+    std::unique_ptr<std::vector<unsigned char>> get_bytes() const override;
 
-    std::string to_string() const override {
-        return std::to_string(value);
-    }
+    std::string to_string() const override;
 
-    ObjectType type() const override {
-        return ObjectType::value_float;
-    }
+    ObjectType type() const override;
 
-    bool operator==(const GraphObject& rhs) const override {
-        if (rhs.type() == ObjectType::value_float) {
-            const auto& casted_rhs = static_cast<const ValueFloat&>(rhs);
-            return this->value == casted_rhs.value;
-        }
-        // else if (rhs.type() == ObjectType::value_int) {
-        //     const auto& casted_rhs = static_cast<const ValueInt&>(rhs);
-        //     return this->value == casted_rhs.value;
-        // }
-        else return false;
-    }
+    bool operator==(const GraphObject& rhs) const override;
+    bool operator!=(const GraphObject& rhs) const override;
+    bool operator<=(const GraphObject& rhs) const override;
+    bool operator>=(const GraphObject& rhs) const override;
+    bool operator<(const GraphObject& rhs) const override;
+    bool operator>(const GraphObject& rhs) const override;
 };
 
 

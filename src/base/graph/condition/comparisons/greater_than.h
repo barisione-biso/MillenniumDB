@@ -1,5 +1,5 @@
-#ifndef BASE__EQUALS_H_
-#define BASE__EQUALS_H_
+#ifndef BASE__GREATER_THAN_H_
+#define BASE__GREATER_THAN_H_
 
 #include "base/binding/binding.h"
 #include "base/parser/grammar/ast.h"
@@ -9,15 +9,15 @@
 #include <iostream>
 #include <memory>
 
-class Equals : public Comparison {
+class GreaterThan : public Comparison {
 public:
-    Equals(ast::Statement const& statement)
+    GreaterThan(ast::Statement const& statement)
         : Comparison(statement) { }
 
     bool compare(GraphObject& lhs, GraphObject& rhs) override {
-        return lhs == rhs;
+        return lhs > rhs;
     }
 
 };
 
-#endif //BASE__EQUALS_H_
+#endif //BASE__GREATER_THAN_H_

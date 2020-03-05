@@ -21,32 +21,18 @@ ObjectFile::ObjectFile(const string& filename)
 
 unique_ptr<vector<unsigned char>> ObjectFile::read(uint64_t id) {
     // set position=`id` and read the length of the object
-    file.clear();
-    cout << "Seek id " << id << endl;
-    if (file.bad())
-        std::cout << "pre I/O bad\n";
-    else if (file.eof())
-        std::cout << "pre I/O eof\n";
-    else if (file.fail())
-        std::cout << "pre I/O fail\n";
-
-
     file.seekg(id);
     char length_b[4]; // array of 4 bytes to store the length as bytes
     file.read(length_b, 4);
     uint32_t length = *(uint32_t *)length_b;
 
-    if (file.bad())
-        std::cout << "I/O bad\n";
-    else if (file.eof())
-        std::cout << "I/O eof\n";
-    else if (file.fail())
-        std::cout << "I/O fail\n";
-
-    // if (length == 0) {
-        cout << "reading object of size "<< length <<"\n";
-        printf("  %lX\n", id);
-    // }
+    // TODO: check sanity
+    // if (file.bad())
+    //     std::cout << "I/O bad\n";
+    // else if (file.eof())
+    //     std::cout << "I/O eof\n";
+    // else if (file.fail())
+    //     std::cout << "I/O fail\n";
 
     // read the following `length` bytes
     auto value = make_unique<vector<unsigned char>>(length);

@@ -28,6 +28,30 @@ public:
         }
         else return false;
     }
+
+    bool operator!=(const GraphObject& rhs) const override {
+        if (rhs.type() == ObjectType::edge) {
+            const auto& casted_rhs = static_cast<const Edge&>(rhs);
+            return this->id != casted_rhs.id;
+        }
+        else return true;
+    }
+
+    bool operator<=(const GraphObject&) const override {
+        return false;
+    }
+
+    bool operator>=(const GraphObject&) const override {
+        return false;
+    }
+
+    bool operator<(const GraphObject&) const override {
+        return false;
+    }
+
+    bool operator>(const GraphObject&) const override {
+        return false;
+    }
 };
 
 #endif //BASE__EDGE_H_

@@ -30,6 +30,30 @@ public:
         }
         return false;
     }
+
+    bool operator!=(const GraphObject& rhs) const override {
+        if (rhs.type() == ObjectType::value_bool) {
+            const auto& casted_rhs = static_cast<const ValueBool&>(rhs);
+            return this->value != casted_rhs.value;
+        }
+        return true;
+    }
+
+    bool operator<=(const GraphObject&) const override {
+        return false;
+    }
+
+    bool operator>=(const GraphObject&) const override {
+        return false;
+    }
+
+    bool operator<(const GraphObject&) const override {
+        return false;
+    }
+
+    bool operator>(const GraphObject&) const override {
+        return false;
+    }
 };
 
 

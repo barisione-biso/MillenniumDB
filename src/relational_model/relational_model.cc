@@ -3,6 +3,8 @@
 #include "base/graph/edge.h"
 #include "base/graph/node.h"
 #include "base/graph/value/value_int.h"
+#include "base/graph/value/value_bool.h"
+#include "base/graph/value/value_float.h"
 #include "base/graph/value/value_string.h"
 #include "relational_model/graph/relational_graph.h"
 
@@ -165,7 +167,7 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
         bool b;
         uint8_t* dest = (uint8_t*)&b;
         *dest = object_id & 0xFF;
-        return make_shared<ValueFloat>(b);
+        return make_shared<ValueBool>(b);
     }
     else if (mask == NODE_MASK) {
         return make_shared<Node>(object_id & UNMASK);

@@ -5,6 +5,11 @@
 #include "base/graph/condition/constant_condition.h"
 #include "base/graph/condition/conjunction.h"
 #include "base/graph/condition/comparisons/equals.h"
+#include "base/graph/condition/comparisons/not_equals.h"
+#include "base/graph/condition/comparisons/less_than.h"
+#include "base/graph/condition/comparisons/greater_than.h"
+#include "base/graph/condition/comparisons/less_or_equals.h"
+#include "base/graph/condition/comparisons/greater_or_equals.h"
 #include "base/graph/condition/disjunction.h"
 #include "base/graph/condition/negation.h"
 
@@ -86,7 +91,23 @@ public:
 
 
     std::unique_ptr<Condition> operator()(ast::Statement const& statement) const {
-        return std::make_unique<Equals>(statement); // TODO: check comparison type
+        if (statement.comparator.type() == typeid(ast::EQ))
+            return std::make_unique<Equals>(statement);
+
+        else if (statement.comparator.type() == typeid(ast::NE))
+            return std::make_unique<NotEquals>(statement);
+
+        else if (statement.comparator.type() == typeid(ast::LE))
+            return std::make_unique<LessOrEquals>(statement);
+
+        else if (statement.comparator.type() == typeid(ast::GE))
+            return std::make_unique<GreaterOrEquals>(statement);
+
+        else if (statement.comparator.type() == typeid(ast::GT))
+            return std::make_unique<GreaterThan>(statement);
+
+        else // if (statement.comparator.type() == typeid(ast::LT))
+            return std::make_unique<LessThan>(statement);
     }
 };
 

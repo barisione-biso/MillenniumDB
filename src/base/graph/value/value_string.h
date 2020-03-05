@@ -33,6 +33,46 @@ public:
         }
         return false;
     }
+
+    bool operator!=(const GraphObject& rhs) const override {
+        if (rhs.type() == ObjectType::value_string) {
+            const auto& casted_rhs = static_cast<const ValueString&>(rhs);
+            return this->value != casted_rhs.value;
+        }
+        return false;
+    }
+
+    bool operator<=(const GraphObject& rhs) const override {
+        if (rhs.type() == ObjectType::value_string) {
+            const auto& casted_rhs = static_cast<const ValueString&>(rhs);
+            return this->value <= casted_rhs.value;
+        }
+        return false;
+    }
+
+    bool operator>=(const GraphObject& rhs) const override {
+        if (rhs.type() == ObjectType::value_string) {
+            const auto& casted_rhs = static_cast<const ValueString&>(rhs);
+            return this->value >= casted_rhs.value;
+        }
+        return false;
+    }
+
+    bool operator<(const GraphObject& rhs) const override {
+        if (rhs.type() == ObjectType::value_string) {
+            const auto& casted_rhs = static_cast<const ValueString&>(rhs);
+            return this->value < casted_rhs.value;
+        }
+        return false;
+    }
+
+    bool operator>(const GraphObject& rhs) const override {
+        if (rhs.type() == ObjectType::value_string) {
+            const auto& casted_rhs = static_cast<const ValueString&>(rhs);
+            return this->value > casted_rhs.value;
+        }
+        return false;
+    }
 };
 
 #endif //BASE__VALUE_STRING_H_

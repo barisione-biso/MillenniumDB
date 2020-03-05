@@ -1,5 +1,5 @@
-#ifndef BASE__EQUALS_H_
-#define BASE__EQUALS_H_
+#ifndef BASE__NOT_EQUALS_H_
+#define BASE__NOT_EQUALS_H_
 
 #include "base/binding/binding.h"
 #include "base/parser/grammar/ast.h"
@@ -9,15 +9,15 @@
 #include <iostream>
 #include <memory>
 
-class Equals : public Comparison {
+class NotEquals : public Comparison {
 public:
-    Equals(ast::Statement const& statement)
+    NotEquals(ast::Statement const& statement)
         : Comparison(statement) { }
 
     bool compare(GraphObject& lhs, GraphObject& rhs) override {
-        return lhs == rhs;
+        return lhs != rhs;
     }
 
 };
 
-#endif //BASE__EQUALS_H_
+#endif //BASE__NOT_EQUALS_H_
