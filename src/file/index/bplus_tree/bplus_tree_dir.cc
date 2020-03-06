@@ -1,13 +1,15 @@
-#include <iostream>
-#include <utility>
+#include "bplus_tree_dir.h"
 
 #include "file/page.h"
 #include "file/buffer_manager.h"
 #include "file/index/record.h"
 #include "file/index/bplus_tree/bplus_tree.h"
-#include "file/index/bplus_tree/bplus_tree_dir.h"
 #include "file/index/bplus_tree/bplus_tree_leaf.h"
 #include "file/index/bplus_tree/bplus_tree_params.h"
+
+#include <iostream>
+#include <utility>
+#include <cstring>
 
 using namespace std;
 
@@ -92,16 +94,26 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
             BPlusTreeDir new_right_dir = BPlusTreeDir(params, new_right_page);
 
             // write left records from 0 to (*count-1)
-            for (int i = 0; i < (*count) * params.key_size; i++) {
-                new_left_dir.records[i] = records[i];
-            }
+            // for (int i = 0; i < (*count) * params.key_size; i++) {
+            //     new_left_dir.records[i] = records[i];
+            // }
+            std::memcpy(
+                new_left_dir.records,
+                records,
+                (*count) * params.key_size * sizeof(uint64_t)
+            );
             // write left dirs from 0 to (*count)
-            for (int i = 0; i <= *count; i++) {
-                new_left_dir.dirs[i] = dirs[i];
-            }
+            // for (int i = 0; i <= *count; i++) {
+            //     new_left_dir.dirs[i] = dirs[i];
+            // }
+            std::memcpy(
+                new_left_dir.dirs,
+                dirs,
+                (*count) * sizeof(uint64_t)
+            );
 
             // write right dirs
-            new_right_dir.dirs[0] = split_record_index->second;
+            new_right_dir.dirs[0] = split_record_index->second; // TODO: optimized out?
 
             // update counts
             *new_left_dir.count = *count;
@@ -167,7 +179,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
         // Case 2: we need to split this node and this node is the root
         else if (page.get_page_number() == 0) {
             // poner nuevo record/dir y guardar el ultimo (que no cabe)
-            std::unique_ptr<uint64_t[]> last_key = std::make_unique<uint64_t[]>(params.key_size);
+            auto last_key = vector<uint64_t>(params.key_size);
             int last_dir;
             if (splitted_index == *count) { // splitted key is the last key
                 for (int i = 0; i < params.key_size; i++) {
@@ -193,17 +205,34 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             BPlusTreeDir new_right_dir = BPlusTreeDir(params, new_right_page);
 
             // write left records from 0 to (middle_index-1)
-            for (int i = 0; i < middle_index * params.key_size; i++) {
-                new_left_dir.records[i] = records[i];
-            }
+            // for (int i = 0; i < middle_index * params.key_size; i++) {
+            //     new_left_dir.records[i] = records[i];
+            // }
+            std::memcpy(
+                new_left_dir.records,
+                records,
+                middle_index * params.key_size * sizeof(uint64_t)
+            );
             // write right records from (middle_index+1) to (*count-1) plus the last record saved before
-            int right_record_pos = 0;
-            for (int i = (middle_index+1)*params.key_size; i < params.dir_max_records*params.key_size; i++, right_record_pos++) {
-                new_right_dir.records[right_record_pos] = records[i];
-            }
-            for (int i = 0; i < params.key_size; i++, right_record_pos++) {
-                new_right_dir.records[right_record_pos] = last_key[i];
-            }
+            // int right_record_pos = 0;
+            // for (int i = (middle_index+1)*params.key_size; i < params.dir_max_records*params.key_size; i++, right_record_pos++) {
+            //     new_right_dir.records[right_record_pos] = records[i];
+            // }
+            std::memcpy(
+                new_right_dir.records,
+                &records[(middle_index + 1) * params.key_size],
+                (params.dir_max_records-(middle_index + 1)) * params.key_size * sizeof(uint64_t)
+            );
+
+            // for (int i = 0; i < params.key_size; i++, right_record_pos++) {
+            //     new_right_dir.records[right_record_pos] = last_key[i];
+            // }
+            std::memcpy(
+                &new_right_dir.records[(params.dir_max_records-(middle_index + 1)) * params.key_size],
+                last_key.data(),
+                params.key_size * sizeof(uint64_t)
+            );
+
             // write left dirs from 0 to middle_index
             for (int i = 0; i <= middle_index; i++) {
                 new_left_dir.dirs[i] = dirs[i];

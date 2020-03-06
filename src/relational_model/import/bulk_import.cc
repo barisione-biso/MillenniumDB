@@ -158,7 +158,7 @@ void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
     }
 
     for (auto& label : edge.labels) {
-        edge_labels.append_record(graph.get_record_for_edge_label(edge_id,label));
+        edge_labels.append_record(graph.get_record_for_edge_label(edge_id, label));
     }
 
     for (auto& property : edge.properties) {
