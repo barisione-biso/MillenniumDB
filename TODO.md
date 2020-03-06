@@ -1,8 +1,7 @@
 - refactoring a Record
 - sacar = default de los .h y pasalos al .cc
-- use nifty counter for singletons?
+- use nifty counter for singletons? => si se llaman los destructores de los unique_ptrs no sería necesario
 - add override to virtual functions overrided?
-- Ver bien lo de los prefijos al crear y al obtener values
 - Probar si usando constructores con rvalue references para unique_ptrs se mejora la performance.
 - Arreglar gramatica:
     - (no_skip afecta a comentarios //) ¿sacar no_skip?

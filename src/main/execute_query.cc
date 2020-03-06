@@ -4,7 +4,7 @@
 #include "base/parser/logical_plan/op/op_select.h"
 #include "relational_model/relational_model.h"
 #include "relational_model/graph/relational_graph.h"
-#include "relational_model/query_optimizer/query_optimizer.h"
+#include "relational_model/physical_plan/physical_plan_generator.h"
 
 #include <chrono>
 #include <fstream>
@@ -36,9 +36,9 @@ int main(int argc, char **argv) {
         auto select_plan = Op::get_select_plan(query);
 
         RelationalModel::init();
-        // RelationalGraph graph = RelationalGraph(0, config);
-        QueryOptimizer optimizer { };
-        auto root = optimizer.get_select_plan(move(select_plan));
+
+        PhysicalPlanGenerator plan_generator { };
+        auto root = plan_generator.exec(*select_plan);
 
         root->begin();
         auto binding = root->next();

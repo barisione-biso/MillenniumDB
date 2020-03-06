@@ -4,14 +4,13 @@
 #include "file/buffer_manager.h"
 #include "file/file_manager.h"
 
-#define BUFFER_POOL_INITIAL_SIZE 4096
+const int BUFFER_POOL_INITIAL_SIZE = 65536;
 
 using namespace std;
 
 BufferManager BufferManager::instance = BufferManager();
 
-BufferManager::BufferManager()
-{
+BufferManager::BufferManager() {
     buffer_pool = new Page[BUFFER_POOL_INITIAL_SIZE];
     clock_pos = 0;
     bytes = new char[BUFFER_POOL_INITIAL_SIZE*PAGE_SIZE];
@@ -21,8 +20,7 @@ BufferManager::BufferManager()
     // }
 }
 
-BufferManager::~BufferManager()
-{
+BufferManager::~BufferManager() {
     if (!instance.flushed_at_exit) {
         _flush();
         instance.flushed_at_exit = true;
@@ -30,32 +28,32 @@ BufferManager::~BufferManager()
     }
 }
 
-Page& BufferManager::get_page(uint_fast32_t page_number, FileId file_id)
-{
+
+Page& BufferManager::get_page(uint_fast32_t page_number, FileId file_id) {
     return instance._get_page(page_number, file_id);
 }
 
-Page& BufferManager::append_page(FileId file_id)
-{
+
+Page& BufferManager::append_page(FileId file_id) {
     return instance._append_page(file_id);
 }
 
-void BufferManager::_flush()
-{
+
+void BufferManager::_flush() {
     // cout << "FLUSHING PAGES\n";
     for (int i = 0; i < PAGE_SIZE; i++) {
         buffer_pool[i].flush();
     }
 }
 
-Page& BufferManager::_append_page(FileId file_id)
-{
+
+Page& BufferManager::_append_page(FileId file_id) {
     // cout << "append_page(" << file_path << ")\n";
     return get_page(FileManager::count_pages(file_id), file_id);
 }
 
-int BufferManager::get_buffer_available()
-{
+
+int BufferManager::get_buffer_available() {
     int first_lookup = clock_pos;
     while (buffer_pool[clock_pos].pins != 0) {
         clock_pos = (clock_pos+1)%BUFFER_POOL_INITIAL_SIZE;
@@ -67,6 +65,7 @@ int BufferManager::get_buffer_available()
     clock_pos = (clock_pos+1)%BUFFER_POOL_INITIAL_SIZE;
     return res;
 }
+
 
 Page& BufferManager::_get_page(uint_fast32_t page_number, FileId file_id) {
     // cout << "get_page(" << page_number << ", " << file_path << ")\n";

@@ -1,22 +1,21 @@
-#include "file/file_manager.h"
+#include "file_manager.h"
 
 #include "file/buffer_manager.h"
+#include "file/page.h"
 
 #include <algorithm>
 #include <cstdio>
 #include <experimental/filesystem>
-#include "file/page.h"
 
 using namespace std;
 
 FileManager FileManager::instance = FileManager();
 
-FileManager::FileManager() {
-
-}
+FileManager::FileManager() { }
 
 
 FileManager::~FileManager() {
+    cout << "~FileManager()";
     if (!flushed_at_exit) {
         BufferManager::instance._flush();
         BufferManager::instance.flushed_at_exit = true;

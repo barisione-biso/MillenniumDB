@@ -19,8 +19,6 @@ public:
     std::vector<std::unique_ptr<OpProperty>> properties;
     std::vector<std::unique_ptr<OpConnection>> connections;
 
-    // std::set<std::string> nodes;
-    // std::set<std::string> edges;
     std::map<std::string, std::pair<GraphId, ObjectType>> var_info;
     int_fast32_t anonymous_var_count = 0;
 
@@ -49,7 +47,7 @@ public:
     std::string process_node(const GraphId graph_id, const ast::Node& node) {
         std::string var_name;
         if (node.var.empty()) {
-            var_name = "_" + (anonymous_var_count++);
+            var_name = "_n" + std::to_string(anonymous_var_count++);
         }
         else {
             var_name = node.var;
@@ -82,7 +80,7 @@ public:
     std::string process_edge(const GraphId graph_id, const ast::Edge& edge) {
         std::string var_name;
         if (edge.var.empty()) {
-            var_name = "_" + (anonymous_var_count++);
+            var_name = "_e" + std::to_string(anonymous_var_count++);
         }
         else {
             var_name = edge.var;

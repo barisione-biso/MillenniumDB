@@ -1,14 +1,12 @@
 #include "file/page.h"
 
 Page::Page(uint_fast32_t page_number, char* bytes, FileId file_id)
-    : page_number(page_number), file_id(file_id), pins(1), dirty(false), bytes(bytes)
-{
-}
+    : page_number(page_number), file_id(file_id), pins(1), dirty(false), bytes(bytes) { }
+
 
 Page::Page()
-    : page_number(0), file_id(FileId(FileId::UNASSIGNED)), pins(0), dirty(false), bytes(nullptr)
-{
-}
+    : page_number(0), file_id(FileId(FileId::UNASSIGNED)), pins(0), dirty(false), bytes(nullptr) { }
+
 
 Page::~Page() {
     /*if (pins > 0) {
@@ -16,6 +14,7 @@ Page::~Page() {
     }
     flush();*/
 }
+
 
 Page& Page::operator=(const Page& other) {
     this->flush();
@@ -27,9 +26,11 @@ Page& Page::operator=(const Page& other) {
     return *this;
 }
 
+
 uint_fast32_t Page::get_page_number() const {
     return page_number;
 }
+
 
 void Page::unpin() {
     if (pins == 0) {
@@ -38,17 +39,21 @@ void Page::unpin() {
     pins--;
 }
 
+
 void Page::make_dirty() {
     dirty = true;
 }
+
 
 void Page::pin() {
     pins++;
 }
 
+
 char* Page::get_bytes() const {
     return bytes;
 }
+
 
 void Page::flush() {
     if (dirty) {

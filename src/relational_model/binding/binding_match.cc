@@ -14,8 +14,15 @@ BindingMatch::BindingMatch(const map<string, VarId>& var_pos, unique_ptr<Binding
 
 void BindingMatch::print() const {
     cout << "{";
+    bool first = true;
     for (auto&& [var, varid] : var_pos) {
         auto a = (*binding_id)[varid] & UNMASK;
+        if (first) {
+            first = false;
+        }
+        else {
+            cout << ", ";
+        }
         cout << var << ":Id(" << a << ")";
     }
     cout << "}\n";

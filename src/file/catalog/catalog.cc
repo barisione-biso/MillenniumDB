@@ -44,13 +44,38 @@ Catalog::Catalog(const string& filename)
 }
 
 Catalog::~Catalog() {
-    save_changes();
     cout << "saving catalog\n";
+    save_changes();
 }
 
 void Catalog::save_changes(){
+    if (file.bad())
+        std::cout << "I/O bad\n";
+    if (file.eof())
+        std::cout << "I/O eof\n";
+    if (file.fail())
+        std::cout << "I/O fail\n";
+    if (file.bad())
+        std::cout << "I/O bad\n";
+
     file.seekg(0, file.beg);
+    cout << "node count: " << node_count << endl;
+    cout << "edge count: " << edge_count << endl;
+    cout << "node label count: " << node_label_count << endl;
+    cout << "edge label count: " << edge_label_count << endl;
+    cout << "node key count: " << node_key_count << endl;
+    cout << "edge key count: " << edge_key_count << endl;
     file.write((const char *)&node_count, 8);
+
+    if (file.bad())
+        std::cout << "I/O bad\n";
+    if (file.eof())
+        std::cout << "I/O eof\n";
+    if (file.fail())
+        std::cout << "I/O fail\n";
+    if (file.bad())
+        std::cout << "I/O bad\n";
+
     file.write((const char *)&edge_count, 8);
     file.write((const char *)&node_label_count, 8);
     file.write((const char *)&edge_label_count, 8);
@@ -73,6 +98,15 @@ void Catalog::save_changes(){
         file.write((const char *)&id, 8);
         file.write((const char *)&count, 8);
     }
+    std::cout << "changes saved\n";
+    if (file.bad())
+        std::cout << "I/O bad\n";
+    if (file.eof())
+        std::cout << "I/O eof\n";
+    if (file.fail())
+        std::cout << "I/O fail\n";
+    if (file.bad())
+        std::cout << "I/O bad\n";
 }
 
 uint64_t Catalog::read() {
