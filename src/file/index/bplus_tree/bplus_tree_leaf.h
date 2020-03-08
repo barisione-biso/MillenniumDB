@@ -19,7 +19,6 @@ public:
     std::unique_ptr<std::pair<Record, int>> insert(const Record& key, const Record& value);
     std::pair<int, int> search_leaf(const Record& min);
 
-    void edit(const Record& key, const Record& value);
     std::unique_ptr<Record> get(const Record& key);
 
     void create_new(const Record& key, const Record& value);

@@ -82,11 +82,6 @@ void BPlusTree::create_new(const Record& key, const Record& value) {
 }
 
 
-void BPlusTree::edit(const Record& key, const Record& value) {
-    root->edit(key, value);
-}
-
-
 unique_ptr<Record> BPlusTree::get(const Record& key) {
     return root->get(key);
 }

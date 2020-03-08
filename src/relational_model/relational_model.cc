@@ -22,37 +22,17 @@ RelationalModel::RelationalModel() {
     hash2id = make_unique<BPlusTree>(move(bpt_params_hash2id));
 }
 
+RelationalModel::~RelationalModel() = default;
+
 
 void RelationalModel::init() {
-    instance = make_unique<RelationalModel>();
-}
-
-// TODO: fusionar con get_id(Value)
-ObjectId RelationalModel::get_id(const string& str) {
-    static_assert(MD5_DIGEST_LENGTH == 16, "Hash is expected to use 16 bytes.");
-    uint64_t hash[2];
-    MD5((const unsigned char*)str.c_str(), str.size(), (unsigned char *)hash);
-
-    // check if bpt contains object
-    BPlusTree& bpt = get_hash2id_bpt();
-    auto iter = bpt.get_range(
-        Record(hash[0], hash[1], 0),
-        Record(hash[0], hash[1], UINT64_MAX)
-    );
-    auto next = iter->next();
-    if (next == nullptr) { // object doesn't exists
-        return ObjectId::get_not_found();
-    }
-    else {                 // object already exists
-        return ObjectId(next->ids[2]);
-    }
+    instance = make_unique<RelationalModel>(); // TODO: initialize with nifty counter?
 }
 
 
-ObjectId RelationalModel::get_id(const Value& value) {
+uint64_t RelationalModel::get_external_id(std::unique_ptr< std::vector<unsigned char> > bytes) {
     static_assert(MD5_DIGEST_LENGTH == 16, "Hash is expected to use 16 bytes.");
     uint64_t hash[2];
-    auto bytes = value.get_bytes();
     MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
 
     // check if bpt contains object
@@ -63,34 +43,18 @@ ObjectId RelationalModel::get_id(const Value& value) {
     );
     auto next = iter->next();
     if (next == nullptr) { // object doesn't exists
-        return ObjectId::get_not_found();
+        return NOT_FOUND_OBJECT_ID;
     }
     else {                 // object already exists
-        return ObjectId(next->ids[2]);
+        return next->ids[2];
     }
 }
 
 
-uint64_t RelationalModel::get_or_create_id(const Value& value) { // will not include mask
-    auto obj_bytes = value.get_bytes();
-    if (obj_bytes->size() > 7) { // MAX 7 bytes inlined
-        return get_or_create_external_id(move(obj_bytes));
-    }
-    else {
-        uint64_t res = 0;
-        int shift_size = 0;
-        for (uint64_t byte : *obj_bytes) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
-            res |= byte << shift_size;
-            shift_size += 8;
-        }
-        return res;
-    }
-}
-
-
-uint64_t RelationalModel::get_or_create_external_id(unique_ptr< vector<unsigned char> > obj_bytes) {
+uint64_t RelationalModel::get_or_create_external_id(std::unique_ptr< std::vector<unsigned char> > bytes) {
+    static_assert(MD5_DIGEST_LENGTH == 16, "Hash is expected to use 16 bytes.");
     uint64_t hash[2];
-    MD5((const unsigned char*)obj_bytes->data(), obj_bytes->size(), (unsigned char *)hash);
+    MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
 
     // check if bpt contains object
     BPlusTree& hash2id = RelationalModel::get_hash2id_bpt();
@@ -101,23 +65,90 @@ uint64_t RelationalModel::get_or_create_external_id(unique_ptr< vector<unsigned 
     auto next = iter->next();
     if (next == nullptr) { // obj doesn't exist
         // Insert in object file
-        uint64_t obj_id = RelationalModel::get_object_file().write(*obj_bytes);
+        uint64_t obj_id = RelationalModel::get_object_file().write(*bytes);
         // Insert in bpt
         hash2id.insert( Record(hash[0], hash[1], obj_id) );
         return obj_id;
     }
-    else { // obj already exists
+    else { // object already exists
         return next->ids[2];
     }
 }
 
 
-uint64_t RelationalModel::get_or_create_id(const string& str) {
+ObjectId RelationalModel::get_string_unmasked_id(const string& str) {
     int string_len = str.length();
-    auto bytes = make_unique<vector<unsigned char>>(string_len);
-    copy(str.begin(), str.end(), bytes->begin());
 
-    return get_or_create_external_id(move(bytes));
+    if (string_len > 7) {
+        auto bytes = make_unique<vector<unsigned char>>(string_len);
+        copy(str.begin(), str.end(), bytes->begin());
+
+        return ObjectId( get_or_create_external_id(move(bytes)) );
+    }
+    else {
+        uint64_t res = 0;
+        int shift_size = 0;
+        for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            res |= byte << shift_size;
+            shift_size += 8;
+        }
+        return ObjectId(res);
+    }
+}
+
+
+ObjectId RelationalModel::get_value_masked_id(const Value& value) {
+    auto obj_bytes = value.get_bytes();
+    if (obj_bytes->size() > 7) { // MAX 7 bytes inlined
+        return get_external_id(move(obj_bytes)) | get_value_mask(value);
+    }
+    else {
+        uint64_t res = 0;
+        int shift_size = 0;
+        for (uint64_t byte : *obj_bytes) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            res |= byte << shift_size;
+            shift_size += 8;
+        }
+        return ObjectId( res | get_value_mask(value) );
+    }
+}
+
+
+ObjectId RelationalModel::get_or_create_string_unmasked_id(const std::string& str) {
+    int string_len = str.length();
+
+    if (string_len > 7) {
+        auto bytes = make_unique<vector<unsigned char>>(string_len);
+        copy(str.begin(), str.end(), bytes->begin());
+
+        return ObjectId( get_external_id(move(bytes)) );
+    }
+    else {
+        uint64_t res = 0;
+        int shift_size = 0;
+        for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            res |= byte << shift_size;
+            shift_size += 8;
+        }
+        return ObjectId(res);
+    }
+}
+
+
+ObjectId RelationalModel::get_or_create_value_masked_id(const Value& value) {
+    auto obj_bytes = value.get_bytes();
+    if (obj_bytes->size() > 7) { // MAX 7 bytes inlined
+        return get_or_create_external_id(move(obj_bytes)) | get_value_mask(value);
+    }
+    else {
+        uint64_t res = 0;
+        int shift_size = 0;
+        for (uint64_t byte : *obj_bytes) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            res |= byte << shift_size;
+            shift_size += 8;
+        }
+        return ObjectId( res | get_value_mask(value) );
+    }
 }
 
 
@@ -176,7 +207,7 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
         return make_shared<Edge>(object_id & UNMASK);
     }
     else {
-        cout << "wrong value prefix:\n"; //<< to_string(prefix) << endl;
+        cout << "wrong value prefix:\n";
         printf("  obj_id: %lX\n", object_id.id);
         printf("  mask: %lX\n", mask);
         string value_string = "";
@@ -193,6 +224,30 @@ RelationalGraph& RelationalModel::get_graph(GraphId graph_id) {
     else {
         instance->graphs.insert({ graph_id, make_unique<RelationalGraph>(graph_id) });
         return *instance->graphs[graph_id].get();
+    }
+}
+
+
+uint64_t RelationalModel::get_value_mask(const Value& value) {
+    auto type = value.type();
+    if (type == ObjectType::value_string) {
+        const auto& string_value = static_cast<const ValueString&>(value);
+        if (string_value.value.size() < 8) { // 7 bytes availables
+            return VALUE_INLINE_STR_MASK;
+        }
+        else return VALUE_EXTERNAL_STR_MASK;
+    }
+    else if (type == ObjectType::value_int) {
+        return VALUE_INT_MASK;
+    }
+    else if (type == ObjectType::value_float) {
+        return VALUE_FLOAT_MASK;
+    }
+    else if (type == ObjectType::value_bool) {
+        return VALUE_BOOL_MASK;
+    }
+    else {
+        throw logic_error("Unexpected value type.");
     }
 }
 

@@ -1,2 +1,3 @@
-SELECT ?e.apology
-MATCH ()-[?e]->()
+SELECT *
+MATCH (?n :philosophers {aperitifs:"interlard"})
+// WHERE ?n.aperitifs == "interlard"

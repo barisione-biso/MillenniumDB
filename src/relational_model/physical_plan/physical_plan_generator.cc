@@ -1,6 +1,9 @@
 #include "physical_plan_generator.h"
 
 #include "base/binding/binding.h"
+#include "base/graph/value/value_int.h"
+#include "base/graph/value/value_bool.h"
+#include "base/graph/value/value_float.h"
 #include "base/graph/value/value_string.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_match.h"
@@ -51,23 +54,31 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
     var_info = op_match.var_info; // TODO: move?
 
     for (auto& op_label : op_match.labels) {
-        ObjectId label_id = RelationalModel::get_id(op_label->label);
+        ObjectId label_id = RelationalModel::get_string_unmasked_id(op_label->label);
         VarId element_obj_id = get_var_id(op_label->var);
         elements.push_back(make_unique<QueryOptimizerLabel>(op_label->graph_id, element_obj_id, null_var, op_label->type, label_id));
     }
 
     for (auto& op_property : op_match.properties) {
         VarId element_obj_id = get_var_id(op_property->var);
-        // VarId value_var = null_var;
-        ObjectId key_id = RelationalModel::get_id(op_property->key);
+        ObjectId key_id = RelationalModel::get_string_unmasked_id(op_property->key);
         ObjectId value_id;
 
-        // if (op_property->value.type() == typeid(VarId)) {// ESTE CASO NO OCURRE EN EL MATCH SOLO EN SELECT
-        //     value_var = boost::get<VarId>(op_property->value);
-        // }
         if (op_property->value.type() == typeid(string)) {
             auto val_str = boost::get<string>(op_property->value);
-            value_id = RelationalModel::get_id(ValueString(val_str));
+            value_id = RelationalModel::get_value_masked_id(ValueString(val_str));
+        }
+        else if (op_property->value.type() == typeid(int)) {
+            auto val_int = boost::get<int>(op_property->value);
+            value_id = RelationalModel::get_value_masked_id(ValueInt(val_int));
+        }
+        else if (op_property->value.type() == typeid(float)) {
+            auto val_float = boost::get<float>(op_property->value);
+            value_id = RelationalModel::get_value_masked_id(ValueFloat(val_float));
+        }
+        else if (op_property->value.type() == typeid(bool)) {
+            auto val_bool = boost::get<bool>(op_property->value);
+            value_id = RelationalModel::get_value_masked_id(ValueBool(val_bool));
         }
         else {
             throw logic_error("only strings supported for now.");
@@ -81,7 +92,7 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
     for (auto&& [var, key] : select_items) {
         VarId element_obj_id = get_var_id(var);
         VarId value_var = get_var_id(var + '.' + key);
-        ObjectId key_id = RelationalModel::get_id(key);
+        ObjectId key_id = RelationalModel::get_string_unmasked_id(key);
 
         elements.push_back(make_unique<QueryOptimizerProperty>(
             var_info[var].first, element_obj_id, null_var, value_var, var_info[var].second, key_id, ObjectId::get_null() ));

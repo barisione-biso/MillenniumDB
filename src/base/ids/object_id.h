@@ -3,8 +3,8 @@
 
 #include <memory>
 
-#define NULL_OBJECT_ID UINT64_MAX
-#define NOT_FOUND_OBJECT_ID UINT64_MAX - 1
+const uint64_t NULL_OBJECT_ID      = UINT64_MAX;
+const uint64_t NOT_FOUND_OBJECT_ID = UINT64_MAX - 1;
 
 class ObjectFile;
 class Value;

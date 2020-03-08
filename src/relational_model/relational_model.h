@@ -36,26 +36,23 @@ private:
     std::unique_ptr<BPlusTree>  hash2id; // ObjectHash|ObjectId.
     std::map<GraphId, std::unique_ptr<RelationalGraph>> graphs;
 
-    static uint64_t get_or_create_external_id(std::unique_ptr< std::vector<unsigned char> > obj_bytes);
+    static uint64_t get_or_create_external_id(std::unique_ptr< std::vector<unsigned char> > bytes);
+    static uint64_t get_external_id(std::unique_ptr< std::vector<unsigned char> > bytes);
+    static uint64_t get_value_mask(const Value& value);
 
 public:
-
-    // constructor should be private but needed for make_unique
     RelationalModel();
-    ~RelationalModel() = default;
+    ~RelationalModel();
 
     static void init();
 
-    // id won't be masked
-    static uint64_t get_or_create_id(const std::string& str);
-    // id will be masked
-    static uint64_t get_or_create_id(const Value& value);
+    static ObjectId get_string_unmasked_id(const std::string& str);
+    static ObjectId get_value_masked_id(const Value& value);
+
+    static ObjectId get_or_create_string_unmasked_id(const std::string& str);
+    static ObjectId get_or_create_value_masked_id(const Value& value);
 
     static RelationalGraph& get_graph(GraphId);
-
-    static ObjectId get_id(const Value&);
-    static ObjectId get_id(const std::string&);
-
     static std::shared_ptr<GraphObject> get_graph_object(ObjectId);
 
     static ObjectFile& get_object_file();

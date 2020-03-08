@@ -5,40 +5,23 @@
 #include "file/index/bplus_tree/bplus_tree_params.h"
 #include <iostream>
 
+using namespace std;
+
 BPlusTreeLeaf::BPlusTreeLeaf(const BPlusTreeParams& params, Page& page)
     : params(params), page(page)
 {
-    count = (int*) &page.get_bytes()[0];
-    next = (int*) &page.get_bytes()[sizeof(int)];
-    records = (uint64_t*) &page.get_bytes()[2*sizeof(int)];
-    // std::cout << "count  : " << (void *)count << "\n";
-    // std::cout << "next   : " << (void *)next << "\n";
-    // std::cout << "records: " << (void *)records << "\n";
+    count = (int*) page.get_bytes();
+    next = (int*) (page.get_bytes() + sizeof(int));
+    records = (uint64_t*) (page.get_bytes() + (2*sizeof(int)) );
 }
 
-BPlusTreeLeaf::~BPlusTreeLeaf()
-{
+
+BPlusTreeLeaf::~BPlusTreeLeaf() {
     page.unpin();
 }
 
 
-void BPlusTreeLeaf::edit(const Record& key, const Record& value)
-{
-    int index = search_index(0, *count-1, key);
-
-    if (equal_record(key, index)) {
-        for (int i = 0; i < params.value_size; i++) {
-            records[params.total_size*index + params.key_size + i] = value.ids[i];
-        }
-    }
-    else {
-        throw std::logic_error("Editing record threw error: key not found.");
-    }
-}
-
-
-std::unique_ptr<Record> BPlusTreeLeaf::get(const Record& key)
-{
+std::unique_ptr<Record> BPlusTreeLeaf::get(const Record& key) {
     int index = search_index(0, *count-1, key);
 
     if (equal_record(key, index)) {
@@ -54,8 +37,7 @@ std::unique_ptr<Record> BPlusTreeLeaf::get(const Record& key)
 }
 
 
-std::unique_ptr<Record> BPlusTreeLeaf::get_record(int pos)
-{
+std::unique_ptr<Record> BPlusTreeLeaf::get_record(int pos) {
     std::vector<uint64_t> ids(params.total_size);
     for (int i = 0; i < params.total_size; i++) {
         ids[i] = records[pos*params.total_size + i];
@@ -63,15 +45,14 @@ std::unique_ptr<Record> BPlusTreeLeaf::get_record(int pos)
     return std::make_unique<Record>(ids);
 }
 
-std::unique_ptr<BPlusTreeLeaf> BPlusTreeLeaf::next_leaf()
-{
+
+std::unique_ptr<BPlusTreeLeaf> BPlusTreeLeaf::next_leaf() {
     Page& new_page = BufferManager::get_page(*next, params.leaf_file_id);
     return std::make_unique<BPlusTreeLeaf>(params, new_page);
 }
 
 
-std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key, const Record& value)
-{
+std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key, const Record& value) {
     int index = search_index(0, *count-1, key);
     if (equal_record(key, index)) {
         for (int i = 0; i < params.key_size; i++) {
@@ -102,7 +83,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
     }
     else {
         // poner nuevo record y guardar el ultimo (que no cabe)
-        std::unique_ptr<uint64_t[]> last_key = std::make_unique<uint64_t[]>(params.total_size);
+        auto last_key = vector<uint64_t>(params.total_size);
         if (index == *count) { // la llave a insertar es la ultima
             for (int i = 0; i < params.key_size; i++) {
                 last_key[i] = key.ids[i];
@@ -162,8 +143,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
     }
 }
 
-void BPlusTreeLeaf::create_new(const Record& key, const Record& value)
-{
+
+void BPlusTreeLeaf::create_new(const Record& key, const Record& value) {
     for (int i = 0; i < params.key_size; i++) {
         records[i] = key.ids[i];
     }
@@ -174,16 +155,15 @@ void BPlusTreeLeaf::create_new(const Record& key, const Record& value)
     this->page.make_dirty();
 }
 
-std::pair<int, int> BPlusTreeLeaf::search_leaf(const Record& min)
-{
+
+std::pair<int, int> BPlusTreeLeaf::search_leaf(const Record& min) {
     int index = search_index(0, *count-1, min);
     return std::pair<int, int>(page.get_page_number(), index);
 }
 
 
 // returns the position of the minimum key greater (or equal) than the record given.
-int BPlusTreeLeaf::search_index(int from, int to, const Record& record)
-{
+int BPlusTreeLeaf::search_index(int from, int to, const Record& record) {
     if (from >= to) {
         for (int i = 0; i < params.key_size; i++) {
             auto id = records[from*params.total_size + i];
@@ -214,8 +194,7 @@ int BPlusTreeLeaf::search_index(int from, int to, const Record& record)
 }
 
 
-void BPlusTreeLeaf::shift_right_records(int from, int to)
-{
+void BPlusTreeLeaf::shift_right_records(int from, int to) {
     for (int i = to; i >= from; i--) {
         for (int j = 0; j < params.total_size; j++) {
             records[(i+1)*params.total_size + j] = records[i*params.total_size + j];

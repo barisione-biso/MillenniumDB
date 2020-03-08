@@ -33,7 +33,7 @@ public:
     std::unique_ptr<BPlusTree> edge_from_to;
 
     RelationalGraph(GraphId graph_id);
-    ~RelationalGraph() = default;
+    ~RelationalGraph();
 
     uint64_t create_node();
     uint64_t create_edge();
@@ -56,9 +56,6 @@ public:
     void add_property_to_edge(uint64_t edge_id, const std::string& key, const Value& value);
 
     void connect_nodes(uint64_t id_from, uint64_t id_to, uint64_t id_edge);
-
-private:
-    uint64_t get_value_mask(const Value& value);
 };
 
 #endif //RELATIONAL_MODEL__GRAPH_H_

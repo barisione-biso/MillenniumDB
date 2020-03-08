@@ -29,7 +29,6 @@ public:
     void insert(const Record& record);
     void insert(const Record& key, const Record& value);
 
-    void edit(const Record& key, const Record& value);
     std::unique_ptr<Record> get(const Record& record);
 
 

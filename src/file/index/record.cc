@@ -1,40 +1,33 @@
 #include <file/index/record.h>
 
+using namespace std;
+
 Record Record::empty_record = Record();
 
-Record::Record(std::vector<uint64_t> arr) {
-    record_size = arr.size();
-    ids = std::make_unique<uint64_t[]>(record_size);
-    for (int i = 0; i < record_size; i++) {
-        ids[i] = arr[i];
-    }
+Record::Record(vector<uint64_t> arr) {
+    ids = arr;
 }
 
 
-Record::Record() { // only for empty Record
-    record_size = 0;
-    ids = nullptr;
-}
+Record::Record() { } // only for empty Record
+Record::~Record() = default;
 
 
 Record::Record(uint64_t e1) {
-    record_size = 1;
-    ids = std::make_unique<uint64_t[]>(1);
+    ids = std::vector<uint64_t>(1);
     ids[0] = e1;
 }
 
 
 Record::Record(uint64_t e1, uint64_t e2) {
-    record_size = 2;
-    ids = std::make_unique<uint64_t[]>(2);
+    ids = std::vector<uint64_t>(2);
     ids[0] = e1;
     ids[1] = e2;
 }
 
 
 Record::Record(uint64_t e1, uint64_t e2, uint64_t e3) {
-    record_size = 3;
-    ids = std::make_unique<uint64_t[]>(3);
+    ids = std::vector<uint64_t>(3);
     ids[0] = e1;
     ids[1] = e2;
     ids[2] = e3;
@@ -42,23 +35,17 @@ Record::Record(uint64_t e1, uint64_t e2, uint64_t e3) {
 
 
 Record::Record(const Record& copy) {
-    record_size = copy.record_size;
-    ids = std::make_unique<uint64_t[]>(record_size);
-    for (int i = 0; i < record_size; i++) {
-        ids[i] = copy.ids[i];
-    }
+    ids = copy.ids;
 }
 
 
 void Record::operator=(const Record& other) {
-    for (int i = 0; i < record_size; i++) {
-        ids[i] = other.ids[i];
-    }
+    ids = other.ids;
 }
 
 
 bool Record::operator<=(const Record& other) {
-    for (int i = 0; i < record_size; i++) {
+    for (size_t i = 0; i < ids.size(); i++) {
         if (ids[i] < other.ids[i]) {
             return true;
         } else if (ids[i] > other.ids[i]){
@@ -70,7 +57,7 @@ bool Record::operator<=(const Record& other) {
 
 
 bool Record::operator<(const Record& other) {
-    for (int i = 0; i < record_size; i++) {
+    for (size_t i = 0; i < ids.size(); i++) {
         if (ids[i] < other.ids[i]) {
             return true;
         } else if (ids[i] > other.ids[i]){

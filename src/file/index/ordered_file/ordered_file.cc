@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <climits>
+#include <iostream>
 #include <memory>
 
 #define TUPLES_PER_BLOCK 4096/8

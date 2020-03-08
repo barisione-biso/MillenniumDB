@@ -16,31 +16,16 @@ using namespace std;
 BPlusTreeDir::BPlusTreeDir(const BPlusTreeParams& params, Page& page)
     : params(params), page(page)
 {
-    count = (int*) &page.get_bytes()[0];
+    count   = (int*) &page.get_bytes()[0];
     records = (uint64_t*) &page.get_bytes()[sizeof(int)];
-    dirs = (int*) &page.get_bytes()[sizeof(int)+((sizeof(uint64_t)*params.dir_max_records*params.key_size))];
+    dirs    = (int*) &page.get_bytes()[sizeof(int)+((sizeof(uint64_t)*params.dir_max_records*params.key_size))];
 }
+
 
 BPlusTreeDir::~BPlusTreeDir() {
     page.unpin();
 }
 
-void BPlusTreeDir::edit(const Record& key, const Record& value) {
-    int index = search_dir_index(0, *count, key);
-
-    int page_pointer = dirs[index];
-
-    if (page_pointer < 0) { // negative number: pointer to dir
-        Page& child_page = BufferManager::get_page(page_pointer*-1, params.dir_file_id);
-        BPlusTreeDir child =  BPlusTreeDir(params, child_page);
-        child.edit(key, value);
-    }
-    else { // positive number: pointer to leaf
-        Page& child_page = BufferManager::get_page(page_pointer, params.leaf_file_id);
-        BPlusTreeLeaf child =  BPlusTreeLeaf(params, child_page);
-        child.edit(key, value);
-    }
-}
 
 std::unique_ptr<Record> BPlusTreeDir::get(const Record& key){
     int index = search_dir_index(0, *count, key);
@@ -262,7 +247,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
         // Case 3: normal split split
         else {
             // poner nuevo record/dir y guardar el ultimo (que no cabe)
-            std::unique_ptr<uint64_t[]> last_key = std::make_unique<uint64_t[]>(params.key_size);
+            auto last_key = vector<uint64_t>(params.key_size);
             int last_dir;
             if (splitted_index == *count) { // splitted key is the last key
                 for (int i = 0; i < params.key_size; i++) {

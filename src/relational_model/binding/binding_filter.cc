@@ -31,12 +31,15 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
     }
     else { // no esta en el cache ni el el binding original
         auto info = var_info[var];
-        auto key_object_id = RelationalModel::get_id(key); // TODO: esta busqueda se debería hacer solo 1 vez por consulta
+        // TODO: esta busqueda se debería hacer solo 1 vez por consulta
+        auto key_object_id = RelationalModel::get_string_unmasked_id(key);
         if (key_object_id.is_null()) {
             cout << "key_object_id null\n";
+            return nullptr;
         }
         if (key_object_id.not_found()) {
             cout << "key_object_id not found\n";
+            return nullptr;
         }
         auto var_value = binding[var];
 
@@ -46,19 +49,22 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
 
         BPlusTree* bpt;
         ObjectId element_object_id;
+        uint64_t mask;
         if (info.second == ObjectType::node) {
             Node node = static_cast<const Node&>(*var_value);
             element_object_id = node.id;
-            bpt = RelationalModel::get_graph(info.first).prop2edge.get();
+            bpt = RelationalModel::get_graph(info.first).node2prop.get();
+            mask = NODE_MASK;
         }
         else {
             Edge edge = static_cast<const Edge&>(*var_value);
             element_object_id = edge.id;
-            bpt = RelationalModel::get_graph(info.first).prop2edge.get();
+            bpt = RelationalModel::get_graph(info.first).edge2prop.get();
+            mask = EDGE_MASK;
         }
         auto it = bpt->get_range(
-            Record(element_object_id, key_object_id, 0),
-            Record(element_object_id, key_object_id, UINT64_MAX)
+            Record(element_object_id | mask, key_object_id, 0),
+            Record(element_object_id | mask, key_object_id, UINT64_MAX)
         );
 
         auto res = it->next();
