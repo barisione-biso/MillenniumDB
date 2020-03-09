@@ -1,6 +1,7 @@
 #include "ordered_file.h"
 
 #include "file/index/record.h"
+#include "file/file_manager.h"
 
 #include <chrono>
 #include <climits>
@@ -14,10 +15,10 @@ using namespace std;
 
 OrderedFile::OrderedFile(const string& filename, uint_fast8_t tuple_size)
     : tuple_size(tuple_size),
-      file_id(FileManager::get_file_id(filename)),
-      tmp_file_id(FileManager::get_file_id(filename + ".tmp")),
-      file(FileManager::get_file(file_id)),
-      tmp_file(FileManager::get_file(tmp_file_id)),
+      file_id(file_manager.get_file_id(filename)),
+      tmp_file_id(file_manager.get_file_id(filename + ".tmp")),
+      file(file_manager.get_file(file_id)),
+      tmp_file(file_manager.get_file(tmp_file_id)),
       bytes_per_tuple(sizeof(uint64_t)*tuple_size),
       block_size_in_bytes(TUPLES_PER_BLOCK*bytes_per_tuple)
 {
@@ -35,7 +36,7 @@ OrderedFile::OrderedFile(const string& filename, uint_fast8_t tuple_size)
 OrderedFile::~OrderedFile() {
     delete[] buffer;
     delete[] big_buffer;
-    FileManager::close(file_id);
+    file_manager.close(file_id);
 }
 
 void OrderedFile::begin_iter() {
@@ -70,7 +71,7 @@ void OrderedFile::append_record(const Record& record) {
 }
 
 void OrderedFile::order(vector<uint_fast8_t> column_order) {
-    FileManager::ensure_open(tmp_file_id);
+    file_manager.ensure_open(tmp_file_id);
 
     if (current_output_pos > 0) {
         file.write((char*) output_buffer, bytes_per_tuple*current_output_pos);
@@ -187,13 +188,13 @@ void OrderedFile::order(vector<uint_fast8_t> column_order) {
     }
 
     if (!reading_orginal_file) {
-        FileManager::remove(file_id);
-        FileManager::rename(tmp_file_id, file_id);
+        file_manager.remove(file_id);
+        file_manager.rename(tmp_file_id, file_id);
     }
     else {
-        FileManager::remove(tmp_file_id);
+        file_manager.remove(tmp_file_id);
     }
-    FileManager::ensure_open(file_id);
+    file_manager.ensure_open(file_id);
 
     // auto end = std::chrono::system_clock::now();
     // duration = end - end_phase0;

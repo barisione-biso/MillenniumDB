@@ -39,7 +39,7 @@ public:
             const auto& casted_rhs = static_cast<const ValueString&>(rhs);
             return this->value != casted_rhs.value;
         }
-        return false;
+        return true;
     }
 
     bool operator<=(const GraphObject& rhs) const override {

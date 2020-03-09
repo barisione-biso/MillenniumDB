@@ -6,7 +6,7 @@
 using namespace std;
 
 Catalog::Catalog(const string& filename)
-    : file (FileManager::get_file(FileManager::get_file_id(filename)))
+    : file (file_manager.get_file(file_manager.get_file_id(filename)))
 {
     file.seekg (0, file.end);
     if (file.tellg() == 0) {

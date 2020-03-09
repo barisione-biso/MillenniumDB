@@ -1,36 +1,41 @@
+// !!!! IMPORTANT !!!! NEVER include this file in a header file
+
 #ifndef FILE__BUFFER_MANAGER_H_
 #define FILE__BUFFER_MANAGER_H_
 
+#include "file/file_id.h"
+
 #include <map>
 #include <string>
-
-#include "file/file_manager.h"
 
 class Page;
 class Buffer;
 
 class BufferManager {
-friend class FileManager;
 public:
-    static Page& get_page(uint_fast32_t page_number, FileId file_id);
-    static Page& append_page(FileId file_id);
+    Page& get_page(uint_fast32_t page_number, FileId file_id);
+    Page& append_page(FileId file_id);
+    void flush();
+
+    BufferManager(); // TODO: try making private and friend class
+    ~BufferManager();
 
 private:
-    static BufferManager instance;
     std::map<std::pair<FileId, int>, int> pages;
 
     Page* buffer_pool;
     char* bytes;
     int clock_pos;
 
-    BufferManager();
-    ~BufferManager();
-
-    bool flushed_at_exit = false;
-    void _flush();
     int get_buffer_available();
-    Page& _get_page(uint_fast32_t page_number, FileId file_id);
-    Page& _append_page(FileId file_id);
 };
+
+extern BufferManager& buffer_manager; // global object
+
+static struct BufferManagerInitializer {
+  BufferManagerInitializer();
+  ~BufferManagerInitializer();
+} bufferManager_initializer; // static initializer for every translation unit
+
 
 #endif //FILE__BUFFER_MANAGER_H_

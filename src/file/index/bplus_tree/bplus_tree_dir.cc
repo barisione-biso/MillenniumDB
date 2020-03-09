@@ -33,12 +33,12 @@ std::unique_ptr<Record> BPlusTreeDir::get(const Record& key){
     int page_pointer = dirs[index];
 
     if (page_pointer < 0) { // negative number: pointer to dir
-        Page& child_page = BufferManager::get_page(page_pointer*-1, params.dir_file_id);
+        Page& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
         BPlusTreeDir child =  BPlusTreeDir(params, child_page);
         return child.get(key);
     }
     else { // positive number: pointer to leaf
-        Page& child_page = BufferManager::get_page(page_pointer, params.leaf_file_id);
+        Page& child_page = buffer_manager.get_page(page_pointer, params.leaf_file_id);
         BPlusTreeLeaf child =  BPlusTreeLeaf(params, child_page);
         return child.get(key);
     }
@@ -51,7 +51,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
 
     if (page_pointer < 0) { // negative number: pointer to dir
         // std::cout << "Pointing to dir " << page_pointer << "\n";
-        Page& child_page = BufferManager::get_page(page_pointer*-1, params.dir_file_id);
+        Page& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
         BPlusTreeDir child =  BPlusTreeDir(params, child_page);
         split_record_index = child.bulk_insert(leaf);
     }
@@ -72,8 +72,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
         // Case 2: we need to split this node and this node is the root
         else if (page.get_page_number() == 0) {
             // std::cout << "Case 2\n";
-            Page& new_left_page = BufferManager::append_page(params.dir_file_id);
-            Page& new_right_page = BufferManager::append_page(params.dir_file_id);
+            Page& new_left_page = buffer_manager.append_page(params.dir_file_id);
+            Page& new_right_page = buffer_manager.append_page(params.dir_file_id);
 
             BPlusTreeDir new_left_dir = BPlusTreeDir(params, new_left_page);
             BPlusTreeDir new_right_dir = BPlusTreeDir(params, new_right_page);
@@ -118,7 +118,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
         // Case 3: normal split
         else {
             // std::cout << "Case 3\n";
-            Page& new_page = BufferManager::append_page(params.dir_file_id);
+            Page& new_page = buffer_manager.append_page(params.dir_file_id);
             BPlusTreeDir new_dir = BPlusTreeDir(params, new_page);
             new_dir.dirs[0] = split_record_index->second;
             *new_dir.count = 0;
@@ -139,12 +139,12 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
     std::unique_ptr<std::pair<Record, int>> split_record_index;
 
     if (page_pointer < 0) { // negative number: pointer to dir
-        Page& child_page = BufferManager::get_page(page_pointer*-1, params.dir_file_id);
+        Page& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
         BPlusTreeDir child =  BPlusTreeDir(params, child_page);
         split_record_index = child.insert(key, value);
     }
     else { // positive number: pointer to leaf
-        Page& child_page = BufferManager::get_page(page_pointer, params.leaf_file_id);
+        Page& child_page = buffer_manager.get_page(page_pointer, params.leaf_file_id);
         BPlusTreeLeaf child =  BPlusTreeLeaf(params, child_page);
         split_record_index = child.insert(key, value);
     }
@@ -183,8 +183,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
                 update_dir(splitted_index+1, split_record_index->second);
             }
             int middle_index = (*count+1)/2;
-            Page& new_left_page = BufferManager::append_page(params.dir_file_id);
-            Page& new_right_page = BufferManager::append_page(params.dir_file_id);
+            Page& new_left_page = buffer_manager.append_page(params.dir_file_id);
+            Page& new_right_page = buffer_manager.append_page(params.dir_file_id);
 
             BPlusTreeDir new_left_dir = BPlusTreeDir(params, new_left_page);
             BPlusTreeDir new_right_dir = BPlusTreeDir(params, new_right_page);
@@ -267,7 +267,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             }
             int middle_index = (*count+1)/2;
 
-            Page& new_page = BufferManager::append_page(params.dir_file_id);
+            Page& new_page = buffer_manager.append_page(params.dir_file_id);
             BPlusTreeDir new_dir = BPlusTreeDir(params, new_page);
 
             // write records from (middle_index+1) to (*count-1) plus the last record saved before
@@ -335,12 +335,12 @@ std::pair<int, int> BPlusTreeDir::search_leaf(const Record& min) {
     int page_pointer = dirs[dir_index];
 
     if (page_pointer < 0) { // negative number: pointer to dir
-        Page& child_page = BufferManager::get_page(page_pointer*-1, params.dir_file_id);
+        Page& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
         BPlusTreeDir child = BPlusTreeDir(params, child_page);
         return child.search_leaf(min);
     }
     else { // positive number: pointer to leaf
-        Page& child_page = BufferManager::get_page(page_pointer, params.leaf_file_id);
+        Page& child_page = buffer_manager.get_page(page_pointer, params.leaf_file_id);
         BPlusTreeLeaf child =  BPlusTreeLeaf(params, child_page);
         return child.search_leaf(min);
     }

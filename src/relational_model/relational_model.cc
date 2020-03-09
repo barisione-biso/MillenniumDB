@@ -83,7 +83,7 @@ ObjectId RelationalModel::get_string_unmasked_id(const string& str) {
         auto bytes = make_unique<vector<unsigned char>>(string_len);
         copy(str.begin(), str.end(), bytes->begin());
 
-        return ObjectId( get_or_create_external_id(move(bytes)) );
+        return ObjectId( get_external_id(move(bytes)) );
     }
     else {
         uint64_t res = 0;
@@ -121,7 +121,7 @@ ObjectId RelationalModel::get_or_create_string_unmasked_id(const std::string& st
         auto bytes = make_unique<vector<unsigned char>>(string_len);
         copy(str.begin(), str.end(), bytes->begin());
 
-        return ObjectId( get_external_id(move(bytes)) );
+        return ObjectId( get_or_create_external_id(move(bytes)) );
     }
     else {
         uint64_t res = 0;

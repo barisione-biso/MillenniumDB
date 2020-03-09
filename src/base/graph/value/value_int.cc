@@ -49,7 +49,7 @@ bool ValueInt::operator!=(const GraphObject& rhs) const {
         const auto& casted_rhs = static_cast<const ValueFloat&>(rhs);
         return casted_rhs.value != this->value; // Left defines precision, so float needs to be at left
     }
-    else return false;
+    else return true;
 }
 
 

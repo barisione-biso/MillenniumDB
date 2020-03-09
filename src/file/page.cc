@@ -1,4 +1,6 @@
-#include "file/page.h"
+#include "page.h"
+
+#include "file/file_id.h"
 
 Page::Page(uint_fast32_t page_number, char* bytes, FileId file_id)
     : page_number(page_number), file_id(file_id), pins(1), dirty(false), bytes(bytes) { }
@@ -58,7 +60,7 @@ char* Page::get_bytes() const {
 void Page::flush() {
     if (dirty) {
         // std::cout << "Page::flush() " << page_number << ", " << filename << "\n";
-        FileManager::flush(file_id, page_number, bytes);
+        file_manager.flush(file_id, page_number, bytes);
         dirty = false;
     }
 }

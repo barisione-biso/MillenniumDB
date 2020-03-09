@@ -8,7 +8,7 @@
 using namespace std;
 
 ObjectFile::ObjectFile(const string& filename)
-    : file (FileManager::get_file(FileManager::get_file_id(filename)))
+    : file (file_manager.get_file(file_manager.get_file_id(filename)))
 {
     file.seekg (0, file.end);
     // If the file is empty, write a trash byte to prevent the ID = 0

@@ -1,6 +1,46 @@
-- refactoring a Record
+- Crear test queries:
+    - Busqueda de nodo por label:
+        - largo string = 7, 1 resultado
+        - largo string = 7, varios resultados
+        - largo string = 8, 1 resultado
+        - largo string = 8, varios resultados
+
+    - Busqueda de edge por label:
+        - largo string = 7, 1 resultado
+        - largo string = 7, varios resultados
+        - largo string = 8, 1 resultado
+        - largo string = 8, varios resultados
+
+    - Busqueda de nodo por labels:
+        - largo string = <= 7 + largo string >= 8, varios resultados
+        - largo string = <= 7 + largo string >= 8, 1 resultado
+
+    - Busqueda de nodo por labels:
+        - largo string = <= 7 + largo string >= 8, varios resultados
+        - largo string = <= 7 + largo string >= 8, 1 resultado
+
+    - Busqueda de nodo por property:
+        - largo string = 7, 1 resultado
+        - largo string = 7, varios resultados
+        - largo string = 8, 1 resultado
+        - largo string = 8, varios resultados
+
+    - Busqueda de edge por label:
+        - largo string = 7, 1 resultado
+        - largo string = 7, varios resultados
+        - largo string = 8, 1 resultado
+        - largo string = 8, varios resultados
+
+    - Busqueda de nodo por properties:
+        - largo string = <= 7 + largo string >= 8, varios resultados
+        - largo string = <= 7 + largo string >= 8, 1 resultado
+
+    - Busqueda de nodo por properties:
+        - largo string = <= 7 + largo string >= 8, varios resultados
+        - largo string = <= 7 + largo string >= 8, 1 resultado
+
+
 - sacar = default de los .h y pasalos al .cc
-- use nifty counter for singletons? => si se llaman los destructores de los unique_ptrs no sería necesario
 - add override to virtual functions overrided?
 - Probar si usando constructores con rvalue references para unique_ptrs se mejora la performance.
 - Arreglar gramatica:

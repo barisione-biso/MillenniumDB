@@ -1,12 +1,12 @@
 #ifndef FILE__ORDERED_FILE_H_
 #define FILE__ORDERED_FILE_H_
 
+#include "file/file_id.h"
+
 #include <fstream>
 #include <memory>
 #include <string>
 #include <vector>
-
-#include "file/file_manager.h"
 
 class Record;
 
