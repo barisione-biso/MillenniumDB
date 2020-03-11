@@ -105,6 +105,10 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
             new_left_page.make_dirty();
             new_right_page.make_dirty();
             this->page.make_dirty();
+            if (!this->check()) {
+                cout << "Error bulk import caso split root node.";
+                cout << "Al tratar de insertar hoja: " << leaf.page.get_page_number() << std::endl;
+            }
             return nullptr;
         }
         // Case 3: normal split
@@ -116,6 +120,10 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
             // *this->key_count does not change
             new_page.make_dirty();
             this->page.make_dirty();
+            if (!this->check()) {
+                cout << "Error bulk import caso normal split node.";
+                cout << "Al tratar de insertar hoja: " << leaf.page.get_page_number() << std::endl;
+            }
             return std::make_unique<std::pair<Record, int>>(split_record_index->first, new_page.get_page_number()*-1);
         }
     }

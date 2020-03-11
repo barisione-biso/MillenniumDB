@@ -136,6 +136,9 @@ void BulkImport::start_import() {
     from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 });
     from_to_edge.check_order(vector<uint_fast8_t> { 0, 1, 2 });
     graph.edge_from_to->bulk_import(from_to_edge);
+
+    cout << "POST CHECKING label2edge\n";
+    graph.label2edge->check();
 }
 
 

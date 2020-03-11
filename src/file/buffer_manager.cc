@@ -34,7 +34,7 @@ BufferManager::~BufferManager() {
 
 void BufferManager::flush() {
     cout << "flushing buffer manager\n";
-    for (int i = 0; i < PAGE_SIZE; i++) {
+    for (int i = 0; i < BUFFER_POOL_INITIAL_SIZE; i++) {
         buffer_pool[i].flush();
     }
 }
