@@ -22,14 +22,27 @@ file(GLOB_RECURSE SRCS src/*.cc)
 
 set(sources ${SRCS})
 list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/*)
+list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/*)
 add_library(graphdb STATIC ${sources})
 
-# add the executables
-add_executable(CreateDB ${CMAKE_SOURCE_DIR}/src/main/create_db.cc)
-target_link_libraries(CreateDB graphdb ssl crypto stdc++fs)
+set(BUILD_TARGETS
+    create_db
+    grammar
+    query
+    check_bpts
+)
 
-add_executable(Grammar ${CMAKE_SOURCE_DIR}/src/main/grammar.cc)
-target_link_libraries(Grammar graphdb ssl crypto stdc++fs)
+set(TEST_TARGETS
+    bplus_tree
+)
 
-add_executable(Query ${CMAKE_SOURCE_DIR}/src/main/execute_query.cc)
-target_link_libraries(Query graphdb ssl crypto stdc++fs)
+foreach(target ${BUILD_TARGETS})
+    add_executable(${target} ${CMAKE_SOURCE_DIR}/src/main/${target}.cc)
+    target_link_libraries(${target} graphdb ssl crypto stdc++fs)
+endforeach(target)
+
+foreach(target ${TEST_TARGETS})
+    add_executable(${target} ${CMAKE_SOURCE_DIR}/src/tests/${target}.cc)
+    target_link_libraries(${target} graphdb ssl crypto stdc++fs)
+    # add_test(NAME ${target} COMMAND ${target})
+endforeach(target)

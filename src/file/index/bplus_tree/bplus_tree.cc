@@ -17,40 +17,44 @@ BPlusTree::BPlusTree(unique_ptr<BPlusTreeParams> _params)
 {
     root = make_unique<BPlusTreeDir>(*params, buffer_manager.get_page(0, params->dir_file_id));
     BPlusTreeLeaf first_leaf(*params, buffer_manager.get_page(0, params->leaf_file_id)); // just to see if BPT is empty
-    is_empty = *first_leaf.count == 0;
+    is_empty = *first_leaf.value_count == 0;
 }
 
 
 void BPlusTree::bulk_import(OrderedFile& ordered_file) {
     ordered_file.begin_iter();
     // first leaf
-    BPlusTreeLeaf first_leaf(*params, buffer_manager.get_page(0, params->leaf_file_id));
-    *first_leaf.count = ordered_file.next_tuples(first_leaf.records, params->leaf_max_records);
+    auto first_leaf = BPlusTreeLeaf(*params, buffer_manager.get_page(0, params->leaf_file_id));
+    *first_leaf.value_count = ordered_file.next_tuples(first_leaf.records, params->leaf_max_records);
     // root.dirs[0] = 0;
     // cout << *first_leaf.count << "\n";
     int next_page_number = 1;
     if (ordered_file.has_more_tuples()) {
-        *first_leaf.next = next_page_number;
+        *first_leaf.next_leaf = next_page_number;
     }
     first_leaf.page.make_dirty();
 
     while (ordered_file.has_more_tuples()) {
 
-        BPlusTreeLeaf new_leaf(*params, buffer_manager.get_page(next_page_number, params->leaf_file_id));
-        *new_leaf.count = ordered_file.next_tuples(new_leaf.records, params->leaf_max_records);
-        // cout << *new_leaf.count << "\n";
+        auto new_leaf = BPlusTreeLeaf(*params, buffer_manager.get_page(next_page_number, params->leaf_file_id));
+        *new_leaf.value_count = ordered_file.next_tuples(new_leaf.records, params->leaf_max_records);
+
+        if (*new_leaf.value_count <= 0) {
+            cout << "Wrong *new_leaf.value_count: " << *new_leaf.value_count << "\n";
+        }
 
         if (ordered_file.has_more_tuples()) {
-            *new_leaf.next = ++next_page_number;
+            *new_leaf.next_leaf = ++next_page_number;
         }
         root->bulk_insert(new_leaf);
         new_leaf.page.make_dirty();
     }
+    std::cout << "next_page_number: " << next_page_number << std::endl;
 }
 
 
 unique_ptr<BPlusTree::Iter> BPlusTree::get_range(const Record& min, const Record& max) {
-    pair<int, int> page_number_and_pos = root->search_leaf(min);
+    auto page_number_and_pos = root->search_leaf(min);
     return make_unique<Iter>(*params, page_number_and_pos.first, page_number_and_pos.second, max);
 }
 
@@ -86,6 +90,11 @@ unique_ptr<Record> BPlusTree::get(const Record& key) {
     return root->get(key);
 }
 
+
+bool BPlusTree::check() const {
+    return root->check();
+}
+
 /******************************* Iter ********************************/
 BPlusTree::Iter::Iter(const BPlusTreeParams& params, int leaf_page_number, int current_pos, const Record& max)
     : params(params), max(max)
@@ -96,7 +105,7 @@ BPlusTree::Iter::Iter(const BPlusTreeParams& params, int leaf_page_number, int c
 
 
 unique_ptr<Record> BPlusTree::Iter::next() {
-    if (current_pos < current_leaf->get_count()) {
+    if (current_pos < current_leaf->get_value_count()) {
         unique_ptr<Record> res = current_leaf->get_record(current_pos);
         // check if res is less than max
         for (int i = 0; i < params.key_size; i++) {
@@ -113,7 +122,7 @@ unique_ptr<Record> BPlusTree::Iter::next() {
         return res; // res == max
     }
     else if (current_leaf->has_next()) {
-        current_leaf = current_leaf->next_leaf();
+        current_leaf = current_leaf->get_next_leaf();
         current_pos = 0;
         return next();
     }

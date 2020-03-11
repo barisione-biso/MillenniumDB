@@ -1,5 +1,5 @@
-#ifndef FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_LEAF_
-#define FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_LEAF_
+#ifndef FILE__B_PLUS_TREE_LEAF_H_
+#define FILE__B_PLUS_TREE_LEAF_H_
 
 #include <iostream>
 #include <memory>
@@ -24,23 +24,25 @@ public:
     void create_new(const Record& key, const Record& value);
 
     bool is_leaf()  { return true; }
-    int get_count() { return *count; }
-    int has_next()  { return *next != 0; }
+    int get_value_count() { return *value_count; }
+    int has_next()  { return *next_leaf != 0; }
+
+    bool check() const;
     void print() const;
 
-    std::unique_ptr<BPlusTreeLeaf> next_leaf();
+    std::unique_ptr<BPlusTreeLeaf> get_next_leaf();
     std::unique_ptr<Record> get_record(int pos);
 
 private:
     const BPlusTreeParams& params;
     Page& page;
-    int* count;
-    int* next;
-    uint64_t* records;
+    int* value_count;
+    int* next_leaf;
+    uint64_t* records; // key+value
 
     int search_index(int from, int to, const Record& record);
     bool equal_record(const Record& record, int index);
     void shift_right_records(int from, int to);
 };
 
-#endif //FILE__INDEX__B_PLUS_TREE__B_PLUS_TREE_LEAF_
+#endif //FILE__B_PLUS_TREE_LEAF_H_

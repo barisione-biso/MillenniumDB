@@ -86,44 +86,55 @@ void BulkImport::start_import() {
     cout << "\nCreating indexes for labels\n";
     // NODE LABELS
     node_labels.order(vector<uint_fast8_t> { 0, 1 });
+    node_labels.check_order(vector<uint_fast8_t> { 0, 1 });
     graph.node2label->bulk_import(node_labels);
 
     node_labels.order(vector<uint_fast8_t> { 1, 0 });
+    node_labels.check_order(vector<uint_fast8_t> { 0, 1 });
     graph.label2node->bulk_import(node_labels);
 
     // EDGE LABELS
     edge_labels.order(vector<uint_fast8_t> { 0, 1 });
+    edge_labels.check_order(vector<uint_fast8_t> { 0, 1 });
     graph.edge2label->bulk_import(edge_labels);
 
     edge_labels.order(vector<uint_fast8_t> { 1, 0 });
+    edge_labels.check_order(vector<uint_fast8_t> { 0, 1 });
     graph.label2edge->bulk_import(edge_labels);
 
     cout << "Creating indexes for properties\n";
 
     // NODE PROPERTIES
     node_key_value.order(vector<uint_fast8_t> { 0, 1, 2 });
+    node_key_value.check_order(vector<uint_fast8_t> { 0, 1, 2 });
     graph.node2prop->bulk_import(node_key_value);
 
     node_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
+    node_key_value.check_order(vector<uint_fast8_t> { 0, 1, 2 });
     graph.prop2node->bulk_import(node_key_value);
 
     // EDGE PROPERTIES
     edge_key_value.order(vector<uint_fast8_t> { 0, 1, 2 });
+    edge_key_value.check_order(vector<uint_fast8_t> { 0, 1, 2 });
     graph.edge2prop->bulk_import(edge_key_value);
 
     edge_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
+    edge_key_value.check_order(vector<uint_fast8_t> { 0, 1, 2 });
     graph.prop2edge->bulk_import(edge_key_value);
 
     cout << "Creating indexes for connections\n";
 
     // CONNECTIONS
     from_to_edge.order(vector<uint_fast8_t> { 0, 1, 2 });
+    from_to_edge.check_order(vector<uint_fast8_t> { 0, 1, 2 });
     graph.from_to_edge->bulk_import(from_to_edge);
 
     from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 });
+    from_to_edge.check_order(vector<uint_fast8_t> { 0, 1, 2 });
     graph.to_edge_from->bulk_import(from_to_edge);
 
     from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 });
+    from_to_edge.check_order(vector<uint_fast8_t> { 0, 1, 2 });
     graph.edge_from_to->bulk_import(from_to_edge);
 }
 

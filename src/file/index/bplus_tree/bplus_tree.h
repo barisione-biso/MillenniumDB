@@ -29,6 +29,8 @@ public:
     void insert(const Record& record);
     void insert(const Record& key, const Record& value);
 
+    bool check() const;
+
     std::unique_ptr<Record> get(const Record& record);
 
 

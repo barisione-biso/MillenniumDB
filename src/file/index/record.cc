@@ -66,3 +66,13 @@ bool Record::operator<(const Record& other) {
     }
     return false;
 }
+
+
+ostream& operator<<(ostream& os, const Record& record) {
+    string res = '(' + std::to_string(record.ids[0]); // Suposing record size > 0
+    for (size_t i = 1; i < record.ids.size(); i++) {
+        res += ", " + std::to_string(record.ids[i]);
+    }
+    res += ')';
+    return os << res;
+}

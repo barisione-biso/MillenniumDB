@@ -1,7 +1,7 @@
 # Set up project on Ubuntu based distributions and Visual Studio Code
 - Install prerrequisites to compile:
     - `sudo apt update`
-    - `sudo apt install g++ cmake libssl-dev libboost-dev gdb`
+    - `sudo apt install g++ cmake libssl-dev libboost-dev gdb wamerican`
 
 - Set up ssh key (optional, highly recomended):
     - `ssh-keygen -t rsa -b 4096 -C "you@example.com"` (replace you@example.com with your email).
@@ -43,7 +43,7 @@
         - To paste some copied text, just right-click (having no text selected, otherwise selected text will be copied).
     - Install prerrequisites to compile:
         - `sudo apt update`
-        - `sudo apt install g++ cmake libssl-dev libboost-dev gdb`
+        - `sudo apt install g++ cmake libssl-dev libboost-dev gdb wamerican`
     - Set up ssh key (optional, highly recomended):
         - `ssh-keygen -t rsa -b 4096 -C "you@example.com"` (replace you@example.com with your email).
         - `eval $(ssh-agent -s)`
@@ -83,8 +83,8 @@
 
 # Create Database
 - Delete previous database files if they exists `rm -r test_files/*.*`
-- `build/Release/bin/CreateDB ./path/to/nodes_file ./path/to/edges_file`
+- `build/Release/bin/create_db ./path/to/nodes_file ./path/to/edges_file`
 
 # Run Query
-- `build/Release/bin/Query ./path/to/query_file`
+- `build/Release/bin/query ./path/to/query_file`
 

@@ -2,6 +2,7 @@
 #define FILE__RECORD_H_
 
 #include <cstdint>
+#include <ostream>
 #include <vector>
 
 class Record {
@@ -21,6 +22,7 @@ public:
     bool operator<(const Record& other);
     bool operator<=(const Record& other);
 
+    friend std::ostream& operator<<(std::ostream& os, const Record& record);
 
 private:
     static Record empty_record;

@@ -20,24 +20,25 @@ public:
     std::unique_ptr<std::pair<Record, int>> insert(const Record& key, const Record& value); // returns not null if needs to split
 
     std::unique_ptr<Record> get(const Record& key);
-
     std::pair<int, int> search_leaf(const Record& min);
 
+    bool check() const;
+
     bool is_leaf()  { return false; }
-    int get_count() { return *count; }
+    int get_key_count() { return *key_count; }
 
 private:
     const BPlusTreeParams& params;
-    Page& page;
-    int* count;
-    uint64_t* records;
-    int* dirs;
+    Page& page; // Page * const
+    int* key_count;
+    uint64_t* keys;
+    int* children;
 
-    int search_dir_index(int from, int to, const Record& record);
-    void shift_right_records(int from, int to);
-    void shift_right_dirs(int from, int to);
-    void update_record(int index, const Record& record);
-    void update_dir(int index, int dir);
+    int search_child_index(int from, int to, const Record& record);
+    void shift_right_keys(int from, int to);
+    void shift_right_children(int from, int to);
+    void update_key(int index, const Record& record);
+    void update_child(int index, int dir);
     void split(const Record& record);
 };
 

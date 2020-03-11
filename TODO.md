@@ -1,7 +1,9 @@
 - Crear test queries:
     - Busqueda de nodo por label:
+        - largo string = 7, sin resultados
         - largo string = 7, 1 resultado
         - largo string = 7, varios resultados
+        - largo string = 8, sin resultados
         - largo string = 8, 1 resultado
         - largo string = 8, varios resultados
 

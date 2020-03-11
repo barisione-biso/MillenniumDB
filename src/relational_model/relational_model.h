@@ -67,7 +67,7 @@ public:
     static inline const std::string label2node_name = "LN";
     static inline const std::string node2label_name = "NL";
     static inline const std::string label2edge_name = "LE";
-    static inline const std::string edge2label_name = "NL";
+    static inline const std::string edge2label_name = "EL";
 
     // Properties
     static inline const std::string node2prop_name = "NKV";
