@@ -24,8 +24,9 @@ void create_ascending(int size, std::string& bpt_name) {
         std::cout << "bpt created with errors\n";
         return;
     }
-    std::cout << "bpt created.\n";
+    std::cout << "bpt created without errors.\n";
 }
+
 
 void create_descending(int size, std::string& bpt_name) {
     auto bpt_params =  make_unique<BPlusTreeParams>(bpt_name, 3);
@@ -45,47 +46,30 @@ void create_descending(int size, std::string& bpt_name) {
         std::cout << "bpt created with errors\n";
         return;
     }
-    std::cout << "bpt created.\n";
+    std::cout << "bpt created without errors.\n";
 }
 
-void create(int size) {
-    auto bpt_params =  make_unique<BPlusTreeParams>("test_bpt", 3);
+
+void create_random(int size, std::string& bpt_name) {
+    auto bpt_params =  make_unique<BPlusTreeParams>(bpt_name, 3);
     BPlusTree bpt = BPlusTree(move(bpt_params));
 
-    // for (int i = 0; i < size - 1; i++) {
-    //     uint64_t c[3] = {};
-    //     c[0] = (uint64_t) rand();
-    //     c[1] = (uint64_t) rand();
-    //     c[2] = (uint64_t) rand();
-
-    //     bpt.insert( Record(c[0], c[1], c[2]) );
-    // }
-    // uint64_t c[3] = {};
-    // c[0] = (uint64_t) rand();
-    // c[1] = (uint64_t) rand();
-    // c[2] = (uint64_t) rand();
-    // bpt.insert( Record(c[0], c[1], c[2]) );
-
-    uint64_t n = 0;
     for (int i = 1; i <= size; i++) {
         uint64_t c[3] = {};
-        c[0] = n++;
-        c[1] = n++;
-        c[2] = n++;
+        c[0] = (uint64_t) rand();
+        c[1] = (uint64_t) rand();
+        c[2] = (uint64_t) rand();
 
         bpt.insert( Record(c[0], c[1], c[2]) );
-        // if (!bpt.check()) {
-        //     std::cout << "bpt created with errors at tuple " << i << "\n";
-        //     return;
-        // }
     }
 
     if (!bpt.check()) {
         std::cout << "bpt created with errors\n";
         return;
     }
-    std::cout << "bpt created.\n";
+    std::cout << "bpt created without errors.\n";
 }
+
 
 int test_order(std::string& bpt_name) {
     auto bpt_params = make_unique<BPlusTreeParams>(bpt_name, 3);
@@ -124,7 +108,9 @@ int main(int argc, char** argv) {
     }
     int size = atoi(argv[1]);
 
-    string name = "bpt_descending";
-    create_descending(size, name);
-    return test_order(name);
+    string name_random = "bpt_random";
+    create_random(size, name_random);
+    return test_order(name_random);
+    // string name = "bpt_descending";
+    // create_descending(size, name);
 }

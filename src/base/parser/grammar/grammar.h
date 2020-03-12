@@ -69,23 +69,23 @@ namespace parser
         lit('>')  >> attr(ast::GT());
 
     auto const connector =
-        (omit[+space] >> "AND" >> omit[+space] >> attr(ast::And())) |
-        (omit[+space] >> "OR"  >> omit[+space] >> attr(ast::Or()));
+        (lexeme[no_case["and"]] >> attr(ast::And()) ) |  // add no_case?
+        (lexeme[no_case["or"]]  >> attr(ast::Or()) );
 
     auto const var =
-        '?' >> +(alnum);
+        lexeme['?' >> +(alnum)];
 
     auto const key =
-        +(char_("A-Za-z0-9#'&%$!|+-"));
-
-    auto const func =
-        +(alnum);
+        lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'")];
 
     auto const label =
-        +(char_("A-Za-z0-9#'&%$!|+-"));
+        lexeme[':' >> +char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'")];
+
+    auto const func =
+        lexeme[+(alnum)];
 
     auto const boolean =
-        (no_case["true"] >> attr(true)) | no_case["false"] >> attr(false);
+        (lexeme[no_case["true"]] >> attr(true)) | lexeme[no_case["false"]] >> attr(false);
 
     auto const string =
         (lexeme['"' >> *(char_ - '"') >> '"']) |
@@ -98,10 +98,10 @@ namespace parser
         key >> ':' >> value;
 
     auto const nomen =
-        -(no_skip[var]) >> *(no_skip[omit[*space] >> ':' >> label]) >> -("{" >> -(property % ',') >> "}");
+        -var >> *label >> -("{" >> -(property % ',') >> "}");
 
     auto const node_def =
-        '(' >> omit[*space] >> nomen >> omit[*space] >> ")";
+        '(' >> nomen >> ")";
 
     auto const edge_def =
         (-("-[" >> nomen >> ']') >> "->" >> attr(ast::EdgeDirection::right)) |
@@ -111,37 +111,36 @@ namespace parser
         attr(GraphId(0)) >> node >> *(edge >> node);
 
     auto const selection =
-        lit('*') >> attr(ast::All()) | (element % (',' >> omit[*space]));
+        lit('*') >> attr(ast::All()) | (element % ',');
 
     auto const statement_def =
-        element >> omit[+space] >> comparator >> omit[+space] >> (element | value);
+        element >> comparator >> (element | value);
 
     auto const condition_def =
-        -(lit("NOT") >> attr(true) >> omit[*space]) >>
+        -(no_case["NOT"] >> attr(true)) >>
         (
             statement |
-            ('(' >> omit[*space] >> formula >> omit[*space] >> ')')
+            ('(' >> formula >> ')')
         );
 
     auto const formula_def =
         condition >> *(connector >> condition);
 
     auto const match_statement =
-        no_case["match"] >> ( linear_pattern % ',');
+        no_case["match"] >> (linear_pattern % ',');
 
     auto const select_statement =
-        no_case["select"] >> omit[+space] >> selection;
+        no_case["select"] >> selection;
 
     auto const where_statement =
-        no_case["where"] >> omit[+space] >> formula;
+        no_case["where"] >> formula;
 
     auto const root_def =
-        no_skip[select_statement >> omit[+space] >> skip[match_statement]
-        >> -(omit[+space] >> where_statement)];
+        select_statement >> match_statement >> -(where_statement);
 
     auto const element_def =
-        (attr(std::string()) >> no_skip[var >> '.' >> key]) |
-        (func >> '(' >> no_skip[var >> '.' >> key] >> ')');
+        (attr(std::string()) >> var >> '.' >> key) |
+        (func >> '(' >> var >> '.' >> key >> ')');
 
     BOOST_SPIRIT_DEFINE(
         root,
