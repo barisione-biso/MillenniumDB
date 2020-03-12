@@ -28,6 +28,8 @@ BufferManager::BufferManager() {
 
 
 BufferManager::~BufferManager() {
+    // not necessary to delete buffer_pool and bytes.
+    // THis destructor is called only on program exit
     cout << "~BufferManager()\n";
 }
 

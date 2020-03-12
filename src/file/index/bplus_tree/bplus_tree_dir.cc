@@ -111,7 +111,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
             }
             return nullptr;
         }
-        // Case 3: normal split
+        // Case 3: no-root split
         else {
             auto& new_page = buffer_manager.append_page(params.dir_file_id);
             auto new_dir = BPlusTreeDir(params, new_page);
