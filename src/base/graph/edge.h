@@ -54,4 +54,4 @@ public:
     }
 };
 
-#endif //BASE__EDGE_H_
+#endif // BASE__EDGE_H_

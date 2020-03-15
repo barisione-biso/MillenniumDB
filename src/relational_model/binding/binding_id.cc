@@ -1,6 +1,6 @@
 #include "binding_id.h"
 
-#include "file/index/object_file/object_file.h"
+#include "storage/index/object_file/object_file.h"
 
 using namespace std;
 

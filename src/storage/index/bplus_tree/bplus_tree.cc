@@ -1,11 +1,11 @@
-#include "file/index/bplus_tree/bplus_tree.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
 
-#include "file/buffer_manager.h"
-#include "file/index/record.h"
-#include "file/index/ordered_file/ordered_file.h"
-#include "file/index/bplus_tree/bplus_tree_dir.h"
-#include "file/index/bplus_tree/bplus_tree_leaf.h"
-#include "file/index/bplus_tree/bplus_tree_params.h"
+#include "storage/buffer_manager.h"
+#include "storage/index/record.h"
+#include "storage/index/ordered_file/ordered_file.h"
+#include "storage/index/bplus_tree/bplus_tree_dir.h"
+#include "storage/index/bplus_tree/bplus_tree_leaf.h"
+#include "storage/index/bplus_tree/bplus_tree_params.h"
 
 #include <iostream>
 #include <memory>

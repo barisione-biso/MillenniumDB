@@ -1,7 +1,7 @@
 #include "file_manager.h"
 
-#include "file/page.h"
-#include "file/buffer_manager.h"
+#include "storage/page.h"
+#include "storage/buffer_manager.h"
 
 #include <algorithm>
 #include <cstdio>

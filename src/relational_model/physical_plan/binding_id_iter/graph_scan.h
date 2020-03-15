@@ -1,7 +1,7 @@
 #ifndef RELATIONAL_MODEL__GRAPH_SCAN_H_
 #define RELATIONAL_MODEL__GRAPH_SCAN_H_
 
-#include "file/index/bplus_tree/bplus_tree.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
 #include "relational_model/binding/binding_id_iter.h"
 #include "base/ids/object_id.h"
 

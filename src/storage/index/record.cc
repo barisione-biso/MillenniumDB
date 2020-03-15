@@ -1,8 +1,6 @@
-#include <file/index/record.h>
+#include "record.h"
 
 using namespace std;
-
-Record Record::empty_record = Record();
 
 Record::Record(vector<uint64_t> arr) {
     ids = arr;

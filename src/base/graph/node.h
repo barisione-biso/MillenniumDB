@@ -54,4 +54,4 @@ public:
     }
 };
 
-#endif //BASE__NODE_H_
+#endif // BASE__NODE_H_

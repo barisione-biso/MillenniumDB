@@ -3,7 +3,7 @@
 #ifndef FILE__BUFFER_MANAGER_H_
 #define FILE__BUFFER_MANAGER_H_
 
-#include "file/file_id.h"
+#include "storage/file_id.h"
 
 #include <map>
 #include <string>

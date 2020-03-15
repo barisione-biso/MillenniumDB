@@ -1,14 +1,14 @@
 #include "object_file.h"
 
-#include "file/index/bplus_tree/bplus_tree.h"
-
 #include <iostream>
-#include <file/file_manager.h>
+
+#include "storage/file_manager.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
 
 using namespace std;
 
 ObjectFile::ObjectFile(const string& filename)
-    : file (file_manager.get_file(file_manager.get_file_id(filename)))
+    : file(file_manager.get_file(file_manager.get_file_id(filename)))
 {
     file.seekg (0, file.end);
     // If the file is empty, write a trash byte to prevent the ID = 0

@@ -1,6 +1,6 @@
 #include "projection.h"
 
-#include "file/index/object_file/object_file.h"
+#include "storage/index/object_file/object_file.h"
 #include "relational_model/binding/binding_project.h"
 
 #include <iostream>

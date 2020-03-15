@@ -2,12 +2,12 @@
 #define RELATIONAL_MODEL__CONFIG_H_
 
 #include "base/ids/graph_id.h"
-#include "file/buffer_manager.h"
-#include "file/catalog/catalog.h"
-#include "file/index/bplus_tree/bplus_tree.h"
-#include "file/index/bplus_tree/bplus_tree_dir.h"
-#include "file/index/bplus_tree/bplus_tree_params.h"
-#include "file/index/object_file/object_file.h"
+#include "storage/buffer_manager.h"
+#include "storage/catalog/catalog.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
+#include "storage/index/bplus_tree/bplus_tree_dir.h"
+#include "storage/index/bplus_tree/bplus_tree_params.h"
+#include "storage/index/object_file/object_file.h"
 
 #include <memory>
 #include <map>

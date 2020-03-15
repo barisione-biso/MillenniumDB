@@ -1,10 +1,10 @@
 #include "graph_scan.h"
 
 #include "base/ids/var_id.h"
-#include "file/index/record.h"
-#include "file/index/bplus_tree/bplus_tree.h"
-#include "file/index/bplus_tree/bplus_tree_leaf.h"
-#include "file/index/bplus_tree/bplus_tree_params.h"
+#include "storage/index/record.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
+#include "storage/index/bplus_tree/bplus_tree_leaf.h"
+#include "storage/index/bplus_tree/bplus_tree_params.h"
 #include "relational_model/binding/binding_id.h"
 
 #include <iostream>
@@ -12,10 +12,8 @@
 
 using namespace std;
 
-GraphScan::GraphScan(BPlusTree& bpt, std::vector<std::pair<ObjectId, int>> terms,
-    std::vector<std::pair<VarId, int>> vars)
-    : record_size(bpt.params->total_size), bpt(bpt), terms(std::move(terms)),
-      vars(std::move(vars)) { }
+GraphScan::GraphScan(BPlusTree& bpt, vector<pair<ObjectId, int>> terms, vector<pair<VarId, int>> vars)
+    : record_size(bpt.params->total_size), bpt(bpt), terms(move(terms)), vars(move(vars)) { }
 
 
 void GraphScan::begin(BindingId& input) {

@@ -1,7 +1,7 @@
 #ifndef FILE__ORDERED_FILE_H_
 #define FILE__ORDERED_FILE_H_
 
-#include "file/file_id.h"
+#include "storage/file_id.h"
 
 #include <fstream>
 #include <memory>

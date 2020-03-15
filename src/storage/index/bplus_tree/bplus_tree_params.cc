@@ -1,6 +1,6 @@
-#include "file/index/bplus_tree/bplus_tree_params.h"
+#include "storage/index/bplus_tree/bplus_tree_params.h"
 
-#include "file/file_manager.h"
+#include "storage/file_manager.h"
 
 BPlusTreeParams::BPlusTreeParams(const std::string& path, int key_size)
     : dir_file_id(file_manager.get_file_id(path + ".dir")),

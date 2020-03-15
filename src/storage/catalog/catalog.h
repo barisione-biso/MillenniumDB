@@ -1,22 +1,21 @@
-#ifndef FILE__CATALOG_H_
-#define FILE__CATALOG_H_
+#ifndef STORAGE__CATALOG_H_
+#define STORAGE__CATALOG_H_
 
 #include <fstream>
 #include <memory>
 #include <map>
 #include <string>
 
-class Catalog
-{
+class Catalog {
     public:
         Catalog(const std::string& filename);
-        ~Catalog(); // not defaulted, write to disk
+        ~Catalog();
 
-        // create_node and create_edge return the new id without the corresponding mask
+        // Create_node and create_edge return the new id without the corresponding mask
+        // boths methods must skip id = 0 (reserved)
         uint64_t create_node();
         uint64_t create_edge();
 
-        // Skip id = 0, (reserved)
         uint64_t get_node_count();
         uint64_t get_edge_count();
 
@@ -54,4 +53,4 @@ class Catalog
         std::pair<uint64_t, uint64_t> read_pair();
 };
 
-#endif //FILE__CATALOG_H_
+#endif // STORAGE__CATALOG_H_

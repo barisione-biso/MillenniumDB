@@ -95,7 +95,7 @@ void PhysicalPlanGenerator::visit (OpMatch& op_match) {
         ObjectId key_id = RelationalModel::get_string_unmasked_id(key);
 
         elements.push_back(make_unique<QueryOptimizerProperty>(
-            var_info[var].first, element_obj_id, null_var, value_var, var_info[var].second, key_id, ObjectId::get_null() ));
+            var_info[var].first, element_obj_id, null_var, value_var, var_info[var].second, key_id, ObjectId(NULL_OBJECT_ID) ));
     }
 
     for (auto& op_connection : op_match.connections) {

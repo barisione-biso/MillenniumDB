@@ -23,9 +23,6 @@ public:
     bool operator<=(const Record& other);
 
     friend std::ostream& operator<<(std::ostream& os, const Record& record);
-
-private:
-    static Record empty_record;
 };
 
 #endif //FILE__RECORD_H_

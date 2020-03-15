@@ -1,6 +1,6 @@
 #include "page.h"
 
-#include "file/file_id.h"
+#include "storage/file_id.h"
 
 Page::Page(uint_fast32_t page_number, char* bytes, FileId file_id)
     : page_number(page_number), file_id(file_id), pins(1), dirty(false), bytes(bytes) { }

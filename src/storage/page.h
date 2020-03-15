@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 
-#include "file/file_manager.h"
+#include "storage/file_manager.h"
 
 class Page {
     friend class BufferManager;

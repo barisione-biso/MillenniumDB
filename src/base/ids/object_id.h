@@ -3,8 +3,8 @@
 
 #include <memory>
 
-const uint64_t NULL_OBJECT_ID      = UINT64_MAX;
-const uint64_t NOT_FOUND_OBJECT_ID = UINT64_MAX - 1;
+const uint64_t NULL_OBJECT_ID      = 0;
+const uint64_t NOT_FOUND_OBJECT_ID = UINT64_MAX;
 
 class ObjectFile;
 class Value;
@@ -16,13 +16,10 @@ public:
 
     ObjectId(uint64_t id);
     ObjectId(); // initialized with NULL_OBJECT_ID
-    ~ObjectId() = default;
+    ~ObjectId();
 
     bool is_null();
     bool not_found();
-
-    static ObjectId get_null();
-    static ObjectId get_not_found();
 
     operator uint64_t() const;
 

@@ -1,8 +1,8 @@
 #ifndef FILE__INDEX__B_PLUS_TREE_H_
 #define FILE__INDEX__B_PLUS_TREE_H_
 
-#include "file/index/bplus_tree/bplus_tree_dir.h"
-#include "file/index/bplus_tree/bplus_tree_leaf.h"
+#include "storage/index/bplus_tree/bplus_tree_dir.h"
+#include "storage/index/bplus_tree/bplus_tree_leaf.h"
 
 #include <string>
 #include <memory>

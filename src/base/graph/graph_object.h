@@ -26,4 +26,4 @@ public:
     virtual bool operator>(const GraphObject& rhs) const = 0;
 };
 
-#endif //BASE__OBJECT_TYPE_H_
+#endif // BASE__OBJECT_TYPE_H_

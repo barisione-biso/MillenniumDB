@@ -1,6 +1,8 @@
 #ifndef BASE__COMPARISON_H_
 #define BASE__COMPARISON_H_
 
+#include <memory>
+
 #include "base/binding/binding.h"
 #include "base/parser/grammar/ast.h"
 #include "base/parser/grammar/value_visitor.h"
@@ -9,9 +11,6 @@
 #include "base/graph/condition/value_assign_constant.h"
 #include "base/graph/condition/value_assign_variable.h"
 #include "base/graph/value/value.h"
-
-#include <iostream>
-#include <memory>
 
 class Comparison : public Condition {
 public:
@@ -53,4 +52,4 @@ public:
     }
 };
 
-#endif //BASE__COMPARISON_H_
+#endif // BASE__COMPARISON_H_

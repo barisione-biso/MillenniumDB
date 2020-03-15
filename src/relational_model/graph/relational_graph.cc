@@ -3,9 +3,9 @@
 #include "base/graph/edge.h"
 #include "base/graph/node.h"
 #include "base/graph/value/value_string.h"
-#include "file/buffer_manager.h"
-#include "file/index/record.h"
-#include "file/index/bplus_tree/bplus_tree.h"
+#include "storage/buffer_manager.h"
+#include "storage/index/record.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
 #include "relational_model/relational_model.h"
 
 #include <openssl/md5.h>

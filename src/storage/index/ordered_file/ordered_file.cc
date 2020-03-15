@@ -1,7 +1,7 @@
 #include "ordered_file.h"
 
-#include "file/index/record.h"
-#include "file/file_manager.h"
+#include "storage/index/record.h"
+#include "storage/file_manager.h"
 
 #include <chrono>
 #include <climits>

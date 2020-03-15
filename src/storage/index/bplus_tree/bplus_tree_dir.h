@@ -1,7 +1,7 @@
 #ifndef FILE__INDEX__B_PLUS_TREE_DIR_H_
 #define FILE__INDEX__B_PLUS_TREE_DIR_H_
 
-#include "file/index/record.h"
+#include "storage/index/record.h"
 
 #include <memory>
 

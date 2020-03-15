@@ -1,7 +1,7 @@
 #ifndef RELATIONAL_MODEL__BULK_IMPORT_H_
 #define RELATIONAL_MODEL__BULK_IMPORT_H_
 
-#include "file/index/ordered_file/ordered_file.h"
+#include "storage/index/ordered_file/ordered_file.h"
 #include "relational_model/import/bulk_import_ast.h"
 
 #include <string>

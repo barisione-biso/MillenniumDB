@@ -2,7 +2,7 @@
 #define FILE__B_PLUS_TREE_PARAMS_H_
 
 #include <string>
-#include "file/page.h"
+#include "storage/page.h"
 
 class BufferManager;
 

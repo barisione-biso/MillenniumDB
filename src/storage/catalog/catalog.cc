@@ -1,12 +1,13 @@
 #include "catalog.h"
-#include "file/file_manager.h"
 
 #include <iostream>
+
+#include "storage/file_manager.h"
 
 using namespace std;
 
 Catalog::Catalog(const string& filename)
-    : file (file_manager.get_file(file_manager.get_file_id(filename)))
+    : file(file_manager.get_file(file_manager.get_file_id(filename)))
 {
     file.seekg (0, file.end);
     if (file.tellg() == 0) {
@@ -43,21 +44,13 @@ Catalog::Catalog(const string& filename)
     }
 }
 
+
 Catalog::~Catalog() {
-    cout << "saving catalog\n";
     save_changes();
 }
 
-void Catalog::save_changes(){
-    if (file.bad())
-        std::cout << "I/O bad\n";
-    if (file.eof())
-        std::cout << "I/O eof\n";
-    if (file.fail())
-        std::cout << "I/O fail\n";
-    if (file.bad())
-        std::cout << "I/O bad\n";
 
+void Catalog::save_changes(){
     file.seekg(0, file.beg);
     cout << "node count: " << node_count << endl;
     cout << "edge count: " << edge_count << endl;
@@ -66,15 +59,6 @@ void Catalog::save_changes(){
     cout << "node key count: " << node_key_count << endl;
     cout << "edge key count: " << edge_key_count << endl;
     file.write((const char *)&node_count, 8);
-
-    if (file.bad())
-        std::cout << "I/O bad\n";
-    if (file.eof())
-        std::cout << "I/O eof\n";
-    if (file.fail())
-        std::cout << "I/O fail\n";
-    if (file.bad())
-        std::cout << "I/O bad\n";
 
     file.write((const char *)&edge_count, 8);
     file.write((const char *)&node_label_count, 8);
@@ -98,22 +82,15 @@ void Catalog::save_changes(){
         file.write((const char *)&id, 8);
         file.write((const char *)&count, 8);
     }
-    std::cout << "changes saved\n";
-    if (file.bad())
-        std::cout << "I/O bad\n";
-    if (file.eof())
-        std::cout << "I/O eof\n";
-    if (file.fail())
-        std::cout << "I/O fail\n";
-    if (file.bad())
-        std::cout << "I/O bad\n";
 }
+
 
 uint64_t Catalog::read() {
     char buffer[8];
     file.read(buffer, 8);
     return *(uint64_t *)buffer;
 }
+
 
 pair<uint64_t, uint64_t> Catalog::read_pair() {
     char buffer[8];
@@ -124,32 +101,40 @@ pair<uint64_t, uint64_t> Catalog::read_pair() {
     return pair<uint64_t, uint64_t>(first, second);
 }
 
+
 uint64_t Catalog::create_node() {
     return ++node_count;
 }
+
 
 uint64_t Catalog::create_edge() {
     return ++edge_count;
 }
 
+
 uint64_t Catalog::get_node_count(){ return node_count; }
 uint64_t Catalog::get_edge_count(){ return edge_count; }
+
 
 void Catalog::add_node_label(uint64_t label_id) {
     add_to_map(node_label_stats, label_id);
 }
 
+
 void Catalog::add_edge_label(uint64_t label_id) {
     add_to_map(edge_label_stats, label_id);
 }
+
 
 void Catalog::add_node_key(uint64_t key_id) {
     add_to_map(node_key_stats, key_id);
 }
 
+
 void Catalog::add_edge_key(uint64_t key_id) {
     add_to_map(edge_key_stats, key_id);
 }
+
 
 void Catalog::add_to_map(map<uint64_t, uint64_t>& map, uint64_t key) {
     auto it = map.find(key);
@@ -160,6 +145,7 @@ void Catalog::add_to_map(map<uint64_t, uint64_t>& map, uint64_t key) {
     }
 }
 
+
 uint64_t Catalog::get_count(map<uint64_t, uint64_t>& map, uint64_t key) {
     auto it = map.find(key);
     if ( it == map.end() ) {
@@ -169,17 +155,21 @@ uint64_t Catalog::get_count(map<uint64_t, uint64_t>& map, uint64_t key) {
     }
 }
 
+
 uint64_t Catalog::get_node_count_for_label(uint64_t label_id) {
     return get_count(node_label_stats, label_id);
 }
+
 
 uint64_t Catalog::get_edge_count_for_label(uint64_t label_id) {
     return get_count(edge_label_stats, label_id);
 }
 
+
 uint64_t Catalog::get_node_count_for_key(uint64_t key_id) {
     return get_count(node_key_stats, key_id);
 }
+
 
 uint64_t Catalog::get_edge_count_for_key(uint64_t key_id){
     return get_count(edge_key_stats, key_id);

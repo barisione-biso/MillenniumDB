@@ -1,6 +1,6 @@
 #include "match.h"
 
-#include "file/index/object_file/object_file.h"
+#include "storage/index/object_file/object_file.h"
 #include "relational_model/binding/binding_id.h"
 #include "relational_model/binding/binding_match.h"
 #include "relational_model/physical_plan/binding_id_iter/index_nested_loop_join.h"

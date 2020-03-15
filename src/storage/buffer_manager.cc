@@ -1,7 +1,7 @@
 #include "buffer_manager.h"
 
-#include "file/page.h"
-#include "file/file_manager.h"
+#include "storage/page.h"
+#include "storage/file_manager.h"
 
 #include <new>         // placement new
 #include <type_traits> // aligned_storage

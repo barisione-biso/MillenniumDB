@@ -1,8 +1,8 @@
-#include "file/page.h"
-#include "file/buffer_manager.h"
-#include "file/index/record.h"
-#include "file/index/bplus_tree/bplus_tree_leaf.h"
-#include "file/index/bplus_tree/bplus_tree_params.h"
+#include "storage/page.h"
+#include "storage/buffer_manager.h"
+#include "storage/index/record.h"
+#include "storage/index/bplus_tree/bplus_tree_leaf.h"
+#include "storage/index/bplus_tree/bplus_tree_params.h"
 
 #include <iostream>
 #include <cstring>

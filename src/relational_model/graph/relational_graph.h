@@ -4,9 +4,9 @@
 #include "base/ids/graph_id.h"
 #include "base/graph/node.h"
 #include "base/graph/edge.h"
-#include "file/index/object_file/object_file.h"
-#include "file/index/bplus_tree/bplus_tree.h"
-#include "file/index/bplus_tree/bplus_tree_params.h"
+#include "storage/index/object_file/object_file.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
+#include "storage/index/bplus_tree/bplus_tree_params.h"
 #include "base/ids/object_id.h"
 
 #include <memory>

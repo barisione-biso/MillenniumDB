@@ -1,11 +1,11 @@
 #ifndef BASE__VALUE_H_
 #define BASE__VALUE_H_
 
-#include "base/graph/graph_object.h"
-
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "base/graph/graph_object.h"
 
 class Value : public GraphObject {
 public:
