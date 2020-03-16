@@ -3,19 +3,14 @@
 #include "storage/file_id.h"
 
 Page::Page(uint_fast32_t page_number, char* bytes, FileId file_id)
-    : page_number(page_number), file_id(file_id), pins(1), dirty(false), bytes(bytes) { }
+    : file_id(file_id), page_number(page_number), pins(1), bytes(bytes), dirty(false) { }
 
 
 Page::Page()
-    : page_number(0), file_id(FileId(FileId::UNASSIGNED)), pins(0), dirty(false), bytes(nullptr) { }
+    : file_id(FileId(FileId::UNASSIGNED)), page_number(0), pins(0), bytes(nullptr), dirty(false) { }
 
 
-Page::~Page() {
-    /*if (pins > 0) {
-        std::cout << "ERROR: Destroying pinned page, this is a bug.\n";
-    }
-    flush();*/
-}
+Page::~Page() = default;
 
 
 Page& Page::operator=(const Page& other) {
@@ -59,7 +54,6 @@ char* Page::get_bytes() const {
 
 void Page::flush() {
     if (dirty) {
-        // std::cout << "Page::flush() " << page_number << ", " << filename << "\n";
         file_manager.flush(file_id, page_number, bytes);
         dirty = false;
     }

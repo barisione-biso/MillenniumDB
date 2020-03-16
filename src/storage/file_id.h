@@ -1,5 +1,5 @@
-#ifndef FILE__FILE_ID_H_
-#define FILE__FILE_ID_H_
+#ifndef STORAGE__FILE_ID_H_
+#define STORAGE__FILE_ID_H_
 
 #include <cstdint>
 
@@ -17,4 +17,4 @@ public:
     }
 };
 
-#endif //FILE__FILE_ID_H_
+#endif //STORAGE__FILE_ID_H_

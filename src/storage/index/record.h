@@ -1,5 +1,5 @@
-#ifndef FILE__RECORD_H_
-#define FILE__RECORD_H_
+#ifndef STORAGE__RECORD_H_
+#define STORAGE__RECORD_H_
 
 #include <cstdint>
 #include <ostream>
@@ -25,4 +25,4 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Record& record);
 };
 
-#endif //FILE__RECORD_H_
+#endif //STORAGE__RECORD_H_

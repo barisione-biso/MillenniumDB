@@ -1,14 +1,14 @@
-#ifndef FILE__INDEX__B_PLUS_TREE_DIR_H_
-#define FILE__INDEX__B_PLUS_TREE_DIR_H_
+#ifndef STORAGE__INDEX__B_PLUS_TREE_DIR_H_
+#define STORAGE__INDEX__B_PLUS_TREE_DIR_H_
 
+#include "storage/page.h"
 #include "storage/index/record.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
+#include "storage/index/bplus_tree/bplus_tree_leaf.h"
+#include "storage/index/bplus_tree/bplus_tree_params.h"
+#include "storage/index/bplus_tree/bplus_tree_split.h"
 
 #include <memory>
-
-class BPlusTreeParams;
-class Page;
-class BPlusTree;
-class BPlusTreeLeaf;
 
 class BPlusTreeDir {
 friend class BPlusTree;
@@ -16,11 +16,11 @@ public:
     BPlusTreeDir(const BPlusTreeParams& params, Page& page);
     ~BPlusTreeDir();
 
-    std::unique_ptr<std::pair<Record, int>> bulk_insert(BPlusTreeLeaf& leaf);
-    std::unique_ptr<std::pair<Record, int>> insert(const Record& key, const Record& value); // returns not null if needs to split
+    std::unique_ptr<BPlusTreeSplit> bulk_insert(BPlusTreeLeaf& leaf);
+    std::unique_ptr<BPlusTreeSplit> insert(const Record& key, const Record& value); // returns not null if needs to split
 
     std::unique_ptr<Record> get(const Record& key);
-    std::pair<int, int> search_leaf(const Record& min);
+    SearchLeafResult search_leaf(const Record& min);
 
     bool check() const;
 
@@ -42,4 +42,4 @@ private:
     void split(const Record& record);
 };
 
-#endif //FILE__INDEX__B_PLUS_TREE_DIR_H_
+#endif // STORAGE__INDEX__B_PLUS_TREE_DIR_H_

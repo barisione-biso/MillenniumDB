@@ -1,6 +1,5 @@
 #include "bplus_tree_dir.h"
 
-#include "storage/page.h"
 #include "storage/buffer_manager.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
@@ -44,25 +43,25 @@ std::unique_ptr<Record> BPlusTreeDir::get(const Record& key){
 }
 
 // requieres first insert manually
-std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf& leaf) {
+std::unique_ptr<BPlusTreeSplit> BPlusTreeDir::bulk_insert(BPlusTreeLeaf& leaf) {
     int page_pointer = children[*key_count];
-    std::unique_ptr<std::pair<Record, int>> split_record_index;
+    std::unique_ptr<BPlusTreeSplit> split;
 
     if (page_pointer < 0) { // negative number: pointer to dir
         auto& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
         auto child =  BPlusTreeDir(params, child_page);
-        split_record_index = child.bulk_insert(leaf);
+        split = child.bulk_insert(leaf);
     }
     else { // positive number: pointer to leaf
-        split_record_index = make_unique<std::pair<Record, int>>(*leaf.get_record(0), leaf.page.get_page_number());
+        split = make_unique<BPlusTreeSplit>(*leaf.get_record(0), leaf.page.get_page_number());
     }
 
-    if (split_record_index != nullptr) {
+    if (split != nullptr) {
         // Case 1: no need to split this node
         if (*key_count < params.dir_max_records) {
-            update_key(*key_count, split_record_index->first);
+            update_key(*key_count, split->record);
             (*key_count)++;
-            update_child(*key_count, split_record_index->second);
+            update_child(*key_count, split->encoded_page_number);
             page.make_dirty();
             return nullptr;
         }
@@ -88,7 +87,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
             );
 
             // write right dirs
-            new_right_dir.children[0] = split_record_index->second;
+            new_right_dir.children[0] = split->encoded_page_number;
 
             // update counts
             *new_left_dir.key_count = *key_count;
@@ -97,7 +96,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
 
             std::memcpy(
                 keys,
-                split_record_index->first.ids.data(),
+                split->record.ids.data(),
                 params.key_size * sizeof(uint64_t)
             );
             children[0] = new_left_dir.page.get_page_number() * -1;
@@ -105,59 +104,51 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::bulk_insert(BPlusTreeLeaf&
             new_left_page.make_dirty();
             new_right_page.make_dirty();
             this->page.make_dirty();
-            if (!this->check()) {
-                cout << "Error bulk import caso split root node.";
-                cout << "Al tratar de insertar hoja: " << leaf.page.get_page_number() << std::endl;
-            }
             return nullptr;
         }
         // Case 3: no-root split
         else {
             auto& new_page = buffer_manager.append_page(params.dir_file_id);
             auto new_dir = BPlusTreeDir(params, new_page);
-            new_dir.children[0] = split_record_index->second;
+            new_dir.children[0] = split->encoded_page_number;
             *new_dir.key_count = 0;
             // *this->key_count does not change
             new_page.make_dirty();
             this->page.make_dirty();
-            if (!this->check()) {
-                cout << "Error bulk import caso normal split node.";
-                cout << "Al tratar de insertar hoja: " << leaf.page.get_page_number() << std::endl;
-            }
-            return std::make_unique<std::pair<Record, int>>(split_record_index->first, new_page.get_page_number()*-1);
+            return std::make_unique<BPlusTreeSplit>(split->record, new_page.get_page_number()*-1);
         }
     }
     return nullptr;
 }
 
 
-std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, const Record& value) {
+std::unique_ptr<BPlusTreeSplit> BPlusTreeDir::insert(const Record& key, const Record& value) {
     int index = (*key_count > 0)
         ? search_child_index(0, *key_count, key)
         : 0;
 
     int page_pointer = children[index];
-    std::unique_ptr<std::pair<Record, int>> split_record_index = nullptr;
+    std::unique_ptr<BPlusTreeSplit> split = nullptr;
 
     if (page_pointer < 0) { // negative number: pointer to dir
         auto& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
         auto child =  BPlusTreeDir(params, child_page);
-        split_record_index = child.insert(key, value);
+        split = child.insert(key, value);
     }
     else { // positive number: pointer to leaf
         auto& child_page = buffer_manager.get_page(page_pointer, params.leaf_file_id);
         auto child =  BPlusTreeLeaf(params, child_page);
-        split_record_index = child.insert(key, value);
+        split = child.insert(key, value);
     }
 
-    if (split_record_index != nullptr) {
-        int splitted_index = search_child_index(0, *key_count, split_record_index->first);
+    if (split != nullptr) {
+        int splitted_index = search_child_index(0, *key_count, split->record);
         // Case 1: no need to split this node
         if (*key_count < params.dir_max_records) {
             shift_right_keys(splitted_index, *key_count-1);
             shift_right_children(splitted_index+1, *key_count);
-            update_key(splitted_index, split_record_index->first);
-            update_child(splitted_index+1, split_record_index->second);
+            update_key(splitted_index, split->record);
+            update_child(splitted_index+1, split->encoded_page_number);
             (*key_count)++;
             this->page.make_dirty();
             return nullptr;
@@ -170,10 +161,10 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             if (splitted_index == *key_count) { // splitted key is the last key
                 std::memcpy(
                     last_key.data(),
-                    split_record_index->first.ids.data(),
+                    split->record.ids.data(),
                     params.key_size * sizeof(uint64_t)
                 );
-                last_dir = split_record_index->second;
+                last_dir = split->encoded_page_number;
             }
             else {
                 std::memcpy(
@@ -184,8 +175,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
                 last_dir = children[*key_count];
                 shift_right_keys(splitted_index, *key_count-2);
                 shift_right_children(splitted_index+1, *key_count-1);
-                update_key(splitted_index, split_record_index->first);
-                update_child(splitted_index+1, split_record_index->second);
+                update_key(splitted_index, split->record);
+                update_child(splitted_index+1, split->encoded_page_number);
             }
             int middle_index = (*key_count+1)/2;
             auto& new_left_page = buffer_manager.append_page(params.dir_file_id);
@@ -245,7 +236,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             this->page.make_dirty();
             return nullptr;
         }
-        // Case 3: normal split split
+        // Case 3: normal split (this node is not the root)
         else {
             // poner nuevo record/dir y guardar el ultimo (que no cabe)
             auto last_key = vector<uint64_t>(params.key_size);
@@ -253,10 +244,10 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             if (splitted_index == *key_count) { // splitted key is the last key
                 std::memcpy(
                     last_key.data(),
-                    split_record_index->first.ids.data(),
+                    split->record.ids.data(),
                     params.key_size * sizeof(uint64_t)
                 );
-                last_dir = split_record_index->second;
+                last_dir = split->encoded_page_number;
             }
             else {
                 std::memcpy(
@@ -267,8 +258,8 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
                 last_dir = children[*key_count];
                 shift_right_keys(splitted_index, *key_count-2);
                 shift_right_children(splitted_index+1, *key_count-1);
-                update_key(splitted_index, split_record_index->first);
-                update_child(splitted_index+1, split_record_index->second);
+                update_key(splitted_index, split->record);
+                update_child(splitted_index+1, split->encoded_page_number);
             }
             int middle_index = (*key_count+1)/2;
 
@@ -306,7 +297,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeDir::insert(const Record& key, 
             );
             new_page.make_dirty();
             this->page.make_dirty();
-            return std::make_unique<std::pair<Record, int>>(Record(split_key), new_page.get_page_number()*-1);
+            return std::make_unique<BPlusTreeSplit>(Record(split_key), new_page.get_page_number()*-1);
         }
     }
     return nullptr;
@@ -343,7 +334,7 @@ void BPlusTreeDir::shift_right_children(int from, int to) {
 }
 
 
-std::pair<int, int> BPlusTreeDir::search_leaf(const Record& min) {
+SearchLeafResult BPlusTreeDir::search_leaf(const Record& min) {
     int dir_index = search_child_index(0, *key_count, min);
     int page_pointer = children[dir_index];
 
@@ -380,12 +371,14 @@ int BPlusTreeDir::search_child_index(int dir_from, int dir_to, const Record& rec
     return search_child_index(middle_record+1, dir_to, record);
 }
 
+
 bool BPlusTreeDir::check() const {
     if (*key_count < 0) {
-        std::cout << "key_count shouldn't be less than 0\n";
+        std::cout << "  key_count shouldn't be less than 0\n";
     }
     if (*key_count == 0 && page.get_page_number() != 0) {
-        std::cout << "key_count shouldn't be 0, except for the right-most branch if bulk import was used\n";
+        std::cout << "  key_count shouldn't be 0, except for one node (at most)"
+                  << " at the right-most branch if bulk import was used\n";
     }
 
     if (*key_count > 1) {

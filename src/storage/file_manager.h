@@ -17,15 +17,15 @@
  * destructors are called at the end of the execution.
  */
 
-#ifndef FILE__FILE_MANAGER_H_
-#define FILE__FILE_MANAGER_H_
-
-#include "storage/file_id.h"
+#ifndef STORAGE__FILE_MANAGER_H_
+#define STORAGE__FILE_MANAGER_H_
 
 #include <fstream>
 #include <string>
 #include <map>
 #include <vector>
+
+#include "storage/file_id.h"
 
 class FileManager {
 
@@ -54,9 +54,9 @@ private:
 extern FileManager& file_manager; // global object
 
 static struct FileManagerInitializer {
-  FileManagerInitializer();
-  ~FileManagerInitializer();
+    FileManagerInitializer();
+    ~FileManagerInitializer();
 } file_manager_initializer; // static initializer for every translation unit
 
 
-#endif //FILE__FILE_MANAGER_H_
+#endif // STORAGE__FILE_MANAGER_H_

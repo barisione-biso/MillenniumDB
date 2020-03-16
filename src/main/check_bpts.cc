@@ -48,10 +48,13 @@ int main() {
     if (!graph.edge2prop->check())
         std::cout << "wrong BPlusTree: edge2prop\n";
 
-    // if (!graph.from_to_edge->check())
-    //     std::cout << "wrong BPlusTree: from_to_edge\n";
-    // if (!graph.to_edge_from->check())
-    //     std::cout << "wrong BPlusTree: to_edge_from\n";
-    // if (!graph.edge_from_to->check())
-    //     std::cout << "wrong BPlusTree: edge_from_to\n";
+    std::cout << "Checking from_to_edge\n";
+    if (!graph.from_to_edge->check())
+        std::cout << "wrong BPlusTree: from_to_edge\n";
+    std::cout << "Checking to_edge_from\n";
+    if (!graph.to_edge_from->check())
+        std::cout << "wrong BPlusTree: to_edge_from\n";
+    std::cout << "Checking edge_from_to\n";
+    if (!graph.edge_from_to->check())
+        std::cout << "wrong BPlusTree: edge_from_to\n";
 }

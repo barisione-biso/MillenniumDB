@@ -1,7 +1,5 @@
 #include "binding_id.h"
 
-#include "storage/index/object_file/object_file.h"
-
 using namespace std;
 
 BindingId::BindingId(int_fast32_t var_count) {
@@ -37,24 +35,6 @@ void BindingId::print(vector<string>& var_names) const {
     std::cout << "BindingId: ";
     for (size_t i = 0; i < dict.size(); ++i) {
         std::cout << var_names[i] << ":[" << (dict[i] >> 56) << "]" << (dict[i] & 0x00FFFFFFFFFFFFFFUL) << "\t";
-    }
-    std::cout << endl;
-}
-
-
-void BindingId::print(vector<string>& var_names, ObjectFile& object_file) const {
-    std::cout << "BindingId: ";
-    for (size_t i = 0; i < dict.size(); ++i) {
-        std::cout << var_names[i] << ": ";
-        if (var_names[i].find('.') != std::string::npos) { // if has a point is a value
-            // TODO: assuming value is a string
-            auto bytes = object_file.read(dict[i]);
-            string value_string(bytes->begin(), bytes->end());
-            cout << value_string << "\t";
-        }
-        else { // else is a Element (Node or Edge)
-            cout << dict[i] << "\t";
-        }
     }
     std::cout << endl;
 }

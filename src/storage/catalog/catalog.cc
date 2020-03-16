@@ -52,14 +52,15 @@ Catalog::~Catalog() {
 
 void Catalog::save_changes(){
     file.seekg(0, file.beg);
-    cout << "node count: " << node_count << endl;
-    cout << "edge count: " << edge_count << endl;
-    cout << "node label count: " << node_label_count << endl;
-    cout << "edge label count: " << edge_label_count << endl;
-    cout << "node key count: " << node_key_count << endl;
-    cout << "edge key count: " << edge_key_count << endl;
-    file.write((const char *)&node_count, 8);
+    cout << "Saving catalog:" << endl;
+    cout << "  node count: " << node_count << endl;
+    cout << "  edge count: " << edge_count << endl;
+    cout << "  node disinct labels: " << node_label_count << endl;
+    cout << "  edge disinct labels: " << edge_label_count << endl;
+    cout << "  node disinct keys:   " << node_key_count << endl;
+    cout << "  edge disinct keys:   " << edge_key_count << endl;
 
+    file.write((const char *)&node_count, 8);
     file.write((const char *)&edge_count, 8);
     file.write((const char *)&node_label_count, 8);
     file.write((const char *)&edge_label_count, 8);
@@ -112,33 +113,30 @@ uint64_t Catalog::create_edge() {
 }
 
 
-uint64_t Catalog::get_node_count(){ return node_count; }
-uint64_t Catalog::get_edge_count(){ return edge_count; }
-
-
 void Catalog::add_node_label(uint64_t label_id) {
-    add_to_map(node_label_stats, label_id);
+    add_to_map(node_label_stats, label_id, node_label_count);
 }
 
 
 void Catalog::add_edge_label(uint64_t label_id) {
-    add_to_map(edge_label_stats, label_id);
+    add_to_map(edge_label_stats, label_id, edge_label_count);
 }
 
 
 void Catalog::add_node_key(uint64_t key_id) {
-    add_to_map(node_key_stats, key_id);
+    add_to_map(node_key_stats, key_id, node_key_count);
 }
 
 
 void Catalog::add_edge_key(uint64_t key_id) {
-    add_to_map(edge_key_stats, key_id);
+    add_to_map(edge_key_stats, key_id, edge_key_count);
 }
 
 
-void Catalog::add_to_map(map<uint64_t, uint64_t>& map, uint64_t key) {
+void Catalog::add_to_map(map<uint64_t, uint64_t>& map, uint64_t key, uint64_t& count) {
     auto it = map.find(key);
     if ( it == map.end() ) {
+        count++;
         map.insert(pair<uint64_t, uint64_t>(key, 1));
     } else {
         it->second += 1;

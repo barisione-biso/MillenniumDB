@@ -1,5 +1,5 @@
-#ifndef FILE__INDEX__B_PLUS_TREE_H_
-#define FILE__INDEX__B_PLUS_TREE_H_
+#ifndef STORAGE__B_PLUS_TREE_H_
+#define STORAGE__B_PLUS_TREE_H_
 
 #include "storage/index/bplus_tree/bplus_tree_dir.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
@@ -9,6 +9,7 @@
 
 class Record;
 class OrderedFile;
+class BPlusTreeDir;
 class BPlusTreeParams;
 
 class BPlusTree
@@ -50,4 +51,4 @@ public:
     std::unique_ptr<BPlusTree::Iter> get_range(const Record& min, const Record& max);
 };
 
-#endif //FILE__INDEX__B_PLUS_TREE_H_
+#endif // STORAGE__B_PLUS_TREE_H_

@@ -49,13 +49,12 @@ void BPlusTree::bulk_import(OrderedFile& ordered_file) {
         root->bulk_insert(new_leaf);
         new_leaf.page.make_dirty();
     }
-    std::cout << "next_page_number: " << next_page_number << std::endl;
 }
 
 
 unique_ptr<BPlusTree::Iter> BPlusTree::get_range(const Record& min, const Record& max) {
     auto page_number_and_pos = root->search_leaf(min);
-    return make_unique<Iter>(*params, page_number_and_pos.first, page_number_and_pos.second, max);
+    return make_unique<Iter>(*params, page_number_and_pos.page_number, page_number_and_pos.result_index, max);
 }
 
 

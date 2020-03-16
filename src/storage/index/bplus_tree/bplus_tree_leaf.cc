@@ -1,8 +1,5 @@
-#include "storage/page.h"
 #include "storage/buffer_manager.h"
-#include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
-#include "storage/index/bplus_tree/bplus_tree_params.h"
 
 #include <iostream>
 #include <cstring>
@@ -23,15 +20,15 @@ BPlusTreeLeaf::~BPlusTreeLeaf() {
 }
 
 
-std::unique_ptr<Record> BPlusTreeLeaf::get(const Record& key) {
+unique_ptr<Record> BPlusTreeLeaf::get(const Record& key) {
     int index = search_index(0, *value_count-1, key);
 
     if (equal_record(key, index)) {
-        std::vector<uint64_t> ids(params.value_size);
+        vector<uint64_t> ids(params.value_size);
         for (int i = 0; i < params.value_size; i++) {
             ids[i] = records[index*params.total_size + params.key_size + i];
         }
-        return std::make_unique<Record>(ids);
+        return make_unique<Record>(ids);
     }
     else {
         return nullptr;
@@ -39,32 +36,32 @@ std::unique_ptr<Record> BPlusTreeLeaf::get(const Record& key) {
 }
 
 
-std::unique_ptr<Record> BPlusTreeLeaf::get_record(int pos) {
-    std::vector<uint64_t> ids(params.total_size);
+unique_ptr<Record> BPlusTreeLeaf::get_record(int pos) {
+    vector<uint64_t> ids(params.total_size);
     for (int i = 0; i < params.total_size; i++) {
         ids[i] = records[pos*params.total_size + i];
     }
-    return std::make_unique<Record>(ids);
+    return make_unique<Record>(ids);
 }
 
 
-std::unique_ptr<BPlusTreeLeaf> BPlusTreeLeaf::get_next_leaf() {
+unique_ptr<BPlusTreeLeaf> BPlusTreeLeaf::get_next_leaf() {
     Page& new_page = buffer_manager.get_page(*next_leaf, params.leaf_file_id);
-    return std::make_unique<BPlusTreeLeaf>(params, new_page);
+    return make_unique<BPlusTreeLeaf>(params, new_page);
 }
 
 
-std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key, const Record& value) {
+unique_ptr<BPlusTreeSplit> BPlusTreeLeaf::insert(const Record& key, const Record& value) {
     int index = search_index(0, *value_count-1, key);
     if (equal_record(key, index)) {
         for (int i = 0; i < params.key_size; i++) {
-            std::cout << key.ids[i] << " ";
+            cout << key.ids[i] << " ";
         }
-        std::cout << "\n";
+        cout << "\n";
         for (int i = 0; i < params.key_size; i++) {
-            std::cout << records[params.total_size*index + i] << " ";
+            cout << records[params.total_size*index + i] << " ";
         }
-        std::cout << "\n";
+        cout << "\n";
 
         throw std::logic_error("Inserting key duplicated into BPlusTree.");
     }
@@ -136,7 +133,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
         *new_leaf.value_count = (params.leaf_max_records/2) + 1;
 
         // split_key is the first in the new leaf
-        std::vector<uint64_t> split_key(params.key_size);
+        vector<uint64_t> split_key(params.key_size);
         for (int i = 0; i < params.key_size; i++) {
             split_key[i] = (new_leaf.records[i]);
         }
@@ -144,7 +141,7 @@ std::unique_ptr<std::pair<Record, int>> BPlusTreeLeaf::insert(const Record& key,
         this->page.make_dirty();
         new_page.make_dirty();
 
-        return std::make_unique<std::pair<Record, int>>(split_record, new_page.get_page_number());
+        return make_unique<BPlusTreeSplit>(split_record, new_page.get_page_number());
     }
 }
 
@@ -161,9 +158,9 @@ void BPlusTreeLeaf::create_new(const Record& key, const Record& value) {
 }
 
 
-std::pair<int, int> BPlusTreeLeaf::search_leaf(const Record& min) {
+SearchLeafResult BPlusTreeLeaf::search_leaf(const Record& min) {
     int index = search_index(0, *value_count-1, min);
-    return std::pair<int, int>(page.get_page_number(), index);
+    return SearchLeafResult(page.get_page_number(), index);
 }
 
 
@@ -217,23 +214,23 @@ bool BPlusTreeLeaf::equal_record(const Record& record, int index) {
 }
 
 void BPlusTreeLeaf::print() const {
-    std::cout << "Printing Leaf:\n";
+    cout << "Printing Leaf:\n";
     for (int i = 0; i < *value_count; i++) {
-        std::cout << "  (";
+        cout << "  (";
         for (int j = 0; j < params.total_size; j++) {
             if (j != 0)
-                std::cout << ", ";
-            std::cout << records[i*params.total_size+j];
+                cout << ", ";
+            cout << records[i*params.total_size+j];
         }
-        std::cout << ")\n";
+        cout << ")\n";
     }
 }
 
 
 bool BPlusTreeLeaf::check() const {
     if (*value_count <= 0) {
-        std::cout << "value_count should be greater than 0. ";
-        std::cout << "got: " << *value_count << "\n";
+        cout << "value_count should be greater than 0. ";
+        cout << "got: " << *value_count << "\n";
     }
 
     if (*value_count > 1) {
@@ -252,9 +249,7 @@ bool BPlusTreeLeaf::check() const {
                 y.ids[i] = records[current_pos++];
             }
             if (y <= x) {
-                std::cout << "bad record order at BPlusTreeLeaf\n";
-                // std::cout << x.ids[0] << "," << x.ids[1] << "," << x.ids[2]  << "\n"; // TODO:
-                // std::cout << y.ids[0] << "," << y.ids[1] << "," << y.ids[2]  << "\n"; // TODO:
+                cout << "bad record order at BPlusTreeLeaf\n";
                 print();
                 return false;
             }

@@ -26,7 +26,7 @@ RelationalModel::~RelationalModel() = default;
 
 
 void RelationalModel::init() {
-    instance = make_unique<RelationalModel>(); // TODO: initialize with nifty counter?
+    instance = make_unique<RelationalModel>();
 }
 
 

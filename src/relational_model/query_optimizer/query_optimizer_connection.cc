@@ -37,10 +37,10 @@ void QueryOptimizerConnection::try_assign_var(VarId var_id) {
     if (from_var_id == var_id) {
         from_assigned = true;
     }
-    if (to_var_id == var_id) {
+    if (to_var_id == var_id) { // not else if because from_var_id may be equal to to_var_id
         to_assigned = true;
     }
-    else if (edge_var_id == var_id) { // TODO: can `from` be equal to `to`?
+    else if (edge_var_id == var_id) {
         edge_assigned = true;
     }
 }

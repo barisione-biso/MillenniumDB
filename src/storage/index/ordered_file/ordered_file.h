@@ -1,5 +1,5 @@
-#ifndef FILE__ORDERED_FILE_H_
-#define FILE__ORDERED_FILE_H_
+#ifndef STORAGE__ORDERED_FILE_H_
+#define STORAGE__ORDERED_FILE_H_
 
 #include "storage/file_id.h"
 
@@ -48,4 +48,4 @@ class OrderedFile {
         // void merge_blocks(uint_fast32_t block1_start_pos, uint_fast32_t block2_start_pos, uint_fast32_t merge_size);
 };
 
-#endif //FILE__ORDERED_FILE_H_
+#endif //STORAGE__ORDERED_FILE_H_

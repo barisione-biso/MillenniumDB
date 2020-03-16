@@ -28,8 +28,8 @@ BufferManager::BufferManager() {
 
 
 BufferManager::~BufferManager() {
-    // not necessary to delete buffer_pool and bytes.
-    // THis destructor is called only on program exit
+    // It's not necessary to delete buffer_pool or bytes,
+    // this destructor is called only on program exit.
     cout << "~BufferManager()\n";
 }
 
@@ -66,20 +66,20 @@ Page& BufferManager::get_page(uint_fast32_t page_number, FileId file_id) {
         std::cout << "Page Number: " << page_number << ", FileId: " << file_id.id << "(" << file_manager.get_filename(file_id) <<  ")\n";
         throw std::logic_error("getting wrong page_number.");
     }
-    pair<FileId, int> page_key = pair<FileId, int>(file_id, page_number);
-    map<pair<FileId, int>, int>::iterator it = pages.find(page_key);
+    auto page_id = PageId(file_id, page_number);
+    auto it = pages.find(page_id);
 
     if (it == pages.end()) {
         int buffer_available = get_buffer_available();
         if (buffer_pool[buffer_available].file_id.id != FileId::UNASSIGNED) {
-            pair<FileId, int> old_page_key = pair<FileId, int>(buffer_pool[buffer_available].file_id,
-                                                               buffer_pool[buffer_available].page_number);
-            pages.erase(old_page_key);
+            auto old_page_id = PageId(buffer_pool[buffer_available].file_id,
+                                         buffer_pool[buffer_available].page_number);
+            pages.erase(old_page_id);
         }
         buffer_pool[buffer_available] = Page(page_number, &bytes[buffer_available*PAGE_SIZE], file_id);
 
-        file_manager.read_page(page_key.first, page_number, buffer_pool[buffer_available].get_bytes());
-        pages.insert(pair<pair<FileId, int>, int>(page_key, buffer_available));
+        file_manager.read_page(page_id.file_id, page_number, buffer_pool[buffer_available].get_bytes());
+        pages.insert(pair<PageId, int>(page_id, buffer_available));
         return buffer_pool[buffer_available];
     }
     else { // file is already open

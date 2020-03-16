@@ -1,5 +1,5 @@
-#ifndef FILE__B_PLUS_TREE_PARAMS_H_
-#define FILE__B_PLUS_TREE_PARAMS_H_
+#ifndef STORAGE__B_PLUS_TREE_PARAMS_H_
+#define STORAGE__B_PLUS_TREE_PARAMS_H_
 
 #include <string>
 #include "storage/page.h"
@@ -23,4 +23,4 @@ public:
     int leaf_max_records;
 };
 
-#endif //FILE__B_PLUS_TREE_PARAMS_H_
+#endif // STORAGE__B_PLUS_TREE_PARAMS_H_

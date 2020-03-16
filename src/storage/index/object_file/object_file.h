@@ -12,8 +12,8 @@
  * file so the first object will have the ID=1.
  * */
 
-#ifndef FILE__OBJECT_FILE_
-#define FILE__OBJECT_FILE_
+#ifndef STORAGE__OBJECT_FILE_
+#define STORAGE__OBJECT_FILE_
 
 #include "base/graph/value/value.h"
 #include "base/ids/object_id.h"
@@ -37,4 +37,4 @@ class ObjectFile
         std::fstream& file;
 };
 
-#endif //FILE__INDEX__OBJECT_FILE_
+#endif //STORAGE__INDEX__OBJECT_FILE_

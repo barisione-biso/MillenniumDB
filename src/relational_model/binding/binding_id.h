@@ -8,9 +8,6 @@
 #include "base/ids/var_id.h"
 #include "base/ids/object_id.h"
 
-class ObjectFile;
-
-
 class BindingId {
 
 private:
@@ -27,7 +24,6 @@ public:
     void add(VarId, ObjectId);
 
     void print(std::vector<std::string>& var_names) const;
-    void print(std::vector<std::string>& var_names, ObjectFile& object_file) const;
 };
 
 
