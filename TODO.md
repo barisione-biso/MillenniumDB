@@ -42,15 +42,20 @@
         - largo string = <= 7 + largo string >= 8, varios resultados
         - largo string = <= 7 + largo string >= 8, 1 resultado
 
++ hacer diagramas de flujo de las siguientes operaciones:
+    - create db
+    - query
+    - bplustree search
++ descripcion de lo que hace las funciones en el .h
 
-- sacar = default de los .h y pasalos al .cc
-- add override to virtual functions overrided?
-
+- bajar tamano en buffer manager y hacer pruebas con bd mas grande ¬2GB
+- probar values strings de tamano 0
 - Bulk Import: borrar ordered_files al terminar
+- Usar memcpy cuando sea posible (ordered file y bpt)
+
 - Buffer manager:
     - allocating more space if necesary
 - Object File:
     - use disk if importing more than X nodes?
 - Catalog:
     - Stop if having key for node/edge more than X different keys.
-- Usar memcpy cuando sea posible (ordered file y bpt)

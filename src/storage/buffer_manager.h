@@ -35,6 +35,7 @@ friend class BufferManagerInitializer;
 public:
     Page& get_page(uint_fast32_t page_number, FileId file_id);
     Page& append_page(FileId file_id);
+    /* all dirty pages are written to disk */
     void flush();
 
 private:
@@ -55,6 +56,5 @@ static struct BufferManagerInitializer {
     BufferManagerInitializer();
     ~BufferManagerInitializer();
 } bufferManager_initializer; // static initializer for every translation unit
-
 
 #endif // STORAGE__BUFFER_MANAGER_H_
