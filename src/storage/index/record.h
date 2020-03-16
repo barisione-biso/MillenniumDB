@@ -25,4 +25,4 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Record& record);
 };
 
-#endif //STORAGE__RECORD_H_
+#endif // STORAGE__RECORD_H_

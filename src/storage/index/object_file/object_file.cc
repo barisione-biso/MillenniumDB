@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "storage/file_manager.h"
-#include "storage/index/bplus_tree/bplus_tree.h"
 
 using namespace std;
 
@@ -22,20 +21,20 @@ ObjectFile::ObjectFile(const string& filename)
 unique_ptr<vector<unsigned char>> ObjectFile::read(uint64_t id) {
     // set position=`id` and read the length of the object
     file.seekg(id);
-    char length_b[4]; // array of 4 bytes to store the length as bytes
+    char length_b[4]; // 4 bytes to store the length of the object
     file.read(length_b, 4);
     uint32_t length = *(uint32_t *)length_b;
 
-    // TODO: check sanity
-    // if (file.bad())
-    //     std::cout << "I/O bad\n";
-    // else if (file.eof())
-    //     std::cout << "I/O eof\n";
-    // else if (file.fail())
-    //     std::cout << "I/O fail\n";
-
     // read the following `length` bytes
     auto value = make_unique<vector<unsigned char>>(length);
+
+    // check sanity
+    if (file.eof()) {
+        cout << "OBJECT FILE ERROR: tried to read inexistent object.\n";
+        file.clear(); // important to clear, otherwise following calls to this method will throw same error.
+        return value;
+    }
+
     file.read((char*) value->data(), length);
     return value;
 }
