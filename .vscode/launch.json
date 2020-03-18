@@ -55,6 +55,33 @@
             ]
         },
         {
+            "name": "Grammar",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/bin/grammar",
+            "args": [
+                "${workspaceFolder}/tests/query_debug"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "windows": {
+                "miDebuggerPath": "C:\\tools\\msys64\\mingw64\\bin\\gdb.exe",
+            },
+            "linux": {
+                "miDebuggerPath": "/usr/bin/gdb",
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "BPTree",
             "type": "cppdbg",
             "request": "launch",

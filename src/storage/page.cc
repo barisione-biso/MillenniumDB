@@ -2,12 +2,12 @@
 
 #include "storage/file_id.h"
 
-Page::Page(uint_fast32_t page_number, char* bytes, FileId file_id)
-    : file_id(file_id), page_number(page_number), pins(1), bytes(bytes), dirty(false) { }
+Page::Page(PageId page_id, char* bytes)
+    : page_id(page_id), pins(1), bytes(bytes), dirty(false) { }
 
 
 Page::Page()
-    : file_id(FileId(FileId::UNASSIGNED)), page_number(0), pins(0), bytes(nullptr), dirty(false) { }
+    : page_id(FileId(FileId::UNASSIGNED), 0), pins(0), bytes(nullptr), dirty(false) { }
 
 
 Page::~Page() = default;
@@ -15,17 +15,11 @@ Page::~Page() = default;
 
 Page& Page::operator=(const Page& other) {
     this->flush();
-    this->page_number = other.page_number;
-    this->file_id = other.file_id;
-    this->pins = other.pins;
-    this->dirty = other.dirty;
-    this->bytes = other.bytes;
+    this->page_id = other.page_id;
+    this->pins    = other.pins;
+    this->dirty   = other.dirty;
+    this->bytes   = other.bytes;
     return *this;
-}
-
-
-uint_fast32_t Page::get_page_number() const {
-    return page_number;
 }
 
 
@@ -47,14 +41,9 @@ void Page::pin() {
 }
 
 
-char* Page::get_bytes() const {
-    return bytes;
-}
-
-
 void Page::flush() {
     if (dirty) {
-        file_manager.flush(file_id, page_number, bytes);
+        file_manager.flush(page_id, bytes);
         dirty = false;
     }
 }

@@ -1,3 +1,8 @@
+/* We use a FileId outside of FileManager as a unique identifier to the file we need to use,
+ * because storing the filename string as a value use more memory than needed; and storing a
+ * reference to a string can be problematic when destructors are called at the end of the execution.
+ */
+
 #ifndef STORAGE__FILE_ID_H_
 #define STORAGE__FILE_ID_H_
 
@@ -17,4 +22,4 @@ public:
     }
 };
 
-#endif //STORAGE__FILE_ID_H_
+#endif // STORAGE__FILE_ID_H_

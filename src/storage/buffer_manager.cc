@@ -7,8 +7,6 @@
 #include <type_traits> // aligned_storage
 #include <iostream>
 
-const int BUFFER_POOL_SIZE = 65536;
-
 static int nifty_counter; // zero initialized at load time
 static typename std::aligned_storage<sizeof (BufferManager), alignof (BufferManager)>::type
     buffer_manager_buf; // memory for the object
@@ -39,7 +37,7 @@ void BufferManager::flush() {
 
 
 Page& BufferManager::append_page(FileId file_id) {
-    return get_page(file_manager.count_pages(file_id), file_id);
+    return get_page(file_id, file_manager.count_pages(file_id));
 }
 
 
@@ -57,7 +55,7 @@ int BufferManager::get_buffer_available() {
 }
 
 
-Page& BufferManager::get_page(uint_fast32_t page_number, FileId file_id) {
+Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) {
     if (page_number != 0 && file_manager.count_pages(file_id) < page_number) {
         std::cout << "Page Number: " << page_number << ", FileId: " << file_id.id << "(" << file_manager.get_filename(file_id) <<  ")\n";
         throw std::logic_error("getting wrong page_number.");
@@ -67,14 +65,13 @@ Page& BufferManager::get_page(uint_fast32_t page_number, FileId file_id) {
 
     if (it == pages.end()) {
         int buffer_available = get_buffer_available();
-        if (buffer_pool[buffer_available].file_id.id != FileId::UNASSIGNED) {
-            auto old_page_id = PageId(buffer_pool[buffer_available].file_id,
-                                         buffer_pool[buffer_available].page_number);
+        if (buffer_pool[buffer_available].page_id.file_id.id != FileId::UNASSIGNED) {
+            auto old_page_id = buffer_pool[buffer_available].page_id;
             pages.erase(old_page_id);
         }
-        buffer_pool[buffer_available] = Page(page_number, &bytes[buffer_available*PAGE_SIZE], file_id);
+        buffer_pool[buffer_available] = Page(page_id, &bytes[buffer_available*PAGE_SIZE]);
 
-        file_manager.read_page(page_id.file_id, page_number, buffer_pool[buffer_available].get_bytes());
+        file_manager.read_page(page_id, buffer_pool[buffer_available].get_bytes());
         pages.insert(pair<PageId, int>(page_id, buffer_available));
         return buffer_pool[buffer_available];
     }

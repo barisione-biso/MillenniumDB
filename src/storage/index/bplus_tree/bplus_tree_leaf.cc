@@ -46,7 +46,7 @@ unique_ptr<Record> BPlusTreeLeaf::get_record(int pos) {
 
 
 unique_ptr<BPlusTreeLeaf> BPlusTreeLeaf::get_next_leaf() {
-    Page& new_page = buffer_manager.get_page(*next_leaf, params.leaf_file_id);
+    Page& new_page = buffer_manager.get_page(params.leaf_file_id, *next_leaf);
     return make_unique<BPlusTreeLeaf>(params, new_page);
 }
 

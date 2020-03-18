@@ -31,12 +31,12 @@ std::unique_ptr<Record> BPlusTreeDir::get(const Record& key){
     int page_pointer = children[index];
 
     if (page_pointer < 0) { // negative number: pointer to dir
-        Page& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
+        Page& child_page = buffer_manager.get_page(params.dir_file_id, page_pointer*-1);
         auto child =  BPlusTreeDir(params, child_page);
         return child.get(key);
     }
     else { // positive number: pointer to leaf
-        Page& child_page = buffer_manager.get_page(page_pointer, params.leaf_file_id);
+        Page& child_page = buffer_manager.get_page(params.leaf_file_id, page_pointer);
         auto child =  BPlusTreeLeaf(params, child_page);
         return child.get(key);
     }
@@ -48,7 +48,7 @@ std::unique_ptr<BPlusTreeSplit> BPlusTreeDir::bulk_insert(BPlusTreeLeaf& leaf) {
     std::unique_ptr<BPlusTreeSplit> split;
 
     if (page_pointer < 0) { // negative number: pointer to dir
-        auto& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
+        auto& child_page = buffer_manager.get_page(params.dir_file_id, page_pointer*-1);
         auto child =  BPlusTreeDir(params, child_page);
         split = child.bulk_insert(leaf);
     }
@@ -131,12 +131,12 @@ std::unique_ptr<BPlusTreeSplit> BPlusTreeDir::insert(const Record& key, const Re
     std::unique_ptr<BPlusTreeSplit> split = nullptr;
 
     if (page_pointer < 0) { // negative number: pointer to dir
-        auto& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
+        auto& child_page = buffer_manager.get_page(params.dir_file_id, page_pointer*-1);
         auto child =  BPlusTreeDir(params, child_page);
         split = child.insert(key, value);
     }
     else { // positive number: pointer to leaf
-        auto& child_page = buffer_manager.get_page(page_pointer, params.leaf_file_id);
+        auto& child_page = buffer_manager.get_page(params.leaf_file_id, page_pointer);
         auto child =  BPlusTreeLeaf(params, child_page);
         split = child.insert(key, value);
     }
@@ -339,12 +339,12 @@ SearchLeafResult BPlusTreeDir::search_leaf(const Record& min) {
     int page_pointer = children[dir_index];
 
     if (page_pointer < 0) { // negative number: pointer to dir
-        Page& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
+        Page& child_page = buffer_manager.get_page(params.dir_file_id, page_pointer*-1);
         BPlusTreeDir child = BPlusTreeDir(params, child_page);
         return child.search_leaf(min);
     }
     else { // positive number: pointer to leaf
-        Page& child_page = buffer_manager.get_page(page_pointer, params.leaf_file_id);
+        Page& child_page = buffer_manager.get_page(params.leaf_file_id, page_pointer);
         BPlusTreeLeaf child =  BPlusTreeLeaf(params, child_page);
         return child.search_leaf(min);
     }
@@ -420,14 +420,14 @@ bool BPlusTreeDir::check() const {
         // Set greatest_left_key
         int left_pointer = children[i];
         if (left_pointer < 0) { // negative number: pointer to dir
-            Page& left_page = buffer_manager.get_page(left_pointer*-1, params.dir_file_id);
+            Page& left_page = buffer_manager.get_page(params.dir_file_id, left_pointer*-1);
             auto left_child =  BPlusTreeDir(params, left_page);
             for (int j = 0; j < params.key_size; j++) {
                 greatest_left_key.ids[j] = left_child.keys[((*left_child.key_count-1) * params.key_size) + j];
             }
         }
         else { // positive number: pointer to leaf
-            Page& left_page = buffer_manager.get_page(left_pointer, params.leaf_file_id);
+            Page& left_page = buffer_manager.get_page(params.leaf_file_id, left_pointer);
             auto left_child =  BPlusTreeLeaf(params, left_page);
             for (int j = 0; j < params.key_size; j++) {
                 greatest_left_key.ids[j] = left_child.records[((*left_child.value_count-1) * params.total_size) + j];
@@ -438,7 +438,7 @@ bool BPlusTreeDir::check() const {
         int right_pointer = children[i+1];
         bool right_empty = false; // for skipping empty dirs
         if (right_pointer < 0) { // negative number: pointer to dir
-            Page& right_page = buffer_manager.get_page(right_pointer*-1, params.dir_file_id);
+            Page& right_page = buffer_manager.get_page(params.dir_file_id, right_pointer*-1);
             auto right_child =  BPlusTreeDir(params, right_page);
             for (int j = 0; j < params.key_size; j++) {
                 smallest_right_key.ids[j] = right_child.keys[j];
@@ -448,7 +448,7 @@ bool BPlusTreeDir::check() const {
             }
         }
         else { // positive number: pointer to leaf
-            Page& right_page = buffer_manager.get_page(right_pointer, params.leaf_file_id);
+            Page& right_page = buffer_manager.get_page(params.leaf_file_id, right_pointer);
             auto right_child =  BPlusTreeLeaf(params, right_page);
             for (int j = 0; j < params.key_size; j++) {
                 smallest_right_key.ids[j] = right_child.records[j];
@@ -477,13 +477,13 @@ bool BPlusTreeDir::check() const {
         int page_pointer = children[i];
 
         if (page_pointer < 0) { // negative number: pointer to dir
-            Page& child_page = buffer_manager.get_page(page_pointer*-1, params.dir_file_id);
+            auto& child_page = buffer_manager.get_page(params.dir_file_id, page_pointer*-1);
             auto child =  BPlusTreeDir(params, child_page);
             if (!child.check())
                 return false;
         }
         else { // positive number: pointer to leaf
-            Page& child_page = buffer_manager.get_page(page_pointer, params.leaf_file_id);
+            auto& child_page = buffer_manager.get_page(params.leaf_file_id, page_pointer);
             auto child =  BPlusTreeLeaf(params, child_page);
             if (!child.check())
                 return false;
