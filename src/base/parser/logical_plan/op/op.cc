@@ -6,7 +6,6 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
 
-
 using namespace std;
 
 unique_ptr<OpSelect> Op::get_select_plan(ast::Root& ast) {

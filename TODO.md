@@ -43,14 +43,10 @@
         - largo string = <= 7 + largo string >= 8, 1 resultado
 
 + hacer diagramas de flujo de las siguientes operaciones:
-    - create db
-    - query
     - bplustree search
-+ descripcion de lo que hace las funciones en el .h
 
 - bajar tamano en buffer manager y hacer pruebas con bd mas grande ¬2GB
 - probar values strings de tamano 0
-- Bulk Import: borrar ordered_files al terminar
 - Usar memcpy cuando sea posible (ordered file y bpt)
 
 - Buffer manager:

@@ -1,5 +1,8 @@
 #include "physical_plan_generator.h"
 
+#include <iostream>
+#include <set>
+
 #include "base/binding/binding.h"
 #include "base/graph/value/value_int.h"
 #include "base/graph/value/value_bool.h"
@@ -16,9 +19,6 @@
 #include "relational_model/query_optimizer/query_optimizer_connection.h"
 #include "relational_model/query_optimizer/query_optimizer_label.h"
 #include "relational_model/query_optimizer/query_optimizer_property.h"
-
-#include <iostream>
-#include <set>
 
 using namespace std;
 
@@ -48,7 +48,7 @@ void PhysicalPlanGenerator::visit (OpSelect& op_select) {
 }
 
 
-void PhysicalPlanGenerator::visit (OpMatch& op_match) {
+void PhysicalPlanGenerator::visit(OpMatch& op_match) {
     VarId null_var { -1 };
     vector<unique_ptr<QueryOptimizerElement>> elements;
     var_info = op_match.var_info; // TODO: move?

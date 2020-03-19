@@ -37,6 +37,7 @@ OrderedFile::~OrderedFile() {
     delete[] buffer;
     delete[] big_buffer;
     file_manager.close(file_id);
+    file_manager.remove(file_id);
 }
 
 void OrderedFile::begin_iter() {
