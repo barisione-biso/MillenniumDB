@@ -107,7 +107,7 @@ fstream& FileManager::get_file(FileId file_id) {
 
 
 FileId FileManager::get_file_id(const string& filename) {
-    string file_path = "test_files/" + filename; // TODO: get by config or graph name?
+    string file_path = "test_files/" + filename; // TODO: get folder path by config and/or graph?
     for (size_t i = 0; i < filenames.size(); i++) {
         if (file_path.compare(filenames[i]) == 0) {
             return FileId(i);

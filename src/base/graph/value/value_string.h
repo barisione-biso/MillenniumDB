@@ -19,7 +19,7 @@ public:
     }
 
     std::string to_string() const override {
-        return value;
+        return '"' + value + '"';
     }
 
     ObjectType type() const override {
@@ -75,4 +75,4 @@ public:
     }
 };
 
-#endif //BASE__VALUE_STRING_H_
+#endif // BASE__VALUE_STRING_H_

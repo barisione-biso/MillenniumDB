@@ -69,6 +69,5 @@ BindingId* GraphScan::next() {
 
 
 void GraphScan::reset(BindingId& input) {
-    begin(input); // TODO: no es necesario inicializar de nuevo my_binding, solo limpiarlo.
-                  //       Medir tiempos para ver si de verdad es una mejora
+    begin(input);
 }

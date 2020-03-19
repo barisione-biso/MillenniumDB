@@ -1,4 +1,3 @@
-- Comentarios Page y OrderedFile
 - Crear test queries:
     - Busqueda de nodo por label:
         - largo string = 7, sin resultados
@@ -46,7 +45,6 @@
     - bplustree search
 
 - bajar tamano en buffer manager y hacer pruebas con bd mas grande ¬2GB
-- probar values strings de tamano 0
 - Usar memcpy cuando sea posible (ordered file y bpt)
 
 - Buffer manager:

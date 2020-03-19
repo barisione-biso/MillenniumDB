@@ -1,17 +1,15 @@
+#include <fstream>
+#include <iostream>
+
 #include "base/binding/binding.h"
 #include "base/binding/binding_iter.h"
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "relational_model/relational_model.h"
 #include "relational_model/graph/relational_graph.h"
-#include "relational_model/physical_plan/physical_plan_generator.h"
-
-#include <fstream>
-#include <iostream>
-
+#include "relational_model/query_optimizer/physical_plan_generator.h"
 
 using namespace std;
-
 
 int main() {
     RelationalModel::init();

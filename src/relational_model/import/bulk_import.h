@@ -27,13 +27,13 @@ private:
     void process_edge(const bulk_import_ast::Edge& edge);
 
     std::map<uint64_t, uint64_t> node_dict;
-    std::list<std::tuple<uint64_t, uint64_t, uint64_t>> edges_original_ids;
+    // std::list<std::tuple<uint64_t, uint64_t, uint64_t>> edges_original_ids;
 
     OrderedFile node_labels;
     OrderedFile edge_labels;
     OrderedFile node_key_value;
     OrderedFile edge_key_value;
-    OrderedFile from_to_edge;
+    OrderedFile connections;
 };
 
 #endif //RELATIONAL_MODEL__BULK_IMPORT_H_

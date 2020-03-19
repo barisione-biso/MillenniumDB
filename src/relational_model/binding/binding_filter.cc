@@ -31,13 +31,8 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
     }
     else { // no esta en el cache ni el el binding original
         auto info = var_info[var];
-        // TODO: esta busqueda se debería hacer solo 1 vez por consulta
         auto key_object_id = RelationalModel::get_string_unmasked_id(key);
         auto var_value = binding[var];
-
-        // TODO: add to cache
-        // auto search_prop = SearchProperty(info.second, element_id.value, key_object_id);
-        // cache.insert({ search_var, search_prop.get_value() });
 
         unique_ptr<BPlusTree::Iter> it = nullptr;
         if (info.second == ObjectType::node) {
@@ -60,9 +55,12 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
         auto res = it->next();
         if (res != nullptr) {
             auto value_obj_id = ObjectId(res->ids[2]);
-            return RelationalModel::get_graph_object(value_obj_id);
+            auto res = RelationalModel::get_graph_object(value_obj_id);
+            cache.insert({ search_var, res });
+            return res;
         }
         else {
+            cache.insert({ search_var, nullptr });
             return nullptr;
         }
     }

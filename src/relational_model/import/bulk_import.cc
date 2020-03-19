@@ -16,7 +16,7 @@ BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_n
       edge_labels(OrderedFile("edge_labels.dat", 2)),
       node_key_value(OrderedFile("node_key_value.dat", 3)),
       edge_key_value(OrderedFile("edge_key_value.dat", 3)),
-      from_to_edge(OrderedFile("from_to_edge.dat", 3))
+      connections(OrderedFile("connections.dat", 3))
 {
     nodes_file = ifstream(nodes_file_name);
     edges_file = ifstream(edges_file_name);
@@ -74,15 +74,7 @@ void BulkImport::start_import() {
             return;
         }
     } while(edge_iter != edge_end);
-    cout << "\n";
 
-    // connect nodes
-    line_number = 1;
-    cout << "connecting nodes:\n";
-    for (auto&& [from, to, edge_id] : edges_original_ids) {
-        cout << "\r  line " << line_number++ << std::flush;
-        from_to_edge.append_record(Record(node_dict[from], node_dict[to], edge_id));
-    }
     cout << "\nCreating indexes for labels\n";
     // NODE LABELS
     node_labels.order(vector<uint_fast8_t> { 0, 1 });
@@ -125,24 +117,23 @@ void BulkImport::start_import() {
     cout << "Creating indexes for connections\n";
 
     // CONNECTIONS
-    from_to_edge.order(vector<uint_fast8_t> { 0, 1, 2 });
+    connections.order(vector<uint_fast8_t> { 0, 1, 2 });
     // from_to_edge.check_order(vector<uint_fast8_t> { 0, 1, 2 });
-    graph.from_to_edge->bulk_import(from_to_edge);
+    graph.from_to_edge->bulk_import(connections);
 
-    from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 });
+    connections.order(vector<uint_fast8_t> { 2, 0, 1 });
     // from_to_edge.check_order(vector<uint_fast8_t> { 0, 1, 2 });
-    graph.to_edge_from->bulk_import(from_to_edge);
+    graph.to_edge_from->bulk_import(connections);
 
-    from_to_edge.order(vector<uint_fast8_t> { 2, 0, 1 });
+    connections.order(vector<uint_fast8_t> { 2, 0, 1 });
     // from_to_edge.check_order(vector<uint_fast8_t> { 0, 1, 2 });
-    graph.edge_from_to->bulk_import(from_to_edge);
+    graph.edge_from_to->bulk_import(connections);
 }
 
 
 void BulkImport::process_node(const bulk_import_ast::Node& node) {
     uint64_t node_id = graph.create_node();
 
-    // TODO: check threshold to begin disk mode
     node_dict.insert(pair<uint64_t, uint64_t>(node.id, node_id));
 
     for (auto& label : node.labels) {
@@ -160,12 +151,17 @@ void BulkImport::process_node(const bulk_import_ast::Node& node) {
 void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
     uint64_t edge_id = graph.create_edge();
 
-    // TODO: check threshold to begin disk mode
-    if (edge.direction == bulk_import_ast::EdgeDirection::right) {
-        edges_original_ids.push_back(tuple<uint64_t, uint64_t, uint64_t>(edge.left_id, edge.right_id, edge_id));
+    auto left_id = node_dict.find(edge.left_id);
+    auto right_id = node_dict.find(edge.right_id);
+
+    if (left_id == node_dict.end() || right_id == node_dict.end()) {
+        throw logic_error("Edge using undeclared node.");
     }
-    else {
-        edges_original_ids.push_back(tuple<uint64_t, uint64_t, uint64_t>(edge.right_id, edge.left_id, edge_id));
+
+    if (edge.direction == bulk_import_ast::EdgeDirection::right) {
+        connections.append_record(Record(left_id->second, right_id->second, edge_id));
+    } else {
+        connections.append_record(Record(right_id->second, left_id->second, edge_id));
     }
 
     for (auto& label : edge.labels) {

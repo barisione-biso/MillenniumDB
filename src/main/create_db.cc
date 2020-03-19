@@ -19,9 +19,9 @@ int main(int argc, char *argv[]) {
     }
 	auto start = chrono::system_clock::now();
 
-	// TODO: try/catch?
 	RelationalModel::init();
-	BulkImport import = BulkImport(argv[1], argv[2], RelationalModel::get_graph(GraphId(0))); // TODO: support creating other graphs
+	// TODO: support creating other graphs
+	BulkImport import = BulkImport(argv[1], argv[2], RelationalModel::get_graph(GraphId(0)));
 	import.start_import();
 
 	auto end = chrono::system_clock::now();

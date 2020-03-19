@@ -51,7 +51,7 @@ void PhysicalPlanGenerator::visit (OpSelect& op_select) {
 void PhysicalPlanGenerator::visit(OpMatch& op_match) {
     VarId null_var { -1 };
     vector<unique_ptr<QueryOptimizerElement>> elements;
-    var_info = op_match.var_info; // TODO: move?
+    var_info = op_match.var_info; // TODO: improve performance using move?
 
     for (auto& op_label : op_match.labels) {
         ObjectId label_id = RelationalModel::get_string_unmasked_id(op_label->label);
