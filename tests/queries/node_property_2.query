@@ -1,0 +1,6 @@
+// Busqueda de nodo por property
+// largo key string = 7 (inline)
+// tipo valor = bool
+
+SELECT *
+MATCH (?n {crazies:true})

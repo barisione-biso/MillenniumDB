@@ -1,3 +1,6 @@
+// Busqueda de nodo por property
+// largo key string = 7 (inline)
+// tipo valor = int
+
 SELECT *
-MATCH (?n :detection)
-WHERE ?n.aperitifs == ""
+MATCH (?n)

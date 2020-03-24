@@ -2545,7 +2545,7 @@
 (2545) :inherently naturalist:false geek:"spectra"
 (2546) :detection :Set's pardons:"befriends" blazes:true hubcaps:"glade's" privatization's:true
 (2547) :Muller's :remorseful compartment's:7491.383640746903 derogates:4959 devouring:1997 winch's:4787.986592631537
-(2548) :Maurice's :wangle's nonmember:4021.615510303964 aperitifs:5530.258859717549 cesarians:"promiscuity" incestuous:true lecher:1166.879754828638 Fortaleza:"Afrikaner's"
+(2548) :Maurice's :wangle's nonmember:4021.615510303964 aperitifs:"" cesarians:"promiscuity" incestuous:true lecher:1166.879754828638 Fortaleza:"Afrikaner's"
 (2549) :questioned ordure's:false pertest:"tanning" testifies:3886.7394320374506 Deana:"Netzahualcoyotl" Kauai's:3376
 (2550) :huntsman :Tsitsihar's Malraux's:false Ernesto:8700
 (2551) :remorseful tittle:true rejuvenated:true archeological:"ladyship's" Fortaleza:true
@@ -6044,7 +6044,7 @@
 (6044) :philosophers :Chrysler's lung:false sheller:3159.6325725119455 Tennessee:true tale's:"bo'sun's" plough:9546
 (6045) :Concorde :molluscs :quagmire's paramour:"minibusses" Ernesto:8248.602275816895 perversity:4268 sunfishes:4410 diameter's:true
 (6046) :imparted :detection :unmannerly aperitifs:false retraining:3746
-(6047) :Claudia's meting:1408.7492912893574 hemisphere's:9385 bootlegged:false saucepan:false
+(6047) :Claudia's meting:1408.74 hemisphere's:9385 bootlegged:false saucepan:false
 (6048) :Set's nonmember:2578.774399559788 zircon's:3459 cesarians:"nationalist"
 (6049) :Muller's :breech's :discolor Benjamin:5312 compulsiveness's:7627 archeological:false
 (6050) :howlers extortionate:"passageway" brawnier:4502 gyration's:8805.900300962518 Kauai's:false compartment's:9935.42130038061 Kalgoorlie's:"retailed"
@@ -6146,7 +6146,7 @@
 (6146) :jaunting caliphate's:6131.206661767541 athletically:false tripods:2625 devouring:4398.32505350986 profusion's:7934.778449468609 faiths:1967.861125627448
 (6147) :splatters :radio's :drowsy dismembering:true Tamika:2004.2785549782116 naturalist:true
 (6148) :Concorde boondoggled:4042 blintze's:7825
-(6149) :galley hotheadedness's:false meting:173.15292638063084 Agassiz:9305 retraining:7786.578021450285 yodel's:9232
+(6149) :galley hotheadedness's:false meting:173.15 Agassiz:9305 retraining:7786.578021450285 yodel's:9232
 (6150) :participating :intercontinental bassoonists:645.4273472199745 Bligh:4661
 (6151) :catchphrase Angelo's:"pannier's" devouring:true tacticians:8591 aperitifs:"acuteness" skill:4577.926105351279
 (6152) :champed :questioned :monotonically jealous:"burners" percentage:5171.181954141646 ordure's:false Hermite:8622.135828187556
@@ -6287,7 +6287,7 @@
 (6287) :impart :intercontinental :Sara's goulashes:"gal" Clovis's:9912 compartment's:3350.7359170520344 Keillor's:"Zionist" bleeps:"tare"
 (6288) :catchphrase :sneaker athletically:false abet:838.0244362994582 ks:5907
 (6289) :Danone piazza:"suaver" allegiance:false antiquary:3028.657835842048
-(6290) :enticing :shopper's tabbies:true Aruba:"hooks" Pennington:5015 meting:1358 scorning:false
+(6290) :enticing :shopper's tabbies:true Aruba:"hooks" Pennington:5015 meting:1358.54579518 scorning:false
 (6291) :founders splurged:"martens" nettle's:"berm's" Agassiz:7439 expositions:9985 hemisphere's:"flourishes"
 (6292) :geometrical :waxwing's shirkers:"tiara's" Aruba:"afghan"
 (6293) :Akiva :tabulator peacemakers:true dismembering:7444 pumpernickel:3559.604452866996 tuns:true bootlegged:7652 diameter's:5345
@@ -9621,7 +9621,7 @@
 (9621) :misdone forelock:"denture's" fight's:"defer"
 (9622) :organizers :transmutations Dillon's:"deposing" rugs:7380 inclusions:2345
 (9623) :pimping plough:9124 naturalist:7928.753085443913 lassoes:2641 bootlegged:7011.127886600476
-(9624) :beatifies locating:6319 aperitifs:true bronco:5776.426333061067 objectionable:852
+(9624) :beatifies locating:6319 aperitifs:"" bronco:5776.426333061067 objectionable:852
 (9625) :Atahualpa :terrified :Set's Malraux's:4999.093184215927 brawnier:"firmer" commissaries:8069.92029613935 frizzy:false uncertainty's:4284
 (9626) :meowed lassoes:905.7581831644324 Angelo's:1889.3684366932096
 (9627) :corkscrews :meowed :arraigned nonmember:true blintze's:"tier's" tripods:2592.437163928547 Tennessee:3159.115590424534 fight's:1437.547023746406 winch's:2109.7533926477054

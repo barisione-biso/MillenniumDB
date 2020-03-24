@@ -285,8 +285,8 @@ void ASTPrinter::operator()(std::string const& text) const {
 
 
 void ASTPrinter::operator() (VarId const& var_id) const {out << "VarId(" << var_id.id << ")"; }
-void ASTPrinter::operator() (int const& n)        const {out << n; }
-void ASTPrinter::operator() (float const& n)      const {out << n; }
+void ASTPrinter::operator() (int const& n)        const {out << "(int)" << n; }
+void ASTPrinter::operator() (float const& n)      const {out << "(float)" << n; }
 void ASTPrinter::operator() (ast::And const&)     const {out << "\"AND\""; }
 void ASTPrinter::operator() (ast::Or const&)      const {out << "\"OR\""; }
 void ASTPrinter::operator() (ast::EQ const&)      const {out << "\"==\""; }

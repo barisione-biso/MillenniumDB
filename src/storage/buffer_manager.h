@@ -17,7 +17,7 @@
 #include <map>
 #include <string>
 
-const int BUFFER_POOL_SIZE = 65536;
+const int BUFFER_POOL_SIZE = 32;
 
 class Page;
 class Buffer;

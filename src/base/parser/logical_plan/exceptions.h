@@ -13,13 +13,13 @@ class ParsingException : public std::exception {
 class NotSupportedException : public std::exception {
 	std::string error;
 
-	NotSupportedException(std::string operation) {
-		error = "Operation " + operation + " not supported yet.";
-	}
-
 	const char * what () const throw () {
     	return error.c_str();
     }
+public:
+	NotSupportedException(std::string operation) {
+		error = "Operation " + operation + " not supported yet.";
+	}
 };
 
 #endif // BASE__PARSING_EXCEPTIONS_H_

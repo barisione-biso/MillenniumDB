@@ -15,6 +15,7 @@ class OpSelect;
 class Op {
 private:
     static std::unique_ptr<OpSelect> get_select_plan(ast::Root& ast);
+    static void check_select_plan(OpSelect& op_select);
 
 public:
     virtual void accept_visitor(OpVisitor&) = 0;

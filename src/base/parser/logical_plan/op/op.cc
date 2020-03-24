@@ -5,6 +5,8 @@
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/visitors/empty_match_visitor.h"
+
 
 using namespace std;
 
@@ -24,9 +26,17 @@ unique_ptr<OpSelect> Op::get_select_plan(string query) {
     if (r && iter == end) { // parsing succeeded
         ASTPrinter printer(cout);
         printer(ast);
-        return Op::get_select_plan(ast);
+        auto res =  Op::get_select_plan(ast);
+        check_select_plan(*res);
+        return res;
     }
     else {
         throw ParsingException();
     }
+}
+
+
+void Op::check_select_plan(OpSelect& op_select) {
+    auto emty_match_visitor = EmptyMatchVisitor();
+    emty_match_visitor.visit(op_select);
 }

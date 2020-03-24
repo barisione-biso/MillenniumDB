@@ -1,0 +1,5 @@
+// Busqueda de nodo por property
+// tipo valor = float
+
+SELECT *
+MATCH (?n {meting:1358.54579})

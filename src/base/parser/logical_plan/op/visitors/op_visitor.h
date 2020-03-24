@@ -21,4 +21,4 @@ public:
 
 };
 
-#endif //BASE__OP_VISITOR_H_
+#endif // BASE__OP_VISITOR_H_
