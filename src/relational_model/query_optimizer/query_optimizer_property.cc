@@ -66,7 +66,7 @@ std::vector<VarId> QueryOptimizerProperty::assign() {
 }
 
 
-unique_ptr<GraphScan> QueryOptimizerProperty::get_scan() {
+unique_ptr<BindingIdIter> QueryOptimizerProperty::get_scan() {
     vector<pair<ObjectId, int>> terms;
     vector<pair<VarId, int>> vars;
 

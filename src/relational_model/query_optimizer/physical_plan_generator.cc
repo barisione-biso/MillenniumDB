@@ -11,6 +11,7 @@
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/op_lonely_node.h"
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/relational_model.h"
 #include "relational_model/physical_plan/binding_iter/filter.h"
@@ -19,6 +20,7 @@
 #include "relational_model/query_optimizer/query_optimizer_connection.h"
 #include "relational_model/query_optimizer/query_optimizer_label.h"
 #include "relational_model/query_optimizer/query_optimizer_property.h"
+#include "relational_model/query_optimizer/query_optimizer_lonely_node.h"
 
 using namespace std;
 
@@ -31,7 +33,7 @@ unique_ptr<BindingIter> PhysicalPlanGenerator::exec(OpSelect& op_select) {
 }
 
 
-void PhysicalPlanGenerator::visit (OpSelect& op_select) {
+void PhysicalPlanGenerator::visit(OpSelect& op_select) {
     if (op_select.select_all) {
         op_select.op->accept_visitor(*this);
         tmp = make_unique<Projection>(move(tmp));
@@ -94,13 +96,34 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
         VarId value_var = get_var_id(var + '.' + key);
         ObjectId key_id = RelationalModel::get_string_unmasked_id(key);
 
-        elements.push_back(make_unique<QueryOptimizerProperty>(
-            var_info[var].first, element_obj_id, null_var, value_var, var_info[var].second, key_id, ObjectId(NULL_OBJECT_ID) ));
+        elements.push_back(
+            make_unique<QueryOptimizerProperty>(var_info[var].first, element_obj_id, null_var,
+                                                value_var, var_info[var].second, key_id, ObjectId(NULL_OBJECT_ID))
+        );
+    }
+
+    // Lonely Nodes not present in select
+    for (auto& lonely_node : op_match.lonely_nodes) {
+        bool lonely_node_mentioned_int_select = false;
+        for (auto& pair : select_items) {
+            if (pair.first == lonely_node->var) {
+                lonely_node_mentioned_int_select = true;
+                break;
+            }
+        }
+        if (!lonely_node_mentioned_int_select) {
+            VarId element_obj_id = get_var_id(lonely_node->var);
+            elements.push_back(
+                make_unique<QueryOptimizerLonelyNode>(lonely_node->graph_id, element_obj_id)
+            );
+        }
     }
 
     for (auto& op_connection : op_match.connections) {
-        elements.push_back(make_unique<QueryOptimizerConnection>(
-            op_connection->graph_id, get_var_id(op_connection->node_from), get_var_id(op_connection->node_to), get_var_id(op_connection->edge) ));
+        elements.push_back(
+            make_unique<QueryOptimizerConnection>(op_connection->graph_id, get_var_id(op_connection->node_from),
+                                                  get_var_id(op_connection->node_to), get_var_id(op_connection->edge))
+        );
     }
 
     tmp = make_unique<Match>(move(elements), move(id_map));
@@ -132,3 +155,4 @@ VarId PhysicalPlanGenerator::get_var_id(const std::string& var) {
 void PhysicalPlanGenerator::visit (OpLabel&) { }
 void PhysicalPlanGenerator::visit (OpProperty&) { }
 void PhysicalPlanGenerator::visit (OpConnection&) { }
+void PhysicalPlanGenerator::visit (OpLonelyNode&) { }

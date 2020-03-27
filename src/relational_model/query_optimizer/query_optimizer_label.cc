@@ -56,7 +56,7 @@ void QueryOptimizerLabel::try_assign_var(VarId var_id) {
 }
 
 
-unique_ptr<GraphScan> QueryOptimizerLabel::get_scan() {
+unique_ptr<BindingIdIter> QueryOptimizerLabel::get_scan() {
     vector<pair<ObjectId, int>> terms;
     vector<pair<VarId, int>> vars;
 

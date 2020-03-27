@@ -17,14 +17,21 @@
 #include <map>
 #include <string>
 
-const int BUFFER_POOL_SIZE = 32;
-
 class Page;
 class Buffer;
 
 class BufferManager {
 friend class BufferManagerInitializer;  // needed to access private constructor
 public:
+    static const inline int DEFAULT_BUFFER_POOL_SIZE = 1024;
+
+    // public so can be edited by program parameters.
+    // This value shoulkd not be modified after init() is called
+    int buffer_pool_size;
+
+    // necesary to be called before first usage
+    void init();
+
     // Get a page. It will search in the buffer and if it is not on it, it will read from disk and put in the buffer.
     // Also it will pin the page, so calling unpin() is expected when the caller doesn't need the returned page
     // anymore.
@@ -52,7 +59,7 @@ private:
     BufferManager();
     ~BufferManager();
 
-    // returs the index of an unpined page from `buffer_pool`
+    // returns the index of an unpined page from `buffer_pool`
     int get_buffer_available();
 };
 

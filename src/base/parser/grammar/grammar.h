@@ -137,7 +137,8 @@ namespace parser
         no_case["where"] >> formula;
 
     auto const root_def =
-        select_statement >> match_statement >> -(where_statement);
+        (no_case["explain"] >> attr(true)) >> select_statement >> match_statement >> -(where_statement) |
+        (attr(false)) >> select_statement >> match_statement >> -(where_statement);
 
     auto const element_def =
         (attr(std::string()) >> var >> '.' >> key) |

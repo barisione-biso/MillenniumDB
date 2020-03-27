@@ -19,12 +19,11 @@ static typename std::aligned_storage<sizeof (FileManager), alignof (FileManager)
 FileManager& file_manager = reinterpret_cast<FileManager&> (file_manager_buf);
 
 FileManager::FileManager() {
+    db_folder = DEFAULT_DB_FOLDER;
 }
 
 
 FileManager::~FileManager() {
-    cout << "~FileManager()\n";
-
     buffer_manager.flush();
     for (auto file : opened_files) {
         if (file->is_open()) {
@@ -107,7 +106,7 @@ fstream& FileManager::get_file(FileId file_id) {
 
 
 FileId FileManager::get_file_id(const string& filename) {
-    string file_path = "test_files/" + filename; // TODO: get folder path by config and/or graph?
+    string file_path = db_folder + "/" + filename;
     for (size_t i = 0; i < filenames.size(); i++) {
         if (file_path.compare(filenames[i]) == 0) {
             return FileId(i);

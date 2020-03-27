@@ -6,7 +6,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/bin/query",
-            "args": ["${workspaceFolder}/tests/query_debug"],
+            "args": [
+                "${workspaceFolder}/tests/query_debug"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

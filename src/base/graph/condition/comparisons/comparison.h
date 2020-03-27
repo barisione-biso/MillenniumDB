@@ -32,6 +32,8 @@ public:
         }
      }
 
+    virtual ~Comparison() { };
+
     virtual bool compare(GraphObject& lhs, GraphObject& rhs) = 0;
 
     bool eval(Binding& binding) {

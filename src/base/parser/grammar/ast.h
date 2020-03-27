@@ -107,6 +107,7 @@ namespace ast
     struct All { };
 
     struct Root {
+        bool explain;
         boost::variant<All, std::vector<Element>> selection;
         std::vector<LinearPattern> graph_pattern;
         boost::optional<Formula> where;

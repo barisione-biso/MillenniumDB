@@ -3,4 +3,5 @@
 // tipo valor = int
 
 SELECT *
-MATCH (?n)
+MATCH (?n), (?m)
+//WHERE ?n.name == "Jhon"

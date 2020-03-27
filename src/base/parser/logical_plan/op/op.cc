@@ -5,8 +5,6 @@
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/logical_plan/op/visitors/empty_match_visitor.h"
-
 
 using namespace std;
 
@@ -24,8 +22,10 @@ unique_ptr<OpSelect> Op::get_select_plan(string query) {
     ast::Root ast;
     bool r = phrase_parse(iter, end, parser::root, parser::skipper, ast);
     if (r && iter == end) { // parsing succeeded
-        ASTPrinter printer(cout);
-        printer(ast);
+        if (ast.explain) {
+            ASTPrinter printer(cout);
+            printer(ast);
+        }
         auto res =  Op::get_select_plan(ast);
         check_select_plan(*res);
         return res;
@@ -36,7 +36,7 @@ unique_ptr<OpSelect> Op::get_select_plan(string query) {
 }
 
 
-void Op::check_select_plan(OpSelect& op_select) {
-    auto emty_match_visitor = EmptyMatchVisitor();
-    emty_match_visitor.visit(op_select);
+void Op::check_select_plan(OpSelect&) {
+    // auto emty_match_visitor = EmptyMatchVisitor();
+    // emty_match_visitor.visit(op_select);
 }

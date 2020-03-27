@@ -18,7 +18,7 @@ private:
 public:
     BindingMatch(const std::map<std::string, VarId>& var_pos,
         std::unique_ptr<BindingId> binding_id);
-    ~BindingMatch() = default;
+    ~BindingMatch();
 
     void print() const;
     std::shared_ptr<GraphObject> operator[](const std::string& var);

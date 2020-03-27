@@ -49,25 +49,25 @@ RelationalGraph::~RelationalGraph() = default;
 
 
 uint64_t RelationalGraph::create_node() {
-    return RelationalModel::get_catalog().create_node() | NODE_MASK;
+    return RelationalModel::get_catalog().create_node(graph_id) | NODE_MASK | (graph_id << 40);
 }
 
 
 uint64_t RelationalGraph::create_edge() {
-    return RelationalModel::get_catalog().create_edge() | EDGE_MASK;
+    return RelationalModel::get_catalog().create_edge(graph_id) | EDGE_MASK | (graph_id << 40);
 }
 
 /******************************************* Methods for bulk import ***************************************/
 Record RelationalGraph::get_record_for_node_label(uint64_t node_id, const string& label) {
     uint64_t label_id = RelationalModel::get_or_create_string_unmasked_id(label);
-    RelationalModel::get_catalog().add_node_label(label_id);
+    RelationalModel::get_catalog().add_node_label(graph_id, label_id);
     return Record(node_id, label_id);
 }
 
 
 Record RelationalGraph::get_record_for_edge_label(uint64_t edge_id, const string& label) {
     uint64_t label_id = RelationalModel::get_or_create_string_unmasked_id(label);
-    RelationalModel::get_catalog().add_edge_label(label_id);
+    RelationalModel::get_catalog().add_edge_label(graph_id, label_id);
     return Record(edge_id, label_id);
 }
 
@@ -76,7 +76,7 @@ Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const str
     uint64_t key_id = RelationalModel::get_or_create_string_unmasked_id(key);
     uint64_t value_id = RelationalModel::get_or_create_value_masked_id(value);
 
-    RelationalModel::get_catalog().add_node_key(key_id);
+    RelationalModel::get_catalog().add_node_key(graph_id, key_id);
     return Record(node_id, key_id, value_id);
 }
 
@@ -85,7 +85,7 @@ Record RelationalGraph::get_record_for_edge_property(uint64_t edge_id, const str
     uint64_t key_id = RelationalModel::get_or_create_string_unmasked_id(key);
     uint64_t value_id = RelationalModel::get_or_create_value_masked_id(value);
 
-    RelationalModel::get_catalog().add_edge_key(key_id);
+    RelationalModel::get_catalog().add_edge_key(graph_id, key_id);
     return Record(edge_id, key_id, value_id);
 }
 
@@ -105,7 +105,7 @@ void RelationalGraph::add_label_to_node(uint64_t node_id, const string& label) {
     label2node->insert( Record(label_id, node_id) );
     node2label->insert( Record(node_id, label_id) );
 
-    RelationalModel::get_catalog().add_node_label(label_id);
+    RelationalModel::get_catalog().add_node_label(graph_id, label_id);
 }
 
 
@@ -115,7 +115,7 @@ void RelationalGraph::add_label_to_edge(uint64_t edge_id, const string& label) {
     label2edge->insert( Record(label_id, edge_id) );
     edge2label->insert( Record(edge_id, label_id) );
 
-    RelationalModel::get_catalog().add_edge_label(label_id);
+    RelationalModel::get_catalog().add_edge_label(graph_id, label_id);
 }
 
 
@@ -126,7 +126,7 @@ void RelationalGraph::add_property_to_node(uint64_t node_id, const string& key, 
     node2prop->insert( Record(node_id, key_id, value_id) );
     prop2node->insert( Record(key_id, value_id, node_id) );
 
-    RelationalModel::get_catalog().add_node_key(key_id);
+    RelationalModel::get_catalog().add_node_key(graph_id, key_id);
 }
 
 
@@ -137,6 +137,6 @@ void RelationalGraph::add_property_to_edge(uint64_t edge_id, const string& key, 
     edge2prop->insert( Record(edge_id, key_id, value_id) );
     prop2edge->insert( Record(key_id, value_id, edge_id) );
 
-    RelationalModel::get_catalog().add_edge_key(key_id);
+    RelationalModel::get_catalog().add_edge_key(graph_id, key_id);
 }
 /********************************** End methods to add elements one by one *********************************/

@@ -32,12 +32,13 @@ public:
 
     std::unique_ptr<BindingIter> exec(OpSelect&);
 
-    void visit (OpSelect&);
-    void visit (OpMatch&);
-    void visit (OpFilter&);
-    void visit (OpLabel&);
-    void visit (OpProperty&);
-    void visit (OpConnection&);
+    void visit(OpSelect&);
+    void visit(OpMatch&);
+    void visit(OpFilter&);
+    void visit(OpLabel&);
+    void visit(OpProperty&);
+    void visit(OpConnection&);
+    void visit(OpLonelyNode&);
 };
 
 

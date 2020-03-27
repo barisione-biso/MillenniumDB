@@ -9,6 +9,7 @@ class Value;
 // Abstract class
 class ValueAssign {
 public:
+    virtual ~ValueAssign() { };
     virtual std::shared_ptr<GraphObject> get_value(Binding&) = 0;
 };
 

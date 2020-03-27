@@ -9,7 +9,15 @@
 using namespace std;
 
 BindingMatch::BindingMatch(const map<string, VarId>& var_pos, unique_ptr<BindingId> binding_id)
-    : var_pos(var_pos), binding_id(move(binding_id)) { }
+    : var_pos(var_pos), binding_id(move(binding_id))
+{
+    // cout << "BindingMatch\n";
+}
+
+
+BindingMatch::~BindingMatch() {
+    // cout << "~BindingMatch\n";
+}
 
 
 void BindingMatch::print() const {

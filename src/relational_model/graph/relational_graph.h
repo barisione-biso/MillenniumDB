@@ -1,3 +1,9 @@
+/**
+ * Ids are represented as 64 bytes divided as follows:
+ * 8 bytes for type | 16 bytes for graph_id | 40 bytes for id
+ *
+ **/
+
 #ifndef RELATIONAL_MODEL__GRAPH_H_
 #define RELATIONAL_MODEL__GRAPH_H_
 

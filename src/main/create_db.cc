@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
     }
 	auto start = chrono::system_clock::now();
 
+	buffer_manager.init();
 	RelationalModel::init();
 	// TODO: support creating other graphs
 	BulkImport import = BulkImport(argv[1], argv[2], RelationalModel::get_graph(GraphId(0)));

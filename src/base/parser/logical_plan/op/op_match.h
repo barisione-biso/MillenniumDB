@@ -13,12 +13,14 @@
 #include "base/parser/logical_plan/op/op_label.h"
 #include "base/parser/logical_plan/op/op_property.h"
 #include "base/parser/logical_plan/op/op_connection.h"
+#include "base/parser/logical_plan/op/op_lonely_node.h"
 
 class OpMatch : public Op {
 public:
     std::vector<std::unique_ptr<OpLabel>> labels;
     std::vector<std::unique_ptr<OpProperty>> properties;
     std::vector<std::unique_ptr<OpConnection>> connections;
+    std::vector<std::unique_ptr<OpLonelyNode>> lonely_nodes;
 
     std::map<std::string, std::pair<GraphId, ObjectType>> var_info;
     int_fast32_t anonymous_var_count = 0;
@@ -29,6 +31,12 @@ public:
             auto graph_id = linear_pattern.graph_id;
             auto last_node_name = process_node(graph_id, linear_pattern.root);
 
+            if (linear_pattern.path.empty()
+                && linear_pattern.root.labels.empty()
+                && linear_pattern.root.properties.empty())
+            {
+                lonely_nodes.push_back(std::make_unique<OpLonelyNode>(graph_id, last_node_name));
+            }
             for (auto& step_path : linear_pattern.path) {
                 auto current_node_name = process_node(graph_id, step_path.node);
                 auto edge_name         = process_edge(graph_id, step_path.edge);

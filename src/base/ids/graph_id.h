@@ -5,13 +5,17 @@
 
 class GraphId {
 public:
-    uint64_t id;
+    uint_fast32_t id;
 
     GraphId()
         : id(0) { }
-    GraphId(uint64_t id)
+    GraphId(uint_fast32_t id)
         : id(id) { }
     ~GraphId() = default;
+
+    operator uint_fast32_t() const {
+        return id;
+    }
 
     bool operator<(const GraphId other) const {
         return this->id < other.id;

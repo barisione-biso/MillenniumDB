@@ -18,6 +18,7 @@ private:
     static void check_select_plan(OpSelect& op_select);
 
 public:
+    virtual ~Op() { };
     virtual void accept_visitor(OpVisitor&) = 0;
     static std::unique_ptr<OpSelect> get_select_plan(std::string query);
 };

@@ -30,6 +30,11 @@
 class FileManager {
 friend class FileManagerInitializer;  // needed to access private constructor
 public:
+    static const inline std::string DEFAULT_DB_FOLDER = "test_files";
+
+    // public so can be edited by program parameters.
+    std::string db_folder;
+
     // Get an id for the corresponding file, creating it if it's necessary
     FileId get_file_id(const std::string& filename);
 

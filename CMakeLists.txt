@@ -38,11 +38,11 @@ set(TEST_TARGETS
 
 foreach(target ${BUILD_TARGETS})
     add_executable(${target} ${CMAKE_SOURCE_DIR}/src/main/${target}.cc)
-    target_link_libraries(${target} graphdb ssl crypto stdc++fs)
+    target_link_libraries(${target} graphdb ssl crypto stdc++fs boost_program_options)
 endforeach(target)
 
 foreach(target ${TEST_TARGETS})
     add_executable(${target} ${CMAKE_SOURCE_DIR}/src/tests/${target}.cc)
-    target_link_libraries(${target} graphdb ssl crypto stdc++fs)
+    target_link_libraries(${target} graphdb ssl crypto stdc++fs boost_program_options)
     # add_test(NAME ${target} COMMAND ${target})
 endforeach(target)

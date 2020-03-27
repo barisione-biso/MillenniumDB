@@ -28,7 +28,7 @@ std::unique_ptr<Binding> Projection::next() {
     }
     else {
         if (select_all) {
-            return move(next_binding);
+            return next_binding;
         }
         else {
             return make_unique<BindingProject>(projection_vars, move(next_binding));
