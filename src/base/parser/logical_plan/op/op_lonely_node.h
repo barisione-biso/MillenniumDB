@@ -8,11 +8,11 @@
 
 class OpLonelyNode : public Op {
 public:
-    const GraphId graph_id;
+    const std::string graph_name;
     const std::string var;
 
-    OpLonelyNode(GraphId graph_id, std::string var)
-        : graph_id(graph_id), var(std::move(var)) { }
+    OpLonelyNode(std::string graph_name, std::string var)
+        : graph_name(graph_name), var(std::move(var)) { }
 
     ~OpLonelyNode() = default;
 

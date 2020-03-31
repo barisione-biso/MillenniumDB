@@ -5,6 +5,7 @@
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/visitors/check_var_names.h"
 
 using namespace std;
 
@@ -36,7 +37,7 @@ unique_ptr<OpSelect> Op::get_select_plan(string query) {
 }
 
 
-void Op::check_select_plan(OpSelect&) {
-    // auto emty_match_visitor = EmptyMatchVisitor();
-    // emty_match_visitor.visit(op_select);
+void Op::check_select_plan(OpSelect& op_select) {
+    auto check_var_names = CheckVarNames();
+    check_var_names.visit(op_select);
 }

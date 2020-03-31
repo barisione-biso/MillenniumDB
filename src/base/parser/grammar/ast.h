@@ -52,9 +52,10 @@ namespace ast
     };
 
     struct LinearPattern {
-        GraphId graph_id;
+        // GraphId graph_id;
         Node root;
         std::vector<StepPath> path;
+        std::string graph_name;
     };
 
     struct EQ { };

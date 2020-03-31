@@ -10,6 +10,18 @@ class ParsingException : public std::exception {
     }
 };
 
+class QuerySemanticException : public std::exception {
+	std::string error;
+
+	const char * what () const throw () {
+    	return error.c_str();
+    }
+public:
+	QuerySemanticException(std::string operation) {
+		error = "Bad query semantic: " + operation + ".";
+	}
+};
+
 class NotSupportedException : public std::exception {
 	std::string error;
 

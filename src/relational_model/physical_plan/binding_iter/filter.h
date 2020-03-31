@@ -17,10 +17,14 @@ class Filter : public BindingIter {
 private:
     std::unique_ptr<BindingIter> iter;
     std::unique_ptr<Condition> condition;
-    std::map<std::string, std::pair<GraphId, ObjectType>> var_info;
+    std::map<std::string, GraphId> graph_ids;
+    std::map<std::string, ObjectType> element_types;
 
 public:
-    Filter(std::unique_ptr<BindingIter> iter, std::unique_ptr<Condition> condition, std::map<std::string, std::pair<GraphId, ObjectType>> var_info);
+    Filter(std::unique_ptr<BindingIter> iter,
+           std::unique_ptr<Condition> condition,
+           std::map<std::string, GraphId> graph_ids,
+           std::map<std::string, ObjectType> element_types);
     ~Filter() = default;
 
     void begin();

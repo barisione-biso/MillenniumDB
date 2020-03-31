@@ -23,4 +23,4 @@ public:
     static std::unique_ptr<OpSelect> get_select_plan(std::string query);
 };
 
-#endif //BASE__OP_H_
+#endif // BASE__OP_H_

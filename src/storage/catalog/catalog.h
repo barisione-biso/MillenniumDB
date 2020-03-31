@@ -41,12 +41,17 @@ public:
     uint64_t get_node_count_for_key(GraphId, uint64_t key_id);
     uint64_t get_edge_count_for_key(GraphId, uint64_t key_id);
 
+    GraphId get_graph(const std::string& graph_name);
+
+    GraphId create_graph(const std::string& graph_name);
+
 private:
     std::fstream& file;
     uint32_t graph_count;
 
-    // std::vector<std::string> graph_names; // TODO:
-    // std::map<std::string, GraphId> graph_id_map; // TODO:
+    std::vector<std::string> graph_names;
+    std::map<std::string, GraphId> graph_ids;
+
     std::vector<uint64_t> node_count;
     std::vector<uint64_t> edge_count;
     std::vector<uint64_t> node_label_count;
@@ -64,7 +69,6 @@ private:
     uint64_t get_count(std::map<uint64_t, uint64_t>& map, uint64_t key);
     uint64_t read_uint64();
     uint32_t read_uint32();
-    // std::pair<uint64_t, uint64_t> read_pair();
 };
 
 #endif // STORAGE__CATALOG_H_

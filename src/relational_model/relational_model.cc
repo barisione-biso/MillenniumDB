@@ -216,6 +216,12 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
 }
 
 
+RelationalGraph& RelationalModel::create_graph(const std::string& graph_name) {
+    auto graph_id = get_catalog().create_graph(graph_name);
+    return get_graph(graph_id);
+}
+
+
 RelationalGraph& RelationalModel::get_graph(GraphId graph_id) {
     auto search = instance->graphs.find(graph_id);
     if (search != instance->graphs.end()) {

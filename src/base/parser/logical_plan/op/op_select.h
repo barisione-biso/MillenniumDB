@@ -20,4 +20,4 @@ public:
     void accept_visitor(OpVisitor&);
 };
 
-#endif //BASE__OP_SELECT_H_
+#endif // BASE__OP_SELECT_H_

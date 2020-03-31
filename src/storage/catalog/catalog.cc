@@ -11,36 +11,15 @@ Catalog::Catalog(const string& filename)
 {
     file.seekg(0, file.end);
     if (file.tellg() == 0) {
-        graph_count = 1;
-        // Create empty catalog for default graph
-        node_count       = std::vector<uint64_t>(1);
-        edge_count       = std::vector<uint64_t>(1);
-        node_label_count = std::vector<uint64_t>(1);
-        edge_label_count = std::vector<uint64_t>(1);
-        node_key_count   = std::vector<uint64_t>(1);
-        edge_key_count   = std::vector<uint64_t>(1);
-
-        node_label_stats = std::vector<std::map<uint64_t, uint64_t>>(1);
-        edge_label_stats = std::vector<std::map<uint64_t, uint64_t>>(1);
-        node_key_stats   = std::vector<std::map<uint64_t, uint64_t>>(1);
-        edge_key_stats   = std::vector<std::map<uint64_t, uint64_t>>(1);
-
-        node_count[0] = 0;
-        edge_count[0] = 0;
-
-        // auto graph_name_length  = read_uint32();
-        node_label_count[0] = 0;
-        edge_label_count[0] = 0;
-        node_key_count[0]   = 0;
-        edge_key_count[0]   = 0;
-
+        graph_count = 0;
     }
     else {
         file.seekg(0, file.beg);
 
         graph_count = read_uint32();
         if (graph_count <= 0) {
-            throw std::logic_error("Catalog file inconsistent: graph_count must be more than 0.");
+            // throw std::logic_error("Catalog file inconsistent: graph_count must be more than 0.");
+            return;
         }
         // graph_names      = std::vector<std::string>(graph_count);
         node_count       = std::vector<uint64_t>(graph_count);
@@ -57,10 +36,15 @@ Catalog::Catalog(const string& filename)
 
 
         for (uint32_t graph = 0; graph < graph_count; graph++) {
+            auto graph_name_length  = read_uint32();
+            string graph_name = string(graph_name_length, ' ');
+            file.read((char*)graph_name.data(), graph_name_length);
+
+            graph_names.push_back(graph_name);
+            graph_ids.insert({graph_name, GraphId(graph)});
+
             node_count[graph] = read_uint64();
             edge_count[graph] = read_uint64();
-
-            // auto graph_name_length  = read_uint32();
             node_label_count[graph] = read_uint64();
             edge_label_count[graph] = read_uint64();
             node_key_count[graph]   = read_uint64();
@@ -96,19 +80,76 @@ Catalog::~Catalog() {
 }
 
 
+GraphId Catalog::get_graph(const std::string& graph_name) {
+    // Empty string => default graph, even if default graph has a explicit name
+    if (graph_name.empty()) {
+        if (graph_count == 0) {
+             // TODO: throw custom exception?
+            throw std::logic_error("Default graph doesn't exixsts.");
+        }
+        return GraphId(0);
+    }
+    auto search = graph_ids.find(graph_name);
+    if (search == graph_ids.end()) {
+        throw std::logic_error("Graph \"" + graph_name + "\" doesn't exists.");
+    }
+    return search->second;
+}
+
+
+GraphId Catalog::create_graph(const std::string& graph_name) {
+    if (graph_name.empty()) {
+        if (graph_count != 0) {
+            // TODO: throw custom exception?
+            throw std::logic_error("Default graph already exixsts. Try creating a graph with a name.");
+        }
+    }
+    else {
+        auto search = graph_ids.find(graph_name);
+        if (search != graph_ids.end()) {
+            // TODO: throw custom exception?
+            throw std::logic_error("\"" + graph_name + "\" graph name already exixsts.");
+        }
+    }
+    auto graph_id = GraphId(graph_count);
+    ++graph_count;
+    graph_ids.insert({graph_name, graph_id});
+    graph_names.push_back(graph_name);
+
+    node_count.push_back(0);
+    edge_count.push_back(0);
+    node_label_count.push_back(0);
+    edge_label_count.push_back(0);
+    node_key_count.push_back(0);
+    edge_key_count.push_back(0);
+
+    node_label_stats.push_back(std::map<uint64_t, uint64_t>());
+    edge_label_stats.push_back(std::map<uint64_t, uint64_t>());
+    node_key_stats.push_back(std::map<uint64_t, uint64_t>());
+    edge_key_stats.push_back(std::map<uint64_t, uint64_t>());
+
+    return graph_id;
+}
+
+
 void Catalog::save_changes(){
     file.seekg(0, file.beg);
     cout << "Saving catalog:" << endl;
-    cout << "Graph 0:" << endl;
-    cout << "  node count: " << node_count[0] << endl;
-    cout << "  edge count: " << edge_count[0] << endl;
-    cout << "  node disinct labels: " << node_label_count[0] << endl;
-    cout << "  edge disinct labels: " << edge_label_count[0] << endl;
-    cout << "  node disinct keys:   " << node_key_count[0] << endl;
-    cout << "  edge disinct keys:   " << edge_key_count[0] << endl;
 
     file.write((const char *)&graph_count, sizeof(graph_count));
     for (uint32_t graph = 0; graph < graph_count; graph++) {
+        cout << "Graph " << graph << ": \"" << graph_names[graph] << "\"" << endl;
+        cout << "  node count: " << node_count[graph] << endl;
+        cout << "  edge count: " << edge_count[graph] << endl;
+        cout << "  node disinct labels: " << node_label_count[graph] << endl;
+        cout << "  edge disinct labels: " << edge_label_count[graph] << endl;
+        cout << "  node disinct keys:   " << node_key_count[graph] << endl;
+        cout << "  edge disinct keys:   " << edge_key_count[graph] << endl;
+
+        uint32_t name_len = graph_names[graph].size();
+        file.write((const char *)&name_len, sizeof(name_len));
+        file.write((const char *)graph_names[graph].data(), name_len);
+
         file.write((const char *)&node_count[graph],       sizeof(node_count[graph]));
         file.write((const char *)&edge_count[graph],       sizeof(edge_count[graph]));
         file.write((const char *)&node_label_count[graph], sizeof(node_label_count[graph]));

@@ -109,7 +109,8 @@ namespace parser
         ("<-" >> -('[' >> nomen >> "]-") >> attr(ast::EdgeDirection::left));
 
     auto const linear_pattern_def =
-        attr(GraphId(0)) >> node >> *(edge >> node);
+        node >> *(edge >> node) >> no_case["ON"] >> string |
+        node >> *(edge >> node) >> attr(std::string()); // using attr("") won't work propertly
 
     auto const selection =
         lit('*') >> attr(ast::All()) | (element % ',');
@@ -141,7 +142,7 @@ namespace parser
         (attr(false)) >> select_statement >> match_statement >> -(where_statement);
 
     auto const element_def =
-        (attr(std::string()) >> var >> '.' >> key) |
+        (attr(std::string()) >> var >> '.' >> key) | // using attr("") won't work propertly
         (func >> '(' >> var >> '.' >> key >> ')');
 
     BOOST_SPIRIT_DEFINE(

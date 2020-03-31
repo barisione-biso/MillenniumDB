@@ -18,7 +18,6 @@
 #include <string>
 
 class Page;
-class Buffer;
 
 class BufferManager {
 friend class BufferManagerInitializer;  // needed to access private constructor

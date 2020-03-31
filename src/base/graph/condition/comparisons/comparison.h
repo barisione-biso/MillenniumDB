@@ -52,6 +52,11 @@ public:
     ConditionType type() {
         return ConditionType::comparison;
     }
+
+    void check_names(std::map<std::string, ObjectType>& m) {
+        lhs->check_names(m);
+        rhs->check_names(m);
+    }
 };
 
 #endif // BASE__COMPARISON_H_

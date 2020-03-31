@@ -1,17 +1,10 @@
-+ poner en todas las clases con metodos virtuales un destructor virtual
-
-+ Database configuration:
-    + Folder name
-    + Buffer size
-
-+ Arreglar consulta:
-    SELECT *
-    MATCH (?n)
-    WHERE ?n.name == "John"
-
-+ Arreglar Memory Leak
-- Import configuration:
-    - Graph Name
++ Import configuration:
+    + Graph Name
+    + Folder Name
++ keyword ON para especificar grafo
++ Actualizar catalogo para tener nombres de grafos
++ añadir test de fallos de semántica
+    - hacer que se creen las excepciones correspondientes
 - Usar memcpy cuando sea posible (ordered file y bpt)
 - Reescritura de consulta (igualdades de where hacia match)
 
@@ -19,7 +12,8 @@
 - Hacer más tests de cosas en conjunto (ej: label+property)
 - hacer diagramas de flujo de las siguientes operaciones:
     - bplustree search
-
+- revisitar exceptions, usar logic_error solo cuando hay una precondición de código que se viola. Crear
+  exceptciones adicionales si es necesario (ie: BufferManager)
 ____________________________
 
 - cliente/servidor tcp boost::asio

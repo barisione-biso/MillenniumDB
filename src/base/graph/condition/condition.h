@@ -3,6 +3,10 @@
 
 class Binding;
 
+#include <map>
+
+#include "base/graph/graph_object.h"
+
 enum class ConditionType {
     comparison,
     conjunction,
@@ -17,6 +21,7 @@ public:
     virtual ~Condition() { };
     virtual bool eval(Binding&) = 0;
     virtual ConditionType type() = 0;
+    virtual void check_names(std::map<std::string, ObjectType>&) = 0;
 };
 
 #endif //BASE__CONDITION_H_

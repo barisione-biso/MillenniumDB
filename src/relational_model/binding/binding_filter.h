@@ -13,10 +13,12 @@ class BindingFilter : public Binding {
 private:
     Binding& binding;
     std::map<std::string, std::shared_ptr<GraphObject>> cache;
-    std::map<std::string, std::pair<GraphId, ObjectType>>& var_info;
+    std::map<std::string, GraphId>& graph_ids;
+    std::map<std::string, ObjectType>& element_types;
 
 public:
-    BindingFilter(Binding& binding, std::map<std::string, std::pair<GraphId, ObjectType>>& var_info);
+    BindingFilter(Binding& binding, std::map<std::string, GraphId>& graph_ids,
+                  std::map<std::string, ObjectType>& element_types);
     ~BindingFilter() = default;
 
     void print() const;
@@ -24,4 +26,4 @@ public:
     std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key);
 };
 
-#endif //RELATIONAL_MODEL__BINDING_FILTER_H_
+#endif // RELATIONAL_MODEL__BINDING_FILTER_H_

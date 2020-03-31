@@ -5,8 +5,9 @@
 
 using namespace std;
 
-BindingFilter::BindingFilter(Binding& binding, map<string, pair<GraphId, ObjectType>>& var_info)
-    : binding(binding), var_info(var_info) { }
+BindingFilter::BindingFilter(Binding& binding, map<string, GraphId>& graph_ids,
+                             map<string, ObjectType>& element_types)
+    : binding(binding), graph_ids(graph_ids), element_types(element_types) { }
 
 
 void BindingFilter::print() const {
@@ -30,14 +31,16 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
         return (*search).second;
     }
     else { // no esta en el cache ni el el binding original
-        auto info = var_info[var];
+        // auto info = var_info[var];
+        auto graph_id = graph_ids[var];
+        auto element_type = element_types[var];
         auto key_object_id = RelationalModel::get_string_unmasked_id(key);
         auto var_value = binding[var];
 
         unique_ptr<BPlusTree::Iter> it = nullptr;
-        if (info.second == ObjectType::node) {
+        if (element_type == ObjectType::node) {
             Node node = static_cast<const Node&>(*var_value);
-            auto& graph = RelationalModel::get_graph(info.first);
+            auto& graph = RelationalModel::get_graph(graph_id);
             it = graph.node2prop->get_range(
                 Record(node.id | NODE_MASK, key_object_id, 0),
                 Record(node.id | NODE_MASK, key_object_id, UINT64_MAX)
@@ -45,7 +48,7 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
         }
         else {
             Edge edge = static_cast<const Edge&>(*var_value);
-            auto& graph = RelationalModel::get_graph(info.first);
+            auto& graph = RelationalModel::get_graph(graph_id);
             it = graph.edge2prop->get_range(
                 Record(edge.id | EDGE_MASK, key_object_id, 0),
                 Record(edge.id | EDGE_MASK, key_object_id, UINT64_MAX)
