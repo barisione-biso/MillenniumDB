@@ -22,7 +22,7 @@ class PhysicalPlanGenerator : OpVisitor {
 private:
     std::unique_ptr<BindingIter> tmp;
     std::map<std::string, VarId> id_map;
-    std::map<std::string, GraphId> graph_ids;
+    std::map<std::string, GraphId> graph_ids; // graph_name to graph_id
     std::map<std::string, ObjectType> element_types;
     std::vector<std::pair<std::string, std::string>> select_items;
     int_fast32_t id_count = 0;

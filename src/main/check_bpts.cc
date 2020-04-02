@@ -12,6 +12,7 @@
 using namespace std;
 
 int main() {
+    buffer_manager.init();
     RelationalModel::init();
     auto& graph = RelationalModel::get_graph(GraphId(0));
 

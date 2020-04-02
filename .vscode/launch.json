@@ -34,8 +34,12 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/bin/create_db",
             "args": [
+                "-n",
                 "${workspaceFolder}/test_files/graph_creation_example/nodes.txt",
-                "${workspaceFolder}/test_files/graph_creation_example/edges.txt"
+                "-e",
+                "${workspaceFolder}/test_files/graph_creation_example/edges.txt",
+                "-g",
+                "graph debug"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

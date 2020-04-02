@@ -24,14 +24,16 @@ void BindingMatch::print() const {
     cout << "{";
     bool first = true;
     for (auto&& [var, varid] : var_pos) {
-        auto a = (*binding_id)[varid] & UNMASK;
+        auto graph = ((*binding_id)[varid] & RelationalModel::GRAPH_MASK) >> RelationalModel::GRAPH_OFFSET;
+        auto type = ((*binding_id)[varid] & RelationalModel::TYPE_MASK) >> RelationalModel::TYPE_OFFSET;
+        auto unmasked_id = (*binding_id)[varid] & RelationalModel::UNMASK;
         if (first) {
             first = false;
         }
         else {
             cout << ", ";
         }
-        cout << var << ":Id(" << a << ")";
+        cout << var << ":Id(" << graph << "," << type << "," << unmasked_id << ")";
     }
     cout << "}\n";
 }

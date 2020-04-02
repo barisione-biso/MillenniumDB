@@ -46,6 +46,11 @@ void BufferManager::flush() {
 }
 
 
+Page& BufferManager::get_last_page(FileId file_id) {
+    return get_page(file_id, file_manager.count_pages(file_id)-1);
+}
+
+
 Page& BufferManager::append_page(FileId file_id) {
     return get_page(file_id, file_manager.count_pages(file_id));
 }

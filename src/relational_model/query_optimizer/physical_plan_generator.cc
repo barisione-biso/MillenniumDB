@@ -54,8 +54,8 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
     VarId null_var { -1 };
     vector<unique_ptr<QueryOptimizerElement>> elements;
 
-    for (auto&& [var_name, graph_name] : op_match.var_name2graph_name) {
-        graph_ids.insert({var_name, RelationalModel::get_catalog().get_graph(graph_name)});
+    for (auto& pair /*var_name, graph_name*/ : op_match.var_name2graph_name) {
+        graph_ids.insert({pair.second, RelationalModel::get_catalog().get_graph(pair.second)});
     }
     element_types =  op_match.var_name2type;
 
@@ -82,7 +82,7 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
 
     // Process properties from select
     for (auto&& [var, key] : select_items) {
-        auto graph_id = graph_ids[var];
+        auto graph_id = graph_ids[op_match.var_name2graph_name[var]];
         auto element_var_id = get_var_id(var);
         auto value_var = get_var_id(var + '.' + key);
         auto key_id = RelationalModel::get_string_unmasked_id(key);

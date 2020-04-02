@@ -22,7 +22,7 @@ class Page;
 class BufferManager {
 friend class BufferManagerInitializer;  // needed to access private constructor
 public:
-    static const inline int DEFAULT_BUFFER_POOL_SIZE = 1024;
+    static constexpr int DEFAULT_BUFFER_POOL_SIZE = 1024;
 
     // public so can be edited by program parameters.
     // This value shoulkd not be modified after init() is called
@@ -35,6 +35,9 @@ public:
     // Also it will pin the page, so calling unpin() is expected when the caller doesn't need the returned page
     // anymore.
     Page& get_page(FileId file_id, uint_fast32_t page_number);
+
+    // Similar to get_page, but the page_number is the greatest number such that page number exist on disk.
+    Page& get_last_page(FileId file_id);
 
     // Similar to get_page, but the page_number is the smallest number such that page number does not exist on disk.
     // The page returned has all its bytes initialized to 0. This operation perform a disk write inmediately

@@ -1,6 +1,7 @@
 #include "node_enum.h"
 
 #include "relational_model/binding/binding_id.h"
+#include "relational_model/relational_model.h"
 
 using namespace std;
 
@@ -21,7 +22,9 @@ BindingId* NodeEnum::next() {
     current_node++;
     if (current_node <= node_count) {
         my_binding->add_all(*my_input);
-        my_binding->add(var_id, current_node | (graph_id << 40) );
+        my_binding->add(var_id, current_node
+                                | (graph_id << RelationalModel::GRAPH_OFFSET)
+                                | (RelationalModel::NODE_MASK << RelationalModel::TYPE_OFFSET) );
         return my_binding.get();
     }
     else return nullptr;

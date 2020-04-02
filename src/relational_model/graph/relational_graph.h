@@ -44,7 +44,7 @@ public:
     uint64_t create_node();
     uint64_t create_edge();
 
-    // IDS RECEIVED BY ALL METHODS ARE UNMASKED
+    // node/edge ids received already have the graph and type masked
     // Methods used by bulk import:
     Record get_record_for_connection(uint64_t node_from_id, uint64_t node_to_id, uint64_t edge_id);
 
@@ -53,15 +53,6 @@ public:
 
     Record get_record_for_node_property(uint64_t node_id, const std::string& key, const Value& value);
     Record get_record_for_edge_property(uint64_t edge_id, const std::string& key, const Value& value);
-
-    // Methods used by one-by-one import:
-    void add_label_to_node(uint64_t node_id, const std::string&);
-    void add_label_to_edge(uint64_t edge_id, const std::string&);
-
-    void add_property_to_node(uint64_t node_id, const std::string& key, const Value& value);
-    void add_property_to_edge(uint64_t edge_id, const std::string& key, const Value& value);
-
-    void connect_nodes(uint64_t id_from, uint64_t id_to, uint64_t id_edge);
 };
 
 #endif //RELATIONAL_MODEL__GRAPH_H_

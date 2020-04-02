@@ -109,8 +109,8 @@ namespace parser
         ("<-" >> -('[' >> nomen >> "]-") >> attr(ast::EdgeDirection::left));
 
     auto const linear_pattern_def =
-        node >> *(edge >> node) >> no_case["ON"] >> string |
-        node >> *(edge >> node) >> attr(std::string()); // using attr("") won't work propertly
+        // using attr("") won't work propertly
+        node >> *(edge >> node) >> ((no_case["ON"] >> string) | attr(std::string()) );
 
     auto const selection =
         lit('*') >> attr(ast::All()) | (element % ',');
