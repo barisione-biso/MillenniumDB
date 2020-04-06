@@ -15,7 +15,6 @@ BufferManager& buffer_manager = reinterpret_cast<BufferManager&> (buffer_manager
 using namespace std;
 
 BufferManager::BufferManager() {
-    buffer_pool_size = DEFAULT_BUFFER_POOL_SIZE;
     buffer_pool = nullptr;
     bytes = nullptr;
 }
@@ -26,7 +25,8 @@ BufferManager::~BufferManager() {
     // this destructor is called only on program exit.
 }
 
-void BufferManager::init() {
+void BufferManager::init(int _buffer_pool_size) {
+    buffer_pool_size = _buffer_pool_size;
     buffer_pool = new Page[buffer_pool_size];
     clock_pos = 0;
     bytes = new char[buffer_pool_size*PAGE_SIZE];
@@ -47,7 +47,7 @@ void BufferManager::flush() {
 
 
 Page& BufferManager::get_last_page(FileId file_id) {
-    return get_page(file_id, file_manager.count_pages(file_id)-1);
+    return get_page(file_id, file_manager.count_pages(file_id)-1); // TODO: manejar caso que no existe
 }
 
 

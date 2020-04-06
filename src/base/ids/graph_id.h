@@ -5,15 +5,15 @@
 
 class GraphId {
 public:
-    uint_fast32_t id;
+    uint64_t id;
 
     GraphId()
         : id(0) { }
-    GraphId(uint_fast32_t id)
+    GraphId(uint64_t id)
         : id(id) { }
     ~GraphId() = default;
 
-    operator uint_fast32_t() const {
+    operator uint64_t() const {
         return id;
     }
 

@@ -84,14 +84,13 @@ GraphId Catalog::get_graph(const std::string& graph_name) {
     // Empty string => default graph, even if default graph has a explicit name
     if (graph_name.empty()) {
         if (graph_count == 0) {
-             // TODO: throw custom exception?
-            throw std::logic_error("Default graph doesn't exixsts.");
+            throw std::runtime_error("Default graph doesn't exixsts.");
         }
         return GraphId(0);
     }
     auto search = graph_ids.find(graph_name);
     if (search == graph_ids.end()) {
-        throw std::logic_error("Graph \"" + graph_name + "\" doesn't exists.");
+        throw std::runtime_error("Graph \"" + graph_name + "\" doesn't exists.");
     }
     return search->second;
 }
@@ -100,15 +99,13 @@ GraphId Catalog::get_graph(const std::string& graph_name) {
 GraphId Catalog::create_graph(const std::string& graph_name) {
     if (graph_name.empty()) {
         if (graph_count != 0) {
-            // TODO: throw custom exception?
-            throw std::logic_error("Default graph already exixsts. Try creating a graph with a name.");
+            throw std::invalid_argument("Default graph already exixsts. Try creating a graph with a name.");
         }
     }
     else {
         auto search = graph_ids.find(graph_name);
         if (search != graph_ids.end()) {
-            // TODO: throw custom exception?
-            throw std::logic_error("\"" + graph_name + "\" graph name already exixsts.");
+            throw std::invalid_argument("\"" + graph_name + "\" graph name already exixsts.");
         }
     }
     auto graph_id = GraphId(graph_count);

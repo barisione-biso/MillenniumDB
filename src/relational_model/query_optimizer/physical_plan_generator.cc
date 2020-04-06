@@ -54,8 +54,10 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
     VarId null_var { -1 };
     vector<unique_ptr<QueryOptimizerElement>> elements;
 
-    for (auto& pair /*var_name, graph_name*/ : op_match.var_name2graph_name) {
-        graph_ids.insert({pair.second, RelationalModel::get_catalog().get_graph(pair.second)});
+    for (auto&& [var_name, graph_name] : op_match.var_name2graph_name) {
+        auto graph_id = RelationalModel::get_catalog().get_graph(graph_name);
+        graph_ids.insert({ graph_name, graph_id }); // may try to insert a repeated pair, this is OK, it won't be duplicated
+        var2graph_id.insert({ var_name, graph_id });
     }
     element_types =  op_match.var_name2type;
 
@@ -82,7 +84,7 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
 
     // Process properties from select
     for (auto&& [var, key] : select_items) {
-        auto graph_id = graph_ids[op_match.var_name2graph_name[var]];
+        auto graph_id = var2graph_id[var];
         auto element_var_id = get_var_id(var);
         auto value_var = get_var_id(var + '.' + key);
         auto key_id = RelationalModel::get_string_unmasked_id(key);
@@ -130,7 +132,7 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
 void PhysicalPlanGenerator::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
     if (op_filter.condition != nullptr) {
-        tmp = make_unique<Filter>(move(tmp), move(op_filter.condition), graph_ids, element_types);
+        tmp = make_unique<Filter>(move(tmp), move(op_filter.condition), var2graph_id, element_types);
     }
     // else tmp stays the same
 }

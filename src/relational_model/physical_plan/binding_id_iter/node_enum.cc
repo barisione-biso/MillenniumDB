@@ -23,8 +23,8 @@ BindingId* NodeEnum::next() {
     if (current_node <= node_count) {
         my_binding->add_all(*my_input);
         my_binding->add(var_id, current_node
-                                | (graph_id << RelationalModel::GRAPH_OFFSET)
-                                | (RelationalModel::NODE_MASK << RelationalModel::TYPE_OFFSET) );
+                                | RelationalModel::NODE_MASK
+                                | (graph_id << RelationalModel::GRAPH_OFFSET) );
         return my_binding.get();
     }
     else return nullptr;

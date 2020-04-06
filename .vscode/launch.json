@@ -35,11 +35,15 @@
             "program": "${workspaceFolder}/build/Debug/bin/create_db",
             "args": [
                 "-n",
-                "${workspaceFolder}/test_files/graph_creation_example/nodes.txt",
+                // "${workspaceFolder}/test_files/graph_creation_example/nodes.txt",
+                "${workspaceFolder}/test_files/berlin/nodes.txt",
                 "-e",
-                "${workspaceFolder}/test_files/graph_creation_example/edges.txt",
-                "-g",
-                "graph debug"
+                "${workspaceFolder}/test_files/berlin/edges.txt",
+                // "${workspaceFolder}/test_files/graph_creation_example/edges.txt",
+                // "-g",
+                // "graph debug",
+                // "-d",
+                // "db_example"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -200,10 +200,10 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
         return make_shared<ValueBool>(b);
     }
     else if (mask == NODE_MASK) {
-        return make_shared<Node>(object_id & UNMASK);
+        return make_shared<Node>(object_id);
     }
     else if (mask == EDGE_MASK) {
-        return make_shared<Edge>(object_id & UNMASK);
+        return make_shared<Edge>(object_id);
     }
     else {
         cout << "wrong value prefix:\n";

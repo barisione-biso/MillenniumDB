@@ -24,12 +24,8 @@ friend class BufferManagerInitializer;  // needed to access private constructor
 public:
     static constexpr int DEFAULT_BUFFER_POOL_SIZE = 1024;
 
-    // public so can be edited by program parameters.
-    // This value shoulkd not be modified after init() is called
-    int buffer_pool_size;
-
     // necesary to be called before first usage
-    void init();
+    void init(int _buffer_pool_size = DEFAULT_BUFFER_POOL_SIZE);
 
     // Get a page. It will search in the buffer and if it is not on it, it will read from disk and put in the buffer.
     // Also it will pin the page, so calling unpin() is expected when the caller doesn't need the returned page
@@ -48,13 +44,18 @@ public:
     void flush();
 
 private:
+    // maximum pages the buffer can have
+    int buffer_pool_size;
+
     // map used to search the index in the `buffer_pool` of a certain page
     std::map<PageId, int> pages;
 
     // array of `BUFFER_POOL_SIZE` pages
     Page* buffer_pool;
+
     // begining of the allocated memory for the pages
     char* bytes;
+
     // simple clock used to page replacement
     int clock_pos;
 

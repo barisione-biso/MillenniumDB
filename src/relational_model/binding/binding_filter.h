@@ -13,11 +13,11 @@ class BindingFilter : public Binding {
 private:
     Binding& binding;
     std::map<std::string, std::shared_ptr<GraphObject>> cache;
-    std::map<std::string, GraphId>& graph_ids;
+    std::map<std::string, GraphId>& var2graph_id;
     std::map<std::string, ObjectType>& element_types;
 
 public:
-    BindingFilter(Binding& binding, std::map<std::string, GraphId>& graph_ids,
+    BindingFilter(Binding& binding, std::map<std::string, GraphId>& var2graph_id,
                   std::map<std::string, ObjectType>& element_types);
     ~BindingFilter() = default;
 

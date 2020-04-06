@@ -3,4 +3,5 @@
 // tipo valor = int
 
 SELECT *
-MATCH (?x :terrified) ON "grafo 1"
+MATCH (?x) ON "grafo 1"
+WHERE ?x.tabbies == 4366

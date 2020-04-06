@@ -42,11 +42,16 @@ int main(int argc, char **argv) {
         }
         po::notify(vm);
 
-        if (vm.count("buffer-size")) {
-            buffer_manager.buffer_pool_size = vm["buffer-size"].as<int>();
-        }
         if (vm.count("db-folder")) {
-            file_manager.db_folder = vm["db-folder"].as<string>();
+            file_manager.init(vm["db-folder"].as<string>());
+        } else {
+            file_manager.init();
+        }
+
+        if (vm.count("buffer-size")) {
+            buffer_manager.init(vm["buffer-size"].as<int>());
+        } else {
+            buffer_manager.init();
         }
 
         // Read query-file
@@ -64,7 +69,6 @@ int main(int argc, char **argv) {
         auto start = chrono::system_clock::now();
         auto select_plan = Op::get_select_plan(query);
 
-        buffer_manager.init();
         RelationalModel::init();
 
         PhysicalPlanGenerator plan_generator { };

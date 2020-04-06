@@ -1,9 +1,11 @@
-+ Hacer que bulk import pueda hacer append a un arbol sin borrarlo
 + añadir test de fallos de semántica
     - hacer que se creen las excepciones correspondientes
-+ Implementar "Quads virtuales"-> mover bits grafo al principio
-    + keys, labels and values tienen mask del grafo
-    - Idea: Blob para objetos muy largos, fuera de object file, su propio archivo
+    - automatizar test con script bash
+
+Preparar presentación:
+ - unas 10 consultas de ejemplo que muestren las distintas funcionalidades
+ - Ampliar el diagrama para explicar el prefijo de grafos
+ - Hacer ppt
 
 Dudas:
     - Qué pasa con el caso cuando hay muchos casos? El modelo con carpeta por cada grafo
@@ -15,8 +17,8 @@ Dudas:
         - Algoritmos inteligentes
         - Operaciones de caminos (property paths, shortest paths, etc)
         - Operaciones de grafos (union, construct)
+    - Definir default graph en consulta? o en el catálogo?
 - Discutir solucion de tener todos los grafos en el mismo BPT
-
 
 
 - Usar memcpy cuando sea posible (ordered file y bpt)
@@ -33,6 +35,7 @@ ____________________________
 - cliente/servidor tcp boost::asio
 - Presentar plan pointer swizzling
 
+- Blob para objetos muy grandes, guardar fuera de object file, en su propio archivo.
 - Buffer manager:
     - allocating more space if necesary
 - Object File:
