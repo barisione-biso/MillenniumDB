@@ -1,0 +1,2 @@
+SELECT *
+MATCH (?n)-[:country]->(?c) ON "berlin"

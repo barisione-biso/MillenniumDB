@@ -131,17 +131,17 @@ GraphId Catalog::create_graph(const std::string& graph_name) {
 
 void Catalog::save_changes(){
     file.seekg(0, file.beg);
-    cout << "Saving catalog:" << endl;
+    // cout << "Saving catalog:" << endl;
 
     file.write((const char *)&graph_count, sizeof(graph_count));
     for (uint32_t graph = 0; graph < graph_count; graph++) {
-        cout << "Graph " << graph << ": \"" << graph_names[graph] << "\"" << endl;
-        cout << "  node count: " << node_count[graph] << endl;
-        cout << "  edge count: " << edge_count[graph] << endl;
-        cout << "  node disinct labels: " << node_label_count[graph] << endl;
-        cout << "  edge disinct labels: " << edge_label_count[graph] << endl;
-        cout << "  node disinct keys:   " << node_key_count[graph] << endl;
-        cout << "  edge disinct keys:   " << edge_key_count[graph] << endl;
+        // cout << "Graph " << graph << ": \"" << graph_names[graph] << "\"" << endl;
+        // cout << "  node count: " << node_count[graph] << endl;
+        // cout << "  edge count: " << edge_count[graph] << endl;
+        // cout << "  node disinct labels: " << node_label_count[graph] << endl;
+        // cout << "  edge disinct labels: " << edge_label_count[graph] << endl;
+        // cout << "  node disinct keys:   " << node_key_count[graph] << endl;
+        // cout << "  edge disinct keys:   " << edge_key_count[graph] << endl;
 
         uint32_t name_len = graph_names[graph].size();
         file.write((const char *)&name_len, sizeof(name_len));

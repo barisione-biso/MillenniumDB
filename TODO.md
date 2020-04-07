@@ -18,6 +18,7 @@ Dudas:
         - Operaciones de caminos (property paths, shortest paths, etc)
         - Operaciones de grafos (union, construct)
     - Definir default graph en consulta? o en el catálogo?
+    - Como converetir bien las BD rdf usando rdf2pg, usando schemas
 - Discutir solucion de tener todos los grafos en el mismo BPT
 
 

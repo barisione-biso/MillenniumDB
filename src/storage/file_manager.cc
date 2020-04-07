@@ -37,12 +37,6 @@ void FileManager::init(std::string _db_folder) {
 
 FileManager::~FileManager() {
     buffer_manager.flush();
-    // TODO: es necesario?
-    // for (auto const& file : opened_files) {
-    //     if (file->is_open()) {
-    //         file->close();
-    //     }
-    // }
 }
 
 

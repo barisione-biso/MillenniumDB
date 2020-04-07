@@ -1,7 +1,2 @@
-// Busqueda de nodo por property
-// largo key string = 7 (inline)
-// tipo valor = int
-
-SELECT *
-MATCH (?x) ON "grafo 1"
-WHERE ?x.tabbies == 4366
+SELECT ?n.performance_performanceid
+MATCH (?n :performance)

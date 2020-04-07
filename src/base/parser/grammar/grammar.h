@@ -77,10 +77,10 @@ namespace parser
         lexeme['?' >> +(alnum)];
 
     auto const key =
-        lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'")];
+        lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];
 
     auto const label =
-        lexeme[':' >> +char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'")];
+        lexeme[':' >> +char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];
 
     auto const func =
         lexeme[+(alnum)];

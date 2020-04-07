@@ -25,11 +25,12 @@ with open(sys.argv[1], mode="r") as rdf2pg_file:
                         print("Failed to match edge", m.group(1))
                     edges_file.write("\n")
                 else: # NODE
-                    m = re.match(r"(\d+)\[(\w+)?\]:\{(.*)\}", line)
+                    m = re.match(r"(\d+)\[(.+)?\]:\{(.*)\}", line)
                     if m:
                         nodes_file.write("({})".format(m.group(1)))
                         if m.group(2):
-                            nodes_file.write(" :{}".format(m.group(2)))
+                            for label in m.group(2).split(','):
+                                nodes_file.write(" :{}".format(label))
                         if m.group(3):
                             nodes_file.write(" {}".format(m.group(3).replace(",", " ")))
                     else:
