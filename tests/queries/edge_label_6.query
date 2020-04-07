@@ -1,0 +1,5 @@
+// Busqueda de edge por label
+// largo string = 7 (inline)
+// unico resultado
+SELECT *
+MATCH ()-[?e :eunique]->()

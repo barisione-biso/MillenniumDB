@@ -1,12 +1,13 @@
-from random import seed
+# PYTHON 3
+import random
 from random import randint
 
 # PARAMETERS
 DISTINCT_LABELS = 100
-DISTINCT_KEYS = 200
+DISTINCT_KEYS = 500
 
-NODES_GENERATED = 10000
-EDGES_GENERATED = 50000
+NODES_GENERATED = 1000000
+EDGES_GENERATED = 5000000
 
 MIN_LABELS_NODES = 1
 MAX_LABELS_NODES = 3
@@ -24,13 +25,27 @@ def select_random(list):
     return list[randint(0, len(list)-1)]
 
 # seed random number generator
-seed(1)
+random.seed(1)
 
 # READ WORDS
 words = []
 with open("/usr/share/dict/words", mode="r") as words_file:
     for line in words_file:
         words.append(line.strip())
+
+def select_random_value():
+    value_type = randint(0, 3)
+    if value_type == 0:   # BOOL
+        if randint(0, 1) == 0:
+            return "true"
+        else:
+            return "false"
+    elif value_type == 1: # INT
+        return str(randint(0, 10000))
+    elif value_type == 2: # FLOAT
+        return str(random.uniform(0, 10000))
+    else:                 # STRING
+        return '"{}"'.format(select_random(words))
 
 # SELECT RANDOM LABELS
 labels = []
@@ -69,7 +84,7 @@ with open("nodes.txt", mode="w") as nodes_file:
             key = select_random(keys)
             while key in keys_already_added:
                 key = select_random(keys)
-            value = select_random(words)
+            value = select_random_value()
             keys_already_added.append(key)
             nodes_file.write(" {}:{}".format(key, value))
         nodes_file.write("\n")
@@ -96,6 +111,6 @@ with open("edges.txt", mode="w") as edges_file:
             while key in keys_already_added:
                 key = select_random(keys)
             keys_already_added.append(key)
-            value = select_random(words)
+            value = select_random_value()
             edges_file.write(" {}:{}".format(key, value))
         edges_file.write("\n")

@@ -1,0 +1,3 @@
+// Busqueda de todos los ciclos de largo 2
+SELECT *
+MATCH (?x)->(?y)->(?x)

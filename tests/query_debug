@@ -1,0 +1,2 @@
+SELECT ?n.performance_performanceid
+MATCH (?n :performance)

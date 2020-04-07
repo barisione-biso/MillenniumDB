@@ -1,5 +1,5 @@
-#ifndef BASE__VALUE_FLOAT_H
-#define BASE__VALUE_FLOAT_H
+#ifndef BASE__VALUE_FLOAT_H_
+#define BASE__VALUE_FLOAT_H_
 
 #include "base/graph/value/value.h"
 
@@ -7,25 +7,24 @@
 
 class ValueFloat: public Value {
 public:
-    ValueFloat(float value)
-        : value(value)
-    {
-    }
-    ~ValueFloat() = default;
+    const float value;
 
-    std::unique_ptr<std::vector<char>> get_bytes() const {
-        std::unique_ptr<std::vector<char>> res = std::make_unique<std::vector<char>>(sizeof(value));
-	    std::memcpy((*res).data(), &value, sizeof(value));
-        return res;
-    }
-    std::string to_string() {
-        return std::to_string(value);
-    }
+    ValueFloat(float value);
+    ~ValueFloat();
 
+    std::unique_ptr<std::vector<unsigned char>> get_bytes() const override;
 
-private:
-    float value;
+    std::string to_string() const override;
+
+    ObjectType type() const override;
+
+    bool operator==(const GraphObject& rhs) const override;
+    bool operator!=(const GraphObject& rhs) const override;
+    bool operator<=(const GraphObject& rhs) const override;
+    bool operator>=(const GraphObject& rhs) const override;
+    bool operator<(const GraphObject& rhs) const override;
+    bool operator>(const GraphObject& rhs) const override;
 };
 
 
-#endif // BASE__VALUE_FLOAT_H
+#endif // BASE__VALUE_FLOAT_H_

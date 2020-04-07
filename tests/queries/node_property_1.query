@@ -1,0 +1,6 @@
+// Busqueda de nodo por property
+// largo string = 0 (string vacío)
+// varios resultados
+
+SELECT *
+MATCH (?n {aperitifs:""})

@@ -69,7 +69,13 @@
         "filesystem": "cpp",
         "regex": "cpp",
         "climits": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "csetjmp": "cpp",
+        "cuchar": "cpp",
+        "forward_list": "cpp",
+        "unordered_set": "cpp",
+        "scoped_allocator": "cpp",
+        "valarray": "cpp"
     },
     "python.pythonPath": "/usr/bin/python3",
     "python.linting.pylintEnabled": true,

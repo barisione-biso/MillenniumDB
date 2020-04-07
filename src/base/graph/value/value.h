@@ -2,14 +2,15 @@
 #define BASE__VALUE_H_
 
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
+#include "base/graph/graph_object.h"
 
-class  Value {
+class Value : public GraphObject {
 public:
-    virtual std::unique_ptr<std::vector<char>> get_bytes() const = 0;
-    virtual std::string to_string() = 0;
+    virtual ~Value() { };
+    virtual std::unique_ptr<std::vector<unsigned char>> get_bytes() const = 0;
 };
 
 

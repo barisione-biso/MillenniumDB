@@ -1,21 +1,23 @@
 #ifndef RELATIONAL_MODEL__QUERY_OPTIMIZER_PROPERTY_H_
 #define RELATIONAL_MODEL__QUERY_OPTIMIZER_PROPERTY_H_
 
-#include <string>
-#include "base/graph/graph_element.h"
+#include "base/graph/graph_object.h"
+#include "base/ids/graph_id.h"
+#include "base/ids/var_id.h"
 #include "relational_model/query_optimizer/query_optimizer_element.h"
 
-class RelationalGraph;
+#include <string>
 
 class QueryOptimizerProperty : public QueryOptimizerElement {
+
 private:
-    RelationalGraph& graph;
+    GraphId graph_id;
 
     VarId element_var_id;
     VarId key_var_id;
     VarId value_var_id;
 
-    ElementType element_type;
+    ObjectType element_type;
     ObjectId key_object_id;
     ObjectId value_object_id;
 
@@ -26,14 +28,14 @@ private:
     bool value_assigned;
 
 public:
-    QueryOptimizerProperty(RelationalGraph& graph, VarId element_var_id, VarId key_var_id,
-        VarId value_var_id, ElementType element_type, ObjectId key_object_id, ObjectId value_object_id);
+    QueryOptimizerProperty(GraphId graph_id, VarId element_var_id, VarId key_var_id,
+        VarId value_var_id, ObjectType element_type, ObjectId key_object_id, ObjectId value_object_id);
     ~QueryOptimizerProperty() = default;
+
     int get_heuristic();
-    void assign();
     void try_assign_var(VarId var_id);
-    std::vector<VarId> get_assigned();
-    std::unique_ptr<GraphScan> get_scan();
+    std::vector<VarId> assign();
+    std::unique_ptr<BindingIdIter> get_scan();
 };
 
 #endif //RELATIONAL_MODEL__QUERY_OPTIMIZER_PROPERTY_H_

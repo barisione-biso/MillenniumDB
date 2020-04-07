@@ -7,11 +7,11 @@ set(CMAKE_CXX_COMPILER "g++")
 
 set(EXECUTABLE_OUTPUT_PATH bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY bin)
 
-# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -g")
-# set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -O2")
-
-add_definitions( "-Wall -Wextra -O2" )
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -O3 -g3")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Og -g3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -O3 -g0")
 
 # set the project name and version
 project(GraphDB VERSION 0.1)
@@ -21,18 +21,28 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 file(GLOB_RECURSE SRCS src/*.cc)
 
 set(sources ${SRCS})
-list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/create_db.cc)
-list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/grammar.cc)
-list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/execute_query.cc)
+list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/*)
+list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/*)
+add_library(graphdb STATIC ${sources})
 
-add_library(graphdb_shared SHARED ${sources})
+set(BUILD_TARGETS
+    create_db
+    grammar
+    query
+    check_bpts
+)
 
-# add the executables
-add_executable(CreateDB ${CMAKE_SOURCE_DIR}/src/main/create_db.cc)
-target_link_libraries(CreateDB graphdb_shared ssl crypto stdc++fs)
+set(TEST_TARGETS
+    bplus_tree
+)
 
-add_executable(Grammar ${CMAKE_SOURCE_DIR}/src/main/grammar.cc)
-target_link_libraries(Grammar graphdb_shared ssl crypto stdc++fs)
+foreach(target ${BUILD_TARGETS})
+    add_executable(${target} ${CMAKE_SOURCE_DIR}/src/main/${target}.cc)
+    target_link_libraries(${target} graphdb ssl crypto stdc++fs boost_program_options)
+endforeach(target)
 
-add_executable(Query ${CMAKE_SOURCE_DIR}/src/main/execute_query.cc)
-target_link_libraries(Query graphdb_shared ssl crypto stdc++fs)
+foreach(target ${TEST_TARGETS})
+    add_executable(${target} ${CMAKE_SOURCE_DIR}/src/tests/${target}.cc)
+    target_link_libraries(${target} graphdb ssl crypto stdc++fs boost_program_options)
+    # add_test(NAME ${target} COMMAND ${target})
+endforeach(target)

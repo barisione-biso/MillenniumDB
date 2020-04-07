@@ -1,0 +1,5 @@
+// Busqueda de edge por label
+// largo string = 8 (external)
+// unico resultado
+SELECT *
+MATCH ()<-[?e :eunique1]-()

@@ -1,10 +1,14 @@
 #include "query_optimizer_connection.h"
 
+#include "relational_model/binding/binding_id.h"
+#include "relational_model/relational_model.h"
 #include "relational_model/graph/relational_graph.h"
 
-QueryOptimizerConnection::QueryOptimizerConnection(RelationalGraph& graph, VarId from_var_id, VarId to_var_id,
+using namespace std;
+
+QueryOptimizerConnection::QueryOptimizerConnection(GraphId graph_id, VarId from_var_id, VarId to_var_id,
         VarId edge_var_id) :
-    graph(graph),
+    graph_id(graph_id),
     from_var_id(from_var_id),
     to_var_id(to_var_id),
     edge_var_id(edge_var_id)
@@ -26,11 +30,6 @@ int QueryOptimizerConnection::get_heuristic() {
 }
 
 
-void QueryOptimizerConnection::assign() {
-    assigned = true;
-}
-
-
 void QueryOptimizerConnection::try_assign_var(VarId var_id) {
     if (assigned) {
         return;
@@ -38,16 +37,18 @@ void QueryOptimizerConnection::try_assign_var(VarId var_id) {
     if (from_var_id == var_id) {
         from_assigned = true;
     }
-    if (to_var_id == var_id) {
+    if (to_var_id == var_id) { // not else if because from_var_id may be equal to to_var_id
         to_assigned = true;
     }
-    else if (edge_var_id == var_id) { // TODO: can `from` be equal to `to`?
+    else if (edge_var_id == var_id) {
         edge_assigned = true;
     }
 }
 
 
-std::vector<VarId> QueryOptimizerConnection::get_assigned() {
+std::vector<VarId> QueryOptimizerConnection::assign() {
+    assigned = true;
+
     vector<VarId> res;
 
     if (!from_assigned)
@@ -59,11 +60,11 @@ std::vector<VarId> QueryOptimizerConnection::get_assigned() {
     if (!edge_assigned)
         res.push_back(edge_var_id);
 
-    return std::move(res);
+    return res;
 }
 
 
-unique_ptr<GraphScan> QueryOptimizerConnection::get_scan() {
+unique_ptr<BindingIdIter> QueryOptimizerConnection::get_scan() {
     vector<pair<ObjectId, int>> terms;
     vector<pair<VarId, int>> vars;
 
@@ -72,25 +73,29 @@ unique_ptr<GraphScan> QueryOptimizerConnection::get_scan() {
             vars.push_back(make_pair(edge_var_id, 0));
             vars.push_back(make_pair(from_var_id, 1));
             vars.push_back(make_pair(to_var_id,   2));
-            return make_unique<GraphScan>(*graph.edge_from_to, terms, vars);
+            return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).edge_from_to,
+                                          move(terms), move(vars));
         }
         else {
             vars.push_back(make_pair(from_var_id, 0));
             vars.push_back(make_pair(to_var_id,   1));
             vars.push_back(make_pair(edge_var_id, 2));
-            return make_unique<GraphScan>(*graph.from_to_edge, terms, vars);
+            return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).from_to_edge,
+                                          move(terms), move(vars));
         }
     }
     else if (to_assigned) { // from_assigned == false
         vars.push_back(make_pair(to_var_id,   0));
         vars.push_back(make_pair(edge_var_id, 1));
         vars.push_back(make_pair(from_var_id, 2));
-        return make_unique<GraphScan>(*graph.to_edge_from, terms, vars);
+        return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).to_edge_from,
+                                      move(terms), move(vars));
     }
     else {
         vars.push_back(make_pair(edge_var_id, 0));
         vars.push_back(make_pair(from_var_id, 1));
         vars.push_back(make_pair(to_var_id,   2));
-        return make_unique<GraphScan>(*graph.edge_from_to, terms, vars);
+        return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).edge_from_to,
+                                      move(terms), move(vars));
     }
 }
