@@ -10,7 +10,7 @@
 ## Set up on Ubuntu-based linux distributions
 - Install prerrequisites to compile:
     - `sudo apt update`
-    - `sudo apt install git g++ cmake libssl-dev libboost-dev gdb wamerican`
+    - `sudo apt install git g++ cmake libssl-dev libboost-all-dev gdb wamerican`
 
 - Set up ssh key (optional, highly recomended):
      - `ssh-keygen -t rsa -b 4096 -C "you@example.com"` (replace `you@example.com` with your email. Unless you know what you are doing, just press enter when prompted).
