@@ -94,9 +94,9 @@
     - `cmake --build build/Debug/ --target clean`
 
 # Create a database
-- Delete previous database files if they exists:
+- Delete previous database files if it exists:
     - `rm -r test_files/*.*`
-- `build/Release/bin/create_db ./path/to/nodes_file ./path/to/edges_file`
+- `build/Release/bin/create_db -n ./path/to/nodes_file -e ./path/to/edges_file -g "graph name"`
 
 # Run a query
 - `build/Release/bin/query ./path/to/query_file`
