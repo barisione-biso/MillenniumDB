@@ -1,0 +1,16 @@
+## borrar grafos existentes
+rm test_files/db/*
+
+## Importar Grafos
+
+## Berlin: 2.2 MB
+./build/Release/bin/create_db -d test_files/db -n test_files/berlin/nodes.txt -e test_files/berlin/edges.txt -g "berlin"
+
+## Random data from english dictionary: 5.1 MB
+./build/Release/bin/create_db -d test_files/db -n test_files/random/nodes.txt -e test_files/random/edges.txt -g "random"
+
+## LMDB: 171 MB
+./build/Release/bin/create_db -d test_files/db -n test_files/lmdb/nodes.txt -e test_files/lmdb/edges.txt -g "lmdb"
+
+## Consultas
+./build/Release/bin/query -d test_files/db tests/demo_queries/01_berlin_person_name.txt

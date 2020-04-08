@@ -1,0 +1,5 @@
+// Rango no puede pasar al join en este modelo
+// (float e int con distinto prefijo)
+SELECT ?e.enigma
+MATCH (?x)-[?e]->(?y) ON "random"
+WHERE ?e.enigma > 1000 AND ?e.enigma < 5000

@@ -1,0 +1,2 @@
+SELECT ?p.name
+MATCH (?p :Person) ON "berlin"

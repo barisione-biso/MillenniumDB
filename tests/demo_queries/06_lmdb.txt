@@ -1,0 +1,2 @@
+SELECT ?f.title, ?a.actor_name
+MATCH (?f :film)-[?e :actor]->(?a :Person) ON "lmdb"

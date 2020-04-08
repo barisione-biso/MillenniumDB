@@ -71,7 +71,7 @@ int BufferManager::get_buffer_available() {
 
 
 Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) {
-    if (page_number != 0 && file_manager.count_pages(file_id) < page_number) {
+    if (file_manager.count_pages(file_id) < page_number) {
         std::cout << "Page Number: " << page_number << ", FileId: " << file_id.id << "(" << file_manager.get_filename(file_id) <<  ")\n";
         throw std::logic_error("getting wrong page_number.");
     }
