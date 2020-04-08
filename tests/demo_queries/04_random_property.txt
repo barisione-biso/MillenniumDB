@@ -1,2 +1,2 @@
 SELECT *
-MATCH (?x)-[?e {derogates:true}]->(?y) ON "random"
+MATCH (?x)-[{derogates:true}]->(?y) ON "random"

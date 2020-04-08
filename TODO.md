@@ -1,4 +1,3 @@
-+ Properties sin name parsean pero dan resultados erroneos (0 resultados)
 + añadir test de fallos de semántica
     - hacer que se creen las excepciones correspondientes
     - automatizar test con script bash
