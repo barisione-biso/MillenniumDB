@@ -1,2 +1,0 @@
-SELECT ?f.title
-MATCH (?f :film)-[:actor]->(?a :Person {actor_name:"Nicolas Cage"}) ON "lmdb"
