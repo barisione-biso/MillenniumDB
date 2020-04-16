@@ -31,7 +31,7 @@
 class FileManager {
 friend class FileManagerInitializer;  // needed to access private constructor
 public:
-    static constexpr auto DEFAULT_DB_FOLDER = "test_files";
+    static constexpr auto DEFAULT_DB_FOLDER = "test_files/default_db";
 
     // must be called before usage
     void init(std::string db_folder = DEFAULT_DB_FOLDER);

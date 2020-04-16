@@ -36,7 +36,7 @@ unique_ptr<BindingIter> PhysicalPlanGenerator::exec(OpSelect& op_select) {
 void PhysicalPlanGenerator::visit(OpSelect& op_select) {
     if (op_select.select_all) {
         op_select.op->accept_visitor(*this);
-        tmp = make_unique<Projection>(move(tmp));
+        tmp = make_unique<Projection>(move(tmp), op_select.limit);
     }
     else {
         set<std::string> projection_vars;
@@ -45,7 +45,7 @@ void PhysicalPlanGenerator::visit(OpSelect& op_select) {
             projection_vars.insert(key + '.' + value);
         }
         op_select.op->accept_visitor(*this);
-        tmp = make_unique<Projection>(move(tmp), move(projection_vars));
+        tmp = make_unique<Projection>(move(tmp), move(projection_vars), op_select.limit);
     }
 }
 

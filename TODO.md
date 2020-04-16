@@ -1,31 +1,14 @@
 + añadir test de fallos de semántica
     - hacer que se creen las excepciones correspondientes
     - automatizar test con script bash
-
-Preparar presentación:
- - unas 10 consultas de ejemplo que muestren las distintas funcionalidades
- - Ampliar el diagrama para explicar el prefijo de grafos
- - Hacer ppt
-
-Dudas:
-    - Qué pasa con el caso cuando hay muchos casos? El modelo con carpeta por cada grafo
-      funcionaría mal.
-    - Catalogo a traves de BufferManager o siempre en memoria?
-    - Siguientes pasos
-        - BufferManager nuevo
-        - Query optimizer full
-        - Algoritmos inteligentes
-        - Operaciones de caminos (property paths, shortest paths, etc)
-        - Operaciones de grafos (union, construct)
-    - Definir default graph en consulta? o en el catálogo?
-    - Como converetir bien las BD rdf usando rdf2pg, usando schemas
-- Discutir solucion de tener todos los grafos en el mismo BPT
-
-
 - Usar memcpy cuando sea posible (ordered file y bpt)
-- Reescritura de consulta (igualdades de where hacia match)
+- comentar/refactor BPlusTree
+- LIMIT en gramática y hacia proyección
 
-- Terminar de comentar clases de storage
+- Reescritura de consulta (igualdades de where hacia match)
+- Ampliar el diagrama para explicar el prefijo de grafos
+
+
 - Hacer más tests de cosas en conjunto (ej: label+property)
 - hacer diagramas de flujo de las siguientes operaciones:
     - bplustree search
@@ -33,15 +16,15 @@ Dudas:
   exceptciones adicionales si es necesario (ie: BufferManager)
 ____________________________
 
-- cliente/servidor tcp boost::asio
 - Presentar plan pointer swizzling
 
 - Blob para objetos muy grandes, guardar fuera de object file, en su propio archivo.
 - Buffer manager:
-    - allocating more space if necesary
+    - allocating more space if necesary ?
 - Object File:
     - use disk if importing more than X nodes?
 - Catalog:
     - Stop if having key for node/edge more than X different keys.
 - Usar BufferManager para OrderedFiles
 - Al buscar property el value solo puede ser del valor dado. ¿Eliminar posibilidad de valores numéricos en match? ¿Eliminar solo float?
+- ver si string B-Tree puede ser útil https://algo2.iti.kit.edu/download/2014_-_Bachelor-Thesis_Fellipe_Lima.pdf

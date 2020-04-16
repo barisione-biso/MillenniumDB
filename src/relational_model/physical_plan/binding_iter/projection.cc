@@ -7,26 +7,28 @@
 
 using namespace std;
 
-Projection::Projection(unique_ptr<BindingIter> iter, set<string> projection_vars)
-    : iter(move(iter)), projection_vars(move(projection_vars)), select_all(false) { }
+Projection::Projection(unique_ptr<BindingIter> iter, set<string> projection_vars, uint_fast32_t limit)
+    : limit(limit), select_all(false), iter(move(iter)), projection_vars(move(projection_vars)) { }
 
-Projection::Projection(unique_ptr<BindingIter> iter)
-    : iter(move(iter)), select_all(true) { }
+Projection::Projection(unique_ptr<BindingIter> iter, uint_fast32_t limit)
+    : limit(limit), select_all(true), iter(move(iter)) { }
 
 Projection::~Projection() = default;
 
 
 void Projection::begin() {
+    count = 0;
     iter->begin();
 }
 
 
 std::unique_ptr<Binding> Projection::next() {
     auto next_binding = iter->next();
-    if (next_binding == nullptr) {
+    if ((limit != 0 && count >= limit) && next_binding == nullptr) {
         return nullptr;
     }
     else {
+        count++;
         if (select_all) {
             return next_binding;
         }

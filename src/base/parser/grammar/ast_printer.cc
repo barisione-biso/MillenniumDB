@@ -50,6 +50,13 @@ void ASTPrinter::operator()(ast::Root const& r) const {
     out << ",\n";
     printer.indent();
     printer(r.where);
+    out << ",\n";
+    printer.indent("\"LIMIT\":");
+    if (r.limit) {
+        out << r.limit.get();
+    } else {
+        out << 0;
+    }
     indent("\n}\n");
 }
 
@@ -100,6 +107,8 @@ void ASTPrinter::operator() (std::vector<ast::LinearPattern> const& graph_patter
 void ASTPrinter::operator() (ast::LinearPattern const& linear_pattern) const {
     out << "{\n";
     auto printer = ASTPrinter(out, base_indent+1);
+    printer.indent("\"GRAPH\": ");
+    out << '"' << linear_pattern.graph_name << '"'<< ",\n";
     printer.indent();
     printer(linear_pattern.root);
     for (auto const& step_path : linear_pattern.path) {

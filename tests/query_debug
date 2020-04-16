@@ -1,2 +1,3 @@
 SELECT ?n.performance_performanceid
-MATCH (?n :performance)
+MATCH (?n :performance :ne)
+LIMIT 1

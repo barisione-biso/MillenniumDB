@@ -12,7 +12,6 @@
 
 class CheckVarNames : public OpVisitor {
 private:
-    // std::map<std::string, std::string> var_name2graph_name;
     std::map<std::string, ObjectType> var_name2type;
 
 public:

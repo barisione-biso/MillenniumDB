@@ -43,10 +43,14 @@ public:
                 auto edge_name         = process_edge(graph_name, step_path.edge);
 
                 if (step_path.edge.direction == ast::EdgeDirection::right) {
-                    connections.push_back(std::make_unique<OpConnection>(graph_name, last_node_name, edge_name, current_node_name));
+                    connections.push_back(
+                        std::make_unique<OpConnection>(graph_name, last_node_name, edge_name, current_node_name)
+                    );
                 }
                 else {
-                    connections.push_back(std::make_unique<OpConnection>(graph_name, current_node_name, edge_name, last_node_name));
+                    connections.push_back(
+                        std::make_unique<OpConnection>(graph_name, current_node_name, edge_name, last_node_name)
+                    );
                 }
                 last_node_name = std::move(current_node_name);
             }
@@ -67,7 +71,14 @@ public:
             if (search != var_name2type.end()) {
                 // check is a node
                 if ((*search).second != ObjectType::node) {
-                    throw QuerySemanticException("\"" + var_name + "\" has already been declared as an Edge and cannot be a Node");
+                    throw QuerySemanticException("\"" + var_name
+                        + "\" has already been declared as an Edge and cannot be a Node");
+                }
+                // check graph name is the same
+                if (var_name2graph_name[var_name] != graph_name) {
+                    throw QuerySemanticException("\"" + var_name + "\" has already been declared in graph '"
+                        + var_name2graph_name[var_name]
+                        + "' and cannot be declared in another graph (" + graph_name + ")");
                 }
             }
             else { // not found
@@ -81,7 +92,9 @@ public:
         }
 
         for (auto& property : node.properties) {
-            properties.push_back(std::make_unique<OpProperty>(graph_name, ObjectType::node, var_name, property.key, property.value));
+            properties.push_back(
+                std::make_unique<OpProperty>(graph_name, ObjectType::node, var_name, property.key, property.value)
+            );
         }
 
         return var_name;
@@ -101,7 +114,14 @@ public:
             if (search != var_name2type.end()) {
                 // check is an edge
                 if ((*search).second != ObjectType::edge) {
-                    throw QuerySemanticException("\"" + var_name + "\" has already been declared as a Node and cannot be an Edge");
+                    throw QuerySemanticException("\"" + var_name
+                        + "\" has already been declared as a Node and cannot be an Edge");
+                }
+                // check graph name is the same
+                if (var_name2graph_name[var_name] != graph_name) {
+                    throw QuerySemanticException("\"" + var_name + "\" has already been declared in graph '"
+                        + var_name2graph_name[var_name]
+                        + "' and cannot be declared in another graph (" + graph_name + ")");
                 }
             }
             else { // not found
@@ -115,7 +135,9 @@ public:
         }
 
         for (auto& property : edge.properties) {
-            properties.push_back(std::make_unique<OpProperty>(graph_name, ObjectType::edge, var_name, property.key, property.value));
+            properties.push_back(
+                std::make_unique<OpProperty>(graph_name, ObjectType::edge, var_name, property.key, property.value)
+            );
         }
 
         return var_name;

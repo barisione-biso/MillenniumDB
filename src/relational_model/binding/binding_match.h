@@ -20,9 +20,9 @@ public:
         std::unique_ptr<BindingId> binding_id);
     ~BindingMatch();
 
-    void print() const;
+    std::string to_string() const;
     std::shared_ptr<GraphObject> operator[](const std::string& var);
     std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key);
 };
 
-#endif //RELATIONAL_MODEL__BINDING_MATCH_H_
+#endif // RELATIONAL_MODEL__BINDING_MATCH_H_

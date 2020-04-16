@@ -37,8 +37,8 @@ int main(int argc, char **argv) {
         po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
 
         if (vm.count("help")) {
-            cout << "Usage: create_db [options]\n";
-            cout << "Example: create_db -n ./path/to/nodes.txt -e ./path/to/edges.txt -d ./path/to/db -g \"My Graph Name\"\n";
+            cout << "Usage: import_graph [OPTIONS]\n";
+            cout << "Example: import_graph -n ./path/to/nodes.txt -e ./path/to/edges.txt -d ./path/to/db -g \"My Graph Name\"\n";
             cout << desc << "\n";
             return 0;
         }

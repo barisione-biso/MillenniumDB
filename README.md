@@ -2,12 +2,16 @@
 1. Set up:
     - [Ubuntu-based linux distributions](#set-up-on-ubuntu-based-linux-distributions)
     - [Windows 10](#set-up-on-windows-10)
-2. [Compilie the project](#compile-the-project)
+2. [Compile the project](#compile-the-project)
 3. [Create a database](#create-a-database)
-4. [Run a query](#run-a-query)
+4. [Delete a database](#delete-a-database)
+5. [Run the server](#run-the-server)
+6. [Execute a query](#execute-a-query)
 
 # Set up
 ## Set up on Ubuntu-based linux distributions
+ **Distributions must be based on Ubuntu 18.04 or later, previous versions (like Ubuntu 16.04) might have repositories with a too old version of the Boost Library and the project won't compile. Boost Library version 1.65.1 or higher is required.**
+
 - Install prerrequisites to compile:
     - `sudo apt update`
     - `sudo apt install git g++ cmake libssl-dev libboost-all-dev gdb wamerican`
@@ -83,21 +87,32 @@
         - `code ./path/to/project/folder`
 
 # Compile the project:
-- Release version:
-    - `cmake -H. -Bbuild/Release -DCMAKE_BUILD_TYPE=Release`
-    - `cmake --build build/Release/`
-- Debug version:
-    - `cmake -H. -Bbuild/Debug -DCMAKE_BUILD_TYPE=Debug`
-    - `cmake --build build/Debug/`
+If you use VSCode, a `Run Build Task` is already configured. Tipically the shortcut for it is Ctrl+Shift+B.
+
+- The `Run Build Task` will execute the following commands:
+    - Release Build:
+        - `cmake -H. -Bbuild/Release -DCMAKE_BUILD_TYPE=Release`
+        - `cmake --build build/Release/`
+    - Debug Build:
+        - `cmake -H. -Bbuild/Debug -DCMAKE_BUILD_TYPE=Debug`
+        - `cmake --build build/Debug/`
 - Cleaning:
+
+    Cleaning is only necessary if you need to recompile the whole project again, for instance if you want to see compiler warnings again or measure compile time.
     - `cmake --build build/Release/ --target clean`
     - `cmake --build build/Debug/ --target clean`
 
 # Create a database
-- Delete previous database files if it exists:
-    - `rm -r test_files/*.*`
-- `build/Release/bin/create_db -n ./path/to/nodes_file -e ./path/to/edges_file -g "graph name"`
+- `build/Release/bin/import_graph -d ./path/to/db/ -n ./path/to/nodes_file -e ./path/to/edges_file -g "graph name"`
 
-# Run a query
+You can import multiples graphs in a single database
+
+# Delete a database
+To delete a database just manually delete the files created:
+- `rm ./path/to/db/*.*`
+
+# Run the server
+- `build/Release/bin/server -d ./path/to/database_folder`
+
+# Execute a query
 - `build/Release/bin/query ./path/to/query_file`
-

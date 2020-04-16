@@ -29,10 +29,10 @@
             ]
         },
         {
-            "name": "CreateDB",
+            "name": "ImportGraph",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/bin/create_db",
+            "program": "${workspaceFolder}/build/Debug/bin/import_graph",
             "args": [
                 "-n",
                 // "${workspaceFolder}/test_files/graph_creation_example/nodes.txt",

@@ -112,6 +112,7 @@ namespace ast
         boost::variant<All, std::vector<Element>> selection;
         std::vector<LinearPattern> graph_pattern;
         boost::optional<Formula> where;
+        boost::optional<int> limit;
     };
 }
 

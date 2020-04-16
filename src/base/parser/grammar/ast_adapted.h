@@ -6,7 +6,7 @@
 #include <boost/fusion/include/adapt_struct.hpp>
 
 BOOST_FUSION_ADAPT_STRUCT(ast::Root,
-    explain, selection, graph_pattern, where
+    explain, selection, graph_pattern, where, limit
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::LinearPattern,

@@ -10,7 +10,7 @@ BindingFilter::BindingFilter(Binding& binding, map<string, GraphId>& var2graph_i
     : binding(binding), var2graph_id(var2graph_id), element_types(element_types) { }
 
 
-void BindingFilter::print() const {
+std::string BindingFilter::to_string() const {
     throw std::logic_error("Binding filter only intended to be used by get()");
 }
 

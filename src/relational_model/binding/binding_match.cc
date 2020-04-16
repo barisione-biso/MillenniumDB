@@ -4,24 +4,19 @@
 #include "relational_model/binding/binding_id.h"
 #include "relational_model/physical_plan/binding_id_iter/graph_scan.h"
 
-#include <iostream>
-
 using namespace std;
 
 BindingMatch::BindingMatch(const map<string, VarId>& var_pos, unique_ptr<BindingId> binding_id)
-    : var_pos(var_pos), binding_id(move(binding_id))
-{
-    // cout << "BindingMatch\n";
-}
+    : var_pos(var_pos), binding_id(move(binding_id)) { }
 
 
-BindingMatch::~BindingMatch() {
-    // cout << "~BindingMatch\n";
-}
+BindingMatch::~BindingMatch() { }
 
 
-void BindingMatch::print() const {
-    cout << "{";
+std::string BindingMatch::to_string() const {
+    string result;
+    result.reserve(64);
+    result += '{';
     bool first = true;
     for (auto&& [var, varid] : var_pos) {
         auto graph = ((*binding_id)[varid] & RelationalModel::GRAPH_MASK) >> RelationalModel::GRAPH_OFFSET;
@@ -31,11 +26,19 @@ void BindingMatch::print() const {
             first = false;
         }
         else {
-            cout << ", ";
+            result += ", ";
         }
-        cout << var << ":Id(" << graph << "," << type << "," << unmasked_id << ")";
+        result += var;
+        result += ":Id(";
+        result += graph;
+        result += ',';
+        result += type;
+        result += ',';
+        result += unmasked_id;
+        result += ')';
     }
-    cout << "}\n";
+    result += "}\n";
+    return result;
 }
 
 

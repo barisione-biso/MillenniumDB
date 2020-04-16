@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "base/parser/logical_plan/exceptions.h"
 #include "storage/file_manager.h"
 
 using namespace std;
@@ -84,13 +85,13 @@ GraphId Catalog::get_graph(const std::string& graph_name) {
     // Empty string => default graph, even if default graph has a explicit name
     if (graph_name.empty()) {
         if (graph_count == 0) {
-            throw std::runtime_error("Default graph doesn't exixsts.");
+            throw GraphDoesNotExist("default");
         }
         return GraphId(0);
     }
     auto search = graph_ids.find(graph_name);
     if (search == graph_ids.end()) {
-        throw std::runtime_error("Graph \"" + graph_name + "\" doesn't exists.");
+        throw GraphDoesNotExist(graph_name);
     }
     return search->second;
 }
