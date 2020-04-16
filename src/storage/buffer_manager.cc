@@ -61,7 +61,7 @@ int BufferManager::get_buffer_available() {
     while (buffer_pool[clock_pos].pins != 0) {
         clock_pos = (clock_pos+1)%buffer_pool_size;
         if (clock_pos == first_lookup) {
-            throw std::logic_error("No buffer available in buffer pool.");
+            throw std::runtime_error("No buffer available in buffer pool.");
         }
     }
     int res = clock_pos;

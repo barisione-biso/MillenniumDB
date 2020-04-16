@@ -30,11 +30,11 @@ std::string BindingMatch::to_string() const {
         }
         result += var;
         result += ":Id(";
-        result += graph;
+        result += std::to_string(graph);
         result += ',';
-        result += type;
+        result += std::to_string(type);
         result += ',';
-        result += unmasked_id;
+        result += std::to_string(unmasked_id);
         result += ')';
     }
     result += "}\n";

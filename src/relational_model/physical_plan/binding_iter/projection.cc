@@ -23,8 +23,11 @@ void Projection::begin() {
 
 
 std::unique_ptr<Binding> Projection::next() {
+    if (limit != 0 && count >= limit) {
+        return nullptr;
+    }
     auto next_binding = iter->next();
-    if ((limit != 0 && count >= limit) && next_binding == nullptr) {
+    if (next_binding == nullptr) {
         return nullptr;
     }
     else {
