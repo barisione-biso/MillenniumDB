@@ -5,23 +5,24 @@
 #include <string>
 #include <boost/asio.hpp>
 
-#include "server/message_type.h"
+#include "server/server.h"
 
 using boost::asio::ip::tcp;
 
 class TcpBuffer {
 public:
-    static constexpr int buffer_size = 1024;
     TcpBuffer(tcp::socket& sock);
     ~TcpBuffer();
 
     TcpBuffer& operator<<(std::string msg);
-    void begin(MessageType msg_type);
+    void begin(db_server::MessageType msg_type);
+    void set_error();
     void end();
 
 private:
     int current_pos;
-    unsigned char buffer[buffer_size];
+    bool error = false;
+    unsigned char buffer[db_server::BUFFER_SIZE];
     tcp::socket& sock;
     void send();
 };

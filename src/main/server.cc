@@ -23,56 +23,54 @@ using namespace std;
 using boost::asio::ip::tcp;
 namespace po = boost::program_options;
 
-const int max_length = 1024;
-
 void session(tcp::socket sock) {
     try {
-        while (true) {
-            char data[max_length];
+        unsigned char query_size_b[db_server::BYTES_FOR_QUERY_LENGTH];
+        boost::asio::read(sock, boost::asio::buffer(query_size_b, db_server::BYTES_FOR_QUERY_LENGTH));
 
-            boost::system::error_code error;
-            size_t length = sock.read_some(boost::asio::buffer(data), error); // TODO: porder leer consultas más largas que el buffer
-            if (error == boost::asio::error::eof)
-                break; // Connection closed cleanly by peer.
-            else if (error)
-                throw boost::system::system_error(error); // Some other error.
-
-            string query = string(data, length);
-
-            cout << "Query received:\n";
-            cout << query << "\n";
-
-            TcpBuffer tcp_buffer = TcpBuffer(sock);
-            tcp_buffer.begin(MessageType::plain_text);
-
-            // start timer
-            auto start = chrono::system_clock::now();
-            try {
-                auto select_plan = Op::get_select_plan(query);
-
-                PhysicalPlanGenerator plan_generator { };
-                auto root = plan_generator.exec(*select_plan);
-
-                root->begin();
-                auto binding = root->next();
-                int count = 0;
-                while (binding != nullptr) {
-                    tcp_buffer << binding->to_string();
-                    cout << binding->to_string();
-                    binding = root->next();
-                    count++;
-                }
-
-                auto end = chrono::system_clock::now();
-                chrono::duration<float, std::milli> duration = end - start;
-                tcp_buffer << "Found " << std::to_string(count) << " results.\n";
-                tcp_buffer << "Execution time: " << std::to_string(duration.count()) << " milliseconds.\n";
-            } catch (QueryException& e) {
-                tcp_buffer << "Query exception: " << e.what() << "\n";
-            }
-            tcp_buffer.end();
+        int query_size = 0;
+        for (int i = 0, offset = 0; i < db_server::BYTES_FOR_QUERY_LENGTH; i++, offset += 8) {
+            query_size += query_size_b[i] << offset;
         }
-    } catch (std::exception& e) {
+        std::string query;
+        query.resize(query_size);
+        boost::asio::read(sock, boost::asio::buffer(query.data(), query_size));
+        cout << "Query received:\n";
+        cout << query << "\n";
+
+        TcpBuffer tcp_buffer = TcpBuffer(sock);
+        tcp_buffer.begin(db_server::MessageType::plain_text);
+
+        // start timer
+        auto start = chrono::system_clock::now();
+        try {
+            auto select_plan = Op::get_select_plan(query);
+
+            PhysicalPlanGenerator plan_generator { };
+            auto root = plan_generator.exec(*select_plan);
+
+            root->begin();
+            auto binding = root->next();
+            int count = 0;
+            while (binding != nullptr) {
+                tcp_buffer << binding->to_string();
+                // cout << binding->to_string();
+                binding = root->next();
+                count++;
+            }
+
+            auto end = chrono::system_clock::now();
+            chrono::duration<float, std::milli> duration = end - start;
+            tcp_buffer << "Found " << std::to_string(count) << " results.\n";
+            tcp_buffer << "Execution time: " << std::to_string(duration.count()) << " milliseconds.\n";
+        }
+        catch (QueryException& e) {
+            tcp_buffer << "Query exception: " << e.what() << "\n";
+            tcp_buffer.set_error();
+        }
+        tcp_buffer.end();
+    }
+    catch (std::exception& e) {
         std::cerr << "Exception in thread: " << e.what() << "\n";
     }
 }

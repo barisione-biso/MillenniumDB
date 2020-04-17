@@ -56,18 +56,30 @@ int main(int argc, char **argv) {
 
         // Send Query
         auto query_length = query.size();
-        boost::asio::write(s, boost::asio::buffer(query, query_length));
+        unsigned char query_size_b[db_server::BYTES_FOR_QUERY_LENGTH];
+        for (int i = 0, offset = 0; i < db_server::BYTES_FOR_QUERY_LENGTH; i++, offset += 8) {
+            char c = (query_length << offset) & 0xFF;
+            query_size_b[i] = c;
+        }
+        cout << "Query length: " << query_length << "\n";
+        boost::asio::write(s, boost::asio::buffer(query_size_b, db_server::BYTES_FOR_QUERY_LENGTH));
+        boost::asio::write(s, boost::asio::buffer(query.data(), query_length));
 
         // Read results
-        unsigned char result_buffer[TcpBuffer::buffer_size];
+        unsigned char result_buffer[db_server::BUFFER_SIZE];
         do {
-            /*size_t reply_length =*/ boost::asio::read(s, boost::asio::buffer(result_buffer, TcpBuffer::buffer_size));
-            // std::cout << "Length is: " << reply_length << "\n";
+            boost::asio::read(s, boost::asio::buffer(result_buffer, db_server::BUFFER_SIZE));
             unsigned int reply_length = 0;
             reply_length += result_buffer[1];
             reply_length += result_buffer[2] << 8;
             std::cout.write(reinterpret_cast<char*>(result_buffer+3), reply_length-3);
-        } while ( result_buffer[0] != static_cast<unsigned char>(MessageType::end_plain_text) );
+        } while ( result_buffer[0] == static_cast<unsigned char>(db_server::MessageType::plain_text) );
+
+        if (result_buffer[0] == static_cast<unsigned char>(db_server::MessageType::end_success)) {
+            return 0;
+        } else {
+            return -1;
+        }
     }
     catch (boost::system::system_error const& e) {
         std::cout << "Error connecting to server: " << e.what() << std::endl;

@@ -1,16 +1,10 @@
 + funcionamiento cliente/servidor:
-    + comunicación TCP por buffer
-    - Retornar != 0 si hay error
-    - soportar queries mas largas que el tamaño del buffer
+    + Retornar != 0 si hay error
+    + soportar queries mas largas que el tamaño del buffer
 + añadir test de fallos de semántica
-    + hacer que se creen las excepciones correspondientes
     - automatizar test con script bash
-+ LIMIT en gramática y hacia proyección
-+ revisar exceptions, usar logic_error solo cuando hay una precondición de código que se viola. Crear
-  excepciones adicionales si es necesario.
 - comentar BPlusTree para alumnos
-+ Investigar como postgres actualiza índices:
-    recomienda remover índices y construirlos después, se puede asumir que no solucionan este problema
+- mutex en buffer manager/ pin/unpin
 
 - Reescritura de consulta (igualdades de where hacia match)
 - Ampliar el diagrama para explicar el prefijo de grafos
