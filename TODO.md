@@ -3,8 +3,8 @@
     + soportar queries mas largas que el tamaño del buffer
 + añadir test de fallos de semántica
     - automatizar test con script bash
-- comentar BPlusTree para alumnos
-- mutex en buffer manager/ pin/unpin
++ mutex en buffer manager/ pin/unpin
++ BUG graph not considered if all variables are unnamed in linear pattern
 
 - Reescritura de consulta (igualdades de where hacia match)
 - Ampliar el diagrama para explicar el prefijo de grafos

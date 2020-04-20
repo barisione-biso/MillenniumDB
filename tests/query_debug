@@ -1,3 +1,4 @@
+// Busqueda de todas las conecciones
 SELECT *
-MATCH (?n)
+MATCH ()->() ON "random"
 LIMIT 1

@@ -23,21 +23,8 @@ Page& Page::operator=(const Page& other) {
 }
 
 
-void Page::unpin() {
-    if (pins == 0) {
-        throw std::logic_error("Inconsistent unpin when pins == 0");
-    }
-    pins--;
-}
-
-
 void Page::make_dirty() {
     dirty = true;
-}
-
-
-void Page::pin() {
-    pins++;
 }
 
 

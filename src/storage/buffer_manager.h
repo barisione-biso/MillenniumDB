@@ -15,6 +15,7 @@
 #include "storage/page_id.h"
 
 #include <map>
+#include <mutex>
 #include <string>
 
 class Page;
@@ -28,8 +29,8 @@ public:
     void init(int _buffer_pool_size = DEFAULT_BUFFER_POOL_SIZE);
 
     // Get a page. It will search in the buffer and if it is not on it, it will read from disk and put in the buffer.
-    // Also it will pin the page, so calling unpin() is expected when the caller doesn't need the returned page
-    // anymore.
+    // Also it will pin the page, so calling buffer_manager.unpin(page) is expected when the caller doesn't need 
+    // the returned page anymore.
     Page& get_page(FileId file_id, uint_fast32_t page_number);
 
     // Similar to get_page, but the page_number is the greatest number such that page number exist on disk.
@@ -42,6 +43,10 @@ public:
 
     // write all dirty pages to disk
     void flush();
+
+    // reduces the count of objects using the page. Should be called when a object using the page is destroyed.
+    void unpin(Page& page);
+
 
 private:
     // maximum pages the buffer can have
@@ -58,6 +63,9 @@ private:
 
     // simple clock used to page replacement
     int clock_pos;
+
+    // to avoid pin/unpin synchronization problems
+    std::mutex pin_mutex;
 
     BufferManager();
     ~BufferManager();
