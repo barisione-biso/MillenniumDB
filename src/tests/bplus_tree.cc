@@ -89,7 +89,8 @@ int test_order(std::string& bpt_name) {
         i++;
         if (*y <= *x) {
             std::cout << "error en el orden de la tuplas " << (i-1) << " y " << (i) << "\n";
-            std::cout << "  (" << x->ids[0] << ", " << x->ids[1] << ", " << x->ids[2] << ")\n  (" << y->ids[0] << ", " << y->ids[1] << ", " << y->ids[2] << ")\n";
+            std::cout << "  (" << x->ids[0] << ", " << x->ids[1] << ", " << x->ids[2] << ")\n  ("
+                      << y->ids[0] << ", " << y->ids[1] << ", " << y->ids[2] << ")\n";
             error = true;
         }
 		x = std::move(y);
@@ -117,7 +118,13 @@ int main(int argc, char** argv) {
 
     string name_random = "bpt_random";
     create_random(size, name_random);
+
+    // string name_ascending = "bpt_ascending";
+    // create_ascending(size, name_ascending);
+
+    // string name_descending = "bpt_descending";
+    // create_descending(size, name_descending);
+
+    // return test_order(name_random) || test_order(name_ascending) || test_order(name_descending);
     return test_order(name_random);
-    // string name = "bpt_descending";
-    // create_descending(size, name);
 }
