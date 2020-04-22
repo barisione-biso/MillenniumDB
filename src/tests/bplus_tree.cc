@@ -4,6 +4,9 @@
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_params.h"
 
+#include "storage/file_manager.h"
+#include "storage/buffer_manager.h"
+
 using namespace std;
 
 void create_ascending(int size, std::string& bpt_name) {
@@ -101,12 +104,16 @@ int test_order(std::string& bpt_name) {
     }
 }
 
+// Ojo al ejecutar 2 veces seguidas el test, dará error por intentar ejecutar keys duplicadas
+// deben borrar los archivos creados antes de ejecutarlo de nuevo
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cout << "needed size\n";
         exit(1);
     }
     int size = atoi(argv[1]);
+    file_manager.init("test_files/test_bpt");
+    buffer_manager.init();
 
     string name_random = "bpt_random";
     create_random(size, name_random);

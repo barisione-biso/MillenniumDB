@@ -34,8 +34,9 @@
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/query_optimizer/physical_plan_generator.h"
 #include "relational_model/relational_model.h"
-#include "server/tcp_buffer.h"
 #include "storage/buffer_manager.h"
+#include "storage/file_manager.h"
+#include "server/tcp_buffer.h"
 
 using namespace std;
 using boost::asio::ip::tcp;
