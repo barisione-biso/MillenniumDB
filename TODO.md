@@ -19,6 +19,7 @@
     - ¿Tipo pasa a estar antes que el grafo? -> tratar de reutilizar esos 2 bytes para valores
     - Merge de Ordered Files
     - Editar bulk import para que sepa que B+Trees necesitan merge y cuáles no
+    - Editar catálogo en importacion: siempre modificar también el default graph
 
 
 

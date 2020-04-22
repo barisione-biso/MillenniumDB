@@ -6,6 +6,8 @@
  * `buffer_manager` is a global object and is available when this file is included. `buffer_manager` is only
  * constructed if it will be used in the execution. Construction is performed before the first line of main()
  * is executed and destrcution is performed after the last line of main() is executed.
+ *
+ * TODO: comment mutex
  */
 
 #ifndef STORAGE__BUFFER_MANAGER_H_
@@ -29,7 +31,7 @@ public:
     void init(int _buffer_pool_size = DEFAULT_BUFFER_POOL_SIZE);
 
     // Get a page. It will search in the buffer and if it is not on it, it will read from disk and put in the buffer.
-    // Also it will pin the page, so calling buffer_manager.unpin(page) is expected when the caller doesn't need 
+    // Also it will pin the page, so calling buffer_manager.unpin(page) is expected when the caller doesn't need
     // the returned page anymore.
     Page& get_page(FileId file_id, uint_fast32_t page_number);
 
