@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
         } else {
             buffer_manager.init();
         }
-        RelationalModel::init();
+        relational_model.init();
 
         boost::asio::io_service io_service;
         boost::asio::deadline_timer t(io_service, boost::posix_time::seconds(5));

@@ -73,14 +73,14 @@ unique_ptr<BindingIdIter> QueryOptimizerConnection::get_scan() {
             vars.push_back(make_pair(edge_var_id, 0));
             vars.push_back(make_pair(from_var_id, 1));
             vars.push_back(make_pair(to_var_id,   2));
-            return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).edge_from_to,
+            return make_unique<GraphScan>(relational_model.get_edge_from_to(),
                                           move(terms), move(vars));
         }
         else {
             vars.push_back(make_pair(from_var_id, 0));
             vars.push_back(make_pair(to_var_id,   1));
             vars.push_back(make_pair(edge_var_id, 2));
-            return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).from_to_edge,
+            return make_unique<GraphScan>(relational_model.get_from_to_edge(),
                                           move(terms), move(vars));
         }
     }
@@ -88,14 +88,14 @@ unique_ptr<BindingIdIter> QueryOptimizerConnection::get_scan() {
         vars.push_back(make_pair(to_var_id,   0));
         vars.push_back(make_pair(edge_var_id, 1));
         vars.push_back(make_pair(from_var_id, 2));
-        return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).to_edge_from,
+        return make_unique<GraphScan>(relational_model.get_to_edge_from(),
                                       move(terms), move(vars));
     }
     else {
         vars.push_back(make_pair(edge_var_id, 0));
         vars.push_back(make_pair(from_var_id, 1));
         vars.push_back(make_pair(to_var_id,   2));
-        return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).edge_from_to,
+        return make_unique<GraphScan>(relational_model.get_edge_from_to(),
                                       move(terms), move(vars));
     }
 }

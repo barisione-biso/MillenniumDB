@@ -1,4 +1,3 @@
 // Busqueda de todas las conecciones
 SELECT *
-MATCH ()->() ON "random"
-LIMIT 1
+MATCH ()->() ON "lmdb"

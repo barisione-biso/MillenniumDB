@@ -1,19 +1,22 @@
 #include "buffer_manager.h"
 
-#include "storage/page.h"
-#include "storage/file_manager.h"
-
 #include <cassert>
 #include <iostream>
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
 
-static int nifty_counter; // zero initialized at load time
-static typename std::aligned_storage<sizeof (BufferManager), alignof (BufferManager)>::type
-    buffer_manager_buf; // memory for the object
-BufferManager& buffer_manager = reinterpret_cast<BufferManager&> (buffer_manager_buf);
+#include "storage/page.h"
+#include "storage/file_manager.h"
 
 using namespace std;
+
+// zero initialized at load time
+static int nifty_counter;
+// memory for the object
+static typename std::aligned_storage<sizeof(BufferManager), alignof(BufferManager)>::type buffer_manager_buf;
+// global object
+BufferManager& buffer_manager = reinterpret_cast<BufferManager&>(buffer_manager_buf);
+
 
 BufferManager::BufferManager() {
     buffer_pool = nullptr;

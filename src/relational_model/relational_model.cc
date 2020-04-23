@@ -1,6 +1,9 @@
 #include "relational_model.h"
 
 #include <iostream>
+#include <new>         // placement new
+#include <type_traits> // aligned_storage
+
 #include <openssl/md5.h>
 
 #include "base/graph/edge.h"
@@ -13,21 +16,63 @@
 
 using namespace std;
 
-unique_ptr<RelationalModel> RelationalModel::instance = nullptr; // can't use static object because dependency with BufferManager
+// zero initialized at load time
+static int nifty_counter;
+// memory for the object
+static typename std::aligned_storage<sizeof(RelationalModel), alignof(RelationalModel)>::type relational_model_buf;
+// global object
+RelationalModel& relational_model = reinterpret_cast<RelationalModel&>(relational_model_buf);
 
-RelationalModel::RelationalModel() {
-    object_file = make_unique<ObjectFile>(object_file_name);
-    catalog = make_unique<Catalog>(catalog_file_name);
-    auto bpt_params_hash2id = make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:2*64 + Key:64
-    hash2id = make_unique<BPlusTree>(move(bpt_params_hash2id));
-}
 
+RelationalModel::RelationalModel() { }
 RelationalModel::~RelationalModel() = default;
 
 
 void RelationalModel::init() {
-    instance = make_unique<RelationalModel>();
-    instance->get_catalog().print();
+    object_file = make_unique<ObjectFile>(object_file_name);
+    catalog = make_unique<Catalog>(catalog_file_name);
+
+    // Create BPT Params
+    auto bpt_params_hash2id = make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:2*64 + Key:64
+
+    auto bpt_params_label2node = make_unique<BPlusTreeParams>(RelationalModel::label2node_name, 2);
+    auto bpt_params_label2edge = make_unique<BPlusTreeParams>(RelationalModel::label2edge_name, 2);
+    auto bpt_params_node2label = make_unique<BPlusTreeParams>(RelationalModel::node2label_name, 2);
+    auto bpt_params_edge2label = make_unique<BPlusTreeParams>(RelationalModel::edge2label_name, 2);
+
+    auto bpt_params_key_value_node = make_unique<BPlusTreeParams>(RelationalModel::key_value_node_name, 3);
+    auto bpt_params_node_key_value = make_unique<BPlusTreeParams>(RelationalModel::node_key_value_name, 3);
+    auto bpt_params_key_node_value = make_unique<BPlusTreeParams>(RelationalModel::key_node_value_name, 3);
+
+    auto bpt_params_key_value_edge = make_unique<BPlusTreeParams>(RelationalModel::key_value_edge_name, 3);
+    auto bpt_params_edge_key_value = make_unique<BPlusTreeParams>(RelationalModel::edge_key_value_name, 3);
+    auto bpt_params_key_edge_value = make_unique<BPlusTreeParams>(RelationalModel::key_edge_value_name, 3);
+
+    auto bpt_params_from_to_edge = make_unique<BPlusTreeParams>(RelationalModel::from_to_edge_name, 3);
+    auto bpt_params_to_edge_from = make_unique<BPlusTreeParams>(RelationalModel::to_edge_from_name, 3);
+    auto bpt_params_edge_from_to = make_unique<BPlusTreeParams>(RelationalModel::edge_from_to_name, 3);
+
+    // Create BPT
+    hash2id = make_unique<BPlusTree>(move(bpt_params_hash2id));
+
+    label2node = make_unique<BPlusTree>(move(bpt_params_label2node));
+    label2edge = make_unique<BPlusTree>(move(bpt_params_label2edge));
+    node2label = make_unique<BPlusTree>(move(bpt_params_node2label));
+    edge2label = make_unique<BPlusTree>(move(bpt_params_edge2label));
+
+    key_value_node = make_unique<BPlusTree>(move(bpt_params_key_value_node));
+    node_key_value = make_unique<BPlusTree>(move(bpt_params_node_key_value));
+    key_node_value = make_unique<BPlusTree>(move(bpt_params_key_node_value));
+
+    key_value_edge = make_unique<BPlusTree>(move(bpt_params_key_value_edge));
+    edge_key_value = make_unique<BPlusTree>(move(bpt_params_edge_key_value));
+    key_edge_value = make_unique<BPlusTree>(move(bpt_params_key_edge_value));
+
+    from_to_edge = make_unique<BPlusTree>(move(bpt_params_from_to_edge));
+    to_edge_from = make_unique<BPlusTree>(move(bpt_params_to_edge_from));
+    edge_from_to = make_unique<BPlusTree>(move(bpt_params_edge_from_to));
+
+    get_catalog().print();
 }
 
 
@@ -58,7 +103,7 @@ uint64_t RelationalModel::get_or_create_external_id(std::unique_ptr< std::vector
     MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
 
     // check if bpt contains object
-    BPlusTree& hash2id = RelationalModel::get_hash2id_bpt();
+    BPlusTree& hash2id = get_hash2id_bpt();
     auto iter = hash2id.get_range(
         Record(hash[0], hash[1], 0),
         Record(hash[0], hash[1], UINT64_MAX)
@@ -66,7 +111,7 @@ uint64_t RelationalModel::get_or_create_external_id(std::unique_ptr< std::vector
     auto next = iter->next();
     if (next == nullptr) { // obj doesn't exist
         // Insert in object file
-        uint64_t obj_id = RelationalModel::get_object_file().write(*bytes);
+        uint64_t obj_id = get_object_file().write(*bytes);
         // Insert in bpt
         hash2id.insert( Record(hash[0], hash[1], obj_id) );
         return obj_id;
@@ -157,7 +202,7 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
     auto mask = object_id.id & TYPE_MASK;
 
     if (mask == VALUE_EXTERNAL_STR_MASK) {
-        auto bytes = instance->object_file->read(object_id & UNMASK);
+        auto bytes = object_file->read(object_id & UNMASK);
         string value_string(bytes->begin(), bytes->end());
         return make_shared<ValueString>(move(value_string));
     }
@@ -223,13 +268,13 @@ RelationalGraph& RelationalModel::create_graph(const std::string& graph_name) {
 
 
 RelationalGraph& RelationalModel::get_graph(GraphId graph_id) {
-    auto search = instance->graphs.find(graph_id);
-    if (search != instance->graphs.end()) {
+    auto search = graphs.find(graph_id);
+    if (search != graphs.end()) {
         return *search->second.get();
     }
     else {
-        instance->graphs.insert({ graph_id, make_unique<RelationalGraph>(graph_id) });
-        return *instance->graphs[graph_id].get();
+        graphs.insert({ graph_id, make_unique<RelationalGraph>(graph_id) });
+        return *graphs[graph_id].get();
     }
 }
 
@@ -258,6 +303,15 @@ uint64_t RelationalModel::get_value_mask(const Value& value) {
 }
 
 
-ObjectFile& RelationalModel::get_object_file() { return *instance->object_file; }
-Catalog&    RelationalModel::get_catalog()     { return *instance->catalog; }
-BPlusTree&  RelationalModel::get_hash2id_bpt() { return *instance->hash2id; }
+ObjectFile& RelationalModel::get_object_file() { return *object_file; }
+Catalog&    RelationalModel::get_catalog()     { return *catalog; }
+BPlusTree&  RelationalModel::get_hash2id_bpt() { return *hash2id; }
+
+// Nifty counter trick
+RelationalModelInitializer::RelationalModelInitializer () {
+    if (nifty_counter++ == 0) new (&relational_model) RelationalModel(); // placement new
+}
+
+RelationalModelInitializer::~RelationalModelInitializer () {
+    if (--nifty_counter == 0) (&relational_model)->~RelationalModel();
+}

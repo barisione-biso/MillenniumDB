@@ -1,5 +1,5 @@
-#ifndef RELATIONAL_MODEL__CONFIG_H_
-#define RELATIONAL_MODEL__CONFIG_H_
+#ifndef RELATIONAL_MODEL__RELATIONAL_MODEL_H_
+#define RELATIONAL_MODEL__RELATIONAL_MODEL_H_
 
 #include "base/ids/graph_id.h"
 #include "storage/buffer_manager.h"
@@ -34,57 +34,103 @@ public:
     static constexpr uint64_t TYPE_MASK                 = 0x0000'FF'0000000000UL;
     static constexpr uint64_t GRAPH_MASK                = 0xFFFF'00'0000000000UL;
 
+    static constexpr auto object_file_name  = "objects.dat";
+    static constexpr auto catalog_file_name = "catalog.dat";
+    static constexpr auto hash2id_name      = "hash_id";
+
+    // Labels
+    static constexpr auto label2node_name = "LN";
+    static constexpr auto node2label_name = "NL";
+
+    static constexpr auto label2edge_name = "LE";
+    static constexpr auto edge2label_name = "EL";
+
+    // Properties
+    static constexpr auto key_value_node_name = "KVN";
+    static constexpr auto node_key_value_name = "NKV";
+    static constexpr auto key_node_value_name = "KNV";
+
+    static constexpr auto key_value_edge_name = "KVE";
+    static constexpr auto edge_key_value_name = "EKV";
+    static constexpr auto key_edge_value_name = "KEV";
+
+    // Connections
+    static constexpr auto from_to_edge_name = "FTE";
+    static constexpr auto to_edge_from_name = "TEF";
+    static constexpr auto edge_from_to_name = "EFT";
+
     RelationalModel();
     ~RelationalModel();
 
-    static void init();
+    void init();
 
-    static ObjectId get_string_unmasked_id(const std::string& str);
-    static ObjectId get_value_masked_id(const Value& value);
+    ObjectId get_string_unmasked_id(const std::string& str);
+    ObjectId get_value_masked_id(const Value& value);
 
-    static ObjectId get_or_create_string_unmasked_id(const std::string& str);
-    static ObjectId get_or_create_value_masked_id(const Value& value);
+    ObjectId get_or_create_string_unmasked_id(const std::string& str);
+    ObjectId get_or_create_value_masked_id(const Value& value);
 
-    static RelationalGraph& create_graph(const std::string& graph_name);
-    static RelationalGraph& get_graph(GraphId);
-    static std::shared_ptr<GraphObject> get_graph_object(ObjectId);
+    RelationalGraph& create_graph(const std::string& graph_name);
+    RelationalGraph& get_graph(GraphId);
+    std::shared_ptr<GraphObject> get_graph_object(ObjectId);
 
-    static ObjectFile& get_object_file();
-    static Catalog&    get_catalog();
-    static BPlusTree&  get_hash2id_bpt();
+    ObjectFile& get_object_file();
+    Catalog&    get_catalog();
+    BPlusTree&  get_hash2id_bpt();
 
-    static inline const std::string object_file_name  = "objects.dat";
-    static inline const std::string catalog_file_name = "catalog.dat";
-    static inline const std::string hash2id_name      = "hash_id";
+    BPlusTree& get_label2node();
+    BPlusTree& get_label2edge();
+    BPlusTree& get_node2label();
+    BPlusTree& get_edge2label();
 
-    // Labels
-    static inline const std::string label2node_name = "LN";
-    static inline const std::string node2label_name = "NL";
-    static inline const std::string label2edge_name = "LE";
-    static inline const std::string edge2label_name = "EL";
+    BPlusTree& get_key_value_node();
+    BPlusTree& get_node_key_value();
+    BPlusTree& get_key_node_value();
 
-    // Properties
-    static inline const std::string node2prop_name = "NKV";
-    static inline const std::string prop2node_name = "KVN";
-    static inline const std::string edge2prop_name = "EKV";
-    static inline const std::string prop2edge_name = "KVE";
+    BPlusTree& get_key_value_edge();
+    BPlusTree& get_edge_key_value();
+    BPlusTree& get_key_edge_value();
 
-    // Connections
-    static inline const std::string from_to_edge_name = "FTE";
-    static inline const std::string to_edge_from_name = "TEF";
-    static inline const std::string edge_from_to_name = "EFT";
+    BPlusTree& get_from_to_edge();
+    BPlusTree& get_to_edge_from();
+    BPlusTree& get_edge_from_to();
+
 
 private:
-    static std::unique_ptr<RelationalModel> instance;
-
     std::unique_ptr<ObjectFile> object_file;
     std::unique_ptr<Catalog>    catalog;
     std::unique_ptr<BPlusTree>  hash2id; // ObjectHash|ObjectId.
+
+    std::unique_ptr<BPlusTree>  label2node;
+    std::unique_ptr<BPlusTree>  label2edge;
+    std::unique_ptr<BPlusTree>  node2label;
+    std::unique_ptr<BPlusTree>  edge2label;
+
+    std::unique_ptr<BPlusTree>  key_value_node;
+    std::unique_ptr<BPlusTree>  node_key_value;
+    std::unique_ptr<BPlusTree>  key_node_value;
+
+    std::unique_ptr<BPlusTree>  key_value_edge;
+    std::unique_ptr<BPlusTree>  edge_key_value;
+    std::unique_ptr<BPlusTree>  key_edge_value;
+
+    std::unique_ptr<BPlusTree>  from_to_edge;
+    std::unique_ptr<BPlusTree>  to_edge_from;
+    std::unique_ptr<BPlusTree>  edge_from_to;
+
     std::map<GraphId, std::unique_ptr<RelationalGraph>> graphs;
 
-    static uint64_t get_or_create_external_id(std::unique_ptr< std::vector<unsigned char> > bytes);
-    static uint64_t get_external_id(std::unique_ptr< std::vector<unsigned char> > bytes);
-    static uint64_t get_value_mask(const Value& value);
+    uint64_t get_or_create_external_id(std::unique_ptr< std::vector<unsigned char> > bytes);
+    uint64_t get_external_id(std::unique_ptr< std::vector<unsigned char> > bytes);
+    uint64_t get_value_mask(const Value& value);
 };
 
-#endif //RELATIONAL_MODEL__CONFIG_H_
+extern RelationalModel& relational_model; // global object
+
+static struct RelationalModelInitializer {
+    RelationalModelInitializer();
+    ~RelationalModelInitializer();
+} relational_model_initializer; // static initializer for every translation unit
+
+
+#endif // RELATIONAL_MODEL__RELATIONAL_MODEL_H_

@@ -1,12 +1,13 @@
 #include "bulk_import.h"
 
+#include <iostream>
+#include <boost/spirit/include/support_istream_iterator.hpp>
+
 #include "base/graph/value/value_string.h"
 #include "relational_model/import/bulk_import_grammar.h"
 #include "relational_model/import/bulk_import_value_visitor.h"
+#include "relational_model/relational_model.h"
 #include "relational_model/graph/relational_graph.h"
-
-#include <iostream>
-#include <boost/spirit/include/support_istream_iterator.hpp>
 
 using namespace std;
 
@@ -75,59 +76,59 @@ void BulkImport::start_import() {
         }
     } while(edge_iter != edge_end);
 
-    cout << "\nCreating indexes for labels\n";
-    // NODE LABELS
+    cout << "\nCreating indexes\n";
+
+    // INDEXES WHERE APPENDING AT END IS POSSIBLE
+    // NODE - LABEL
     node_labels.order(vector<uint_fast8_t> { 0, 1 });
-    // node_labels.check_order(vector<uint_fast8_t> { 0, 1 });
-    graph.node2label->bulk_import(node_labels);
+    relational_model.get_node2label().bulk_import(node_labels);
 
-    node_labels.order(vector<uint_fast8_t> { 1, 0 });
-    // node_labels.check_order(vector<uint_fast8_t> { 0, 1 });
-    graph.label2node->bulk_import(node_labels);
-
-    // EDGE LABELS
+    // EDGE - LABEL
     edge_labels.order(vector<uint_fast8_t> { 0, 1 });
-    // edge_labels.check_order(vector<uint_fast8_t> { 0, 1 });
-    graph.edge2label->bulk_import(edge_labels);
+    relational_model.get_edge2label().bulk_import(edge_labels);
 
-    edge_labels.order(vector<uint_fast8_t> { 1, 0 });
-    // edge_labels.check_order(vector<uint_fast8_t> { 0, 1 });
-    graph.label2edge->bulk_import(edge_labels);
-
-    cout << "Creating indexes for properties\n";
-
-    // NODE PROPERTIES
+    // NODE - KEY - VALUE
     node_key_value.order(vector<uint_fast8_t> { 0, 1, 2 });
-    // node_key_value.check_order(vector<uint_fast8_t> { 0, 1, 2 });
-    graph.node2prop->bulk_import(node_key_value);
+    relational_model.get_node_key_value().bulk_import(node_key_value);
 
-    node_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
-    // node_key_value.check_order(vector<uint_fast8_t> { 0, 1, 2 });
-    graph.prop2node->bulk_import(node_key_value);
-
-    // EDGE PROPERTIES
+    // EDGE - KEY - VALUE
     edge_key_value.order(vector<uint_fast8_t> { 0, 1, 2 });
-    // edge_key_value.check_order(vector<uint_fast8_t> { 0, 1, 2 });
-    graph.edge2prop->bulk_import(edge_key_value);
-
-    edge_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
-    // edge_key_value.check_order(vector<uint_fast8_t> { 0, 1, 2 });
-    graph.prop2edge->bulk_import(edge_key_value);
-
-    cout << "Creating indexes for connections\n";
+    relational_model.get_edge_key_value().bulk_import(edge_key_value);
 
     // CONNECTIONS
     connections.order(vector<uint_fast8_t> { 0, 1, 2 });
-    // from_to_edge.check_order(vector<uint_fast8_t> { 0, 1, 2 });
-    graph.from_to_edge->bulk_import(connections);
+    relational_model.get_from_to_edge().bulk_import(connections);
 
     connections.order(vector<uint_fast8_t> { 2, 0, 1 });
-    // from_to_edge.check_order(vector<uint_fast8_t> { 0, 1, 2 });
-    graph.to_edge_from->bulk_import(connections);
+    relational_model.get_to_edge_from().bulk_import(connections);
 
     connections.order(vector<uint_fast8_t> { 2, 0, 1 });
-    // from_to_edge.check_order(vector<uint_fast8_t> { 0, 1, 2 });
-    graph.edge_from_to->bulk_import(connections);
+    relational_model.get_edge_from_to().bulk_import(connections);
+
+    // INDEXES WHERE APPENDING AT END IS NOT POSSIBLE AND MERGE IS NEEDED
+    // TODO: LABEL - NODE
+    // node_labels.order(vector<uint_fast8_t> { 1, 0 });
+    // graph.label2node->bulk_import(node_labels);
+
+    // TODO: LABEL - ESGE
+    // edge_labels.order(vector<uint_fast8_t> { 1, 0 });
+    // graph.label2edge->bulk_import(edge_labels);
+
+    // TODO: KEY - VALUE - NODE
+    // node_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
+    // graph.key_value_node->bulk_import(node_key_value);
+
+    // TODO: KEY - VALUE - EDGE
+    // edge_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
+    // graph.key_value_edge->bulk_import(edge_key_value);
+
+    // TODO: KEY - NODE - VALUE
+    // node_key_value.order(vector<uint_fast8_t> { 0, 2, 1 });
+    // graph.key_node_value->bulk_import(node_key_value);
+
+    // TODO: KEY - EDGE - VALUE
+    // edge_key_value.order(vector<uint_fast8_t> { 0, 2, 1 });
+    // graph.node_key_value->bulk_import(edge_key_value);
 }
 
 

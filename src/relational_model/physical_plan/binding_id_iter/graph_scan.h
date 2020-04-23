@@ -14,7 +14,6 @@
 
 class GraphScan : public BindingIdIter {
 private:
-    uint64_t graph_mask;
     int record_size;
     BPlusTree& bpt;
     std::vector<std::pair<ObjectId, int>> terms;
@@ -25,7 +24,7 @@ private:
     std::unique_ptr<BindingId> my_binding;
 
 public:
-    GraphScan(GraphId graph_id, BPlusTree& bpt, std::vector<std::pair<ObjectId, int>> terms,
+    GraphScan(BPlusTree& bpt, std::vector<std::pair<ObjectId, int>> terms,
               std::vector<std::pair<VarId, int>> vars);
     ~GraphScan() = default;
 

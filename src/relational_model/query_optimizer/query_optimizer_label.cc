@@ -63,30 +63,37 @@ unique_ptr<BindingIdIter> QueryOptimizerLabel::get_scan() {
     if (label_assigned) { // Label(?,_) or Label(_,_)
         if (label_object_id.is_null()) {
             vars.push_back(make_pair(label_var_id, 0));
-        }
-        else {
+        } else {
             terms.push_back(make_pair(label_object_id, 0));
         }
+
         vars.push_back(make_pair(element_var_id, 1));
-        if (element_type == ObjectType::node) {
-            return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).label2node,
-                                          move(terms), move(vars));
+
+        // TODO:
+        if (graph_id.is_default()) {
+
+        } else {
+            
         }
-        else { // if (element_type == ObjectType::edge)
-            return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).label2edge,
-                                          move(terms), move(vars));
+
+        if (element_type == ObjectType::node) {
+            return make_unique<GraphScan>(
+                relational_model.get_label2node(), move(terms), move(vars));
+        } else { // if (element_type == ObjectType::edge)
+            return make_unique<GraphScan>(
+                relational_model.get_label2edge(), move(terms), move(vars));
         }
     }
     else { // Label(?,?) or Label(_,?)
         vars.push_back(make_pair(element_var_id, 0));
         vars.push_back(make_pair(label_var_id, 1));
         if (element_type == ObjectType::node) {
-            return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).node2label,
-                                          move(terms), move(vars));
+            return make_unique<GraphScan>(
+                relational_model.get_node2label(), move(terms), move(vars));
         }
         else { // if (element_type == ObjectType::edge)
-            return make_unique<GraphScan>(graph_id, *RelationalModel::get_graph(graph_id).edge2label,
-                                          move(terms), move(vars));
+            return make_unique<GraphScan>(
+                relational_model.get_edge2label(), move(terms), move(vars));
         }
     }
 }

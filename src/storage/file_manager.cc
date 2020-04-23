@@ -13,12 +13,20 @@
 
 using namespace std;
 
-static int nifty_counter; // zero initialized at load time
-static typename std::aligned_storage<sizeof (FileManager), alignof (FileManager)>::type
-    file_manager_buf; // memory for the object
-FileManager& file_manager = reinterpret_cast<FileManager&> (file_manager_buf);
+// zero initialized at load time
+static int nifty_counter;
+// memory for the object
+static typename std::aligned_storage<sizeof(FileManager), alignof(FileManager)>::type file_manager_buf;
+// global object
+FileManager& file_manager = reinterpret_cast<FileManager&>(file_manager_buf);
+
 
 FileManager::FileManager() { }
+
+
+FileManager::~FileManager() {
+    buffer_manager.flush();
+}
 
 
 void FileManager::init(std::string _db_folder) {
@@ -32,11 +40,6 @@ void FileManager::init(std::string _db_folder) {
     else {
         experimental::filesystem::create_directories(db_folder);
     }
-}
-
-
-FileManager::~FileManager() {
-    buffer_manager.flush();
 }
 
 

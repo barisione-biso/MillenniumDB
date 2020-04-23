@@ -46,5 +46,7 @@ void QueryOptimizerLonelyNode::try_assign_var(VarId var_id) {
 
 
 unique_ptr<BindingIdIter> QueryOptimizerLonelyNode::get_scan() {
-    return make_unique<NodeEnum>(graph_id, element_var_id, RelationalModel::get_catalog().get_node_count(graph_id));
+    return make_unique<NodeEnum>(
+        graph_id, element_var_id, relational_model.get_catalog().get_node_count(graph_id)
+    );
 }

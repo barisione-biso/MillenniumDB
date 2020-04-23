@@ -21,8 +21,12 @@
     - Editar bulk import para que sepa que B+Trees necesitan merge y cuáles no
     - Editar catálogo en importacion: siempre modificar también el default graph
 
+- Testear importacion de diferentes grafos en ambos modelos
+    - partir con grafo grande y añadir chicos.
+    - partir con grafo chico y añadir grande.
 
 
+- Importar varios grafos en el mismo bulk_import
 - Presentar plan pointer swizzling (cuántos punteros como máximo permitir?)
 - Blob para objetos muy grandes, guardar fuera de object file, en su propio archivo.
 - Buffer manager:

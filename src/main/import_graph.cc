@@ -56,10 +56,10 @@ int main(int argc, char **argv) {
             buffer_manager.init();
         }
 
-        RelationalModel::init();
+        relational_model.init();
         auto start = chrono::system_clock::now();
 
-        auto& graph = RelationalModel::create_graph(graph_name);
+        auto& graph = relational_model.create_graph(graph_name);
         BulkImport import = BulkImport(nodes_file, edges_file, graph);
         import.start_import();
 

@@ -54,7 +54,7 @@ shared_ptr<GraphObject> BindingMatch::operator[](const string& var) {
         if (var_pos_search != var_pos.end()) {
             auto var_id = (*var_pos_search).second;
             auto object_id = (*binding_id)[var_id];
-            auto value = RelationalModel::get_graph_object(object_id);
+            auto value = relational_model.get_graph_object(object_id);
             cache.insert({ var, value });
             return value;
         }

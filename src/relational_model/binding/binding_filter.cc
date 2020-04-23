@@ -33,32 +33,29 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
     else { // no esta en el cache ni el el binding original
         auto graph_id = var2graph_id[var];
         auto element_type = element_types[var];
-        auto key_object_id = RelationalModel::get_string_unmasked_id(key);
+        auto key_object_id = relational_model.get_string_unmasked_id(key);
         auto var_value = binding[var];
-        auto graph_mask = graph_id << RelationalModel::GRAPH_OFFSET;
 
         unique_ptr<BPlusTree::Iter> it = nullptr;
         if (element_type == ObjectType::node) {
             Node node = static_cast<const Node&>(*var_value);
-            auto& graph = RelationalModel::get_graph(graph_id);
-            it = graph.node2prop->get_range(
-                Record(node.id, key_object_id | graph_mask, 0),
-                Record(node.id, key_object_id | graph_mask, UINT64_MAX)
+            it = relational_model.get_node_key_value().get_range(
+                Record(node.id, key_object_id, 0),
+                Record(node.id, key_object_id, UINT64_MAX)
             );
         }
         else {
             Edge edge = static_cast<const Edge&>(*var_value);
-            auto& graph = RelationalModel::get_graph(graph_id);
-            it = graph.edge2prop->get_range(
-                Record(edge.id, key_object_id | graph_mask, 0),
-                Record(edge.id, key_object_id | graph_mask, UINT64_MAX)
+            it = relational_model.get_edge_key_value().get_range(
+                Record(edge.id, key_object_id, 0),
+                Record(edge.id, key_object_id, UINT64_MAX)
             );
         }
 
         auto res = it->next();
         if (res != nullptr) {
             auto value_obj_id = ObjectId(res->ids[2]);
-            auto res = RelationalModel::get_graph_object(value_obj_id);
+            auto res = relational_model.get_graph_object(value_obj_id);
             cache.insert({ search_var, res });
             return res;
         }

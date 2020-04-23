@@ -13,11 +13,11 @@
 
 using namespace std;
 
-GraphScan::GraphScan(GraphId graph_id, BPlusTree& bpt, vector<pair<ObjectId, int>> terms,
+GraphScan::GraphScan(BPlusTree& bpt, vector<pair<ObjectId, int>> terms,
                      vector<pair<VarId, int>> vars)
     : record_size(bpt.params->total_size), bpt(bpt), terms(move(terms)), vars(move(vars))
 {
-    graph_mask = graph_id << RelationalModel::GRAPH_OFFSET;
+    // TODO: assert to check sanity (negligible cost, once per query)
 }
 
 
@@ -28,24 +28,31 @@ void GraphScan::begin(BindingId& input) {
     vector<uint64_t> min_ids(record_size);
     vector<uint64_t> max_ids(record_size);
 
+    int i = 0;
+    for (auto& range_type : range_types) {
+        min_ids[i] = range_type.get_min(input);
+        max_ids[i] = range_type.get_max(input);
+        i++;
+    }
+
     for (int i = 0; i < record_size; i++) {
-        min_ids[i] = graph_mask;
-        max_ids[i] = 0x0000'FF'FFFFFFFFFFUL | graph_mask;
+        min_ids[i] = 0;
+        max_ids[i] = 0xFFFF'FF'FFFFFFFFFFUL;
     }
 
     for (auto& term : terms) {
-        min_ids[term.second] = term.first | graph_mask;
-        max_ids[term.second] = term.first | graph_mask;
+        min_ids[term.second] = term.first;
+        max_ids[term.second] = term.first;
     }
 
     for (auto& var : vars) {
         auto obj_id = input[var.first];
         if (obj_id.is_null()) {
-            break;
+            break; // TODO: deberia poder pasar?
         }
         else {
-            min_ids[var.second] = obj_id | graph_mask;
-            max_ids[var.second] = obj_id | graph_mask;
+            min_ids[var.second] = obj_id;
+            max_ids[var.second] = obj_id;
         }
     }
 

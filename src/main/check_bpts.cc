@@ -12,49 +12,61 @@
 using namespace std;
 
 int main() {
+    // TODO: use program options for database folder
     file_manager.init();
     buffer_manager.init();
-    RelationalModel::init();
-    auto& graph = RelationalModel::get_graph(GraphId(0));
+    relational_model.init();
 
     std::cout << "Checking hash2id\n";
-    if (!RelationalModel::get_hash2id_bpt().check())
+    if (!relational_model.get_hash2id_bpt().check())
         std::cout << "wrong BPlusTree: hash2id\n";
 
+    // NODE LABELS
     std::cout << "Checking label2node\n";
-    if (!graph.label2node->check())
+    if (!relational_model.get_label2node().check())
         std::cout << "wrong BPlusTree: label2node\n";
     std::cout << "Checking node2label\n";
-    if (!graph.node2label->check())
+    if (!relational_model.get_node2label().check())
         std::cout << "wrong BPlusTree: node2label\n";
 
+    // EDGE LABELS
     std::cout << "Checking label2edge\n";
-    if (!graph.label2edge->check())
+    if (!relational_model.get_label2edge().check())
         std::cout << "wrong BPlusTree: label2edge\n";
     std::cout << "Checking edge2label\n";
-    if (!graph.edge2label->check())
+    if (!relational_model.get_edge2label().check())
         std::cout << "wrong BPlusTree: edge2label\n";
 
-    std::cout << "Checking prop2node\n";
-    if (!graph.prop2node->check())
-        std::cout << "wrong BPlusTree: prop2node\n";
-    std::cout << "Checking prop2edge\n";
-    if (!graph.prop2edge->check())
-        std::cout << "wrong BPlusTree: prop2edge\n";
-    std::cout << "Checking node2prop\n";
-    if (!graph.node2prop->check())
-        std::cout << "wrong BPlusTree: node2prop\n";
-    std::cout << "Checking edge2prop\n";
-    if (!graph.edge2prop->check())
-        std::cout << "wrong BPlusTree: edge2prop\n";
+    // NODE PROPERTIES
+    std::cout << "Checking key_value_node\n";
+    if (!relational_model.get_key_value_node().check())
+        std::cout << "wrong BPlusTree: key_value_node\n";
+    std::cout << "Checking key_node_value\n";
+    if (!relational_model.get_key_node_value().check())
+        std::cout << "wrong BPlusTree: key_node_value\n";
+    std::cout << "Checking node_key_value\n";
+    if (!relational_model.get_node_key_value().check())
+        std::cout << "wrong BPlusTree: node_key_value\n";
 
+    // EDGE PROPERTIES
+    std::cout << "Checking key_value_edge\n";
+    if (!relational_model.get_key_value_edge().check())
+        std::cout << "wrong BPlusTree: key_value_edge\n";
+    std::cout << "Checking key_edge_value\n";
+    if (!relational_model.get_key_edge_value().check())
+        std::cout << "wrong BPlusTree: key_edge_value\n";
+    std::cout << "Checking edge_key_value\n";
+    if (!relational_model.get_edge_key_value().check())
+        std::cout << "wrong BPlusTree: edge_key_value\n";
+
+    // CONNECTIONS
     std::cout << "Checking from_to_edge\n";
-    if (!graph.from_to_edge->check())
+    if (!relational_model.get_from_to_edge().check())
         std::cout << "wrong BPlusTree: from_to_edge\n";
     std::cout << "Checking to_edge_from\n";
-    if (!graph.to_edge_from->check())
+    if (!relational_model.get_to_edge_from().check())
         std::cout << "wrong BPlusTree: to_edge_from\n";
     std::cout << "Checking edge_from_to\n";
-    if (!graph.edge_from_to->check())
+    if (!relational_model.get_edge_from_to().check())
         std::cout << "wrong BPlusTree: edge_from_to\n";
 }

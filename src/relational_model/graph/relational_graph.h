@@ -24,20 +24,6 @@ class RelationalGraph {
 public:
     const GraphId graph_id;
 
-    std::unique_ptr<BPlusTree> label2node;
-    std::unique_ptr<BPlusTree> label2edge;
-    std::unique_ptr<BPlusTree> node2label;
-    std::unique_ptr<BPlusTree> edge2label;
-
-    std::unique_ptr<BPlusTree> prop2node;
-    std::unique_ptr<BPlusTree> prop2edge;
-    std::unique_ptr<BPlusTree> node2prop;
-    std::unique_ptr<BPlusTree> edge2prop;
-
-    std::unique_ptr<BPlusTree> from_to_edge;
-    std::unique_ptr<BPlusTree> to_edge_from;
-    std::unique_ptr<BPlusTree> edge_from_to;
-
     RelationalGraph(GraphId graph_id);
     ~RelationalGraph();
 

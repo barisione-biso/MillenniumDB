@@ -55,7 +55,7 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
     vector<unique_ptr<QueryOptimizerElement>> elements;
 
     for (auto&& [var_name, graph_name] : op_match.var_name2graph_name) {
-        auto graph_id = RelationalModel::get_catalog().get_graph(graph_name);
+        auto graph_id = relational_model.get_catalog().get_graph(graph_name);
         graph_ids.insert({ graph_name, graph_id }); // may try to insert a repeated pair, this is OK, it won't be duplicated
         var2graph_id.insert({ var_name, graph_id });
     }
@@ -65,7 +65,7 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
     for (auto& op_label : op_match.labels) {
         auto graph_id = search_graph_id(op_label->graph_name);
         auto element_var_id = get_var_id(op_label->var);
-        auto label_id = RelationalModel::get_string_unmasked_id(op_label->label);
+        auto label_id = relational_model.get_string_unmasked_id(op_label->label);
         elements.push_back(
             make_unique<QueryOptimizerLabel>(graph_id, element_var_id, null_var, op_label->type, label_id)
         );
@@ -74,7 +74,7 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
     // Process properties from Match
     for (auto& op_property : op_match.properties) {
         auto element_var_id = get_var_id(op_property->var);
-        auto key_id = RelationalModel::get_string_unmasked_id(op_property->key);
+        auto key_id = relational_model.get_string_unmasked_id(op_property->key);
         ObjectId value_id = get_value_id(op_property->value);
 
         auto graph_id = search_graph_id(op_property->graph_name);
@@ -87,7 +87,7 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
         auto graph_id = var2graph_id[var];
         auto element_var_id = get_var_id(var);
         auto value_var = get_var_id(var + '.' + key);
-        auto key_id = RelationalModel::get_string_unmasked_id(key);
+        auto key_id = relational_model.get_string_unmasked_id(key);
         auto element_type = element_types[var];
 
         elements.push_back(make_unique<QueryOptimizerProperty>(
@@ -154,19 +154,19 @@ VarId PhysicalPlanGenerator::get_var_id(const std::string& var) {
 ObjectId PhysicalPlanGenerator::get_value_id(const ast::Value& value) {
     if (value.type() == typeid(string)) {
         auto val_str = boost::get<string>(value);
-        return RelationalModel::get_value_masked_id(ValueString(val_str));
+        return relational_model.get_value_masked_id(ValueString(val_str));
     }
     else if (value.type() == typeid(int)) {
         auto val_int = boost::get<int>(value);
-        return RelationalModel::get_value_masked_id(ValueInt(val_int));
+        return relational_model.get_value_masked_id(ValueInt(val_int));
     }
     else if (value.type() == typeid(float)) {
         auto val_float = boost::get<float>(value);
-        return RelationalModel::get_value_masked_id(ValueFloat(val_float));
+        return relational_model.get_value_masked_id(ValueFloat(val_float));
     }
     else if (value.type() == typeid(bool)) {
         auto val_bool = boost::get<bool>(value);
-        return RelationalModel::get_value_masked_id(ValueBool(val_bool));
+        return relational_model.get_value_masked_id(ValueBool(val_bool));
     }
     else {
         throw logic_error("Unknown value type.");

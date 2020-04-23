@@ -7,7 +7,8 @@
  * constructed if it will be used in the execution. Construction is performed before the first line of main()
  * is executed and destrcution is performed after the last line of main() is executed.
  *
- * TODO: comment mutex
+ * A mutex object is used to prevent conflict between different threads when asking for page and
+ * unpining a page.
  */
 
 #ifndef STORAGE__BUFFER_MANAGER_H_
@@ -81,6 +82,6 @@ extern BufferManager& buffer_manager; // global object
 static struct BufferManagerInitializer {
     BufferManagerInitializer();
     ~BufferManagerInitializer();
-} bufferManager_initializer; // static initializer for every translation unit
+} buffer_manager_initializer; // static initializer for every translation unit
 
 #endif // STORAGE__BUFFER_MANAGER_H_

@@ -20,6 +20,10 @@ public:
     bool operator<(const GraphId other) const {
         return this->id < other.id;
     }
+
+    bool is_default() {
+        return id == 0;
+    }
 };
 
 #endif //BASE__GRAPH_ID_H_
