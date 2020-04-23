@@ -11,7 +11,6 @@
 #include <string>
 
 #include "storage/page_id.h"
-#include "storage/file_manager.h"
 
 const int PAGE_SIZE = 4096;
 

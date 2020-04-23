@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "storage/file_id.h"
+#include "storage/file_manager.h"
 
 Page::Page(PageId page_id, char* bytes)
     : page_id(page_id), pins(1), bytes(bytes), dirty(false) { }
