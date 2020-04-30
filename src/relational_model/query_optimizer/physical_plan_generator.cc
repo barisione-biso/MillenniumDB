@@ -12,7 +12,6 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/op_lonely_node.h"
-#include "relational_model/graph/relational_graph.h"
 #include "relational_model/relational_model.h"
 #include "relational_model/physical_plan/binding_iter/filter.h"
 #include "relational_model/physical_plan/binding_iter/match.h"
@@ -21,6 +20,7 @@
 #include "relational_model/query_optimizer/query_optimizer_label.h"
 #include "relational_model/query_optimizer/query_optimizer_property.h"
 #include "relational_model/query_optimizer/query_optimizer_lonely_node.h"
+#include "storage/catalog/catalog.h"
 
 using namespace std;
 
@@ -55,7 +55,7 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
     vector<unique_ptr<QueryOptimizerElement>> elements;
 
     for (auto&& [var_name, graph_name] : op_match.var_name2graph_name) {
-        auto graph_id = relational_model.get_catalog().get_graph(graph_name);
+        auto graph_id = catalog.get_graph(graph_name);
         graph_ids.insert({ graph_name, graph_id }); // may try to insert a repeated pair, this is OK, it won't be duplicated
         var2graph_id.insert({ var_name, graph_id });
     }

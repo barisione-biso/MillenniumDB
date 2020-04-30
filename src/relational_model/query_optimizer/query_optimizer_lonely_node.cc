@@ -4,6 +4,7 @@
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/relational_model.h"
 #include "relational_model/physical_plan/binding_id_iter/node_enum.h"
+#include "storage/catalog/catalog.h"
 
 using namespace std;
 
@@ -47,6 +48,6 @@ void QueryOptimizerLonelyNode::try_assign_var(VarId var_id) {
 
 unique_ptr<BindingIdIter> QueryOptimizerLonelyNode::get_scan() {
     return make_unique<NodeEnum>(
-        graph_id, element_var_id, relational_model.get_catalog().get_node_count(graph_id)
+        graph_id, element_var_id, catalog.get_node_count(graph_id)
     );
 }

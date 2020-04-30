@@ -5,6 +5,7 @@
 
 class GraphId {
 public:
+    static constexpr uint64_t DEFAULT_GRAPH_ID = 0;
     uint64_t id;
 
     GraphId()
@@ -22,8 +23,8 @@ public:
     }
 
     bool is_default() {
-        return id == 0;
+        return id == DEFAULT_GRAPH_ID;
     }
 };
 
-#endif //BASE__GRAPH_ID_H_
+#endif // BASE__GRAPH_ID_H_

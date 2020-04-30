@@ -107,28 +107,33 @@ void BulkImport::start_import() {
 
     // INDEXES WHERE APPENDING AT END IS NOT POSSIBLE AND MERGE IS NEEDED
     // TODO: LABEL - NODE
-    // node_labels.order(vector<uint_fast8_t> { 1, 0 });
-    // graph.label2node->bulk_import(node_labels);
+    node_labels.order(vector<uint_fast8_t> { 1, 0 });
+    relational_model.get_label2node().bulk_import(node_labels);
 
-    // TODO: LABEL - ESGE
-    // edge_labels.order(vector<uint_fast8_t> { 1, 0 });
-    // graph.label2edge->bulk_import(edge_labels);
+    // auto& bpt = relational_model.get_label2node();
+    // create new temp bpt
+    // new_bpt.bulk_import_merge(bpt, ordered_file);
+
+
+    // TODO: LABEL - EDGE
+    edge_labels.order(vector<uint_fast8_t> { 1, 0 });
+    relational_model.get_label2edge().bulk_import(edge_labels);
 
     // TODO: KEY - VALUE - NODE
-    // node_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
-    // graph.key_value_node->bulk_import(node_key_value);
+    node_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
+    relational_model.get_key_value_node().bulk_import(node_key_value);
 
     // TODO: KEY - VALUE - EDGE
-    // edge_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
-    // graph.key_value_edge->bulk_import(edge_key_value);
+    edge_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
+    relational_model.get_key_value_edge().bulk_import(edge_key_value);
 
     // TODO: KEY - NODE - VALUE
-    // node_key_value.order(vector<uint_fast8_t> { 0, 2, 1 });
-    // graph.key_node_value->bulk_import(node_key_value);
+    node_key_value.order(vector<uint_fast8_t> { 0, 2, 1 });
+    relational_model.get_key_node_value().bulk_import(node_key_value);
 
     // TODO: KEY - EDGE - VALUE
-    // edge_key_value.order(vector<uint_fast8_t> { 0, 2, 1 });
-    // graph.node_key_value->bulk_import(edge_key_value);
+    edge_key_value.order(vector<uint_fast8_t> { 0, 2, 1 });
+    relational_model.get_key_edge_value().bulk_import(edge_key_value);
 }
 
 

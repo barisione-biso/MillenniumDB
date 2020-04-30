@@ -28,4 +28,4 @@ public:
     }
 };
 
-#endif //BASE__VAR_ID_H_
+#endif // BASE__VAR_ID_H_

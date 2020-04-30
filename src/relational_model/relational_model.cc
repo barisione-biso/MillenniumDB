@@ -13,6 +13,7 @@
 #include "base/graph/value/value_float.h"
 #include "base/graph/value/value_string.h"
 #include "relational_model/graph/relational_graph.h"
+#include "storage/catalog/catalog.h"
 
 using namespace std;
 
@@ -24,13 +25,13 @@ static typename std::aligned_storage<sizeof(RelationalModel), alignof(Relational
 RelationalModel& relational_model = reinterpret_cast<RelationalModel&>(relational_model_buf);
 
 
-RelationalModel::RelationalModel() { }
+RelationalModel::RelationalModel() = default;
 RelationalModel::~RelationalModel() = default;
 
 
 void RelationalModel::init() {
+    catalog.init();
     object_file = make_unique<ObjectFile>(object_file_name);
-    catalog = make_unique<Catalog>(catalog_file_name);
 
     // Create BPT Params
     auto bpt_params_hash2id = make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:2*64 + Key:64
@@ -72,7 +73,7 @@ void RelationalModel::init() {
     to_edge_from = make_unique<BPlusTree>(move(bpt_params_to_edge_from));
     edge_from_to = make_unique<BPlusTree>(move(bpt_params_edge_from_to));
 
-    get_catalog().print();
+    catalog.print();
 }
 
 
@@ -88,10 +89,9 @@ uint64_t RelationalModel::get_external_id(std::unique_ptr< std::vector<unsigned 
         Record(hash[0], hash[1], UINT64_MAX)
     );
     auto next = iter->next();
-    if (next == nullptr) { // object doesn't exists
+    if (next == nullptr) { // object doesn't exist
         return NOT_FOUND_OBJECT_ID;
-    }
-    else {                 // object already exists
+    } else {               // object already exists
         return next->ids[2];
     }
 }
@@ -109,14 +109,13 @@ uint64_t RelationalModel::get_or_create_external_id(std::unique_ptr< std::vector
         Record(hash[0], hash[1], UINT64_MAX)
     );
     auto next = iter->next();
-    if (next == nullptr) { // obj doesn't exist
+    if (next == nullptr) { // object doesn't exist
         // Insert in object file
         uint64_t obj_id = get_object_file().write(*bytes);
         // Insert in bpt
         hash2id.insert( Record(hash[0], hash[1], obj_id) );
         return obj_id;
-    }
-    else { // object already exists
+    } else {               // object already exists
         return next->ids[2];
     }
 }
@@ -130,8 +129,7 @@ ObjectId RelationalModel::get_string_unmasked_id(const string& str) {
         copy(str.begin(), str.end(), bytes->begin());
 
         return ObjectId( get_external_id(move(bytes)) );
-    }
-    else {
+    } else {
         uint64_t res = 0;
         int shift_size = 0;
         for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
@@ -202,7 +200,7 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
     auto mask = object_id.id & TYPE_MASK;
 
     if (mask == VALUE_EXTERNAL_STR_MASK) {
-        auto bytes = object_file->read(object_id & UNMASK);
+        auto bytes = object_file->read(object_id & VALUE_MASK);
         string value_string(bytes->begin(), bytes->end());
         return make_shared<ValueString>(move(value_string));
     }
@@ -262,7 +260,7 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
 
 
 RelationalGraph& RelationalModel::create_graph(const std::string& graph_name) {
-    auto graph_id = get_catalog().create_graph(graph_name);
+    auto graph_id = catalog.create_graph(graph_name);
     return get_graph(graph_id);
 }
 
@@ -271,8 +269,7 @@ RelationalGraph& RelationalModel::get_graph(GraphId graph_id) {
     auto search = graphs.find(graph_id);
     if (search != graphs.end()) {
         return *search->second.get();
-    }
-    else {
+    } else {
         graphs.insert({ graph_id, make_unique<RelationalGraph>(graph_id) });
         return *graphs[graph_id].get();
     }
@@ -304,8 +301,24 @@ uint64_t RelationalModel::get_value_mask(const Value& value) {
 
 
 ObjectFile& RelationalModel::get_object_file() { return *object_file; }
-Catalog&    RelationalModel::get_catalog()     { return *catalog; }
 BPlusTree&  RelationalModel::get_hash2id_bpt() { return *hash2id; }
+
+BPlusTree& RelationalModel::get_label2node() { return *label2node; }
+BPlusTree& RelationalModel::get_label2edge() { return *label2edge; }
+BPlusTree& RelationalModel::get_node2label() { return *node2label; }
+BPlusTree& RelationalModel::get_edge2label() { return *edge2label; }
+
+BPlusTree& RelationalModel::get_key_value_node() { return *key_value_node; }
+BPlusTree& RelationalModel::get_node_key_value() { return *node_key_value; }
+BPlusTree& RelationalModel::get_key_node_value() { return *key_node_value; }
+
+BPlusTree& RelationalModel::get_key_value_edge() { return *key_value_edge; }
+BPlusTree& RelationalModel::get_edge_key_value() { return *edge_key_value; }
+BPlusTree& RelationalModel::get_key_edge_value() { return *key_edge_value; }
+
+BPlusTree& RelationalModel::get_from_to_edge() { return *from_to_edge; }
+BPlusTree& RelationalModel::get_to_edge_from() { return *to_edge_from; }
+BPlusTree& RelationalModel::get_edge_from_to() { return *edge_from_to; }
 
 // Nifty counter trick
 RelationalModelInitializer::RelationalModelInitializer () {

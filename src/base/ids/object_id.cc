@@ -11,6 +11,9 @@ ObjectId::ObjectId()
 ObjectId::~ObjectId() = default;
 
 
+ObjectId::ObjectId(const ObjectId& obj)
+    : id(obj.id) { }
+
 bool ObjectId::is_null() {
     return id == NULL_OBJECT_ID;
 }

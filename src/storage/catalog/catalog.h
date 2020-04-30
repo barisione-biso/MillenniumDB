@@ -17,9 +17,15 @@
 #include "base/ids/graph_id.h"
 
 class Catalog {
+friend class FileManager;
+friend class CatalogInitializer;
 public:
-    Catalog(const std::string& filename);
+    static constexpr auto catalog_file_name = "catalog.dat";
+
+    Catalog();
     ~Catalog();
+
+    void init();
 
     // Create_node and create_edge return the new id without the corresponding mask
     // boths methods must skip id = 0 (reserved for null ids)
@@ -48,7 +54,7 @@ public:
     void print();
 
 private:
-    std::fstream& file;
+    std::fstream* file;
     uint32_t graph_count;
 
     std::vector<std::string> graph_names;
@@ -66,11 +72,20 @@ private:
     std::vector<std::map<uint64_t, uint64_t>> node_key_stats;
     std::vector<std::map<uint64_t, uint64_t>> edge_key_stats;
 
-    void save_changes();
+    void flush();
     void add_to_map(std::map<uint64_t, uint64_t>& map, uint64_t key, uint64_t& count);
     uint64_t get_count(std::map<uint64_t, uint64_t>& map, uint64_t key);
     uint64_t read_uint64();
     uint32_t read_uint32();
 };
+
+
+extern Catalog& catalog; // global object
+
+static struct CatalogInitializer {
+    CatalogInitializer();
+    ~CatalogInitializer();
+} catalog_initializer; // static initializer for every translation unit
+
 
 #endif // STORAGE__CATALOG_H_

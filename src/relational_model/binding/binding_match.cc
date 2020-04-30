@@ -19,23 +19,46 @@ std::string BindingMatch::to_string() const {
     result += '{';
     bool first = true;
     for (auto&& [var, varid] : var_pos) {
-        auto graph = ((*binding_id)[varid] & RelationalModel::GRAPH_MASK) >> RelationalModel::GRAPH_OFFSET;
-        auto type = ((*binding_id)[varid] & RelationalModel::TYPE_MASK) >> RelationalModel::TYPE_OFFSET;
-        auto unmasked_id = (*binding_id)[varid] & RelationalModel::UNMASK;
+        auto type = (*binding_id)[varid] & RelationalModel::TYPE_MASK;
         if (first) {
             first = false;
+        } else {
+            result += ',';
+        }
+
+        if (type == RelationalModel::NODE_MASK) {
+            auto graph = ((*binding_id)[varid] & RelationalModel::GRAPH_MASK) >> RelationalModel::GRAPH_OFFSET;
+            auto node_id = (*binding_id)[varid] & RelationalModel::ELEMENT_MASK;
+
+            result += var;
+            result += ":NodeId(";
+            result += std::to_string(graph);
+            result += ',';
+            result += std::to_string(node_id);
+            result += ')';
+        }
+        else if (type == RelationalModel::EDGE_MASK) {
+            auto graph = ((*binding_id)[varid] & RelationalModel::GRAPH_MASK) >> RelationalModel::GRAPH_OFFSET;
+            auto edge_id = (*binding_id)[varid] & RelationalModel::ELEMENT_MASK;
+
+            result += var;
+            result += ":EdgeId(";
+            result += std::to_string(graph);
+            result += ',';
+            result += std::to_string(edge_id);
+            result += ')';
         }
         else {
-            result += ", ";
+            auto type = ((*binding_id)[varid] & RelationalModel::TYPE_MASK) >> RelationalModel::TYPE_OFFSET;
+            auto value_id = (*binding_id)[varid] & RelationalModel::VALUE_MASK;
+
+            result += var;
+            result += ":Value(";
+            result += std::to_string(type);
+            result += ',';
+            result += std::to_string(value_id);
+            result += ')';
         }
-        result += var;
-        result += ":Id(";
-        result += std::to_string(graph);
-        result += ',';
-        result += std::to_string(type);
-        result += ',';
-        result += std::to_string(unmasked_id);
-        result += ')';
     }
     result += "}\n";
     return result;

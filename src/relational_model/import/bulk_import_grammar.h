@@ -31,10 +31,9 @@ namespace bulk_import_parser
     using x3::eoi;
     // using x3::string;
 
-    using ascii::char_;
+    using x3::char_;
 
-    auto const skipper =
-        blank;//"//" >> *(char_ - eol) >> (eol | eoi);
+    auto const skipper = blank;
 
     // Declare rules
     x3::rule<class node, bulk_import_ast::Node>

@@ -28,7 +28,7 @@ namespace parser
     using x3::eoi;
     // using x3::string;
 
-    using ascii::char_;
+    using x3::char_;
 
     // Declare skipper
     auto const skipper =

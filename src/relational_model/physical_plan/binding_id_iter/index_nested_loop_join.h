@@ -10,6 +10,12 @@
 
 
 class IndexNestedLoopJoin : public BindingIdIter {
+public:
+    IndexNestedLoopJoin(std::unique_ptr<BindingIdIter> left, std::unique_ptr<BindingIdIter> right);
+    ~IndexNestedLoopJoin() = default;
+    void begin(BindingId& input);
+    void reset(BindingId& input);
+    BindingId* next();
 
 private:
     std::unique_ptr<BindingIdIter> left;
@@ -22,13 +28,6 @@ private:
     std::unique_ptr<BindingId> my_binding;
 
     void construct_binding(BindingId& lhs, BindingId& rhs);
-
-public:
-    IndexNestedLoopJoin(std::unique_ptr<BindingIdIter> left, std::unique_ptr<BindingIdIter> right);
-    ~IndexNestedLoopJoin() = default;
-    void begin(BindingId& input);
-    void reset(BindingId& input);
-    BindingId* next();
 };
 
-#endif //RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_
+#endif // RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_
