@@ -1,15 +1,16 @@
 #include "file_manager.h"
 
-#include "storage/file_id.h"
-#include "storage/page.h"
-#include "storage/buffer_manager.h"
-
 #include <algorithm>
 #include <cstdio>
 #include <experimental/filesystem>
 #include <iostream>
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
+
+#include "storage/file_id.h"
+#include "storage/page.h"
+#include "storage/buffer_manager.h"
+#include "storage/catalog/catalog.h"
 
 using namespace std;
 

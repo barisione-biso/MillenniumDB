@@ -1,8 +1,12 @@
 #include "query_optimizer_property.h"
 
 #include "relational_model/binding/binding_id.h"
-#include "relational_model/relational_model.h"
 #include "relational_model/graph/relational_graph.h"
+#include "relational_model/relational_model.h"
+#include "relational_model/physical_plan/binding_id_iter/scan_ranges/assigned_var.h"
+#include "relational_model/physical_plan/binding_id_iter/scan_ranges/default_graph_var.h"
+#include "relational_model/physical_plan/binding_id_iter/scan_ranges/named_graph_var.h"
+#include "relational_model/physical_plan/binding_id_iter/scan_ranges/term.h"
 
 using namespace std;
 
@@ -65,66 +69,118 @@ std::vector<VarId> QueryOptimizerProperty::assign() {
     return res;
 }
 
-
+/**
+ * ╔═╦════════════╦════════╦══════════╦═══════════════╦═════════════╗
+ * ║ ║ Element_id ║ Key_id ║ Value_id ║ default_graph ║ named_graph ║
+ * ╠═╬════════════╬════════╬══════════╬═══════════════╬═════════════╣
+ * ║1║     yes    ║   yes  ║    yes   ║      EKV      ║     EKV     ║ => any index works for this case
+ * ║2║     yes    ║   yes  ║    no    ║      EKV      ║     EKV     ║ => KEV also works
+ * ║3║     yes    ║   no   ║    yes   ║     ERROR     ║    ERROR    ║
+ * ║4║     yes    ║   no   ║    no    ║      EKV      ║     EKV     ║
+ * ║5║     no     ║   yes  ║    yes   ║      KVE      ║     KVE     ║
+ * ║6║     no     ║   yes  ║    no    ║      KVE      ║     KEV     ║ => only case index depends on graph
+ * ║7║     no     ║   no   ║    yes   ║     ERROR     ║    ERROR    ║
+ * ║8║     no     ║   no   ║    no    ║      EKV      ║     EKV     ║ => any index works for this case
+ * ╚═╩════════════╩════════╩══════════╩═══════════════╩═════════════╝
+ */
 unique_ptr<BindingIdIter> QueryOptimizerProperty::get_scan() {
-    vector<pair<ObjectId, int>> terms;
-    vector<pair<VarId, int>> vars;
+    vector<unique_ptr<ScanRange>> ranges;
 
-    if (element_assigned) { // use Element|Key|Value
-        vars.push_back(make_pair(element_var_id, 0));
-        if (key_object_id.is_null()) {
-            vars.push_back(make_pair(key_var_id, 1));
-            if (!value_object_id.is_null()) {
-                cout << "ERROR: at query_optimizer_property: if key is not a term, value cannot be a term\n";
-            }
-            vars.push_back(make_pair(value_var_id, 2));
+    if (element_assigned) {
+        if (!key_assigned && value_assigned) { // Case 3: ELEMENT AND VALUE
+            throw logic_error("fixed values with open key is not supported");
         }
-        else {
-            terms.push_back(make_pair(key_object_id, 1));
-            if (value_object_id.is_null()) {
-                vars.push_back(make_pair(value_var_id, 2));
-            }
-            else {
-                terms.push_back(make_pair(value_object_id, 2));
-            }
-        }
+        // cases 1,2 and 4 uses EKV, and case 3 throws exception
+        ranges.push_back(get_element_range());
+        ranges.push_back(get_key_range());
+        ranges.push_back(get_value_range());
+
         if (element_type == ObjectType::node) {
-            return make_unique<GraphScan>(graph_id, relational_model.get_node2prop(),
-                                          move(terms), move(vars));
+            return make_unique<GraphScan>(relational_model.get_node_key_value(), move(ranges));
+        } else {
+            return make_unique<GraphScan>(relational_model.get_edge_key_value(), move(ranges));
         }
-        else { // if (element_type == ObjectType::edge)
-            return make_unique<GraphScan>(graph_id, relational_model.get_edge2prop(),
-                                          move(terms), move(vars));
+    } else {
+        if (key_assigned) {
+            if (value_assigned) { // Case 5: KEY AND VALUE
+                ranges.push_back(get_key_range());
+                ranges.push_back(get_value_range());
+                ranges.push_back(get_element_range());
+
+                if (element_type == ObjectType::node) {
+                    return make_unique<GraphScan>(relational_model.get_key_value_node(), move(ranges));
+                } else {
+                    return make_unique<GraphScan>(relational_model.get_key_value_edge(), move(ranges));
+                }
+            } else {              // Case 6: JUST KEY
+                if (graph_id.is_default()) {
+                    ranges.push_back(get_key_range());
+                    ranges.push_back(get_value_range());
+                    ranges.push_back(get_element_range());
+
+                    if (element_type == ObjectType::node) {
+                        return make_unique<GraphScan>(relational_model.get_key_value_node(), move(ranges));
+                    } else {
+                        return make_unique<GraphScan>(relational_model.get_key_value_edge(), move(ranges));
+                    }
+                } else {
+                    ranges.push_back(get_key_range());
+                    ranges.push_back(get_element_range());
+                    ranges.push_back(get_value_range());
+
+                    if (element_type == ObjectType::node) {
+                        return make_unique<GraphScan>(relational_model.get_key_node_value(), move(ranges));
+                    } else {
+                        return make_unique<GraphScan>(relational_model.get_key_edge_value(), move(ranges));
+                    }
+                }
+            }
+        } else {
+            if (value_assigned) { // Case 7: JUST VALUE
+                throw logic_error("fixed values with open key is not supported");
+            } else {              // Case 8: NOTHING
+                ranges.push_back(get_element_range());
+                ranges.push_back(get_key_range());
+                ranges.push_back(get_value_range());
+
+                if (element_type == ObjectType::node) {
+                    return make_unique<GraphScan>(relational_model.get_node_key_value(), move(ranges));
+                } else {
+                    return make_unique<GraphScan>(relational_model.get_edge_key_value(), move(ranges));
+                }
+            }
         }
     }
-    else { // use Key|Value|Element
-        if (!key_object_id.is_null()) {
-            terms.push_back(make_pair(key_object_id, 0));
-            if (!value_object_id.is_null()) {
-                terms.push_back(make_pair(value_object_id, 1));
-            }
-            else {
-                vars.push_back(make_pair(value_var_id, 1));
-            }
-        }
-        else {
-            vars.push_back(make_pair(key_var_id, 0));
-            if (!value_object_id.is_null()) {
-                cout << "ERROR: at query_optimizer_property: if key is not a term, value cannot be a term\n";
-            }
-            else {
-                vars.push_back(make_pair(value_var_id, 1));
-            }
-        }
-        vars.push_back(make_pair(element_var_id, 2));
+}
 
-        if (element_type == ObjectType::node) {
-            return make_unique<GraphScan>(graph_id, relational_model.get_prop2node(),
-                                          move(terms), move(vars));
-        }
-        else { // if (element_type == ObjectType::edge)
-            return make_unique<GraphScan>(graph_id, relational_model.get_prop2edge(),
-                                          move(terms), move(vars));
-        }
+std::unique_ptr<ScanRange> QueryOptimizerProperty::get_element_range() {
+    if (element_assigned) {
+        return make_unique<AssignedVar>(element_var_id);
+    } else if (graph_id.is_default()) {
+        return make_unique<DefaultGraphVar>(element_var_id);
+    } else {
+        return make_unique<NamedGraphVar>(element_var_id, graph_id);
+    }
+}
+
+
+std::unique_ptr<ScanRange> QueryOptimizerProperty::get_key_range() {
+    if (!key_object_id.is_null()) {
+        return make_unique<Term>(key_object_id);
+    } else if (key_assigned) {
+        return make_unique<AssignedVar>(key_var_id);
+    } else {
+        return make_unique<DefaultGraphVar>(element_var_id);
+    }
+}
+
+
+std::unique_ptr<ScanRange> QueryOptimizerProperty::get_value_range() {
+    if (!value_object_id.is_null()) {
+        return make_unique<Term>(value_object_id);
+    } else if (value_assigned) {
+        return make_unique<AssignedVar>(value_var_id);
+    } else {
+        return make_unique<DefaultGraphVar>(element_var_id);
     }
 }

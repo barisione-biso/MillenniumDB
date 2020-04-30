@@ -2,7 +2,6 @@
 #define RELATIONAL_MODEL__RELATIONAL_MODEL_H_
 
 #include "base/ids/graph_id.h"
-#include "storage/catalog/catalog.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_dir.h"
 #include "storage/index/bplus_tree/bplus_tree_params.h"
@@ -15,26 +14,28 @@ class RelationalGraph;
 
 class RelationalModel {
 public:
-    static constexpr auto MAX_INLINED_BYTES = 5; // Ids have 8 bytes, 2 used for graph, 1 foy type and 5 remaining
-    static constexpr auto GRAPH_OFFSET = 48;
-    static constexpr auto TYPE_OFFSET = 40;
+    static constexpr auto MAX_INLINED_BYTES = 7; // Ids have 8 bytes, 1 for type and 7 remaining
+    static constexpr auto TYPE_OFFSET  = 56; // total_bits - bits_for_type: 64 - 8
+    static constexpr auto GRAPH_OFFSET = 40; // total_bits - bits_for_type - bits for graph: 64 - 8 - 16
 
-    static constexpr uint64_t NODE_MASK                 = 0x0000'01'0000000000UL;
-    static constexpr uint64_t EDGE_MASK                 = 0x0000'02'0000000000UL;
-    static constexpr uint64_t LABEL_MASK                = 0x0000'03'0000000000UL;
-    static constexpr uint64_t KEY_MASK                  = 0x0000'04'0000000000UL;
-    static constexpr uint64_t VALUE_EXTERNAL_STR_MASK   = 0x0000'05'0000000000UL;
-    static constexpr uint64_t VALUE_INLINE_STR_MASK     = 0x0000'06'0000000000UL;
-    static constexpr uint64_t VALUE_INT_MASK            = 0x0000'07'0000000000UL;
-    static constexpr uint64_t VALUE_FLOAT_MASK          = 0x0000'08'0000000000UL;
-    static constexpr uint64_t VALUE_BOOL_MASK           = 0x0000'09'0000000000UL;
+    static constexpr uint64_t NODE_MASK                 = 0x01'0000'0000000000UL;
+    static constexpr uint64_t EDGE_MASK                 = 0x02'0000'0000000000UL;
+    static constexpr uint64_t LABEL_MASK                = 0x03'0000'0000000000UL;
+    static constexpr uint64_t KEY_MASK                  = 0x04'0000'0000000000UL;
+    static constexpr uint64_t VALUE_EXTERNAL_STR_MASK   = 0x05'0000'0000000000UL;
+    static constexpr uint64_t VALUE_INLINE_STR_MASK     = 0x06'0000'0000000000UL;
+    static constexpr uint64_t VALUE_INT_MASK            = 0x07'0000'0000000000UL;
+    static constexpr uint64_t VALUE_FLOAT_MASK          = 0x08'0000'0000000000UL;
+    static constexpr uint64_t VALUE_BOOL_MASK           = 0x09'0000'0000000000UL;
 
-    static constexpr uint64_t UNMASK                    = 0x0000'00'FFFFFFFFFFUL;
-    static constexpr uint64_t TYPE_MASK                 = 0x0000'FF'0000000000UL;
-    static constexpr uint64_t GRAPH_MASK                = 0xFFFF'00'0000000000UL;
+    static constexpr uint64_t ELEMENT_MASK              = 0x00'0000'FFFFFFFFFFUL; // for nodes and edges
+    static constexpr uint64_t VALUE_MASK                = 0x00'FFFF'FFFFFFFFFFUL;
+    // static constexpr uint64_t TYPE_MASK                 = 0x0000'FF'0000000000UL;
+    // static constexpr uint64_t GRAPH_MASK                = 0xFFFF'00'0000000000UL;
+    static constexpr uint64_t TYPE_MASK                 = 0xFF'0000'0000000000UL;
+    static constexpr uint64_t GRAPH_MASK                = 0x00'FFFF'0000000000UL; // ONLY EDGES AND NODES HAVE A GRAPH_MASK
 
     static constexpr auto object_file_name  = "objects.dat";
-    static constexpr auto catalog_file_name = "catalog.dat";
     static constexpr auto hash2id_name      = "hash_id";
 
     // Labels
@@ -74,7 +75,6 @@ public:
     std::shared_ptr<GraphObject> get_graph_object(ObjectId);
 
     ObjectFile& get_object_file();
-    Catalog&    get_catalog();
     BPlusTree&  get_hash2id_bpt();
 
     BPlusTree& get_label2node();
@@ -97,7 +97,6 @@ public:
 
 private:
     std::unique_ptr<ObjectFile> object_file;
-    std::unique_ptr<Catalog>    catalog;
     std::unique_ptr<BPlusTree>  hash2id; // ObjectHash|ObjectId.
 
     std::unique_ptr<BPlusTree>  label2node;

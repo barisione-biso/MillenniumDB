@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
             ("buffer-size,b", po::value<int>(), "set buffer pool size")
             ("nodes-file,n", po::value<string>(&nodes_file)->required(), "nodes file")
             ("edges-file,e", po::value<string>(&edges_file)->required(), "edges file")
-            ("graph-name,g", po::value<string>(&graph_name)->default_value(""), "graph name")
+            ("graph-name,g", po::value<string>(&graph_name)->required(), "graph name")
         ;
 
         po::variables_map vm;

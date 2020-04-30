@@ -3,6 +3,10 @@
 #include "relational_model/binding/binding_id.h"
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/relational_model.h"
+#include "relational_model/physical_plan/binding_id_iter/scan_ranges/assigned_var.h"
+#include "relational_model/physical_plan/binding_id_iter/scan_ranges/default_graph_var.h"
+#include "relational_model/physical_plan/binding_id_iter/scan_ranges/named_graph_var.h"
+#include "relational_model/physical_plan/binding_id_iter/scan_ranges/term.h"
 
 using namespace std;
 
@@ -55,45 +59,59 @@ void QueryOptimizerLabel::try_assign_var(VarId var_id) {
     }
 }
 
-
+/**
+ * ╔═╦════════════╦══════════╦═════════╗
+ * ║ ║ Element_id ║ Label_id ║  index  ║
+ * ╠═╬════════════╬══════════╬═════════╣
+ * ║1║     yes    ║    yes   ║    EL   ║ => any index works for this case
+ * ║2║     yes    ║    no    ║    EL   ║
+ * ║3║     no     ║    yes   ║    LE   ║
+ * ║4║     no     ║    no    ║    EL   ║ => any index works for this case
+ * ╚═╩════════════╩══════════╩═════════╝
+ */
 unique_ptr<BindingIdIter> QueryOptimizerLabel::get_scan() {
-    vector<pair<ObjectId, int>> terms;
-    vector<pair<VarId, int>> vars;
-
-    if (label_assigned) { // Label(?,_) or Label(_,_)
-        if (label_object_id.is_null()) {
-            vars.push_back(make_pair(label_var_id, 0));
-        } else {
-            terms.push_back(make_pair(label_object_id, 0));
-        }
-
-        vars.push_back(make_pair(element_var_id, 1));
-
-        // TODO:
-        if (graph_id.is_default()) {
-
-        } else {
-            
-        }
+    vector<unique_ptr<ScanRange>> ranges;
+    if (element_assigned || !label_assigned) {
+        // cases 1, 2 and 4 uses EL
+        ranges.push_back(get_element_range());
+        ranges.push_back(get_label_range());
 
         if (element_type == ObjectType::node) {
-            return make_unique<GraphScan>(
-                relational_model.get_label2node(), move(terms), move(vars));
-        } else { // if (element_type == ObjectType::edge)
-            return make_unique<GraphScan>(
-                relational_model.get_label2edge(), move(terms), move(vars));
+            return make_unique<GraphScan>(relational_model.get_node2label(), move(ranges));
+        } else {
+            return make_unique<GraphScan>(relational_model.get_edge2label(), move(ranges));
+        }
+    } else {
+        // case 3
+        ranges.push_back(get_label_range());
+        ranges.push_back(get_element_range());
+
+        if (element_type == ObjectType::node) {
+            return make_unique<GraphScan>(relational_model.get_label2node(), move(ranges));
+        } else {
+            return make_unique<GraphScan>(relational_model.get_label2edge(), move(ranges));
         }
     }
-    else { // Label(?,?) or Label(_,?)
-        vars.push_back(make_pair(element_var_id, 0));
-        vars.push_back(make_pair(label_var_id, 1));
-        if (element_type == ObjectType::node) {
-            return make_unique<GraphScan>(
-                relational_model.get_node2label(), move(terms), move(vars));
-        }
-        else { // if (element_type == ObjectType::edge)
-            return make_unique<GraphScan>(
-                relational_model.get_edge2label(), move(terms), move(vars));
-        }
+
+}
+
+std::unique_ptr<ScanRange> QueryOptimizerLabel::get_element_range() {
+    if (element_assigned) {
+        return make_unique<AssignedVar>(element_var_id);
+    } else if (graph_id.is_default()) {
+        return make_unique<DefaultGraphVar>(element_var_id);
+    } else {
+        return make_unique<NamedGraphVar>(element_var_id, graph_id);
+    }
+}
+
+
+std::unique_ptr<ScanRange> QueryOptimizerLabel::get_label_range() {
+    if (!label_object_id.is_null()) {
+        return make_unique<Term>(label_object_id);
+    } else if (label_assigned) {
+        return make_unique<AssignedVar>(label_var_id);
+    } else {
+        return make_unique<DefaultGraphVar>(element_var_id);
     }
 }
