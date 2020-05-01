@@ -35,27 +35,28 @@ public:
     uint64_t get_node_count(GraphId);
     uint64_t get_edge_count(GraphId);
 
-    // ALL IDS ARE UNMASKED
+    // IDs received are unmasked (no type or graph)
     void add_node_label(GraphId, uint64_t label_id);
     void add_edge_label(GraphId, uint64_t label_id);
-    void add_node_key(GraphId, uint64_t key_id);
-    void add_edge_key(GraphId, uint64_t key_id);
+    void add_node_key  (GraphId, uint64_t key_id);
+    void add_edge_key  (GraphId, uint64_t key_id);
 
     uint64_t get_node_count_for_label(GraphId, uint64_t label_id);
     uint64_t get_edge_count_for_label(GraphId, uint64_t label_id);
+    uint64_t get_node_count_for_key  (GraphId, uint64_t key_id);
+    uint64_t get_edge_count_for_key  (GraphId, uint64_t key_id);
 
-    uint64_t get_node_count_for_key(GraphId, uint64_t key_id);
-    uint64_t get_edge_count_for_key(GraphId, uint64_t key_id);
-
-    GraphId get_graph(const std::string& graph_name);
+    // does not count the default graph
+    uint_fast16_t get_graph_count();
 
     GraphId create_graph(const std::string& graph_name);
+    GraphId get_graph(const std::string& graph_name);
 
     void print();
 
 private:
     std::fstream* file;
-    uint32_t graph_count;
+    uint_fast16_t graph_count;
 
     std::vector<std::string> graph_names;
     std::map<std::string, GraphId> graph_ids;
@@ -72,11 +73,16 @@ private:
     std::vector<std::map<uint64_t, uint64_t>> node_key_stats;
     std::vector<std::map<uint64_t, uint64_t>> edge_key_stats;
 
-    void flush();
-    void add_to_map(std::map<uint64_t, uint64_t>& map, uint64_t key, uint64_t& count);
-    uint64_t get_count(std::map<uint64_t, uint64_t>& map, uint64_t key);
     uint64_t read_uint64();
-    uint32_t read_uint32();
+    uint_fast32_t read_uint32();
+
+    void write_uint64(uint64_t);
+    void write_uint32(uint_fast32_t);
+
+    void flush();
+    // add (key, 1) to a map if key is not present or increase value by 1 otherwise
+    void add_to_map(std::map<uint64_t, uint64_t>& map, uint64_t key, uint64_t& count);
+    uint64_t get_map_value(std::map<uint64_t, uint64_t>& map, uint64_t key);
 };
 
 

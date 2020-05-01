@@ -170,7 +170,7 @@ std::unique_ptr<ScanRange> QueryOptimizerProperty::get_key_range() {
     } else if (key_assigned) {
         return make_unique<AssignedVar>(key_var_id);
     } else {
-        return make_unique<DefaultGraphVar>(element_var_id);
+        return make_unique<DefaultGraphVar>(key_var_id);
     }
 }
 
@@ -181,6 +181,6 @@ std::unique_ptr<ScanRange> QueryOptimizerProperty::get_value_range() {
     } else if (value_assigned) {
         return make_unique<AssignedVar>(value_var_id);
     } else {
-        return make_unique<DefaultGraphVar>(element_var_id);
+        return make_unique<DefaultGraphVar>(value_var_id);
     }
 }

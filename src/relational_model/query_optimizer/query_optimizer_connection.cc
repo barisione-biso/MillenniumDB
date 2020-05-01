@@ -13,9 +13,9 @@ using namespace std;
 QueryOptimizerConnection::QueryOptimizerConnection(GraphId graph_id, VarId node_from_var_id,
                                                    VarId node_to_var_id, VarId edge_var_id)
     : graph_id(graph_id),
-        node_from_var_id(node_from_var_id),
-        node_to_var_id(node_to_var_id),
-        edge_var_id(edge_var_id)
+      node_from_var_id(node_from_var_id),
+      node_to_var_id(node_to_var_id),
+      edge_var_id(edge_var_id)
 {
     node_from_assigned = false;
     node_to_assigned = false;

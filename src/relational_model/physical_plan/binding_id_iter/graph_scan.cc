@@ -17,7 +17,7 @@ using namespace std;
 GraphScan::GraphScan(BPlusTree& bpt, std::vector<std::unique_ptr<ScanRange>> ranges)
     : record_size(bpt.params->total_size), bpt(bpt), ranges(move(ranges))
 {
-    assert((int)this->ranges.size() == this->bpt.params->total_size
+    assert(this->ranges.size() == this->bpt.params->total_size
         && "Inconsistent size of ranges and bpt");
 }
 

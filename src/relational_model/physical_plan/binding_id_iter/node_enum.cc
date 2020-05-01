@@ -2,11 +2,28 @@
 
 #include "relational_model/binding/binding_id.h"
 #include "relational_model/relational_model.h"
+#include "storage/catalog/catalog.h"
 
 using namespace std;
 
-NodeEnum::NodeEnum(GraphId graph_id, VarId var_id, uint64_t node_count)
-    : graph_id(graph_id), var_id(var_id), node_count(node_count) { }
+NodeEnum::NodeEnum(GraphId graph_id, VarId var_id)
+    : var_id(var_id)
+{
+    if (graph_id.is_default()) {
+        auto graph_count = catalog.get_graph_count();
+        for (uint64_t i = 1; i <= graph_count; i++) {
+            graph_counts.push_back(make_pair(
+                (i << RelationalModel::GRAPH_OFFSET) | RelationalModel::NODE_MASK,
+                catalog.get_node_count(GraphId(i))
+            ));
+        }
+    } else {
+        graph_counts.push_back(make_pair(
+            graph_id << RelationalModel::GRAPH_OFFSET,
+            catalog.get_node_count(graph_id)
+        ));
+    }
+}
 
 
 NodeEnum::~NodeEnum() = default;
@@ -19,15 +36,20 @@ void NodeEnum::begin(BindingId& input) {
 
 
 BindingId* NodeEnum::next() {
-    current_node++;
-    if (current_node <= node_count) {
-        my_binding->add_all(*my_input);
-        my_binding->add(var_id, current_node
-                                | RelationalModel::NODE_MASK
-                                | (graph_id << RelationalModel::GRAPH_OFFSET) );
-        return my_binding.get();
+    while (current_graph < graph_counts.size()) {
+        ++current_node;
+        if (current_node <= graph_counts[current_graph].second) {
+            my_binding->add_all(*my_input);
+            my_binding->add(var_id, current_node | graph_counts[current_graph].first );
+            return my_binding.get();
+        }
+        else {
+            ++current_graph;
+            current_node = 0;
+            // while executes again
+        }
     }
-    else return nullptr;
+    return nullptr;
 }
 
 

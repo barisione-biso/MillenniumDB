@@ -112,6 +112,6 @@ std::unique_ptr<ScanRange> QueryOptimizerLabel::get_label_range() {
     } else if (label_assigned) {
         return make_unique<AssignedVar>(label_var_id);
     } else {
-        return make_unique<DefaultGraphVar>(element_var_id);
+        return make_unique<DefaultGraphVar>(label_var_id);
     }
 }

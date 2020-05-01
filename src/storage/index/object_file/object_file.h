@@ -1,4 +1,4 @@
-/*
+/* TODO: actualizar comentario con los cambios a default graph
  * Object File is designed to contain all labels, all keys and some values (those that need more than 56 bits to be
  * encoded). Strings are meant to be encoded in UTF-8.
  *

@@ -54,7 +54,9 @@ void Catalog::init() {
         file->seekg(0, file->beg);
 
         graph_count = read_uint32();
-        if (graph_count <= 0) {
+        // TODO: check graph_count < 2^16
+
+        if (graph_count == 0) {
             throw std::logic_error("Catalog file inconsistent: graph_count must be more than 0.");
             return;
         }
@@ -158,42 +160,43 @@ void Catalog::flush() {
     cout << "flush catalog\n";
     print();
     file->seekg(0, file->beg);
-    file->write((const char *)&graph_count, sizeof(graph_count));
+    write_uint32(graph_count);
 
-    for (uint32_t graph = 0; graph < graph_count; graph++) {
-        uint32_t name_len = graph_names[graph].size();
-        file->write((const char *)&name_len, sizeof(name_len));
+    for (uint_fast16_t graph = 0; graph < graph_count; graph++) {
+        uint_fast32_t name_len = graph_names[graph].size();
+
+        write_uint32(name_len);
         file->write((const char *)graph_names[graph].data(), name_len);
 
-        file->write((const char *)&node_count[graph],       sizeof(node_count[graph]));
-        file->write((const char *)&edge_count[graph],       sizeof(edge_count[graph]));
-        file->write((const char *)&node_label_count[graph], sizeof(node_label_count[graph]));
-        file->write((const char *)&edge_label_count[graph], sizeof(edge_label_count[graph]));
-        file->write((const char *)&node_key_count[graph],   sizeof(node_key_count[graph]));
-        file->write((const char *)&edge_key_count[graph],   sizeof(edge_key_count[graph]));
+        write_uint64(node_count[graph]);
+        write_uint64(edge_count[graph]);
+        write_uint64(node_label_count[graph]);
+        write_uint64(edge_label_count[graph]);
+        write_uint64(node_key_count[graph]);
+        write_uint64(edge_key_count[graph]);
 
         for (auto&& [id, count] : node_label_stats[graph]) {
-            file->write((const char *)&id, sizeof(id));
-            file->write((const char *)&count, sizeof(count));
+            write_uint64(id);
+            write_uint64(count);
         }
         for (auto&& [id, count] : edge_label_stats[graph]) {
-            file->write((const char *)&id, sizeof(id));
-            file->write((const char *)&count, sizeof(count));
+            write_uint64(id);
+            write_uint64(count);
         }
         for (auto&& [id, count] : node_key_stats[graph]) {
-            file->write((const char *)&id, sizeof(id));
-            file->write((const char *)&count, sizeof(count));
+            write_uint64(id);
+            write_uint64(count);
         }
         for (auto&& [id, count] : edge_key_stats[graph]) {
-            file->write((const char *)&id, sizeof(id));
-            file->write((const char *)&count, sizeof(count));
+            write_uint64(id);
+            write_uint64(count);
         }
     }
 }
 
 
 void Catalog::print() {
-    for (uint32_t graph = 0; graph < graph_count; graph++) {
+    for (uint_fast16_t graph = 0; graph < graph_count; graph++) {
         cout << "Graph " << graph << ": \"" << graph_names[graph] << "\"" << endl;
         cout << "  node count: " << node_count[graph] << endl;
         cout << "  edge count: " << edge_count[graph] << endl;
@@ -206,16 +209,44 @@ void Catalog::print() {
 
 
 uint64_t Catalog::read_uint64() {
-    uint64_t res;
-    file->read((char*)&res, 8);
+    uint64_t res = 0;
+    uint8_t buf[8];
+    file->read((char*)buf, sizeof(buf));
+
+    for (int i = 0, shift = 0; i < 8; ++i, shift += 8) {
+        res |= static_cast<uint64_t>(buf[i]) << shift;
+    }
     return res;
 }
 
 
-uint32_t Catalog::read_uint32() {
-    uint32_t res;
-    file->read((char*)&res, 4);
+uint_fast32_t Catalog::read_uint32() {
+    uint_fast32_t res = 0;
+    uint8_t buf[4];
+    file->read((char*)buf, sizeof(buf));
+
+    for (int i = 0, shift = 0; i < 4; ++i, shift += 8) {
+        res |= static_cast<uint_fast32_t>(buf[i]) << shift;
+    }
     return res;
+}
+
+
+void Catalog::write_uint64(uint64_t n) {
+    uint8_t buf[8];
+    for (int i = 0, shift = 0; i < sizeof(buf); ++i, shift += 8) {
+        buf[i] = (n >> shift) & 0xFF;
+    }
+    file->write(reinterpret_cast<const char*>(buf), sizeof(buf));
+}
+
+
+void Catalog::write_uint32(uint_fast32_t n) {
+    uint8_t buf[4];
+    for (int i = 0, shift = 0; i < sizeof(buf); ++i, shift += 8) {
+        buf[i] = (n >> shift) & 0xFF;
+    }
+    file->write(reinterpret_cast<const char*>(buf), sizeof(buf));
 }
 
 
@@ -282,7 +313,7 @@ void Catalog::add_to_map(map<uint64_t, uint64_t>& map, uint64_t key, uint64_t& c
 }
 
 
-uint64_t Catalog::get_count(map<uint64_t, uint64_t>& map, uint64_t key) {
+uint64_t Catalog::get_map_value(map<uint64_t, uint64_t>& map, uint64_t key) {
     auto it = map.find(key);
     if ( it == map.end() ) {
         return 0;
@@ -291,24 +322,28 @@ uint64_t Catalog::get_count(map<uint64_t, uint64_t>& map, uint64_t key) {
     }
 }
 
+uint_fast16_t Catalog::get_graph_count() {
+    return graph_count - 1;
+}
+
 
 uint64_t Catalog::get_node_count_for_label(GraphId graph_id, uint64_t label_id) {
-    return get_count(node_label_stats[graph_id], label_id);
+    return get_map_value(node_label_stats[graph_id], label_id);
 }
 
 
 uint64_t Catalog::get_edge_count_for_label(GraphId graph_id, uint64_t label_id) {
-    return get_count(edge_label_stats[graph_id], label_id);
+    return get_map_value(edge_label_stats[graph_id], label_id);
 }
 
 
 uint64_t Catalog::get_node_count_for_key(GraphId graph_id, uint64_t key_id) {
-    return get_count(node_key_stats[graph_id], key_id);
+    return get_map_value(node_key_stats[graph_id], key_id);
 }
 
 
 uint64_t Catalog::get_edge_count_for_key(GraphId graph_id, uint64_t key_id){
-    return get_count(edge_key_stats[graph_id], key_id);
+    return get_map_value(edge_key_stats[graph_id], key_id);
 }
 
 

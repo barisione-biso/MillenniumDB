@@ -18,20 +18,15 @@ QueryOptimizerLonelyNode::QueryOptimizerLonelyNode
 
 
 int QueryOptimizerLonelyNode::get_heuristic() {
-    if (assigned) return -1;
-
-    else if (element_assigned) return 99;
+    if (assigned)              return -1;
+    // else if (element_assigned) return 99;
     else                       return  0;
 }
 
 
 std::vector<VarId> QueryOptimizerLonelyNode::assign() {
     assigned = true;
-    vector<VarId> res;
-
-    if (!element_assigned)
-        res.push_back(element_var_id);
-
+    vector<VarId> res = { element_var_id };
     return res;
 }
 
@@ -41,13 +36,16 @@ void QueryOptimizerLonelyNode::try_assign_var(VarId var_id) {
         return;
     }
     if (element_var_id == var_id) {
-        element_assigned = true;
+        // TODO: para que esto se cumpla hay que eliminar redundancia
+        // EJ:
+        // SELECT *
+        // MATCH (?n), (?n)
+        throw std::logic_error("LonelyNode should appear once and only if no other node with "
+                               "the same name is present in the Graph Pattern");
     }
 }
 
 
 unique_ptr<BindingIdIter> QueryOptimizerLonelyNode::get_scan() {
-    return make_unique<NodeEnum>(
-        graph_id, element_var_id, catalog.get_node_count(graph_id)
-    );
+    return make_unique<NodeEnum>(graph_id, element_var_id);
 }

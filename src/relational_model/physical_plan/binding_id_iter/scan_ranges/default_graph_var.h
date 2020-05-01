@@ -16,7 +16,7 @@ public:
     }
 
     uint64_t get_max(BindingId&) override {
-        return 0xFFFF'FF'FFFFFFFFFFUL;
+        return 0xFF'FFFF'FFFFFFFFFFUL;
     }
 
     void try_assign(BindingId& binding, ObjectId obj_id) override {
