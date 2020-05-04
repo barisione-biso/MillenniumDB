@@ -16,10 +16,11 @@
 #include <vector>
 
 #include "storage/file_id.h"
+#include "storage/index/ordered_file/bpt_leaf_provider.h"
 
 class Record;
 
-class OrderedFile {
+class OrderedFile : public BptLeafProvider {
 public:
     const uint_fast8_t tuple_size;
 
@@ -32,9 +33,12 @@ public:
     void print();
     void check_order(std::vector<uint_fast8_t> column_order);
 
-    void begin_iter();
-    bool has_more_tuples();
-    uint_fast32_t next_tuples(uint64_t* output, uint_fast32_t max_tuples);
+    // BptLeafProvider methods
+    void begin() override;
+    bool has_more_tuples() override;
+    uint_fast32_t next_tuples(uint64_t* output, uint_fast32_t max_tuples) override;
+
+    std::unique_ptr<Record> next_record();
 
 private:
     FileId file_id;

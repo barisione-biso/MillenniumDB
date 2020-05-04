@@ -7,7 +7,9 @@
 #include "relational_model/import/bulk_import_grammar.h"
 #include "relational_model/import/bulk_import_value_visitor.h"
 #include "relational_model/relational_model.h"
-#include "relational_model/graph/relational_graph.h"
+#include "storage/index/ordered_file/bpt_merger.h"
+#include "storage/buffer_manager.h"
+#include "storage/file_manager.h"
 
 using namespace std;
 
@@ -106,34 +108,55 @@ void BulkImport::start_import() {
     relational_model.get_edge_from_to().bulk_import(connections);
 
     // INDEXES WHERE APPENDING AT END IS NOT POSSIBLE AND MERGE IS NEEDED
-    // TODO: LABEL - NODE
+    // LABEL - NODE
     node_labels.order(vector<uint_fast8_t> { 1, 0 });
-    relational_model.get_label2node().bulk_import(node_labels);
+    merge_tree_and_ordered_file(relational_model.label2node_name, relational_model.get_label2node(),
+                                node_labels);
 
-    // auto& bpt = relational_model.get_label2node();
-    // create new temp bpt
-    // new_bpt.bulk_import_merge(bpt, ordered_file);
-
-
-    // TODO: LABEL - EDGE
+    // LABEL - EDGE
     edge_labels.order(vector<uint_fast8_t> { 1, 0 });
-    relational_model.get_label2edge().bulk_import(edge_labels);
+    merge_tree_and_ordered_file(relational_model.label2edge_name, relational_model.get_label2edge(),
+                                edge_labels);
 
-    // TODO: KEY - VALUE - NODE
+    // KEY - VALUE - NODE
     node_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
-    relational_model.get_key_value_node().bulk_import(node_key_value);
+    merge_tree_and_ordered_file(relational_model.key_value_node_name, relational_model.get_key_value_node(),
+                                node_key_value);
 
-    // TODO: KEY - VALUE - EDGE
+    // KEY - VALUE - EDGE
     edge_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
-    relational_model.get_key_value_edge().bulk_import(edge_key_value);
+    merge_tree_and_ordered_file(relational_model.key_value_edge_name, relational_model.get_key_value_edge(),
+                                edge_key_value);
 
-    // TODO: KEY - NODE - VALUE
+    // KEY - NODE - VALUE
     node_key_value.order(vector<uint_fast8_t> { 0, 2, 1 });
-    relational_model.get_key_node_value().bulk_import(node_key_value);
+    merge_tree_and_ordered_file(relational_model.key_node_value_name, relational_model.get_key_node_value(),
+                                node_key_value);
 
-    // TODO: KEY - EDGE - VALUE
+    // KEY - EDGE - VALUE
     edge_key_value.order(vector<uint_fast8_t> { 0, 2, 1 });
-    relational_model.get_key_edge_value().bulk_import(edge_key_value);
+    merge_tree_and_ordered_file(relational_model.key_edge_value_name, relational_model.get_key_edge_value(),
+                                edge_key_value);
+}
+
+
+void BulkImport::merge_tree_and_ordered_file(const string& original_filename, BPlusTree& bpt,
+                                             OrderedFile& ordered_file)
+{
+    auto tmp_filename = original_filename + ".tmp";
+    auto bpt_params = make_unique<BPlusTreeParams>(tmp_filename, bpt.params->key_size, bpt.params->value_size);
+
+    auto new_bpt = BPlusTree(move(bpt_params));
+    auto bpt_merger = BptMerger(ordered_file, bpt);
+    new_bpt.bulk_import(bpt_merger);
+
+    buffer_manager.flush();
+
+    file_manager.remove(bpt.params->dir_file_id);
+    file_manager.remove(bpt.params->leaf_file_id);
+
+    file_manager.rename(new_bpt.params->dir_file_id, bpt.params->dir_file_id);
+    file_manager.rename(new_bpt.params->leaf_file_id, bpt.params->leaf_file_id);
 }
 
 

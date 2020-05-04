@@ -40,7 +40,7 @@ OrderedFile::~OrderedFile() {
     file_manager.remove(file_id);
 }
 
-void OrderedFile::begin_iter() {
+void OrderedFile::begin() {
     file.seekg(0, ios::end);
     filesize = file.tellg();
     file.seekg(0, ios::beg);
@@ -51,12 +51,27 @@ bool OrderedFile::has_more_tuples() {
 }
 
 uint_fast32_t OrderedFile::next_tuples(uint64_t* output, uint_fast32_t max_tuples) {
-    file.read((char*)output, max_tuples*bytes_per_tuple);
+    file.read(reinterpret_cast<char*>(output), max_tuples*bytes_per_tuple);
     auto res = file.gcount()/bytes_per_tuple;
     file.clear(); // clear posible badbit
 
     return res;
 }
+
+std::unique_ptr<Record> OrderedFile::next_record() {
+    auto vec = vector<uint64_t>(tuple_size, 0);
+    file.read(reinterpret_cast<char*>(vec.data()), bytes_per_tuple);
+
+    auto readed = file.gcount()/bytes_per_tuple;
+    file.clear(); // clear posible badbit
+
+    if (readed == 0) {
+        return nullptr;
+    } else {
+        return make_unique<Record>(vec);
+    }
+}
+
 
 void OrderedFile::append_record(const Record& record) {
 

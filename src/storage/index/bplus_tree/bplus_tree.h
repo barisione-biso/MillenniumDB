@@ -26,6 +26,7 @@ class Record;
 class OrderedFile;
 class BPlusTreeDir;
 class BPlusTreeParams;
+class BptLeafProvider;
 
 class BPlusTree {
 private:
@@ -39,7 +40,7 @@ public:
     BPlusTree(std::unique_ptr<BPlusTreeParams> params);
     ~BPlusTree() = default;
 
-    void bulk_import(OrderedFile&);
+    void bulk_import(BptLeafProvider&);
 
     void insert(const Record& record);
     void insert(const Record& key, const Record& value);

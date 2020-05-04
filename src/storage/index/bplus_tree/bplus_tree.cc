@@ -3,6 +3,7 @@
 #include "storage/buffer_manager.h"
 #include "storage/index/record.h"
 #include "storage/index/ordered_file/ordered_file.h"
+#include "storage/index/ordered_file/bpt_leaf_provider.h"
 #include "storage/index/bplus_tree/bplus_tree_dir.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 #include "storage/index/bplus_tree/bplus_tree_params.h"
@@ -21,15 +22,15 @@ BPlusTree::BPlusTree(unique_ptr<BPlusTreeParams> _params)
 }
 
 
-void BPlusTree::bulk_import(OrderedFile& ordered_file) {
-    ordered_file.begin_iter();
+void BPlusTree::bulk_import(BptLeafProvider& leaf_provider) {
+    leaf_provider.begin();
 
     if (is_empty) {
         // first leaf
         auto first_leaf = BPlusTreeLeaf(*params, buffer_manager.get_page(params->leaf_file_id, 0));
-        *first_leaf.value_count = ordered_file.next_tuples(first_leaf.records, params->leaf_max_records);
+        *first_leaf.value_count = leaf_provider.next_tuples(first_leaf.records, params->leaf_max_records);
         // root.dirs[0] = 0;
-        if (ordered_file.has_more_tuples()) {
+        if (leaf_provider.has_more_tuples()) {
             *first_leaf.next_leaf = first_leaf.page.get_page_number() + 1;
         }
         first_leaf.page.make_dirty();
@@ -39,31 +40,92 @@ void BPlusTree::bulk_import(OrderedFile& ordered_file) {
         // fill last page
         auto last_leaf = BPlusTreeLeaf(*params, buffer_manager.get_last_page(params->leaf_file_id));
         if (*last_leaf.value_count < params->leaf_max_records) {
-            auto new_tuples = ordered_file.next_tuples(&last_leaf.records[*last_leaf.value_count * params->total_size],
+            auto new_tuples = leaf_provider.next_tuples(&last_leaf.records[*last_leaf.value_count * params->total_size],
                                                        params->leaf_max_records - *last_leaf.value_count);
             *last_leaf.value_count += new_tuples;
         }
-        if (ordered_file.has_more_tuples()) {
+        if (leaf_provider.has_more_tuples()) {
             *last_leaf.next_leaf = last_leaf.page.get_page_number() + 1;
         }
         last_leaf.page.make_dirty();
     }
 
-    while (ordered_file.has_more_tuples()) {
+    while (leaf_provider.has_more_tuples()) {
         auto new_leaf = BPlusTreeLeaf(*params, buffer_manager.append_page(params->leaf_file_id));
-        *new_leaf.value_count = ordered_file.next_tuples(new_leaf.records, params->leaf_max_records);
+        *new_leaf.value_count = leaf_provider.next_tuples(new_leaf.records, params->leaf_max_records);
 
         if (*new_leaf.value_count <= 0) {
             cout << "Wrong *new_leaf.value_count: " << *new_leaf.value_count << "\n";
         }
 
-        if (ordered_file.has_more_tuples()) {
+        if (leaf_provider.has_more_tuples()) {
             *new_leaf.next_leaf = new_leaf.page.get_page_number() + 1;
         }
         root->bulk_insert(new_leaf);
         new_leaf.page.make_dirty();
     }
 }
+
+
+// void BPlusTree::bulk_import(OrderedFile& ordered_file, BPlusTree& bpt) {
+//     auto record_size = bpt.params->key_size;
+
+//     auto min_range = vector<uint64_t>(record_size, 0);
+//     auto max_range = vector<uint64_t>(record_size, UINT64_MAX);
+//     auto bpt_iter = bpt.get_range(Record(min_range), Record(max_range));
+
+    // // first leaf
+    // auto first_leaf = BPlusTreeLeaf(*params, buffer_manager.get_page(params->leaf_file_id, 0));
+    // // *first_leaf.value_count = ordered_file.next_tuples(first_leaf.records, params->leaf_max_records);
+    // // root.dirs[0] = 0;
+    // if (ordered_file.has_more_tuples()) {
+    //     *first_leaf.next_leaf = first_leaf.page.get_page_number() + 1;
+    // }
+    // first_leaf.page.make_dirty();
+    // is_empty = false;
+
+
+    // while (ordered_file.has_more_tuples()) {
+    //     auto new_leaf = BPlusTreeLeaf(*params, buffer_manager.append_page(params->leaf_file_id));
+    //     // *new_leaf.value_count = ordered_file.next_tuples(new_leaf.records, params->leaf_max_records);
+
+    //     if (*new_leaf.value_count <= 0) {
+    //         cout << "Wrong *new_leaf.value_count: " << *new_leaf.value_count << "\n";
+    //     }
+
+    //     if (ordered_file.has_more_tuples()) {
+    //         *new_leaf.next_leaf = new_leaf.page.get_page_number() + 1;
+    //     }
+    //     root->bulk_insert(new_leaf);
+    //     new_leaf.page.make_dirty();
+    // }
+//     ordered_file.begin_iter();
+//     auto ordered_file_record = ordered_file.next_record();
+//     auto bpt_record = bpt_iter->next();
+
+//     while (ordered_file_record != nullptr && bpt_record != nullptr) {
+//         if (ordered_file_record == nullptr) {
+//             // TODO: asignar bpt_record
+//             bpt_record = bpt_iter->next();
+//         }
+//         else if (bpt_record == nullptr) {
+//             // TODO: asignar ordered_file_record
+//             ordered_file_record = ordered_file.next_record();
+//         }
+//         else if (*ordered_file_record < *bpt_record) {
+//             // TODO: asignar ordered_file_record
+//             ordered_file_record = ordered_file.next_record();
+//         }
+//         else if (*bpt_record < *ordered_file_record) {
+//             // TODO: asignar bpt_record
+//             bpt_record = bpt_iter->next();
+//         }
+//         else {
+//             throw logic_error("duplicated record");
+//         }
+//     }
+
+// }
 
 
 unique_ptr<BPlusTree::Iter> BPlusTree::get_range(const Record& min, const Record& max) {
