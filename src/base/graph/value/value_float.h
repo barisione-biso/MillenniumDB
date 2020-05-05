@@ -26,5 +26,4 @@ public:
     bool operator>(const GraphObject& rhs) const override;
 };
 
-
 #endif // BASE__VALUE_FLOAT_H_

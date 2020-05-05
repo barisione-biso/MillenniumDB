@@ -1,10 +1,9 @@
 #ifndef BASE__NEGATION_H_
 #define BASE__NEGATION_H_
 
-#include "base/graph/condition/condition.h"
-
 #include <memory>
-#include <iostream>
+
+#include "base/graph/condition/condition.h"
 
 class Negation : public Condition {
 public:
@@ -26,4 +25,4 @@ public:
     }
 };
 
-#endif //BASE__NEGATION_H_
+#endif // BASE__NEGATION_H_

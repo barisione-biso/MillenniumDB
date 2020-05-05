@@ -1,16 +1,4 @@
-- Rama nueva con semántica default graph = union de todos los grafos
-    + Nueva permutación para properties (key/node/value)
-    + Cambiar creación de GraphScan en QueryOptimizer teniendo en cuenta la nueva semántica
-    + Sacar prefijo de grafo de keys/labels/values al hacer bulk import
-    + ¿Tipo pasa a estar antes que el grafo? -> tratar de reutilizar esos 2 bytes para valores
-    + GraphIds parten de 1
-    - Merge de Ordered Files
-    - Editar bulk import para que sepa que B+Trees necesitan merge y cuáles no
-    - Editar catálogo en importacion: siempre modificar también el default graph
-    - Node Enumeration: caso especial si es default graph
-
-- permitir añadir datos a grafo existente -> otro ejecutable?
-
+- Añadir Databases de pruebas como archivo comprimido al repositorio
 - Rehacer dependencia de objetos globales:
     - sacar nifty counter
     - Modelo los inicializa y destruye?
@@ -19,20 +7,26 @@
     - partir con grafo grande y añadir chicos.
     - partir con grafo chico y añadir grande.
 
+- rename en file mananager no edita el buffer_manager (FileId se re asocia).
+    - checkear que nuevo nombre no existe en el disco ni en el file manager.
+- remove en file manager limpia el buffer manager
+    - checkear pin == 0 para las páginas a ser eliminadas
+
 - automatizar test con script bash
 - Reescritura de consulta (igualdades de where hacia match)
 - Ampliar el diagrama para explicar el prefijo de grafos
 - Hacer más tests de cosas en conjunto (ej: label+property)
 - hacer diagramas de flujo de las siguientes operaciones:
     - bplustree search
+- permitir añadir datos a grafo existente -> otro ejecutable?
 
 - Importar varios grafos en el mismo bulk_import
 - Presentar plan pointer swizzling (cuántos punteros como máximo permitir?)
 - Blob para objetos muy grandes, guardar fuera de object file, en su propio archivo.
 - Buffer manager:
     - allocating more space if necesary ?
-- Ordered File:
-    - use disk if importing more than X nodes?
+- Bulk Import:
+    - use disk (ordered file) if importing more than X nodes/edges?
 - Catalog:
     - Stop if having key for node/edge more than X different keys.
 - Usar BufferManager para OrderedFiles ?

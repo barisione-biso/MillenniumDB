@@ -1,6 +1,8 @@
 #include <fstream>
 #include <iostream>
 
+#include <boost/program_options.hpp>
+
 #include "base/binding/binding.h"
 #include "base/binding/binding_iter.h"
 #include "base/parser/logical_plan/op/op.h"
@@ -8,15 +10,35 @@
 #include "relational_model/relational_model.h"
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/query_optimizer/physical_plan_generator.h"
-
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 
 using namespace std;
+namespace po = boost::program_options;
 
-int main() {
-    // TODO: use program options for database folder
-    file_manager.init();
+int main(int argc, char **argv) {
+    string db_folder;
+    // Parse arguments
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help,h", "show this help message")
+        ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
+    ;
+
+    po::positional_options_description p;
+    p.add("db-folder", -1);
+
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+
+    if (vm.count("help")) {
+        cout << "Usage: server [options] DB_FOLDER\n";
+        cout << desc << "\n";
+        return 0;
+    }
+    po::notify(vm);
+
+    file_manager.init(db_folder);
     buffer_manager.init();
     relational_model.init();
 

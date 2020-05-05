@@ -81,6 +81,7 @@ void BulkImport::start_import() {
     cout << "\nCreating indexes\n";
 
     // INDEXES WHERE APPENDING AT END IS POSSIBLE
+    // TODO: measure time
     // NODE - LABEL
     node_labels.order(vector<uint_fast8_t> { 0, 1 });
     relational_model.get_node2label().bulk_import(node_labels);
@@ -108,6 +109,7 @@ void BulkImport::start_import() {
     relational_model.get_edge_from_to().bulk_import(connections);
 
     // INDEXES WHERE APPENDING AT END IS NOT POSSIBLE AND MERGE IS NEEDED
+    // TODO: measure time
     // LABEL - NODE
     node_labels.order(vector<uint_fast8_t> { 1, 0 });
     merge_tree_and_ordered_file(relational_model.label2node_name, relational_model.get_label2node(),

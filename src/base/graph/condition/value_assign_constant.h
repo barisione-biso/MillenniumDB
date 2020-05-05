@@ -19,4 +19,4 @@ public:
     void check_names(std::map<std::string, ObjectType>&) { }
 };
 
-#endif //BASE__VALUE_ASSIGN_CONSTANT_H_
+#endif // BASE__VALUE_ASSIGN_CONSTANT_H_

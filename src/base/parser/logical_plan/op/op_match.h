@@ -153,4 +153,4 @@ public:
     }
 };
 
-#endif //BASE__OP_MATCH_H_
+#endif // BASE__OP_MATCH_H_

@@ -12,4 +12,4 @@ public:
     virtual BindingId* next() = 0; // next returning nullptr means there are not more bindings
 };
 
-#endif //RELATIONAL_MODEL__BINDING_ID_ITER_H_
+#endif // RELATIONAL_MODEL__BINDING_ID_ITER_H_

@@ -39,7 +39,6 @@ uint_fast32_t BptMerger::next_tuples(uint64_t* output, uint_fast32_t max_tuples)
                 bpt_record->ids.data(),
                 record_size * sizeof(uint64_t)
             );
-            *current_output += record_size;
             bpt_record = bpt_iter->next();
         }
         else if (bpt_record == nullptr) {
@@ -48,7 +47,6 @@ uint_fast32_t BptMerger::next_tuples(uint64_t* output, uint_fast32_t max_tuples)
                 ordered_file_record->ids.data(),
                 record_size * sizeof(uint64_t)
             );
-            *current_output += record_size;
             ordered_file_record = ordered_file.next_record();
         }
         else if (*ordered_file_record < *bpt_record) {
@@ -57,7 +55,6 @@ uint_fast32_t BptMerger::next_tuples(uint64_t* output, uint_fast32_t max_tuples)
                 ordered_file_record->ids.data(),
                 record_size * sizeof(uint64_t)
             );
-            *current_output += record_size;
             ordered_file_record = ordered_file.next_record();
         }
         else if (*bpt_record < *ordered_file_record) {
@@ -66,12 +63,12 @@ uint_fast32_t BptMerger::next_tuples(uint64_t* output, uint_fast32_t max_tuples)
                 bpt_record->ids.data(),
                 record_size * sizeof(uint64_t)
             );
-            *current_output += record_size;
             bpt_record = bpt_iter->next();
         }
         else {
             throw logic_error("duplicated record at merging.");
         }
+        current_output += record_size;
     }
     return copied_tuples;
 }

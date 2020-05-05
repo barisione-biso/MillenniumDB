@@ -229,8 +229,8 @@ void BPlusTreeLeaf::print() const {
 
 bool BPlusTreeLeaf::check() const {
     if (*value_count <= 0) {
-        cout << "value_count should be greater than 0. ";
-        cout << "got: " << *value_count << "\n";
+        cerr << "ERROR: value_count should be greater than 0. ";
+        cerr << "       got: " << *value_count << "\n";
     }
 
     if (*value_count > 1) {
@@ -249,7 +249,7 @@ bool BPlusTreeLeaf::check() const {
                 y.ids[i] = records[current_pos++];
             }
             if (y <= x) {
-                cout << "bad record order at BPlusTreeLeaf\n";
+                cerr << "ERROR: bad record order at BPlusTreeLeaf\n";
                 print();
                 return false;
             }

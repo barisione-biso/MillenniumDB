@@ -1,11 +1,10 @@
 #ifndef BASE__COJUNCTION_H_
 #define BASE__COJUNCTION_H_
 
-#include "base/graph/condition/condition.h"
-
 #include <memory>
 #include <vector>
-#include <iostream>
+
+#include "base/graph/condition/condition.h"
 
 class Conjunction : public Condition {
 public:
@@ -39,4 +38,4 @@ public:
     }
 };
 
-#endif //BASE__COJUNCTION_H_
+#endif // BASE__COJUNCTION_H_

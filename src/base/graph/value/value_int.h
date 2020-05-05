@@ -1,9 +1,9 @@
 #ifndef BASE__VALUE_INT_H_
 #define BASE__VALUE_INT_H_
 
-#include "base/graph/value/value.h"
-
 #include <cstring>
+
+#include "base/graph/value/value.h"
 
 class ValueInt: public Value {
 public:

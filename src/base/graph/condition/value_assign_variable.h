@@ -25,4 +25,4 @@ public:
     }
 };
 
-#endif //BASE__VALUE_ASSIGN_VARIABLE_H_
+#endif // BASE__VALUE_ASSIGN_VARIABLE_H_

@@ -59,5 +59,4 @@ public:
     }
 };
 
-
 #endif // BASE__VALUE_BOOL_H_

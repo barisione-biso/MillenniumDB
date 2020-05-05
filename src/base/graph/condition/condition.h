@@ -1,11 +1,11 @@
 #ifndef BASE__CONDITION_H_
 #define BASE__CONDITION_H_
 
-class Binding;
-
 #include <map>
 
 #include "base/graph/graph_object.h"
+
+class Binding;
 
 enum class ConditionType {
     comparison,
@@ -24,4 +24,4 @@ public:
     virtual void check_names(std::map<std::string, ObjectType>&) = 0;
 };
 
-#endif //BASE__CONDITION_H_
+#endif // BASE__CONDITION_H_

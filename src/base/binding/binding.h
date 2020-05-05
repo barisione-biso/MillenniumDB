@@ -16,5 +16,4 @@ public:
     virtual std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key) = 0;
 };
 
-
 #endif // BASE__BINDING_H_

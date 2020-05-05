@@ -19,7 +19,6 @@ Catalog& catalog = reinterpret_cast<Catalog&>(catalog_buf);
 
 Catalog::Catalog() = default;
 Catalog::~Catalog() {
-    cout << "~Catalog\n";
     flush();
 }
 
@@ -157,7 +156,6 @@ GraphId Catalog::create_graph(const std::string& graph_name) {
 
 
 void Catalog::flush() {
-    cout << "flush catalog\n";
     print();
     file->seekg(0, file->beg);
     write_uint32(graph_count);

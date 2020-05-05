@@ -63,12 +63,14 @@ void FileManager::close(FileId file_id) {
 
 
 void FileManager::remove(FileId file_id) {
+    // TODO: integrar buffer manager
     close(file_id);
     std::remove(filenames[file_id.id].c_str());
 }
 
 
 void FileManager::rename(FileId old_name_id, FileId new_name_id) {
+    // TODO: integrar buffer manager
     close(old_name_id);
     close(new_name_id);
 

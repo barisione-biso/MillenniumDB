@@ -1,7 +1,7 @@
 #include "binding_filter.h"
 
 #include "relational_model/relational_model.h"
-#include "relational_model//graph/relational_graph.h"
+#include "relational_model/graph/relational_graph.h"
 
 using namespace std;
 

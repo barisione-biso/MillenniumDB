@@ -1,17 +1,16 @@
 #ifndef RELATIONAL_MODEL__MATCH_H_
 #define RELATIONAL_MODEL__MATCH_H_
 
+#include <map>
+#include <memory>
+#include <vector>
+
 #include "base/binding/binding_iter.h"
 #include "base/ids/var_id.h"
 #include "relational_model/binding/binding_id.h"
 #include "relational_model/binding/binding_id_iter.h"
 
-#include <map>
-#include <memory>
-#include <vector>
-
 class QueryOptimizerElement;
-class ObjectFile;
 
 class Match : public BindingIter {
 
@@ -31,4 +30,4 @@ public:
     std::unique_ptr<Binding> next();
 };
 
-#endif //RELATIONAL_MODEL__MATCH_H_
+#endif // RELATIONAL_MODEL__MATCH_H_

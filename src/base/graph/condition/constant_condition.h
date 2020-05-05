@@ -2,7 +2,6 @@
 #define BASE__CONSTANT_CONDITION_H_
 
 #include "base/graph/condition/condition.h"
-#include <iostream>
 
 class ConstantCondition : public Condition {
 public:
@@ -21,4 +20,4 @@ public:
     void check_names(std::map<std::string, ObjectType>& ) { }
 };
 
-#endif //BASE__CONSTANT_CONDITION_H_
+#endif // BASE__CONSTANT_CONDITION_H_

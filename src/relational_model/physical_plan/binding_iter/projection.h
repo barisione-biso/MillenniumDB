@@ -1,11 +1,11 @@
 #ifndef RELATIONAL_MODEL__PROJECTION_H_
 #define RELATIONAL_MODEL__PROJECTION_H_
 
-#include "base/binding/binding_iter.h"
-#include "relational_model/binding/binding_id_iter.h"
-
 #include <set>
 #include <memory>
+
+#include "base/binding/binding_iter.h"
+#include "relational_model/binding/binding_id_iter.h"
 
 class Projection : public BindingIter {
 
@@ -25,4 +25,4 @@ public:
     std::unique_ptr<Binding> next();
 };
 
-#endif //RELATIONAL_MODEL__PROJECTION_H_
+#endif // RELATIONAL_MODEL__PROJECTION_H_
