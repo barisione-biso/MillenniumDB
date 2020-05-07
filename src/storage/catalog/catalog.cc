@@ -27,7 +27,7 @@ void Catalog::init() {
 
     file->seekg(0, file->end);
     if (file->tellg() == 0) {
-        graph_count = 1; // the default graph always exists
+        graph_count = 0;
         node_count       = std::vector<uint64_t>(1);
         edge_count       = std::vector<uint64_t>(1);
         node_label_count = std::vector<uint64_t>(1);
@@ -47,7 +47,7 @@ void Catalog::init() {
         node_key_count[0]   = 0;
         edge_key_count[0]   = 0;
 
-        graph_names.push_back("default_graph");
+        graph_names.push_back("Default Graph");
     }
     else {
         file->seekg(0, file->beg);
@@ -59,20 +59,20 @@ void Catalog::init() {
             throw std::logic_error("Catalog file inconsistent: graph_count must be more than 0.");
             return;
         }
-        node_count       = std::vector<uint64_t>(graph_count);
-        edge_count       = std::vector<uint64_t>(graph_count);
-        node_label_count = std::vector<uint64_t>(graph_count);
-        edge_label_count = std::vector<uint64_t>(graph_count);
-        node_key_count   = std::vector<uint64_t>(graph_count);
-        edge_key_count   = std::vector<uint64_t>(graph_count);
+        node_count       = std::vector<uint64_t>(graph_count + 1);
+        edge_count       = std::vector<uint64_t>(graph_count + 1);
+        node_label_count = std::vector<uint64_t>(graph_count + 1);
+        edge_label_count = std::vector<uint64_t>(graph_count + 1);
+        node_key_count   = std::vector<uint64_t>(graph_count + 1);
+        edge_key_count   = std::vector<uint64_t>(graph_count + 1);
 
-        node_label_stats = std::vector<std::map<uint64_t, uint64_t>>(graph_count);
-        edge_label_stats = std::vector<std::map<uint64_t, uint64_t>>(graph_count);
-        node_key_stats   = std::vector<std::map<uint64_t, uint64_t>>(graph_count);
-        edge_key_stats   = std::vector<std::map<uint64_t, uint64_t>>(graph_count);
+        node_label_stats = std::vector<std::map<uint64_t, uint64_t>>(graph_count + 1);
+        edge_label_stats = std::vector<std::map<uint64_t, uint64_t>>(graph_count + 1);
+        node_key_stats   = std::vector<std::map<uint64_t, uint64_t>>(graph_count + 1);
+        edge_key_stats   = std::vector<std::map<uint64_t, uint64_t>>(graph_count + 1);
 
 
-        for (uint32_t graph = 0; graph < graph_count; graph++) {
+        for (uint32_t graph = 0; graph <= graph_count; graph++) {
             auto graph_name_length  = read_uint32();
             string graph_name = string(graph_name_length, ' ');
             file->read((char*)graph_name.data(), graph_name_length);
@@ -134,8 +134,7 @@ GraphId Catalog::create_graph(const std::string& graph_name) {
             throw std::invalid_argument("\"" + graph_name + "\" graph name already exixsts.");
         }
     }
-    auto graph_id = GraphId(graph_count);
-    ++graph_count;
+    auto graph_id = GraphId(++graph_count);
     graph_ids.insert({graph_name, graph_id});
     graph_names.push_back(graph_name);
 
@@ -156,11 +155,11 @@ GraphId Catalog::create_graph(const std::string& graph_name) {
 
 
 void Catalog::flush() {
-    print();
+    // print();
     file->seekg(0, file->beg);
     write_uint32(graph_count);
 
-    for (uint_fast16_t graph = 0; graph < graph_count; graph++) {
+    for (uint_fast16_t graph = 0; graph <= graph_count; graph++) {
         uint_fast32_t name_len = graph_names[graph].size();
 
         write_uint32(name_len);
@@ -194,8 +193,8 @@ void Catalog::flush() {
 
 
 void Catalog::print() {
-    for (uint_fast16_t graph = 0; graph < graph_count; graph++) {
-        cout << "Graph " << graph << ": \"" << graph_names[graph] << "\"" << endl;
+    for (uint_fast16_t graph = 0; graph <= graph_count; graph++) {
+        cout << graph_names[graph] << ":" << endl;
         cout << "  node count: " << node_count[graph] << endl;
         cout << "  edge count: " << edge_count[graph] << endl;
         cout << "  node disinct labels: " << node_label_count[graph] << endl;
@@ -321,7 +320,7 @@ uint64_t Catalog::get_map_value(map<uint64_t, uint64_t>& map, uint64_t key) {
 }
 
 uint_fast16_t Catalog::get_graph_count() {
-    return graph_count - 1;
+    return graph_count;
 }
 
 

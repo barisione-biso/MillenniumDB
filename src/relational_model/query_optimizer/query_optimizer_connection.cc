@@ -123,7 +123,7 @@ std::unique_ptr<ScanRange> QueryOptimizerConnection::get_node_from_range() {
     } else if (graph_id.is_default()) {
         return make_unique<DefaultGraphVar>(node_from_var_id);
     } else {
-        return make_unique<NamedGraphVar>(node_from_var_id, graph_id);
+        return make_unique<NamedGraphVar>(node_from_var_id, graph_id, ObjectType::node);
     }
 }
 
@@ -134,7 +134,7 @@ std::unique_ptr<ScanRange> QueryOptimizerConnection::get_node_to_range() {
     } else if (graph_id.is_default()) {
         return make_unique<DefaultGraphVar>(node_to_var_id);
     } else {
-        return make_unique<NamedGraphVar>(node_to_var_id, graph_id);
+        return make_unique<NamedGraphVar>(node_to_var_id, graph_id, ObjectType::node);
     }
 }
 
@@ -145,6 +145,6 @@ std::unique_ptr<ScanRange> QueryOptimizerConnection::get_edge_range() {
     } else if (graph_id.is_default()) {
         return make_unique<DefaultGraphVar>(edge_var_id);
     } else {
-        return make_unique<NamedGraphVar>(edge_var_id, graph_id);
+        return make_unique<NamedGraphVar>(edge_var_id, graph_id, ObjectType::edge);
     }
 }

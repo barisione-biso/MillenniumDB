@@ -101,7 +101,7 @@ std::unique_ptr<ScanRange> QueryOptimizerLabel::get_element_range() {
     } else if (graph_id.is_default()) {
         return make_unique<DefaultGraphVar>(element_var_id);
     } else {
-        return make_unique<NamedGraphVar>(element_var_id, graph_id);
+        return make_unique<NamedGraphVar>(element_var_id, graph_id, element_type);
     }
 }
 

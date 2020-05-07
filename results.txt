@@ -1,0 +1,24 @@
+big: 527 MB texto plano
+lmdb: 171 MB texto plano
+small: 5,1 MB texto plano
+
+Con merge:
+       |  Big  |  Big  |  Big  | Small | Lmdb  |
+fase 1 | 133   | 131   | 133   |   1   |  41   |
+fase 2 |  16   |  16   |  16   |   0,1 |   5   |
+fase 3 |  34   |  41   |  49   |  23   |  27   |
+total  | 184,1 | 188,9 | 199,0 |  24,5 |  74,1 | Total: 669,7 (~11,2 minutos)
+
+
+       | Small  | Lmdb  |  Big  |  Big  |  Big  |
+fase 1 |   1    |  42   | 151   | 148   | 148   |
+fase 2 |   0,1  |   5   |  16   |  16   |  16   |
+fase 3 |   0,3  |   5   |  35   |  44   |  51   |
+total  |   1,5  |  53,4 | 203,4 | 209,3 | 216,9 | Total: 684,5 (~11,4 minutos)
+
+Append al final:
+       | Small  | Lmdb  |  Big  |  Big  |  Big  |
+fase 1 |   1    |  43   | 149   | 153   | 148   |
+fase 2 |   0,1  |   5   |  17   |  17   |  17   |
+fase 3 |   0,2  |   5   |  32   |  32   |  32   |
+total  |   1,5  |  53,8 | 200,0 | 204,4 | 198,1 | Total: 657,8 (~11,0 minutos)

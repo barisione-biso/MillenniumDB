@@ -1,5 +1,6 @@
 #include "bulk_import.h"
 
+#include <chrono>
 #include <iostream>
 #include <boost/spirit/include/support_istream_iterator.hpp>
 
@@ -39,6 +40,7 @@ BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_n
 
 
 void BulkImport::start_import() {
+    auto start = chrono::system_clock::now();
     int line_number = 1;
     cout << "procesing nodes:\n";
 
@@ -48,7 +50,7 @@ void BulkImport::start_import() {
         bulk_import_ast::Node node;
         bool r = phrase_parse(node_iter, node_end, bulk_import_parser::node, bulk_import_parser::skipper, node);
         if (r) {
-            cout << "\r  line " << line_number << std::flush;
+            // cout << "\r  line " << line_number << std::flush;
             process_node(node);
             line_number++;
         }
@@ -68,7 +70,7 @@ void BulkImport::start_import() {
         bulk_import_ast::Edge edge;
         bool r = phrase_parse(edge_iter, edge_end, bulk_import_parser::edge, bulk_import_parser::skipper, edge);
         if (r) {
-            cout << "\r  line " << line_number << std::flush;
+            // cout << "\r  line " << line_number << std::flush;
             process_edge(edge);
             line_number++;
         }
@@ -77,11 +79,14 @@ void BulkImport::start_import() {
             return;
         }
     } while(edge_iter != edge_end);
+    auto finish_reading_files = chrono::system_clock::now();
 
-    cout << "\nCreating indexes\n";
+    chrono::duration<float, milli> duration1 = finish_reading_files - start;
+    cout << "Reading files & writing ordered file: " << duration1.count() << "ms\n";
+
+    // cout << "\nCreating indexes\n";
 
     // INDEXES WHERE APPENDING AT END IS POSSIBLE
-    // TODO: measure time
     // NODE - LABEL
     node_labels.order(vector<uint_fast8_t> { 0, 1 });
     relational_model.get_node2label().bulk_import(node_labels);
@@ -108,37 +113,50 @@ void BulkImport::start_import() {
     connections.order(vector<uint_fast8_t> { 2, 0, 1 });
     relational_model.get_edge_from_to().bulk_import(connections);
 
+    auto finish_creating_non_merging_index = chrono::system_clock::now();
+    chrono::duration<float, milli> duration2 = finish_creating_non_merging_index - finish_reading_files;
+    cout << "Writing non-merging indexes (7): " << duration2.count() << "ms\n";
+
     // INDEXES WHERE APPENDING AT END IS NOT POSSIBLE AND MERGE IS NEEDED
-    // TODO: measure time
     // LABEL - NODE
     node_labels.order(vector<uint_fast8_t> { 1, 0 });
+    // relational_model.get_label2node().bulk_import(node_labels);
     merge_tree_and_ordered_file(relational_model.label2node_name, relational_model.get_label2node(),
                                 node_labels);
 
     // LABEL - EDGE
     edge_labels.order(vector<uint_fast8_t> { 1, 0 });
+    // relational_model.get_label2edge().bulk_import(edge_labels);
     merge_tree_and_ordered_file(relational_model.label2edge_name, relational_model.get_label2edge(),
                                 edge_labels);
 
     // KEY - VALUE - NODE
     node_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
+    // relational_model.get_key_value_node().bulk_import(node_key_value);
     merge_tree_and_ordered_file(relational_model.key_value_node_name, relational_model.get_key_value_node(),
                                 node_key_value);
 
     // KEY - VALUE - EDGE
     edge_key_value.order(vector<uint_fast8_t> { 2, 0, 1 });
+    // relational_model.get_key_value_edge().bulk_import(edge_key_value);
     merge_tree_and_ordered_file(relational_model.key_value_edge_name, relational_model.get_key_value_edge(),
                                 edge_key_value);
 
     // KEY - NODE - VALUE
     node_key_value.order(vector<uint_fast8_t> { 0, 2, 1 });
+    // relational_model.get_key_node_value().bulk_import(node_key_value);
     merge_tree_and_ordered_file(relational_model.key_node_value_name, relational_model.get_key_node_value(),
                                 node_key_value);
 
     // KEY - EDGE - VALUE
     edge_key_value.order(vector<uint_fast8_t> { 0, 2, 1 });
+    // relational_model.get_key_edge_value().bulk_import(edge_key_value);
     merge_tree_and_ordered_file(relational_model.key_edge_value_name, relational_model.get_key_edge_value(),
                                 edge_key_value);
+
+    auto finish_creating_index = chrono::system_clock::now();
+    chrono::duration<float, milli> duration3 = finish_creating_index - finish_creating_non_merging_index;
+    cout << "Writing merging indexes (6): " << duration3.count() << "ms\n";
 }
 
 

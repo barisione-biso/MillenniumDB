@@ -8,21 +8,28 @@
 class NamedGraphVar : public ScanRange {
 private:
     VarId var_id;
-    uint64_t graph_prefix;
+    uint64_t mask;
 
 public:
-    NamedGraphVar(VarId var_id, GraphId graph_id)
+    NamedGraphVar(VarId var_id, GraphId graph_id, ObjectType element_type)
         : var_id(var_id)
     {
-        graph_prefix = graph_id << RelationalModel::GRAPH_OFFSET;
+        if (element_type == ObjectType::node) {
+            mask = RelationalModel::NODE_MASK;
+        } else if (element_type == ObjectType::edge) {
+            mask = RelationalModel::EDGE_MASK;
+        } else {
+            throw std::logic_error("NamedGraphVar can receive only node or edge");
+        }
+        mask |= graph_id << RelationalModel::GRAPH_OFFSET;
     }
 
     uint64_t get_min(BindingId&) override {
-        return graph_prefix;
+        return mask;
     }
 
     uint64_t get_max(BindingId&) override {
-        return graph_prefix | 0xFF'0000'FFFFFFFFFFUL;
+        return mask | 0x00'0000'FFFFFFFFFFUL;
     }
 
     void try_assign(BindingId& binding, ObjectId obj_id) override {
