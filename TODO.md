@@ -1,3 +1,15 @@
+- Pruebas con rama refactoring
+- Probar agregando 10 verces el small al final
+    - orden inverso tambien
+
+- Join order con plan y estimacion de costos
+
+- Reemplazar el B+Tree de hash=>Id por una estructura de datos para diccionarios.
+    - Suponer que cabe en memoria (y no usaria buffer manager)
+    - Usar std map primera version
+    - 24 Bytes por objeto (diccionario 16 bytes => 8 bytes)
+    - Incluir en catálogo?
+
 - Añadir Databases de pruebas como archivo comprimido al repositorio
 - Rehacer dependencia de objetos globales:
     - sacar nifty counter

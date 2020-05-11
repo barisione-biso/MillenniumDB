@@ -83,7 +83,7 @@ uint64_t RelationalModel::get_external_id(std::unique_ptr< std::vector<unsigned 
     MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
 
     // check if bpt contains object
-    BPlusTree& bpt = get_hash2id_bpt();
+    auto& bpt = get_hash2id_bpt();
     auto iter = bpt.get_range(
         Record(hash[0], hash[1], 0),
         Record(hash[0], hash[1], UINT64_MAX)
@@ -103,7 +103,7 @@ uint64_t RelationalModel::get_or_create_external_id(std::unique_ptr< std::vector
     MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
 
     // check if bpt contains object
-    BPlusTree& hash2id = get_hash2id_bpt();
+    auto& hash2id = get_hash2id_bpt();
     auto iter = hash2id.get_range(
         Record(hash[0], hash[1], 0),
         Record(hash[0], hash[1], UINT64_MAX)
