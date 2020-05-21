@@ -1,7 +1,7 @@
 #ifndef BASE__PARSING_EXCEPTIONS_H_
 #define BASE__PARSING_EXCEPTIONS_H_
 
-#include <exception>
+#include <stdexcept>
 #include <string>
 
 struct QueryException : public std::runtime_error {

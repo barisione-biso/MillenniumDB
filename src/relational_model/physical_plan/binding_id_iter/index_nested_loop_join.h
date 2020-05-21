@@ -4,10 +4,8 @@
 #include "base/ids/var_id.h"
 #include "relational_model/binding/binding_id_iter.h"
 
-#include <map>
 #include <memory>
 #include <vector>
-
 
 class IndexNestedLoopJoin : public BindingIdIter {
 public:

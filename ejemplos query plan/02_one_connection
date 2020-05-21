@@ -1,0 +1,46 @@
+SELECT *
+FROM (?n :Person)-[?e :WorksIn]->(?c :Company {location:"Chile"})
+
+NodeLabel(Person, ?n)
+NodeLabel(Company, ?c)
+EdgeLabel(WorksIn, ?e)
+NodeProperty(location, Chile, ?c)
+Connection(?n, ?e, ?c)
+
+Plan no conexo: ¿Puéde ser mejor?
+
+Ordenados segun cardinalidad:
+ - NodeProperty(location, Chile, ?c)     1.000
+ - NodeLabel(Company, ?c),               2.000
+ - NodeLabel(Person, ?n)                 5.000
+ - EdgeLabel(WorksIn, ?e)                6.000
+ - Connection(?n, ?e, ?c)            1.000.000
+
+IndexNestedLoopJoin(
+    CrossProduct(                                  => max = 1000 * 2.000 * 6.000
+        CrossProduct(                              => max = 1000 * 2.000
+            Merge(                                 => max = 1000
+                NodeLabel(Company, ?c),
+                NodeProperty(location, Chile, ?c)
+            ),
+            NodeLabel(Person, ?n)
+        ),
+        EdgeLabel(WorksIn, ?e)
+    ),
+    Connection(?n, ?e, ?c)
+)
+
+    Merge
+        IndexNestedLoopJoin(
+            Merge(
+                NodeProperty(location, Chile, ?c)
+                NodeLabel(Company, ?c)
+            ),
+            Connection(?n, ?e, ?c)
+        )
+        NodeLabel(Person, ?n)
+
+
+
+1) NodeLabel(Company, ?c),
+2) NodeProperty(location, Chile, !c)

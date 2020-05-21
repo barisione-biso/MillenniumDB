@@ -4,7 +4,7 @@ using namespace std;
 
 BindingId::BindingId(int_fast32_t var_count) {
     object_ids = vector<ObjectId>(var_count);
-    static_assert(NULL_OBJECT_ID == 0,
+    static_assert(ObjectId::NULL_OBJECT_ID == 0,
         "If NULL_OBJECT_ID != 0, need to explicitally set values to NULL_OBJECT_ID");
 }
 

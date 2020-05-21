@@ -3,11 +3,11 @@
 
 #include <memory>
 
-const uint64_t NULL_OBJECT_ID      = 0;
-const uint64_t NOT_FOUND_OBJECT_ID = UINT64_MAX;
-
 class ObjectId {
 public:
+    static constexpr uint64_t NULL_OBJECT_ID = 0;
+    static constexpr uint64_t OBJECT_ID_NOT_FOUND = UINT64_MAX;
+
     uint64_t id;
 
     ObjectId(uint64_t id);
@@ -15,7 +15,7 @@ public:
     ~ObjectId();
 
     ObjectId(const ObjectId&); // copy constructor
-
+    static ObjectId get_null();
     bool is_null();
     bool not_found();
 

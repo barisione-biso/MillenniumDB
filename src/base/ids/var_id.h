@@ -11,6 +11,14 @@ public:
         : id(id) { }
     ~VarId() = default;
 
+    bool is_null() const {
+        return id == -1;
+    }
+
+    static VarId get_null() {
+        return VarId(-1);
+    }
+
     operator int_fast32_t() const {
         return id;
     }

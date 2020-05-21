@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include "base/ids/var_id.h"
-#include "relational_model/binding/binding_id.h"
 
 using namespace std;
 

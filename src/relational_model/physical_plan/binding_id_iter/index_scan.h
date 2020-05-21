@@ -10,7 +10,7 @@
 #include <memory>
 #include <tuple>
 
-class GraphScan : public BindingIdIter {
+class IndexScan : public BindingIdIter {
 private:
     int record_size;
     BPlusTree& bpt;
@@ -21,8 +21,8 @@ private:
     std::vector<std::unique_ptr<ScanRange>> ranges;
 
 public:
-    GraphScan(BPlusTree& bpt, std::vector<std::unique_ptr<ScanRange>> ranges);
-    ~GraphScan() = default;
+    IndexScan(BPlusTree& bpt, std::vector<std::unique_ptr<ScanRange>> ranges);
+    ~IndexScan() = default;
 
     void begin(BindingId& input);
     void reset(BindingId& input);

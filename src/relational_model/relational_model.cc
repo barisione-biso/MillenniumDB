@@ -90,7 +90,7 @@ uint64_t RelationalModel::get_external_id(std::unique_ptr< std::vector<unsigned 
     );
     auto next = iter->next();
     if (next == nullptr) { // object doesn't exist
-        return NOT_FOUND_OBJECT_ID;
+        return ObjectId::OBJECT_ID_NOT_FOUND;
     } else {               // object already exists
         return next->ids[2];
     }

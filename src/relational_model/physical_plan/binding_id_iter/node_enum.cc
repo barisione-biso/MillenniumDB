@@ -1,6 +1,5 @@
 #include "node_enum.h"
 
-#include "relational_model/binding/binding_id.h"
 #include "relational_model/relational_model.h"
 #include "storage/catalog/catalog.h"
 

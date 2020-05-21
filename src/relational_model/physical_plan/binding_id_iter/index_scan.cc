@@ -1,11 +1,10 @@
-#include "graph_scan.h"
+#include "index_scan.h"
 
 #include <cassert>
 #include <iostream>
 #include <vector>
 
 #include "base/ids/var_id.h"
-#include "relational_model/binding/binding_id.h"
 #include "relational_model/relational_model.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
@@ -14,15 +13,14 @@
 
 using namespace std;
 
-GraphScan::GraphScan(BPlusTree& bpt, std::vector<std::unique_ptr<ScanRange>> ranges)
-    : record_size(bpt.params->total_size), bpt(bpt), ranges(move(ranges))
-{
-    assert(this->ranges.size() == static_cast<size_t>(this->bpt.params->total_size)
+IndexScan::IndexScan(BPlusTree& bpt, std::vector<std::unique_ptr<ScanRange>> ranges)
+    : record_size(bpt.params->total_size), bpt(bpt), ranges(move(ranges)) { }
+
+
+void IndexScan::begin(BindingId& input) {
+    assert(ranges.size() == static_cast<size_t>(bpt.params->total_size)
         && "Inconsistent size of ranges and bpt");
-}
 
-
-void GraphScan::begin(BindingId& input) {
     my_binding = make_unique<BindingId>(input.var_count());
     my_input = &input;
     my_binding->add_all(*my_input);
@@ -44,7 +42,7 @@ void GraphScan::begin(BindingId& input) {
 }
 
 
-BindingId* GraphScan::next() {
+BindingId* IndexScan::next() {
     if (it == nullptr)
         return nullptr;
 
@@ -62,7 +60,7 @@ BindingId* GraphScan::next() {
 }
 
 
-void GraphScan::reset(BindingId& input) {
+void IndexScan::reset(BindingId& input) {
     my_input = &input;
     // TODO: if nulls were supported a my_binding->clean should be performed to set NULL_OBJECT_ID
     my_binding->add_all(*my_input);

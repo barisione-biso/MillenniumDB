@@ -2,4 +2,4 @@
 // largo string = 7 (inlined)
 // varios resultados
 SELECT *
-MATCH (?n :clasped)
+MATCH (?n :clasped) ON "example"

@@ -1,0 +1,2 @@
+SELECT *
+MATCH (?x :Person)-[:R]->(?y :Person)-[:S]->(?z :Person)-[:T]->(?x)

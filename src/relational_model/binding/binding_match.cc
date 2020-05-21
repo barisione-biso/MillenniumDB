@@ -1,8 +1,7 @@
 #include "binding_match.h"
 
 #include "relational_model/relational_model.h"
-#include "relational_model/binding/binding_id.h"
-#include "relational_model/physical_plan/binding_id_iter/graph_scan.h"
+#include "relational_model/physical_plan/binding_id_iter/index_scan.h"
 
 using namespace std;
 

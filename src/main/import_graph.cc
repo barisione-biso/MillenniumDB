@@ -10,7 +10,7 @@
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/import/bulk_import.h"
 #include "relational_model/binding/binding_id.h"
-#include "relational_model/physical_plan/binding_id_iter/graph_scan.h"
+#include "relational_model/physical_plan/binding_id_iter/index_scan.h"
 #include "relational_model/physical_plan/binding_id_iter/index_nested_loop_join.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"

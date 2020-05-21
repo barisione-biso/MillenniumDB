@@ -1,7 +1,7 @@
 #ifndef RELATIONAL_MODEL__BINDING_ID_ITER_H_
 #define RELATIONAL_MODEL__BINDING_ID_ITER_H_
 
-class BindingId;
+#include "relational_model/binding/binding_id.h"
 
 // Abstract class
 class BindingIdIter {

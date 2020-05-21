@@ -35,6 +35,16 @@ public:
     uint64_t get_node_count(GraphId);
     uint64_t get_edge_count(GraphId);
 
+    uint64_t get_node_labels(GraphId);
+    uint64_t get_edge_labels(GraphId);
+    uint64_t get_node_distinct_labels(GraphId);
+    uint64_t get_edge_distinct_labels(GraphId);
+
+    uint64_t get_node_properties(GraphId);
+    uint64_t get_edge_properties(GraphId);
+    uint64_t get_node_distinct_properties(GraphId);
+    uint64_t get_edge_distinct_properties(GraphId);
+
     // IDs received are unmasked (no type or graph)
     void add_node_label(GraphId, uint64_t label_id);
     void add_edge_label(GraphId, uint64_t label_id);
@@ -62,11 +72,12 @@ private:
     std::map<std::string, GraphId> graph_ids;
 
     std::vector<uint64_t> node_count;
-    std::vector<uint64_t> edge_count;
     std::vector<uint64_t> node_label_count;
+    std::vector<uint64_t> node_property_count;
+
+    std::vector<uint64_t> edge_count;
     std::vector<uint64_t> edge_label_count;
-    std::vector<uint64_t> node_key_count;
-    std::vector<uint64_t> edge_key_count;
+    std::vector<uint64_t> edge_property_count;
 
     std::vector<std::map<uint64_t, uint64_t>> node_label_stats;
     std::vector<std::map<uint64_t, uint64_t>> edge_label_stats;
@@ -81,7 +92,7 @@ private:
 
     void flush();
     // add (key, 1) to a map if key is not present or increase value by 1 otherwise
-    void add_to_map(std::map<uint64_t, uint64_t>& map, uint64_t key, uint64_t& count);
+    void add_to_map(std::map<uint64_t, uint64_t>& map, uint64_t key);
     uint64_t get_map_value(std::map<uint64_t, uint64_t>& map, uint64_t key);
 };
 

@@ -32,7 +32,7 @@
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "relational_model/graph/relational_graph.h"
-#include "relational_model/query_optimizer/physical_plan_generator.h"
+#include "relational_model/physical_plan/physical_plan_generator.h"
 #include "relational_model/relational_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"

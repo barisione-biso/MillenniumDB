@@ -16,10 +16,14 @@
 #include "relational_model/physical_plan/binding_iter/filter.h"
 #include "relational_model/physical_plan/binding_iter/match.h"
 #include "relational_model/physical_plan/binding_iter/projection.h"
-#include "relational_model/query_optimizer/query_optimizer_connection.h"
-#include "relational_model/query_optimizer/query_optimizer_label.h"
-#include "relational_model/query_optimizer/query_optimizer_property.h"
-#include "relational_model/query_optimizer/query_optimizer_lonely_node.h"
+
+#include "relational_model/query_optimizer/join_plan/connection_plan.h"
+#include "relational_model/query_optimizer/join_plan/edge_label_plan.h"
+#include "relational_model/query_optimizer/join_plan/edge_property_plan.h"
+#include "relational_model/query_optimizer/join_plan/node_label_plan.h"
+#include "relational_model/query_optimizer/join_plan/node_property_plan.h"
+#include "relational_model/query_optimizer/join_plan/lonely_node_plan.h"
+
 #include "storage/catalog/catalog.h"
 
 using namespace std;
@@ -51,8 +55,8 @@ void PhysicalPlanGenerator::visit(OpSelect& op_select) {
 
 
 void PhysicalPlanGenerator::visit(OpMatch& op_match) {
-    VarId null_var { -1 };
-    vector<unique_ptr<QueryOptimizerElement>> elements;
+    VarId null_var = VarId::get_null();
+    vector<unique_ptr<JoinPlan>> base_plans;
 
     for (auto&& [var_name, graph_name] : op_match.var_name2graph_name) {
         auto graph_id = catalog.get_graph(graph_name);
@@ -66,9 +70,16 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
         auto graph_id = search_graph_id(op_label->graph_name);
         auto element_var_id = get_var_id(op_label->var);
         auto label_id = relational_model.get_string_unmasked_id(op_label->label);
-        elements.push_back(
-            make_unique<QueryOptimizerLabel>(graph_id, element_var_id, null_var, op_label->type, label_id)
-        );
+
+        if (op_label->type == ObjectType::node) {
+            base_plans.push_back(
+                make_unique<NodeLabelPlan>(graph_id, element_var_id, null_var, label_id)
+            );
+        } else {
+            base_plans.push_back(
+                make_unique<EdgeLabelPlan>(graph_id, element_var_id, null_var, label_id)
+            );
+        }
     }
 
     // Process properties from Match
@@ -78,8 +89,15 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
         ObjectId value_id = get_value_id(op_property->value);
 
         auto graph_id = search_graph_id(op_property->graph_name);
-        elements.push_back(make_unique<QueryOptimizerProperty>(
-            graph_id, element_var_id, null_var, null_var, op_property->type, key_id, value_id ));
+        if (op_property->type == ObjectType::node) {
+            base_plans.push_back(
+                make_unique<NodePropertyPlan>(graph_id, element_var_id, null_var, null_var, key_id, value_id)
+            );
+        } else {
+            base_plans.push_back(
+                make_unique<EdgePropertyPlan>(graph_id, element_var_id, null_var, null_var, key_id, value_id)
+            );
+        }
     }
 
     // Process properties from select
@@ -90,8 +108,17 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
         auto key_id = relational_model.get_string_unmasked_id(key);
         auto element_type = element_types[var];
 
-        elements.push_back(make_unique<QueryOptimizerProperty>(
-            graph_id, element_var_id, null_var, value_var, element_type, key_id, ObjectId(NULL_OBJECT_ID) ));
+        if (element_type == ObjectType::node) {
+            base_plans.push_back(
+                make_unique<NodePropertyPlan>(graph_id, element_var_id, null_var, value_var, key_id,
+                                              ObjectId::get_null())
+            );
+        } else {
+            base_plans.push_back(
+                make_unique<EdgePropertyPlan>(graph_id, element_var_id, null_var, value_var, key_id,
+                                              ObjectId::get_null())
+            );
+        }
     }
 
     // Process Lonely Nodes not present in select
@@ -106,8 +133,8 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
         if (!lonely_node_mentioned_int_select) {
             auto graph_id = search_graph_id(lonely_node->graph_name);
             auto element_var_id = get_var_id(lonely_node->var);
-            elements.push_back(
-                make_unique<QueryOptimizerLonelyNode>(graph_id, element_var_id)
+            base_plans.push_back(
+                make_unique<LonelyNodePlan>(graph_id, element_var_id)
             );
         }
     }
@@ -120,12 +147,13 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
         auto node_to_var_id   = get_var_id(op_connection->node_to);
         auto edge_var_id      = get_var_id(op_connection->edge);
 
-        elements.push_back(
-            make_unique<QueryOptimizerConnection>(graph_id, node_from_var_id, node_to_var_id, edge_var_id)
+        base_plans.push_back(
+            make_unique<ConnectionPlan>(graph_id, node_from_var_id, node_to_var_id, edge_var_id)
         );
     }
 
-    tmp = make_unique<Match>(move(elements), move(id_map));
+    // TODO: decidir join order y pasarselo al match
+    tmp = make_unique<Match>(move(base_plans), move(id_map));
 }
 
 

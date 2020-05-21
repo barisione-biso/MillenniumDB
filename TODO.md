@@ -1,6 +1,19 @@
-- Pruebas con rama refactoring
-- Probar agregando 10 verces el small al final
-    - orden inverso tambien
+- Caso conexiones de un nodo consigo mismo
+    - crear índice (ambas permutaciones?)
+    - crear Op (operador lógico)
+    - crear join optimizer correspondiente
+- printer para plan físico (cambiar nombre de plan físico a executor?, plan ya no es ejecutable)
+
+- Estimación de tuplas de output y de costo
+    - ¿Solo considerar bloques accedidos como costo?
+    - Incluir merge join?
+    - Materializar resultados que se usarán varias veces?
+    - Selinger se puede aplicar?
+        - si se puede pero no con el caso base
+        - debe empezar por los planes de a pares
+        - Cada vez que se hace un join nuevo se decide que scan usar
+    - Usar heurística greedy?
+        - Asegurar conectividad? merge necesita conectividad?
 
 - Join order con plan y estimacion de costos
 
@@ -10,6 +23,10 @@
     - 24 Bytes por objeto (diccionario 16 bytes => 8 bytes)
     - Incluir en catálogo?
 
+- cambiar asserts por macro que pueda desactivarlos
+    - definir funcion en módulo test
+    - por defecto hace el assert tanto en RELEASE como DEBUG
+    - debería ser fácil quitar el assert para RELEASE
 - Añadir Databases de pruebas como archivo comprimido al repositorio
 - Rehacer dependencia de objetos globales:
     - sacar nifty counter
@@ -30,7 +47,9 @@
 - Hacer más tests de cosas en conjunto (ej: label+property)
 - hacer diagramas de flujo de las siguientes operaciones:
     - bplustree search
+
 - permitir añadir datos a grafo existente -> otro ejecutable?
+- permitir cargar varios grafos al mismo tiempo
 
 - Importar varios grafos en el mismo bulk_import
 - Presentar plan pointer swizzling (cuántos punteros como máximo permitir?)
