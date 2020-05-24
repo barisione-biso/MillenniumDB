@@ -6,10 +6,8 @@
 
 using namespace std;
 
-IndexNestedLoopJoin::IndexNestedLoopJoin(unique_ptr<BindingIdIter> left, unique_ptr<BindingIdIter> right)
-    : left(move(left)), right(move(right))
-{
-}
+IndexNestedLoopJoin::IndexNestedLoopJoin(unique_ptr<BindingIdIter> left, unique_ptr<BindingIdIter> right) :
+    left(move(left)), right(move(right)) { }
 
 
 void IndexNestedLoopJoin::begin(BindingId& input) {
@@ -45,7 +43,7 @@ BindingId* IndexNestedLoopJoin::next() {
     return nullptr;
 }
 
-
+// TODO: solo se recibe *current_left, *current_right, se puede eliminar
 void IndexNestedLoopJoin::construct_binding(BindingId& lhs, BindingId& rhs) {
     my_binding->add_all(lhs);
     my_binding->add_all(rhs);

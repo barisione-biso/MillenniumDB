@@ -23,12 +23,14 @@ private:
     std::unique_ptr<BindingIdIter> rhs;
     std::vector<VarId> join_vars;
 
-    BindingId* current_left;
-    BindingId* current_right;
+    BindingId* current_left = nullptr;
+    BindingId* current_right = nullptr;
 
     std::unique_ptr<BindingId> my_binding;
 
-    void construct_binding(BindingId& lhs, BindingId& rhs);
+    void construct_binding();
+    bool left_compatible_with_right();
+    bool left_less_than_right();
 };
 
 #endif // RELATIONAL_MODEL__MERGE_JOIN_H_

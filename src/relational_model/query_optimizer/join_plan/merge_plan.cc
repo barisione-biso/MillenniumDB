@@ -86,7 +86,15 @@ void MergePlan::set_input_vars(std::vector<VarId>& input_var_order) {
 
 
 unique_ptr<BindingIdIter> MergePlan::get_binding_id_iter() {
-    // TODO: calcular variables de intersección
     std::vector<VarId> join_vars;
+    for (auto& left_var : lhs->get_var_order()) {
+        for (auto& right_var : rhs->get_var_order()) {
+            if (left_var == right_var) {
+                join_vars.push_back(left_var);
+                break;
+            }
+        }
+    }
+
     return make_unique<MergeJoin>(lhs->get_binding_id_iter(), rhs->get_binding_id_iter(), move(join_vars));
 }

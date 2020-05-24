@@ -214,8 +214,8 @@ void Catalog::print() {
         cout << "  node count: " << node_count[graph] << endl;
         cout << "  node labels: " << node_label_count[graph] << endl;
         cout << "  node keys:   " << edge_property_count[graph] << endl;
-        cout << "  edge disinct labels: " << node_label_stats[graph].size() << endl;
-        cout << "  edge disinct keys:   " << node_key_stats[graph].size() << endl;
+        cout << "  node disinct labels: " << node_label_stats[graph].size() << endl;
+        cout << "  node disinct keys:   " << node_key_stats[graph].size() << endl;
 
         cout << "  edge count: " << edge_count[graph] << endl;
         cout << "  edge labels: " << edge_label_count[graph] << endl;

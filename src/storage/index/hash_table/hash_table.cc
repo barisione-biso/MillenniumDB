@@ -25,7 +25,6 @@ HashTable::HashTable(const std::string& filename) :
             map.insert({ Hash128(hash_1, hash_2), id });
         }
     }
-
 }
 
 
