@@ -10,30 +10,28 @@
 
 using namespace std;
 
-// zero initialized at load time
-static int nifty_counter;
 // memory for the object
 static typename std::aligned_storage<sizeof(BufferManager), alignof(BufferManager)>::type buffer_manager_buf;
 // global object
 BufferManager& buffer_manager = reinterpret_cast<BufferManager&>(buffer_manager_buf);
 
 
-BufferManager::BufferManager() {
-    buffer_pool = nullptr;
-    bytes = nullptr;
+BufferManager::BufferManager(int _buffer_pool_size) {
+    buffer_pool_size = _buffer_pool_size;
+    buffer_pool = new Page[buffer_pool_size];
+    clock_pos = 0;
+    bytes = new char[buffer_pool_size*PAGE_SIZE];
 }
 
 
 BufferManager::~BufferManager() {
     // It's not necessary to delete buffer_pool or bytes,
-    // this destructor is called only on program exit.
+    // this destructor should be called only on program exit.
+    flush();
 }
 
-void BufferManager::init(int _buffer_pool_size) {
-    buffer_pool_size = _buffer_pool_size;
-    buffer_pool = new Page[buffer_pool_size];
-    clock_pos = 0;
-    bytes = new char[buffer_pool_size*PAGE_SIZE];
+void BufferManager::init(int buffer_pool_size) {
+    new (&buffer_manager) BufferManager(buffer_pool_size); // placement new
 }
 
 
@@ -108,14 +106,4 @@ void BufferManager::unpin(Page& page) {
     std::lock_guard<std::mutex> lck(pin_mutex);
     assert(page.pins != 0 && "Must not unpin if pin count is equal to 0. There is a logic error.");
     page.pins--;
-}
-
-
-// Nifty counter trick
-BufferManagerInitializer::BufferManagerInitializer () {
-    if (nifty_counter++ == 0) new (&buffer_manager) BufferManager(); // placement new
-}
-
-BufferManagerInitializer::~BufferManagerInitializer () {
-    if (--nifty_counter == 0) (&buffer_manager)->~BufferManager();
 }

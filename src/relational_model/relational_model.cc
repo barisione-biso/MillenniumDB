@@ -14,23 +14,18 @@
 #include "base/graph/value/value_string.h"
 #include "relational_model/graph/relational_graph.h"
 #include "storage/catalog/catalog.h"
+#include "storage/buffer_manager.h"
+#include "storage/file_manager.h"
 
 using namespace std;
 
-// zero initialized at load time
-static int nifty_counter;
 // memory for the object
 static typename std::aligned_storage<sizeof(RelationalModel), alignof(RelationalModel)>::type relational_model_buf;
 // global object
 RelationalModel& relational_model = reinterpret_cast<RelationalModel&>(relational_model_buf);
 
 
-RelationalModel::RelationalModel() = default;
-RelationalModel::~RelationalModel() = default;
-
-
-void RelationalModel::init() {
-    catalog.init();
+RelationalModel::RelationalModel() {
     object_file = make_unique<ObjectFile>(object_file_name);
     hash2id = make_unique<HashTable>(hash2id_file_name);
     strings_cache = make_unique<StringsCache>(1000);
@@ -79,6 +74,30 @@ void RelationalModel::init() {
     edge_nodeloop = make_unique<BPlusTree>(move(bpt_params_edge_nodeloop));
 
     catalog.print();
+}
+
+
+RelationalModel::~RelationalModel() {
+    // delete unique_ptrs
+    object_file.reset();
+    hash2id.reset();
+    strings_cache.reset();
+
+    catalog.~Catalog();
+    buffer_manager.~BufferManager();
+    file_manager.~FileManager();
+}
+
+void RelationalModel::terminate() {
+    (&relational_model)->~RelationalModel();
+}
+
+
+void RelationalModel::init(std::string db_folder, int buffer_pool_size) {
+    FileManager::init(db_folder);
+    BufferManager::init(buffer_pool_size);
+    Catalog::init();
+    new (&relational_model) RelationalModel(); // placement new
 }
 
 
@@ -316,12 +335,3 @@ BPlusTree& RelationalModel::get_edge_from_to() { return *edge_from_to; }
 
 BPlusTree& RelationalModel::get_nodeloop_edge() { return *nodeloop_edge; }
 BPlusTree& RelationalModel::get_edge_nodeloop() { return *edge_nodeloop; }
-
-// Nifty counter trick
-RelationalModelInitializer::RelationalModelInitializer () {
-    if (nifty_counter++ == 0) new (&relational_model) RelationalModel(); // placement new
-}
-
-RelationalModelInitializer::~RelationalModelInitializer () {
-    if (--nifty_counter == 0) (&relational_model)->~RelationalModel();
-}

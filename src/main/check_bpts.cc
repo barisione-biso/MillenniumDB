@@ -18,10 +18,14 @@ namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
     string db_folder;
+    int buffer_size;
+
     // Parse arguments
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help,h", "show this help message")
+        ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_BUFFER_POOL_SIZE),
+                "set buffer pool size")
         ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
     ;
 
@@ -38,9 +42,7 @@ int main(int argc, char **argv) {
     }
     po::notify(vm);
 
-    file_manager.init(db_folder);
-    buffer_manager.init();
-    relational_model.init();
+    RelationalModel::init(db_folder, buffer_size);
 
     // NODE LABELS
     std::cout << "Checking label2node\n";
@@ -98,4 +100,6 @@ int main(int argc, char **argv) {
     std::cout << "Checking edge_nodeloop\n";
     if (!relational_model.get_edge_nodeloop().check())
         std::cout << "wrong BPlusTree: edge_nodeloop\n";
+
+    RelationalModel::terminate();
 }

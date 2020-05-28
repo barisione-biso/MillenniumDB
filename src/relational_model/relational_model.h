@@ -67,8 +67,8 @@ public:
 
     RelationalModel();
     ~RelationalModel();
-
-    void init();
+    static void init(std::string db_folder, int buffer_pool_size);
+    static void terminate();
 
     ObjectId get_string_unmasked_id(const std::string& str);
     ObjectId get_value_masked_id(const Value& value);
@@ -135,11 +135,5 @@ private:
 };
 
 extern RelationalModel& relational_model; // global object
-
-static struct RelationalModelInitializer {
-    RelationalModelInitializer();
-    ~RelationalModelInitializer();
-} relational_model_initializer; // static initializer for every translation unit
-
 
 #endif // RELATIONAL_MODEL__RELATIONAL_MODEL_H_

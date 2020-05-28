@@ -1,4 +1,4 @@
-/* !!!! IMPORTANT !!!! DON'T include this file in a header file
+/* TODO: recomentar !!!! IMPORTANT !!!! DON'T include this file in a header file
  *
  * BufferManager contains all pages in memory and is used to get a page, making transparent if the page is
  * already in memory or needs to be readed from disk.
@@ -24,12 +24,14 @@
 class Page;
 
 class BufferManager {
-friend class BufferManagerInitializer;  // needed to access private constructor
 public:
     static constexpr int DEFAULT_BUFFER_POOL_SIZE = 1024;
 
+    BufferManager(int _buffer_pool_size);
+    ~BufferManager();
+
     // necesary to be called before first usage
-    void init(int _buffer_pool_size = DEFAULT_BUFFER_POOL_SIZE);
+    static void init(int _buffer_pool_size = DEFAULT_BUFFER_POOL_SIZE);
 
     // Get a page. It will search in the buffer and if it is not on it, it will read from disk and put in the buffer.
     // Also it will pin the page, so calling buffer_manager.unpin(page) is expected when the caller doesn't need
@@ -50,7 +52,6 @@ public:
     // reduces the count of objects using the page. Should be called when a object using the page is destroyed.
     void unpin(Page& page);
 
-
 private:
     // maximum pages the buffer can have
     int buffer_pool_size;
@@ -70,18 +71,10 @@ private:
     // to avoid pin/unpin synchronization problems
     std::mutex pin_mutex;
 
-    BufferManager();
-    ~BufferManager();
-
     // returns the index of an unpined page from `buffer_pool`
     int get_buffer_available();
 };
 
 extern BufferManager& buffer_manager; // global object
-
-static struct BufferManagerInitializer {
-    BufferManagerInitializer();
-    ~BufferManagerInitializer();
-} buffer_manager_initializer; // static initializer for every translation unit
 
 #endif // STORAGE__BUFFER_MANAGER_H_

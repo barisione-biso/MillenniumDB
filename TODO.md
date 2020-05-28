@@ -27,10 +27,6 @@
     - por defecto hace el assert tanto en RELEASE como DEBUG
     - debería ser fácil quitar el assert para RELEASE
 - Añadir Databases de pruebas como archivo comprimido al repositorio
-- Rehacer dependencia de objetos globales:
-    - sacar nifty counter
-    - Modelo los inicializa y destruye?
-    - Ejecutables inicializan Modelo. Usar factory para parámetros?
 
 - rename en file mananager no edita el buffer_manager (FileId se re asocia).
     - checkear que nuevo nombre no existe en el disco ni en el file manager.

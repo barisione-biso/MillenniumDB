@@ -111,13 +111,16 @@ void server(boost::asio::io_service& io_service, unsigned short port) {
 
 int main(int argc, char **argv) {
     int port;
+    int buffer_size;
+    string db_folder;
     try {
         // Parse arguments
         po::options_description desc("Allowed options");
         desc.add_options()
             ("help,h", "show this help message")
-            ("db-folder,d", po::value<string>()->required(), "set database folder path")
-            ("buffer-size,b", po::value<int>(), "set buffer pool size")
+            ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
+            ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_BUFFER_POOL_SIZE),
+                "set buffer pool size")
             ("port,p", po::value<int>(&port)->default_value(db_server::DEFAULT_PORT), "database server port")
         ;
 
@@ -134,25 +137,19 @@ int main(int argc, char **argv) {
         }
         po::notify(vm);
 
-        file_manager.init(vm["db-folder"].as<string>());
-
-        if (vm.count("buffer-size")) {
-            buffer_manager.init(vm["buffer-size"].as<int>());
-        } else {
-            buffer_manager.init();
-        }
-        relational_model.init();
+        RelationalModel::init(db_folder, buffer_size);
 
         boost::asio::io_service io_service;
         boost::asio::deadline_timer t(io_service, boost::posix_time::seconds(5));
 
         server(io_service, port);
     }
-    catch(exception& e) {
+    catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";
         return 1;
     }
-    catch(...) {
+    catch (...) {
         cerr << "Exception of unknown type!\n";
     }
+    RelationalModel::terminate();
 }

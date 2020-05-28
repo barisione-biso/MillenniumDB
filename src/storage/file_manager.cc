@@ -9,29 +9,18 @@
 
 #include "storage/file_id.h"
 #include "storage/page.h"
-#include "storage/buffer_manager.h"
-#include "storage/catalog/catalog.h"
 
 using namespace std;
 
-// zero initialized at load time
-static int nifty_counter;
 // memory for the object
 static typename std::aligned_storage<sizeof(FileManager), alignof(FileManager)>::type file_manager_buf;
 // global object
 FileManager& file_manager = reinterpret_cast<FileManager&>(file_manager_buf);
 
 
-FileManager::FileManager() { }
-
-
-FileManager::~FileManager() {
-    buffer_manager.flush();
-}
-
-
-void FileManager::init(std::string _db_folder) {
-    db_folder = _db_folder;
+FileManager::FileManager(std::string _db_folder) :
+    db_folder(_db_folder)
+{
     if (experimental::filesystem::exists(db_folder)) {
         if (!experimental::filesystem::is_directory(db_folder)) {
             throw std::runtime_error("Cannot create database directory: \"" + db_folder +
@@ -41,6 +30,15 @@ void FileManager::init(std::string _db_folder) {
     else {
         experimental::filesystem::create_directories(db_folder);
     }
+}
+
+
+FileManager::~FileManager() {
+}
+
+
+void FileManager::init(std::string db_folder) {
+    new (&file_manager) FileManager(db_folder); // placement new
 }
 
 
@@ -141,14 +139,4 @@ FileId FileManager::get_file_id(const string& filename) {
     opened_files.push_back(move(file));
 
     return FileId(filenames.size()-1);
-}
-
-
-// Nifty counter trick
-FileManagerInitializer::FileManagerInitializer() {
-    if (nifty_counter++ == 0) new (&file_manager) FileManager(); // placement new
-}
-
-FileManagerInitializer::~FileManagerInitializer() {
-    if (--nifty_counter == 0) (&file_manager)->~FileManager();
 }

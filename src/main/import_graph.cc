@@ -22,14 +22,17 @@ int main(int argc, char **argv) {
     string nodes_file;
     string edges_file;
     string graph_name;
+    string db_folder;
+    int buffer_size;
 
 	try {
         // Parse arguments
         po::options_description desc("Allowed options");
         desc.add_options()
             ("help,h", "show this help message")
-            ("db-folder,d", po::value<string>(), "set database folder path")
-            ("buffer-size,b", po::value<int>(), "set buffer pool size")
+            ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
+            ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_BUFFER_POOL_SIZE),
+                "set buffer pool size")
             ("nodes-file,n", po::value<string>(&nodes_file)->required(), "nodes file")
             ("edges-file,e", po::value<string>(&edges_file)->required(), "edges file")
             ("graph-name,g", po::value<string>(&graph_name)->required(), "graph name")
@@ -46,19 +49,7 @@ int main(int argc, char **argv) {
         }
         po::notify(vm);
 
-        if (vm.count("db-folder")) {
-            file_manager.init(vm["db-folder"].as<string>());
-        } else {
-            file_manager.init();
-        }
-
-        if (vm.count("buffer-size")) {
-            buffer_manager.init(vm["buffer-size"].as<int>());
-        } else {
-            buffer_manager.init();
-        }
-
-        relational_model.init();
+        RelationalModel::init(db_folder, buffer_size);
         auto start = chrono::system_clock::now();
 
         auto& graph = relational_model.create_graph(graph_name);
@@ -69,13 +60,14 @@ int main(int argc, char **argv) {
         chrono::duration<float, milli> duration = end - start;
         cout << "Bulk Import duration: " << duration.count() << "ms\n";
     }
-    catch(exception& e) {
+    catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";
         return 1;
     }
-    catch(...) {
+    catch (...) {
         cerr << "Exception of unknown type!\n";
         return 1;
     }
+    RelationalModel::terminate();
 	return 0;
 }

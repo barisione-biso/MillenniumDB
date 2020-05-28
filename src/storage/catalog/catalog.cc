@@ -10,20 +10,12 @@
 
 using namespace std;
 
-// zero initialized at load time
-static int nifty_counter;
 // memory for the object
 static typename std::aligned_storage<sizeof(Catalog), alignof(Catalog)>::type catalog_buf;
 // global object
 Catalog& catalog = reinterpret_cast<Catalog&>(catalog_buf);
 
-Catalog::Catalog() = default;
-Catalog::~Catalog() {
-    flush();
-}
-
-
-void Catalog::init() {
+Catalog::Catalog() {
     file = &file_manager.get_file(file_manager.get_file_id(catalog_file_name));
 
     file->seekg(0, file->end);
@@ -120,6 +112,15 @@ void Catalog::init() {
             }
         }
     }
+}
+
+void Catalog::init() {
+    new (&catalog) Catalog(); // placement new
+}
+
+
+Catalog::~Catalog() {
+    flush();
 }
 
 
@@ -410,14 +411,4 @@ uint64_t Catalog::get_node_count_for_key(GraphId graph_id, uint64_t key_id) {
 
 uint64_t Catalog::get_edge_count_for_key(GraphId graph_id, uint64_t key_id){
     return get_map_value(edge_key_stats[graph_id], key_id);
-}
-
-
-// Nifty counter trick
-CatalogInitializer::CatalogInitializer() {
-    if (nifty_counter++ == 0) new (&catalog) Catalog(); // placement new
-}
-
-CatalogInitializer::~CatalogInitializer() {
-    if (--nifty_counter == 0) (&catalog)->~Catalog();
 }
