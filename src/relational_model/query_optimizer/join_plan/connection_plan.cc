@@ -2,11 +2,11 @@
 
 #include "relational_model/relational_model.h"
 #include "relational_model/graph/relational_graph.h"
-#include "relational_model/physical_plan/binding_id_iter/index_scan.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/assigned_var.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/default_graph_var.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/named_graph_var.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/term.h"
+#include "relational_model/execution/binding_id_iter/index_scan.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/assigned_var.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/default_graph_var.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/named_graph_var.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/term.h"
 #include "storage/catalog/catalog.h"
 
 using namespace std;
@@ -37,23 +37,16 @@ std::unique_ptr<JoinPlan> ConnectionPlan::duplicate() {
 }
 
 
-void ConnectionPlan::print() {
-    cout << "ConnectionPlan(node_from_assigned: " << node_from_assigned
-         << ",node_to_assigned: " << node_to_assigned
-         << ",edge_assigned: " << edge_assigned << ")";
-}
-
-
-bool ConnectionPlan::cartesian_product_needed(JoinPlan& other) {
-    for (auto& var : get_var_order()) {
-        for (auto& other_var : other.get_var_order()) {
-            if (var == other_var) {
-                return false;
-            }
-        }
+void ConnectionPlan::print(int indent) {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
     }
-    return true;
+    cout << "Connection(node_from: " << node_from_var_id.id << (node_from_assigned ? " assigned" : " not-assigned")
+         << ", node_to: " << node_to_var_id.id << (node_to_assigned ? " assigned" : " not-assigned")
+         << ", edge: " << edge_var_id.id << (edge_assigned ? " assigned" : " not-assigned")
+         << ")";
 }
+
 
 double ConnectionPlan::estimate_cost() {
     return estimate_output_size();

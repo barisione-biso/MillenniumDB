@@ -31,7 +31,7 @@ BindingId* IndexNestedLoopJoin::next() {
         current_right = right->next();
 
         if (current_right != nullptr) {
-            construct_binding(*current_left, *current_right);
+            construct_binding();
             return my_binding.get();
         }
         else {
@@ -43,8 +43,8 @@ BindingId* IndexNestedLoopJoin::next() {
     return nullptr;
 }
 
-// TODO: solo se recibe *current_left, *current_right, se puede eliminar
-void IndexNestedLoopJoin::construct_binding(BindingId& lhs, BindingId& rhs) {
-    my_binding->add_all(lhs);
-    my_binding->add_all(rhs);
+
+void IndexNestedLoopJoin::construct_binding() {
+    my_binding->add_all(*current_left);
+    my_binding->add_all(*current_right);
 }

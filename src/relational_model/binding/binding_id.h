@@ -23,7 +23,7 @@ public:
     void add_all(BindingId&);
     void add(VarId, ObjectId);
 
-    void print(std::vector<std::string>& var_names) const;
+    void print() const;
 };
 
 

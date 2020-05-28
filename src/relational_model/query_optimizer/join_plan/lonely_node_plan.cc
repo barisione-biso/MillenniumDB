@@ -2,7 +2,7 @@
 
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/relational_model.h"
-#include "relational_model/physical_plan/binding_id_iter/node_enum.h"
+#include "relational_model/execution/binding_id_iter/node_enum.h"
 #include "storage/catalog/catalog.h"
 
 using namespace std;
@@ -27,17 +27,15 @@ double LonelyNodePlan::estimate_cost() {
     return estimate_output_size();
 }
 
-void LonelyNodePlan::print() {
+void LonelyNodePlan::print(int indent) {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
     cout << "LonelyNode()";
 }
 
 double LonelyNodePlan::estimate_output_size() {
     return catalog.get_node_count(graph_id);
-}
-
-
-bool LonelyNodePlan::LonelyNodePlan::cartesian_product_needed(JoinPlan&) {
-    return true;
 }
 
 

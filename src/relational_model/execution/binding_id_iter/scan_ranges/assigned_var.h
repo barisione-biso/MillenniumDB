@@ -1,7 +1,7 @@
 #ifndef RELATIONAL_MODEL__ASSIGNED_VAR_H_
 #define RELATIONAL_MODEL__ASSIGNED_VAR_H_
 
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/scan_range.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 
 class AssignedVar : public ScanRange {
 private:

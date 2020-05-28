@@ -1,6 +1,6 @@
 #include "nested_loop_plan.h"
 
-#include "relational_model/physical_plan/binding_id_iter/index_nested_loop_join.h"
+#include "relational_model/execution/binding_id_iter/index_nested_loop_join.h"
 
 using namespace std;
 
@@ -21,11 +21,18 @@ unique_ptr<JoinPlan> NestedLoopPlan::duplicate() {
 }
 
 
-void NestedLoopPlan::print() {
-    cout << "NestedLoopPlan(";
-    lhs->print();
-    cout << ",";
-    rhs->print();
+void NestedLoopPlan::print(int indent) {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "IndexNestedLoopJoin(\n";
+    lhs->print(indent + 2);
+    cout << ",\n";
+    rhs->print(indent + 2);
+    cout << "\n";
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
     cout << ")";
 }
 
@@ -43,18 +50,6 @@ double NestedLoopPlan::estimate_cost(JoinPlan& lhs, JoinPlan& rhs) {
 double NestedLoopPlan::estimate_output_size() {
     // TODO:
     return lhs->estimate_output_size() * rhs->estimate_output_size();
-}
-
-
-bool NestedLoopPlan::cartesian_product_needed(JoinPlan& other) {
-    for (auto& my_var : get_var_order()) {
-        for (auto& other_var : other.get_var_order()) {
-            if (my_var == other_var) {
-                return false;
-            }
-        }
-    }
-    return true;
 }
 
 

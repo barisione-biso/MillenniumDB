@@ -9,7 +9,7 @@
 #include "base/parser/logical_plan/op/op_select.h"
 #include "relational_model/relational_model.h"
 #include "relational_model/graph/relational_graph.h"
-#include "relational_model/physical_plan/physical_plan_generator.h"
+#include "relational_model/query_optimizer/query_optimizer.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 
@@ -94,4 +94,12 @@ int main(int argc, char **argv) {
     std::cout << "Checking edge_from_to\n";
     if (!relational_model.get_edge_from_to().check())
         std::cout << "wrong BPlusTree: edge_from_to\n";
+
+    // SELF CONNECTIONS
+    std::cout << "Checking nodeloop_edge\n";
+    if (!relational_model.get_nodeloop_edge().check())
+        std::cout << "wrong BPlusTree: nodeloop_edge\n";
+    std::cout << "Checking edge_nodeloop\n";
+    if (!relational_model.get_edge_nodeloop().check())
+        std::cout << "wrong BPlusTree: edge_nodeloop\n";
 }

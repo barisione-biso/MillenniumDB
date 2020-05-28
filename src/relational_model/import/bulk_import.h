@@ -28,6 +28,7 @@ private:
     OrderedFile node_key_value;
     OrderedFile edge_key_value;
     OrderedFile connections;
+    OrderedFile self_connected_nodes;
 
     std::map<uint64_t, uint64_t> node_dict;
 

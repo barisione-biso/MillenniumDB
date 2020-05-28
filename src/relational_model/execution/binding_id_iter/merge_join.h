@@ -5,13 +5,17 @@
 #include "relational_model/binding/binding_id_iter.h"
 
 #include <memory>
-#include <vector>
+
+// This merge is valid only under these conditions:
+// - lhs and rhs have one variable in common: `join_var`
+// - lhs and rhs will be ordered by `join_var`
+// - lhs and rhs won't give any duplicates of `join_var`
 
 class MergeJoin : public BindingIdIter {
 public:
     MergeJoin(std::unique_ptr<BindingIdIter> lhs,
               std::unique_ptr<BindingIdIter> rhs,
-              std::vector<VarId> join_vars);
+              VarId join_var);
     ~MergeJoin() = default;
 
     void begin(BindingId& input);
@@ -21,7 +25,7 @@ public:
 private:
     std::unique_ptr<BindingIdIter> lhs;
     std::unique_ptr<BindingIdIter> rhs;
-    std::vector<VarId> join_vars;
+    VarId join_var;
 
     BindingId* current_left = nullptr;
     BindingId* current_right = nullptr;
@@ -29,8 +33,6 @@ private:
     std::unique_ptr<BindingId> my_binding;
 
     void construct_binding();
-    bool left_compatible_with_right();
-    bool left_less_than_right();
 };
 
 #endif // RELATIONAL_MODEL__MERGE_JOIN_H_

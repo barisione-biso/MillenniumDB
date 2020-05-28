@@ -1,0 +1,5 @@
+//SELECT ?n.key1, ?n.is_pair
+//MATCH (?n :LabelA)-[:LabelE {is_pair:true} ]->(?n {mod7:1} ) ON "join_test"
+SELECT ?n.key1, ?n.is_pair
+MATCH (?n :LabelA {mod7:1} ) ON "join_test"
+//LIMIT 10

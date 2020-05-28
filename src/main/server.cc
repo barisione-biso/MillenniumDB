@@ -32,7 +32,7 @@
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "relational_model/graph/relational_graph.h"
-#include "relational_model/physical_plan/physical_plan_generator.h"
+#include "relational_model/query_optimizer/query_optimizer.h"
 #include "relational_model/relational_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
@@ -67,7 +67,7 @@ void session(tcp::socket sock) {
             auto select_plan = Op::get_select_plan(query);
 
             // get physical plan
-            PhysicalPlanGenerator plan_generator { };
+            QueryOptimizer plan_generator { };
             auto root = plan_generator.exec(*select_plan);
 
             // prepare to start the execution

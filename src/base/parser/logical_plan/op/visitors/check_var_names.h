@@ -22,6 +22,7 @@ public:
     void visit(OpProperty&) override;
     void visit(OpConnection&) override;
     void visit(OpLonelyNode&) override;
+    void visit(OpNodeLoop&) override;
 };
 
 #endif // BASE__CHECK_VAR_NAMES_EXISTS_H_

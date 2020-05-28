@@ -13,6 +13,7 @@
 #include "base/parser/logical_plan/op/op_label.h"
 #include "base/parser/logical_plan/op/op_property.h"
 #include "base/parser/logical_plan/op/op_connection.h"
+#include "base/parser/logical_plan/op/op_node_loop.h"
 #include "base/parser/logical_plan/op/op_lonely_node.h"
 
 class OpMatch : public Op {
@@ -21,6 +22,7 @@ public:
     std::vector<std::unique_ptr<OpProperty>> properties;
     std::vector<std::unique_ptr<OpConnection>> connections;
     std::vector<std::unique_ptr<OpLonelyNode>> lonely_nodes;
+    std::vector<std::unique_ptr<OpNodeLoop>> node_loops;
 
     std::map<std::string, std::string> var_name2graph_name;
     std::map<std::string, ObjectType>  var_name2type;
@@ -42,12 +44,15 @@ public:
                 auto current_node_name = process_node(graph_name, step_path.node);
                 auto edge_name         = process_edge(graph_name, step_path.edge);
 
-                if (step_path.edge.direction == ast::EdgeDirection::right) {
+                if (last_node_name == current_node_name) {
+                    node_loops.push_back(
+                        std::make_unique<OpNodeLoop>(graph_name, last_node_name, edge_name)
+                    );
+                } else if (step_path.edge.direction == ast::EdgeDirection::right) {
                     connections.push_back(
                         std::make_unique<OpConnection>(graph_name, last_node_name, edge_name, current_node_name)
                     );
-                }
-                else {
+                } else {
                     connections.push_back(
                         std::make_unique<OpConnection>(graph_name, current_node_name, edge_name, last_node_name)
                     );

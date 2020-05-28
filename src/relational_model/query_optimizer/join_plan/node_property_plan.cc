@@ -2,11 +2,11 @@
 
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/relational_model.h"
-#include "relational_model/physical_plan/binding_id_iter/index_scan.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/assigned_var.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/default_graph_var.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/named_graph_var.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/term.h"
+#include "relational_model/execution/binding_id_iter/index_scan.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/assigned_var.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/default_graph_var.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/named_graph_var.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/term.h"
 
 #include "storage/catalog/catalog.h"
 
@@ -42,10 +42,14 @@ std::unique_ptr<JoinPlan> NodePropertyPlan::duplicate() {
 }
 
 
-void NodePropertyPlan::print() {
-    cout << "NodePropertyPlan(node_assigned: " << node_assigned
-         << ",key_assigned: " << key_assigned
-         << ",value_assigned: " << value_assigned << ")";
+void NodePropertyPlan::print(int indent) {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "NodeProperty(node: " << node_var_id.id << (node_assigned ? " assigned" : " not-assigned")
+         << ", key: " << key_var_id.id << (key_assigned ? " assigned" : " not-assigned")
+         << ", value: " << value_var_id.id << (value_assigned ? " assigned" : " not-assigned")
+         << ")";
 }
 
 
@@ -112,40 +116,40 @@ vector<VarId> NodePropertyPlan::get_var_order() {
     if (node_assigned) {
         // NKV
         result.push_back(node_var_id);
-        if (!key_id.is_null()) {
+        if (!key_var_id.is_null()) {
             result.push_back(key_var_id);
         }
-        if (!value_id.is_null()) {
+        if (!value_var_id.is_null()) {
             result.push_back(value_var_id);
         }
     } else {
         if (key_assigned) {
             if (value_assigned) { // Case 5: KEY AND VALUE
                 // KVN
-                if (!key_id.is_null()) {
+                if (!key_var_id.is_null()) {
                     result.push_back(key_var_id);
                 }
-                if (!value_id.is_null()) {
+                if (!value_var_id.is_null()) {
                     result.push_back(value_var_id);
                 }
                 result.push_back(node_var_id);
             } else {              // Case 6: JUST KEY
                 if (graph_id.is_default()) {
                     // KVN
-                    if (!key_id.is_null()) {
+                    if (!key_var_id.is_null()) {
                         result.push_back(key_var_id);
                     }
-                    if (!value_id.is_null()) {
+                    if (!value_var_id.is_null()) {
                         result.push_back(value_var_id);
                     }
                     result.push_back(node_var_id);
                 } else {
                     // KNV
-                    if (!key_id.is_null()) {
+                    if (!key_var_id.is_null()) {
                         result.push_back(key_var_id);
                     }
                     result.push_back(node_var_id);
-                    if (!value_id.is_null()) {
+                    if (!value_var_id.is_null()) {
                         result.push_back(value_var_id);
                     }
                 }
@@ -153,10 +157,10 @@ vector<VarId> NodePropertyPlan::get_var_order() {
         } else {
             // NKV
             result.push_back(node_var_id);
-            if (!key_id.is_null()) {
+            if (!key_var_id.is_null()) {
                 result.push_back(key_var_id);
             }
-            if (!value_id.is_null()) {
+            if (!value_var_id.is_null()) {
                 result.push_back(value_var_id);
             }
         }
@@ -164,17 +168,6 @@ vector<VarId> NodePropertyPlan::get_var_order() {
     return result;
 }
 
-
-bool NodePropertyPlan::cartesian_product_needed(JoinPlan& other) {
-    for (auto& var : get_var_order()) {
-        for (auto& other_var : other.get_var_order()) {
-            if (var == other_var) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
 
 /**
  * ╔═╦════════╦═══════╦═════════╦═══════════════╦═════════════╗

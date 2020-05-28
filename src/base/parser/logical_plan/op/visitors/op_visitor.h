@@ -10,6 +10,7 @@ class OpLabel;
 class OpProperty;
 class OpConnection;
 class OpLonelyNode;
+class OpNodeLoop;
 
 class OpVisitor {
 public:
@@ -21,7 +22,7 @@ public:
     virtual void visit(OpProperty&) = 0;
     virtual void visit(OpConnection&) = 0;
     virtual void visit(OpLonelyNode&) = 0;
-
+    virtual void visit(OpNodeLoop&) = 0;
 };
 
 #endif // BASE__OP_VISITOR_H_

@@ -25,7 +25,7 @@ private:
     std::vector<VarId> vars;
     std::unique_ptr<BindingId> my_binding;
 
-    void construct_binding(BindingId& lhs, BindingId& rhs);
+    void construct_binding();
 };
 
 #endif // RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_

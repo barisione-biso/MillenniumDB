@@ -20,7 +20,8 @@ BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_n
       edge_labels(OrderedFile("edge_labels.dat", 2)),
       node_key_value(OrderedFile("node_key_value.dat", 3)),
       edge_key_value(OrderedFile("edge_key_value.dat", 3)),
-      connections(OrderedFile("connections.dat", 3))
+      connections(OrderedFile("connections.dat", 3)),
+      self_connected_nodes(OrderedFile("self_connection.dat", 2))
 {
     nodes_file = ifstream(nodes_file_name);
     edges_file = ifstream(edges_file_name);
@@ -112,6 +113,13 @@ void BulkImport::start_import() {
 
     connections.order(vector<uint_fast8_t> { 2, 0, 1 });
     relational_model.get_edge_from_to().bulk_import(connections);
+
+    // SELF CONNECTIONS
+    self_connected_nodes.order(vector<uint_fast8_t> { 0, 1 });
+    relational_model.get_nodeloop_edge().bulk_import(self_connected_nodes);
+
+    self_connected_nodes.order(vector<uint_fast8_t> { 1, 0 });
+    relational_model.get_edge_nodeloop().bulk_import(self_connected_nodes);
 
     auto finish_creating_non_merging_index = chrono::system_clock::now();
     chrono::duration<float, milli> duration2 = finish_creating_non_merging_index - finish_reading_files;
@@ -205,6 +213,10 @@ void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
 
     if (left_id == node_dict.end() || right_id == node_dict.end()) {
         throw logic_error("Edge using undeclared node.");
+    }
+
+    if (left_id->second == right_id->second) {
+        self_connected_nodes.append_record(Record(left_id->second, edge_id));
     }
 
     if (edge.direction == bulk_import_ast::EdgeDirection::right) {

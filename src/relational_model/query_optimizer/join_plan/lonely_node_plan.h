@@ -13,14 +13,13 @@ public:
     double estimate_cost() override;
     double estimate_output_size() override;
 
-    bool cartesian_product_needed(JoinPlan& other) override;
     std::vector<VarId> get_var_order() override;
     void set_input_vars(std::vector<VarId>& input_var_order) override;
 
     std::unique_ptr<BindingIdIter> get_binding_id_iter() override;
     std::unique_ptr<JoinPlan> duplicate() override;
 
-    void print() override;
+    void print(int indent) override;
 private:
     GraphId graph_id;
     VarId node_var_id;

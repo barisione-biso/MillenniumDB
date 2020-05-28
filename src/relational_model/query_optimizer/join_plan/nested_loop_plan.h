@@ -14,7 +14,6 @@ public:
     double estimate_cost() override;
     double estimate_output_size() override;
 
-    bool cartesian_product_needed(JoinPlan& other) override;
     std::vector<VarId> get_var_order() override;
     void set_input_vars(std::vector<VarId>& input_var_order) override;
 
@@ -23,7 +22,7 @@ public:
 
     static double estimate_cost(JoinPlan& lhs, JoinPlan& rhs);
 
-    void print() override;
+    void print(int indent) override;
 private:
     std::unique_ptr<JoinPlan> lhs;
     std::unique_ptr<JoinPlan> rhs;

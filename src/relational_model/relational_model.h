@@ -2,6 +2,7 @@
 #define RELATIONAL_MODEL__RELATIONAL_MODEL_H_
 
 #include "base/ids/graph_id.h"
+#include "relational_model/cache/strings_cache.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_dir.h"
 #include "storage/index/bplus_tree/bplus_tree_params.h"
@@ -59,6 +60,10 @@ public:
     static constexpr auto to_edge_from_name = "TEF";
     static constexpr auto edge_from_to_name = "EFT";
 
+    // Node Loops
+    static constexpr auto nodeloop_edge_name = "NE";
+    static constexpr auto edge_nodeloop_name = "EN";
+
     RelationalModel();
     ~RelationalModel();
 
@@ -94,9 +99,12 @@ public:
     BPlusTree& get_to_edge_from();
     BPlusTree& get_edge_from_to();
 
+    BPlusTree& get_nodeloop_edge();
+    BPlusTree& get_edge_nodeloop();
 
 private:
     std::unique_ptr<ObjectFile> object_file;
+    std::unique_ptr<StringsCache> strings_cache;
     std::unique_ptr<BPlusTree>  hash2id; // ObjectHash|ObjectId.
 
     std::unique_ptr<BPlusTree>  label2node;
@@ -115,6 +123,9 @@ private:
     std::unique_ptr<BPlusTree>  from_to_edge;
     std::unique_ptr<BPlusTree>  to_edge_from;
     std::unique_ptr<BPlusTree>  edge_from_to;
+
+    std::unique_ptr<BPlusTree>  nodeloop_edge;
+    std::unique_ptr<BPlusTree>  edge_nodeloop;
 
     std::map<GraphId, std::unique_ptr<RelationalGraph>> graphs;
 

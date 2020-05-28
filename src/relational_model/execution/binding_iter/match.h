@@ -13,15 +13,12 @@
 class Match : public BindingIter {
 
 private:
-    std::vector<std::unique_ptr<JoinPlan>> base_plans;
     std::unique_ptr<BindingIdIter> root;
     const std::map<std::string, VarId> var_pos;
     std::unique_ptr<BindingId> binding_id;
 
-    std::unique_ptr<BindingIdIter> get_greedy_join_plan();
-
 public:
-    Match(std::vector<std::unique_ptr<JoinPlan>> base_plans,
+    Match(std::unique_ptr<BindingIdIter> root,
           std::map<std::string, VarId> var_pos);
     ~Match() = default;
 

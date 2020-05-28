@@ -2,7 +2,7 @@
 
 #include <limits>
 
-#include "relational_model/physical_plan/binding_id_iter/merge_join.h"
+#include "relational_model/execution/binding_id_iter/merge_join.h"
 
 using namespace std;
 
@@ -19,43 +19,72 @@ unique_ptr<JoinPlan> MergePlan::duplicate() {
 }
 
 
-void MergePlan::print() {
-    cout << "MergePlan(";
-    lhs->print();
-    cout << ",";
-    rhs->print();
+void MergePlan::print(int indent) {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "MergeJoin(\n";
+    lhs->print(indent + 2);
+    cout << ",\n";
+    rhs->print(indent + 2);
+    cout << "\n";
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
     cout << ")";
 }
 
 
 double MergePlan::estimate_cost() {
-    // TODO:
-    return numeric_limits<double>::max() - 1;
-    // return estimate_cost(*lhs, *rhs);
+    return estimate_cost(*lhs, *rhs);
 }
 
 
-double MergePlan::estimate_cost(JoinPlan&, JoinPlan&) {
-    return numeric_limits<double>::max() - 1; // TODO:
-    // return lhs.estimate_cost() + rhs.estimate_cost();
+double MergePlan::estimate_cost(JoinPlan& lhs, JoinPlan& rhs) {
+    bool merge_possible = true;
+
+    // check merge is possible
+    std::vector<VarId> join_vars;
+    auto left_vars = lhs.get_var_order();
+    auto right_vars = rhs.get_var_order();
+
+    // merge must be on first variable
+    if (left_vars[0] != right_vars[0]) {
+        merge_possible = false;
+    }
+
+    // only first variable is on both left and right
+    auto left_size = left_vars.size();
+    for (size_t i = 1; i < left_size; ++i) {
+        auto right_size = right_vars.size();
+        for (size_t j = 1; j < right_size; ++j) {
+            if (left_vars[i] == right_vars[j]) {
+                merge_possible = false;
+            }
+        }
+    }
+
+    // checkear que tienen las variables de join al principio y en el mismo orden
+    for (size_t i = 0; i < join_vars.size(); ++i) {
+        if (right_vars[i] != left_vars[i]) {
+            merge_possible = false;
+            break;
+        }
+    }
+
+    if (merge_possible) {
+        // return numeric_limits<double>::max();
+        return 0;
+        // return lhs.estimate_cost() + rhs.estimate_cost();
+    } else {
+        return numeric_limits<double>::max();
+    }
 }
 
 
 double MergePlan::estimate_output_size() {
     // TODO:
     return lhs->estimate_output_size() * rhs->estimate_output_size();
-}
-
-
-bool MergePlan::cartesian_product_needed(JoinPlan& other) {
-    for (auto& my_var : get_var_order()) {
-        for (auto& other_var : other.get_var_order()) {
-            if (my_var == other_var) {
-                return false;
-            }
-        }
-    }
-    return true;
 }
 
 
@@ -80,21 +109,11 @@ vector<VarId> MergePlan::get_var_order() {
 
 void MergePlan::set_input_vars(std::vector<VarId>& input_var_order) {
     lhs->set_input_vars(input_var_order);
-    auto left_var_order = lhs->get_var_order();
-    rhs->set_input_vars(left_var_order);
+    rhs->set_input_vars(input_var_order);
 }
 
 
 unique_ptr<BindingIdIter> MergePlan::get_binding_id_iter() {
-    std::vector<VarId> join_vars;
-    for (auto& left_var : lhs->get_var_order()) {
-        for (auto& right_var : rhs->get_var_order()) {
-            if (left_var == right_var) {
-                join_vars.push_back(left_var);
-                break;
-            }
-        }
-    }
-
-    return make_unique<MergeJoin>(lhs->get_binding_id_iter(), rhs->get_binding_id_iter(), move(join_vars));
+    auto join_var = lhs->get_var_order()[0];
+    return make_unique<MergeJoin>(lhs->get_binding_id_iter(), rhs->get_binding_id_iter(), join_var);
 }

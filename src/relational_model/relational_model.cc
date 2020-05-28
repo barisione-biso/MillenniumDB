@@ -32,6 +32,7 @@ RelationalModel::~RelationalModel() = default;
 void RelationalModel::init() {
     catalog.init();
     object_file = make_unique<ObjectFile>(object_file_name);
+    strings_cache = make_unique<StringsCache>(1000);
 
     // Create BPT Params
     auto bpt_params_hash2id = make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:2*64 + Key:64
@@ -53,6 +54,10 @@ void RelationalModel::init() {
     auto bpt_params_to_edge_from = make_unique<BPlusTreeParams>(RelationalModel::to_edge_from_name, 3);
     auto bpt_params_edge_from_to = make_unique<BPlusTreeParams>(RelationalModel::edge_from_to_name, 3);
 
+    auto bpt_params_nodeloop_edge = make_unique<BPlusTreeParams>(RelationalModel::nodeloop_edge_name, 2);
+    auto bpt_params_edge_nodeloop = make_unique<BPlusTreeParams>(RelationalModel::edge_nodeloop_name, 2);
+
+
     // Create BPT
     hash2id = make_unique<BPlusTree>(move(bpt_params_hash2id));
 
@@ -72,6 +77,9 @@ void RelationalModel::init() {
     from_to_edge = make_unique<BPlusTree>(move(bpt_params_from_to_edge));
     to_edge_from = make_unique<BPlusTree>(move(bpt_params_to_edge_from));
     edge_from_to = make_unique<BPlusTree>(move(bpt_params_edge_from_to));
+
+    nodeloop_edge = make_unique<BPlusTree>(move(bpt_params_nodeloop_edge));
+    edge_nodeloop = make_unique<BPlusTree>(move(bpt_params_edge_nodeloop));
 
     catalog.print();
 }
@@ -198,11 +206,17 @@ ObjectId RelationalModel::get_or_create_value_masked_id(const Value& value) {
 
 shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
     auto mask = object_id.id & TYPE_MASK;
-
+    auto unmasked_id = object_id & VALUE_MASK;
     if (mask == VALUE_EXTERNAL_STR_MASK) {
-        auto bytes = object_file->read(object_id & VALUE_MASK);
-        string value_string(bytes->begin(), bytes->end());
-        return make_shared<ValueString>(move(value_string));
+        auto cached_string = strings_cache->get(unmasked_id);
+        if (cached_string != nullptr) {
+            return cached_string;
+        } else {
+            auto bytes = object_file->read(unmasked_id);
+            string value_string(bytes->begin(), bytes->end());
+            strings_cache->insert(unmasked_id, value_string);
+            return make_shared<ValueString>(move(value_string));
+        }
     }
     else if (mask == VALUE_INLINE_STR_MASK) {
         string value_string = "";
@@ -319,6 +333,9 @@ BPlusTree& RelationalModel::get_key_edge_value() { return *key_edge_value; }
 BPlusTree& RelationalModel::get_from_to_edge() { return *from_to_edge; }
 BPlusTree& RelationalModel::get_to_edge_from() { return *to_edge_from; }
 BPlusTree& RelationalModel::get_edge_from_to() { return *edge_from_to; }
+
+BPlusTree& RelationalModel::get_nodeloop_edge() { return *nodeloop_edge; }
+BPlusTree& RelationalModel::get_edge_nodeloop() { return *edge_nodeloop; }
 
 // Nifty counter trick
 RelationalModelInitializer::RelationalModelInitializer () {

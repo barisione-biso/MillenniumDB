@@ -33,10 +33,10 @@ ObjectId BindingId::operator[](VarId var_id) {
 }
 
 
-void BindingId::print(vector<string>& var_names) const {
+void BindingId::print() const {
     std::cout << "BindingId: ";
     for (size_t i = 0; i < object_ids.size(); ++i) {
-        std::cout << var_names[i] << ":[" << (object_ids[i] >> 56) << "]" << (object_ids[i] & 0x00FFFFFFFFFFFFFFUL) << "\t";
+        std::cout << i << ":[" << (object_ids[i] >> 56) << "]" << (object_ids[i] & 0x00'0000'FFFFFFFFFFUL) << "\t";
     }
     std::cout << endl;
 }

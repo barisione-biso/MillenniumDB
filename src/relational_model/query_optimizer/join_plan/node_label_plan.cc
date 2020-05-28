@@ -2,11 +2,11 @@
 
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/relational_model.h"
-#include "relational_model/physical_plan/binding_id_iter/index_scan.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/assigned_var.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/default_graph_var.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/named_graph_var.h"
-#include "relational_model/physical_plan/binding_id_iter/scan_ranges/term.h"
+#include "relational_model/execution/binding_id_iter/index_scan.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/assigned_var.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/default_graph_var.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/named_graph_var.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/term.h"
 #include "storage/catalog/catalog.h"
 
 using namespace std;
@@ -34,9 +34,13 @@ std::unique_ptr<JoinPlan> NodeLabelPlan::duplicate() {
 }
 
 
-void NodeLabelPlan::print() {
-    cout << "NodeLabelPlan(node_assigned: " << node_assigned
-         << ",label_assigned: " << label_assigned << ")";
+void NodeLabelPlan::print(int indent) {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "NodeLabel(node: " << node_var_id.id << (node_assigned ? " assigned" : " not-assigned")
+         << ", label: " << label_var_id.id << (label_assigned ? " assigned" : " not-assigned")
+         << ")";
 }
 
 
@@ -96,17 +100,6 @@ vector<VarId> NodeLabelPlan::get_var_order() {
 }
 
 
-bool NodeLabelPlan::cartesian_product_needed(JoinPlan& other) {
-    for (auto& var : get_var_order()) {
-        for (auto& other_var : other.get_var_order()) {
-            if (var == other_var) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 /**
  * ╔═╦══════════╦═════════╦═════════╗
  * ║ ║  NodeId  ║ LabelId ║  Index  ║
@@ -126,7 +119,7 @@ unique_ptr<BindingIdIter> NodeLabelPlan::get_binding_id_iter() {
 
         return make_unique<IndexScan>(relational_model.get_node2label(), move(ranges));
     } else {
-        // case 3 uses NL
+        // case 3 uses LN
         ranges.push_back(get_label_range());
         ranges.push_back(get_node_range());
 

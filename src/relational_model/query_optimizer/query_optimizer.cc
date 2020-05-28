@@ -1,4 +1,4 @@
-#include "physical_plan_generator.h"
+#include "query_optimizer.h"
 
 #include <iostream>
 #include <set>
@@ -13,9 +13,9 @@
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/op_lonely_node.h"
 #include "relational_model/relational_model.h"
-#include "relational_model/physical_plan/binding_iter/filter.h"
-#include "relational_model/physical_plan/binding_iter/match.h"
-#include "relational_model/physical_plan/binding_iter/projection.h"
+#include "relational_model/execution/binding_iter/filter.h"
+#include "relational_model/execution/binding_iter/match.h"
+#include "relational_model/execution/binding_iter/projection.h"
 
 #include "relational_model/query_optimizer/join_plan/connection_plan.h"
 #include "relational_model/query_optimizer/join_plan/edge_label_plan.h"
@@ -23,21 +23,25 @@
 #include "relational_model/query_optimizer/join_plan/node_label_plan.h"
 #include "relational_model/query_optimizer/join_plan/node_property_plan.h"
 #include "relational_model/query_optimizer/join_plan/lonely_node_plan.h"
+#include "relational_model/query_optimizer/join_plan/join_plan.h"
+#include "relational_model/query_optimizer/join_plan/nested_loop_plan.h"
+#include "relational_model/query_optimizer/join_plan/node_loop_plan.h"
+#include "relational_model/query_optimizer/join_plan/merge_plan.h"
 
 #include "storage/catalog/catalog.h"
 
 using namespace std;
 
-PhysicalPlanGenerator::PhysicalPlanGenerator() { }
+QueryOptimizer::QueryOptimizer() { }
 
 
-unique_ptr<BindingIter> PhysicalPlanGenerator::exec(OpSelect& op_select) {
+unique_ptr<BindingIter> QueryOptimizer::exec(OpSelect& op_select) {
     op_select.accept_visitor(*this);
     return move(tmp);
 }
 
 
-void PhysicalPlanGenerator::visit(OpSelect& op_select) {
+void QueryOptimizer::visit(OpSelect& op_select) {
     if (op_select.select_all) {
         op_select.op->accept_visitor(*this);
         tmp = make_unique<Projection>(move(tmp), op_select.limit);
@@ -54,7 +58,7 @@ void PhysicalPlanGenerator::visit(OpSelect& op_select) {
 }
 
 
-void PhysicalPlanGenerator::visit(OpMatch& op_match) {
+void QueryOptimizer::visit(OpMatch& op_match) {
     VarId null_var = VarId::get_null();
     vector<unique_ptr<JoinPlan>> base_plans;
 
@@ -151,13 +155,22 @@ void PhysicalPlanGenerator::visit(OpMatch& op_match) {
             make_unique<ConnectionPlan>(graph_id, node_from_var_id, node_to_var_id, edge_var_id)
         );
     }
+    for (auto& op_node_loop : op_match.node_loops) {
+        auto graph_id = search_graph_id(op_node_loop->graph_name);
 
-    // TODO: decidir join order y pasarselo al match
-    tmp = make_unique<Match>(move(base_plans), move(id_map));
+        auto node_id     = get_var_id(op_node_loop->node);
+        auto edge_var_id = get_var_id(op_node_loop->edge);
+
+        base_plans.push_back(
+            make_unique<NodeLoopPlan>(graph_id, node_id, edge_var_id)
+        );
+    }
+
+    tmp = make_unique<Match>(get_greedy_join_plan(base_plans), move(id_map));
 }
 
 
-void PhysicalPlanGenerator::visit(OpFilter& op_filter) {
+void QueryOptimizer::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
     if (op_filter.condition != nullptr) {
         tmp = make_unique<Filter>(move(tmp), move(op_filter.condition), var2graph_id, element_types);
@@ -166,7 +179,7 @@ void PhysicalPlanGenerator::visit(OpFilter& op_filter) {
 }
 
 
-VarId PhysicalPlanGenerator::get_var_id(const std::string& var) {
+VarId QueryOptimizer::get_var_id(const std::string& var) {
     auto search = id_map.find(var);
     if (id_map.find(var) != id_map.end()) {
         return (*search).second;
@@ -179,7 +192,7 @@ VarId PhysicalPlanGenerator::get_var_id(const std::string& var) {
 }
 
 
-ObjectId PhysicalPlanGenerator::get_value_id(const ast::Value& value) {
+ObjectId QueryOptimizer::get_value_id(const ast::Value& value) {
     if (value.type() == typeid(string)) {
         auto val_str = boost::get<string>(value);
         return relational_model.get_value_masked_id(ValueString(val_str));
@@ -202,7 +215,7 @@ ObjectId PhysicalPlanGenerator::get_value_id(const ast::Value& value) {
 }
 
 
-GraphId PhysicalPlanGenerator::search_graph_id(const std::string& graph_name) {
+GraphId QueryOptimizer::search_graph_id(const std::string& graph_name) {
     auto search = graph_ids.find(graph_name);
     if (search != graph_ids.end()) {
         return search->second;
@@ -212,8 +225,90 @@ GraphId PhysicalPlanGenerator::search_graph_id(const std::string& graph_name) {
     }
 }
 
+unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr<JoinPlan>>& base_plans) {
+    auto base_plans_size = base_plans.size();
 
-void PhysicalPlanGenerator::visit (OpLabel&) { }
-void PhysicalPlanGenerator::visit (OpProperty&) { }
-void PhysicalPlanGenerator::visit (OpConnection&) { }
-void PhysicalPlanGenerator::visit (OpLonelyNode&) { }
+    assert(base_plans_size > 0
+        && "base_plans size in Match must be greater than 0");
+
+    // choose the first scan
+    int best_index = 0;
+    double best_cost = std::numeric_limits<double>::max();
+    for (size_t j = 0; j < base_plans_size; j++) {
+        auto current_element_cost = base_plans[j]->estimate_cost();
+        if (current_element_cost < best_cost) {
+            best_cost = current_element_cost;
+            best_index = j;
+        }
+    }
+    auto root_plan = move(base_plans[best_index]);
+
+    // choose the next scan and make a IndexNestedLoppJoin or MergeJoin
+    for (size_t i = 1; i < base_plans_size; i++) {
+        best_index = 0;
+        best_cost = std::numeric_limits<double>::max();
+        unique_ptr<JoinPlan> best_step_plan = nullptr;
+
+        for (size_t j = 0; j < base_plans_size; j++) {
+            if (base_plans[j] != nullptr
+                && !base_plans[j]->cartesian_product_needed(*root_plan) )
+            {
+                auto nested_loop_cost = NestedLoopPlan::estimate_cost(*root_plan, *base_plans[j]);
+                auto merge_cost = MergePlan::estimate_cost(*root_plan, *base_plans[j]);
+
+                if (nested_loop_cost <= merge_cost) {
+                    if (nested_loop_cost < best_cost) {
+                        best_cost = nested_loop_cost;
+                        best_index = j;
+                        best_step_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                    }
+                } else { // merge_cost < nested_loop_cost
+                    if (merge_cost < best_cost) {
+                        best_cost = merge_cost;
+                        best_index = j;
+                        best_step_plan = make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                    }
+                }
+            }
+        }
+
+        // All elements would form a cross product, iterate again, allowing cross products
+        if (best_cost == std::numeric_limits<double>::max()) {
+            best_index = 0;
+
+            for (size_t j = 0; j < base_plans_size; j++) {
+                if (base_plans[j] == nullptr) {
+                    continue;
+                }
+                auto nested_loop_cost = NestedLoopPlan::estimate_cost(*root_plan, *base_plans[j]);
+                auto merge_cost = MergePlan::estimate_cost(*root_plan, *base_plans[j]);
+
+                if (nested_loop_cost <= merge_cost) {
+                    if (nested_loop_cost < best_cost) {
+                        best_cost = nested_loop_cost;
+                        best_index = j;
+                        best_step_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                    }
+                } else { // merge_cost < nested_loop_cost
+                    if (merge_cost < best_cost) {
+                        best_cost = merge_cost;
+                        best_index = j;
+                        best_step_plan = make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                    }
+                }
+            }
+        }
+        base_plans[best_index] = nullptr;
+        root_plan = move(best_step_plan);
+    }
+    root_plan->print(0);
+    cout << "\n";
+    return root_plan->get_binding_id_iter();
+}
+
+
+void QueryOptimizer::visit (OpLabel&) { }
+void QueryOptimizer::visit (OpProperty&) { }
+void QueryOptimizer::visit (OpConnection&) { }
+void QueryOptimizer::visit (OpLonelyNode&) { }
+void QueryOptimizer::visit (OpNodeLoop&) { }

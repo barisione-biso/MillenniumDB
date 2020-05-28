@@ -1,10 +1,18 @@
-- Merge Join y pruebas
-- Caso conexiones de un nodo consigo mismo
-    - crear índice (ambas permutaciones?)
-    - crear Op (operador lógico)
-    - crear join optimizer correspondiente
-- mejorar printer para plan físico
-- cambiar nombre de plan físico a executor?, plan ya no es ejecutable
+- Terminar Merge asumiendo que llegan únicos y solo 1 variable
+- Pensar si merge solo tiene sentido dentro de nodo/edge y no en connections
+- LoopNode en catalogo
+- Enchufar diccionario en vez de hash2id
+    - medir tiempos de carga
+    - ver si se puede medir uso de ram
+- Catalogo:
+    - guardar tiempos de busqueda
+    - al terminar import y opcionalmente cuando se quiera
++ Caso conexiones de un nodo consigo mismo
+    + crear B+Tree e insertatn en bulk import
+    + crear índice (ambas permutaciones?)
+    + crear Op (operador lógico)
+    + crear join optimizer correspondiente
++ mejorar printer para plan físico
 
 - Estimación de tuplas de output y de costo
     - Materializar resultados que se usarán varias veces?

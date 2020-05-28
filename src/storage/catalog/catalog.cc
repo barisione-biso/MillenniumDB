@@ -56,8 +56,10 @@ void Catalog::init() {
         file->seekg(0, file->beg);
 
         graph_count = read_uint32();
-        // TODO: check graph_count < 2^16
-
+        if (graph_count >= 65536 /*2^16*/ ) {
+            throw std::logic_error("Catalog file inconsistent: graph_count must be less than 2^16 (65536).");
+            return;
+        }
         if (graph_count == 0) {
             throw std::logic_error("Catalog file inconsistent: graph_count must be more than 0.");
             return;

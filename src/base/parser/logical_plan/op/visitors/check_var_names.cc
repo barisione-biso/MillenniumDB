@@ -8,6 +8,7 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_connection.h"
 #include "base/parser/logical_plan/op/op_lonely_node.h"
+#include "base/parser/logical_plan/op/op_node_loop.h"
 
 void CheckVarNames::visit(OpSelect& op_select) {
     op_select.op->accept_visitor(*this);
@@ -36,3 +37,4 @@ void CheckVarNames::visit(OpLabel&) { };
 void CheckVarNames::visit(OpProperty&) { };
 void CheckVarNames::visit(OpConnection&) { };
 void CheckVarNames::visit(OpLonelyNode&) { };
+void CheckVarNames::visit(OpNodeLoop&) { };

@@ -1,5 +1,5 @@
-#ifndef BASE__PHYSICAL_PLAN_GENERATOR_H_
-#define BASE__PHYSICAL_PLAN_GENERATOR_H_
+#ifndef RELATIONAL_MODEL__QUERY_OPTIMIZER_H_
+#define RELATIONAL_MODEL__QUERY_OPTIMIZER_H_
 
 #include "base/ids/var_id.h"
 #include "base/ids/object_id.h"
@@ -13,12 +13,13 @@
 #include <vector>
 
 class BindingIter;
+class BindingIdIter;
 class OpMatch;
 class OpFilter;
 class OpSelect;
-class RelationalGraph;
+class JoinPlan;
 
-class PhysicalPlanGenerator : OpVisitor {
+class QueryOptimizer : OpVisitor {
 private:
     std::unique_ptr<BindingIter> tmp;
     std::map<std::string, VarId> id_map;
@@ -32,9 +33,11 @@ private:
     ObjectId get_value_id(const ast::Value& value);
     GraphId search_graph_id(const std::string& graph_name);
 
+    std::unique_ptr<BindingIdIter> get_greedy_join_plan(std::vector<std::unique_ptr<JoinPlan>>& base_plans);
+
 public:
-    PhysicalPlanGenerator();
-    ~PhysicalPlanGenerator() = default;
+    QueryOptimizer();
+    ~QueryOptimizer() = default;
 
     std::unique_ptr<BindingIter> exec(OpSelect&);
 
@@ -45,7 +48,7 @@ public:
     void visit(OpProperty&);
     void visit(OpConnection&);
     void visit(OpLonelyNode&);
+    void visit(OpNodeLoop&);
 };
 
-
-#endif // BASE__PHYSICAL_PLAN_GENERATOR_H_
+#endif // RELATIONAL_MODEL__QUERY_OPTIMIZER_H_
