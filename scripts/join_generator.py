@@ -1,5 +1,5 @@
 node_id = 1
-with open("nodes.txt", "w") as nodes_file:
+with open("test_files/join_test/nodes.txt", "w") as nodes_file:
     for i in range(100_000):
         nodes_file.write("({})".format(node_id))
         nodes_file.write(" :LabelA")
@@ -52,7 +52,7 @@ with open("nodes.txt", "w") as nodes_file:
         nodes_file.write("\n")
         node_id += 1
 
-with open("edges.txt", "w") as edges_file:
+with open("test_files/join_test/edges.txt", "w") as edges_file:
     # Node Loops
     for i in range(1, 1_001):
         edges_file.write("({})->({})".format(i, i))

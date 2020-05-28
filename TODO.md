@@ -1,9 +1,11 @@
-- Terminar Merge asumiendo que llegan únicos y solo 1 variable
-- Pensar si merge solo tiene sentido dentro de nodo/edge y no en connections
-- LoopNode en catalogo
++ Terminar Merge asumiendo que llegan únicos y solo 1 variable
++ Pensar si merge solo tiene sentido dentro de nodo/edge y no en connections
+    + no hace sentido en connecciones a menos que hubiera un salto logaritmico
+      tipo encontrar una siguiente id (tipo leapfrog)
 - Enchufar diccionario en vez de hash2id
     - medir tiempos de carga
     - ver si se puede medir uso de ram
+- LoopNode en catalogo
 - Catalogo:
     - guardar tiempos de busqueda
     - al terminar import y opcionalmente cuando se quiera
