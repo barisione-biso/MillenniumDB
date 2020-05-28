@@ -32,11 +32,10 @@ RelationalModel::~RelationalModel() = default;
 void RelationalModel::init() {
     catalog.init();
     object_file = make_unique<ObjectFile>(object_file_name);
+    hash2id = make_unique<HashTable>(hash2id_file_name);
     strings_cache = make_unique<StringsCache>(1000);
 
     // Create BPT Params
-    auto bpt_params_hash2id = make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:2*64 + Key:64
-
     auto bpt_params_label2node = make_unique<BPlusTreeParams>(RelationalModel::label2node_name, 2);
     auto bpt_params_label2edge = make_unique<BPlusTreeParams>(RelationalModel::label2edge_name, 2);
     auto bpt_params_node2label = make_unique<BPlusTreeParams>(RelationalModel::node2label_name, 2);
@@ -59,8 +58,6 @@ void RelationalModel::init() {
 
 
     // Create BPT
-    hash2id = make_unique<BPlusTree>(move(bpt_params_hash2id));
-
     label2node = make_unique<BPlusTree>(move(bpt_params_label2node));
     label2edge = make_unique<BPlusTree>(move(bpt_params_label2edge));
     node2label = make_unique<BPlusTree>(move(bpt_params_node2label));
@@ -90,18 +87,7 @@ uint64_t RelationalModel::get_external_id(std::unique_ptr< std::vector<unsigned 
     uint64_t hash[2];
     MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
 
-    // check if bpt contains object
-    auto& bpt = get_hash2id_bpt();
-    auto iter = bpt.get_range(
-        Record(hash[0], hash[1], 0),
-        Record(hash[0], hash[1], UINT64_MAX)
-    );
-    auto next = iter->next();
-    if (next == nullptr) { // object doesn't exist
-        return ObjectId::OBJECT_ID_NOT_FOUND;
-    } else {               // object already exists
-        return next->ids[2];
-    }
+    return hash2id->get_id(hash[0], hash[1]);
 }
 
 
@@ -110,21 +96,16 @@ uint64_t RelationalModel::get_or_create_external_id(std::unique_ptr< std::vector
     uint64_t hash[2];
     MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
 
-    // check if bpt contains object
-    auto& hash2id = get_hash2id_bpt();
-    auto iter = hash2id.get_range(
-        Record(hash[0], hash[1], 0),
-        Record(hash[0], hash[1], UINT64_MAX)
-    );
-    auto next = iter->next();
-    if (next == nullptr) { // object doesn't exist
+    auto id = hash2id->get_id(hash[0], hash[1]);
+
+    if (id == ObjectId::OBJECT_ID_NOT_FOUND) {
         // Insert in object file
         uint64_t obj_id = get_object_file().write(*bytes);
-        // Insert in bpt
-        hash2id.insert( Record(hash[0], hash[1], obj_id) );
+        // Insert in hashtable
+        hash2id->create_id(hash[0], hash[1], obj_id);
         return obj_id;
-    } else {               // object already exists
-        return next->ids[2];
+    } else {
+        return id;
     }
 }
 
@@ -315,7 +296,6 @@ uint64_t RelationalModel::get_value_mask(const Value& value) {
 
 
 ObjectFile& RelationalModel::get_object_file() { return *object_file; }
-BPlusTree&  RelationalModel::get_hash2id_bpt() { return *hash2id; }
 
 BPlusTree& RelationalModel::get_label2node() { return *label2node; }
 BPlusTree& RelationalModel::get_label2edge() { return *label2edge; }

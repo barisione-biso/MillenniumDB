@@ -42,10 +42,6 @@ int main(int argc, char **argv) {
     buffer_manager.init();
     relational_model.init();
 
-    std::cout << "Checking hash2id\n";
-    if (!relational_model.get_hash2id_bpt().check())
-        std::cout << "wrong BPlusTree: hash2id\n";
-
     // NODE LABELS
     std::cout << "Checking label2node\n";
     if (!relational_model.get_label2node().check())
