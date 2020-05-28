@@ -16,8 +16,9 @@ static typename std::aligned_storage<sizeof(BufferManager), alignof(BufferManage
 BufferManager& buffer_manager = reinterpret_cast<BufferManager&>(buffer_manager_buf);
 
 
-BufferManager::BufferManager(int _buffer_pool_size) {
-    buffer_pool_size = _buffer_pool_size;
+BufferManager::BufferManager(int _buffer_pool_size) :
+    buffer_pool_size(_buffer_pool_size)
+{
     buffer_pool = new Page[buffer_pool_size];
     clock_pos = 0;
     bytes = new char[buffer_pool_size*PAGE_SIZE];

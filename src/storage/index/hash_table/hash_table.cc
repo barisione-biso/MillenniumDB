@@ -1,5 +1,7 @@
 #include "hash_table.h"
 
+#include <iostream>
+
 #include "base/ids/object_id.h"
 #include "storage/file_manager.h"
 
@@ -15,6 +17,7 @@ HashTable::HashTable(const std::string& filename) :
         // read tuples
         uint32_t length;
         file.read(reinterpret_cast<char*>(&length), sizeof(length));
+        cout << "HashTable size: " << length << "\n";
 
         for (uint32_t i = 0; i < length; i++) {
             uint64_t hash_1, hash_2, id;

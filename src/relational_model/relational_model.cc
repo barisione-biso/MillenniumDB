@@ -24,6 +24,7 @@ static typename std::aligned_storage<sizeof(RelationalModel), alignof(Relational
 // global object
 RelationalModel& relational_model = reinterpret_cast<RelationalModel&>(relational_model_buf);
 
+bool RelationalModel::initialized = false;
 
 RelationalModel::RelationalModel() {
     object_file = make_unique<ObjectFile>(object_file_name);
@@ -73,7 +74,7 @@ RelationalModel::RelationalModel() {
     nodeloop_edge = make_unique<BPlusTree>(move(bpt_params_nodeloop_edge));
     edge_nodeloop = make_unique<BPlusTree>(move(bpt_params_edge_nodeloop));
 
-    catalog.print();
+    // catalog.print();
 }
 
 
@@ -89,15 +90,28 @@ RelationalModel::~RelationalModel() {
 }
 
 void RelationalModel::terminate() {
-    (&relational_model)->~RelationalModel();
+    if (initialized)
+        (&relational_model)->~RelationalModel();
 }
 
 
 void RelationalModel::init(std::string db_folder, int buffer_pool_size) {
+    cout << "initializing RelationalModel:\n";
+    cout << "  folder: " << db_folder << "\n";
+    cout << "  buffer pool size: " << buffer_pool_size << "\n";
+    initialized = true;
+    cout << "initializing FileManager...";
     FileManager::init(db_folder);
+    cout << "[done]\n";
+    cout << "initializing BufferManager...";
     BufferManager::init(buffer_pool_size);
-    Catalog::init();
+    cout << "[done]\n";
+    // cout << "initializing Catalog...";
+    // Catalog::init();
+    // cout << "[done]\n";
     new (&relational_model) RelationalModel(); // placement new
+    cout << "[RelationalModel done]\n";
+
 }
 
 

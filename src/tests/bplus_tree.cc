@@ -113,8 +113,8 @@ int main(int argc, char** argv) {
         exit(1);
     }
     int size = atoi(argv[1]);
-    file_manager.init("test_files/test_bpt");
-    buffer_manager.init();
+    FileManager::init("test_files/test_bpt");
+    BufferManager::init(BufferManager::DEFAULT_BUFFER_POOL_SIZE);
 
     string name_random = "bpt_random";
     create_random(size, name_random);

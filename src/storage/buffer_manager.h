@@ -31,7 +31,7 @@ public:
     ~BufferManager();
 
     // necesary to be called before first usage
-    static void init(int _buffer_pool_size = DEFAULT_BUFFER_POOL_SIZE);
+    static void init(int buffer_pool_size);
 
     // Get a page. It will search in the buffer and if it is not on it, it will read from disk and put in the buffer.
     // Also it will pin the page, so calling buffer_manager.unpin(page) is expected when the caller doesn't need

@@ -68,3 +68,87 @@ __________________________________
 
 Import times & Memory
 
+Default Graph:
+  node count: 0
+  node labels: 0
+  node keys:   0
+  node disinct labels: 0
+  node disinct keys:   0
+  edge count: 0
+  edge labels: 0
+  edge keys:   0
+  edge disinct labels: 0
+  edge disinct keys:   0
+procesing nodes:
+
+procesing edges:
+Reading files & writing ordered file: 131378ms
+Writing non-merging indexes (7): 15100.8ms
+Writing merging indexes (6): 30445.2ms
+Bulk Import duration: 176925ms
+        Command being timed: "build/Release/bin/import_graph -d test_files/db -n test_files/big/nodes.txt -e test_files/big/edges.txt -g big"
+        User time (seconds): 121.74
+        System time (seconds): 53.68
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 2:57.03
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 73796
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 17189
+        Voluntary context switches: 38
+        Involuntary context switches: 11660
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 12197552
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+Sacando B+Tree para hash2id:
+Default Graph:
+  node count: 0
+  node labels: 0
+  node keys:   0
+  node disinct labels: 0
+  node disinct keys:   0
+  edge count: 0
+  edge labels: 0
+  edge keys:   0
+  edge disinct labels: 0
+  edge disinct keys:   0
+procesing nodes:
+
+procesing edges:
+Reading files & writing ordered file: 129783ms
+Writing non-merging indexes (7): 15064.6ms
+Writing merging indexes (6): 22201.9ms
+Bulk Import duration: 167050ms
+        Command being timed: "build/Release/bin/import_graph -d test_files/db -n test_files/big/nodes.txt -e test_files/big/edges.txt -g big"
+        User time (seconds): 126.99
+        System time (seconds): 47.53
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 2:55.41
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 2315432
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 0
+        Minor (reclaiming a frame) page faults: 577778
+        Voluntary context switches: 55
+        Involuntary context switches: 4300
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 13580744
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0

@@ -16,6 +16,8 @@ class RelationalGraph;
 
 class RelationalModel {
 public:
+    static bool initialized;
+
     static constexpr auto MAX_INLINED_BYTES = 7; // Ids have 8 bytes, 1 for type and 7 remaining
     static constexpr auto TYPE_OFFSET  = 56; // total_bits - bits_for_type: 64 - 8
     static constexpr auto GRAPH_OFFSET = 40; // total_bits - bits_for_type - bits for graph: 64 - 8 - 16
