@@ -1,0 +1,29 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX snvoc: <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/>
+PREFIX dbpediaowl: <http://dbpedia.org/ontology/>
+
+SELECT
+    ?firstName
+    ?lastName
+    ?birthday
+    ?locationIP
+    ?browserUsed
+    ?cityId
+    ?gender
+    ?creationDate
+WHERE
+{
+    ?person rdf:type snvoc:Person .
+    ?person snvoc:id "30786325583618"^^<http://www.w3.org/2001/XMLSchema#long> .
+    ?person snvoc:firstName ?firstName .
+    ?person snvoc:lastName ?lastName .
+    ?person snvoc:gender ?gender .
+    ?person snvoc:birthday ?birthday .
+    ?person snvoc:creationDate ?creationDate .
+    ?person snvoc:locationIP ?locationIP .
+    ?person snvoc:isLocatedIn ?city .
+    ?city rdf:type dbpediaowl:City .
+    ?city snvoc:id ?cityId .
+    ?person snvoc:browserUsed ?browserUsed .
+}

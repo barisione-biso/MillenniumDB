@@ -12,8 +12,6 @@ public:
     ValueFloat(float value);
     ~ValueFloat();
 
-    std::unique_ptr<std::vector<unsigned char>> get_bytes() const override;
-
     std::string to_string() const override;
 
     ObjectType type() const override;

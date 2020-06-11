@@ -107,6 +107,7 @@ unique_ptr<BindingIdIter> NodeLoopPlan::get_binding_id_iter() {
     }
 }
 
+
 std::unique_ptr<ScanRange> NodeLoopPlan::get_node_range() {
     if (node_assigned) {
         return make_unique<AssignedVar>(node_var_id);

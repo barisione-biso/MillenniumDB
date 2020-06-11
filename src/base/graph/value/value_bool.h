@@ -11,10 +11,6 @@ public:
         : value(value) { }
     ~ValueBool() = default;
 
-    std::unique_ptr<std::vector<unsigned char>> get_bytes() const override {
-        return std::make_unique<std::vector<unsigned char>>(1, (unsigned char)value);
-    }
-
     std::string to_string() const override {
         if (value)
             return "true";

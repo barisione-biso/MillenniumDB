@@ -42,7 +42,7 @@ BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_n
 
 void BulkImport::start_import() {
     auto start = chrono::system_clock::now();
-    int line_number = 1;
+    auto line_number = 1;
     cout << "procesing nodes:\n";
 
     boost::spirit::istream_iterator node_iter( nodes_file );

@@ -1,0 +1,10 @@
+MATCH (:Person {id:"17592186052613"})<-[:HAS_CREATOR]-(m:Message)-[:REPLY_OF]->(p:Post)
+MATCH (p)-[:HAS_CREATOR]->(c)
+RETURN
+  m.id as messageId,
+  m.content AS messageContent,
+  m.creationDate AS messageCreationDate,
+  p.id AS originalPostId,
+  c.id AS originalPostAuthorId,
+  c.firstName as originalPostAuthorFirstName,
+  c.lastName as originalPostAuthorLastName

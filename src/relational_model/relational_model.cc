@@ -28,10 +28,11 @@ bool RelationalModel::initialized = false;
 
 RelationalModel::RelationalModel() {
     object_file = make_unique<ObjectFile>(object_file_name);
-    hash2id = make_unique<HashTable>(hash2id_file_name);
     strings_cache = make_unique<StringsCache>(1000);
 
     // Create BPT Params
+    auto bpt_params_hash2id = make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:2*64 + Key:64
+
     auto bpt_params_label2node = make_unique<BPlusTreeParams>(RelationalModel::label2node_name, 2);
     auto bpt_params_label2edge = make_unique<BPlusTreeParams>(RelationalModel::label2edge_name, 2);
     auto bpt_params_node2label = make_unique<BPlusTreeParams>(RelationalModel::node2label_name, 2);
@@ -54,6 +55,8 @@ RelationalModel::RelationalModel() {
 
 
     // Create BPT
+    hash2id = make_unique<BPlusTree>(move(bpt_params_hash2id));
+
     label2node = make_unique<BPlusTree>(move(bpt_params_label2node));
     label2edge = make_unique<BPlusTree>(move(bpt_params_label2edge));
     node2label = make_unique<BPlusTree>(move(bpt_params_node2label));
@@ -74,14 +77,14 @@ RelationalModel::RelationalModel() {
     nodeloop_edge = make_unique<BPlusTree>(move(bpt_params_nodeloop_edge));
     edge_nodeloop = make_unique<BPlusTree>(move(bpt_params_edge_nodeloop));
 
-    // catalog.print();
+    catalog.print();
 }
 
 
 RelationalModel::~RelationalModel() {
     // delete unique_ptrs
     object_file.reset();
-    hash2id.reset();
+    // hash2id.reset();
     strings_cache.reset();
 
     catalog.~Catalog();
@@ -96,61 +99,69 @@ void RelationalModel::terminate() {
 
 
 void RelationalModel::init(std::string db_folder, int buffer_pool_size) {
-    cout << "initializing RelationalModel:\n";
-    cout << "  folder: " << db_folder << "\n";
-    cout << "  buffer pool size: " << buffer_pool_size << "\n";
+    // cout << "initializing RelationalModel:\n";
+    // cout << "  folder: " << db_folder << "\n";
+    // cout << "  buffer pool size: " << buffer_pool_size << "\n";
     initialized = true;
-    cout << "initializing FileManager...";
+    // cout << "initializing FileManager...";
     FileManager::init(db_folder);
-    cout << "[done]\n";
-    cout << "initializing BufferManager...";
+    // cout << "[done]\n";
+    // cout << "initializing BufferManager...";
     BufferManager::init(buffer_pool_size);
-    cout << "[done]\n";
+    // cout << "[done]\n";
     // cout << "initializing Catalog...";
-    // Catalog::init();
+    Catalog::init();
     // cout << "[done]\n";
     new (&relational_model) RelationalModel(); // placement new
-    cout << "[RelationalModel done]\n";
+    // cout << "[RelationalModel done]\n";
 
 }
 
 
-uint64_t RelationalModel::get_external_id(std::unique_ptr< std::vector<unsigned char> > bytes) {
+uint64_t RelationalModel::get_external_id(std::unique_ptr< std::vector<unsigned char> > bytes,
+                                          bool create_if_not_exists)
+{
     static_assert(MD5_DIGEST_LENGTH == 16, "Hash is expected to use 16 bytes.");
     uint64_t hash[2];
     MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
 
-    return hash2id->get_id(hash[0], hash[1]);
-}
-
-
-uint64_t RelationalModel::get_or_create_external_id(std::unique_ptr< std::vector<unsigned char> > bytes) {
-    static_assert(MD5_DIGEST_LENGTH == 16, "Hash is expected to use 16 bytes.");
-    uint64_t hash[2];
-    MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
-
-    auto id = hash2id->get_id(hash[0], hash[1]);
-
-    if (id == ObjectId::OBJECT_ID_NOT_FOUND) {
-        // Insert in object file
-        uint64_t obj_id = get_object_file().write(*bytes);
-        // Insert in hashtable
-        hash2id->create_id(hash[0], hash[1], obj_id);
-        return obj_id;
+    // check if bpt contains object
+    auto iter = hash2id->get_range(
+        Record(hash[0], hash[1], 0),
+        Record(hash[0], hash[1], UINT64_MAX)
+    );
+    auto next = iter->next();
+    if (next == nullptr) {
+        // object doesn't exist
+        if (create_if_not_exists) {
+            // Insert in object file
+            uint64_t obj_id = get_object_file().write(*bytes);
+            // Insert in bpt
+            hash2id->insert( Record(hash[0], hash[1], obj_id) );
+            return obj_id;
+        } else {
+            return ObjectId::OBJECT_ID_NOT_FOUND;
+        }
     } else {
-        return id;
+        // object already exists
+        return next->ids[2];
     }
 }
 
 
-ObjectId RelationalModel::get_string_unmasked_id(const string& str) {
+uint64_t RelationalModel::get_string_id(const string& str, bool create_if_not_exists) {
     int string_len = str.length();
 
     if (string_len > MAX_INLINED_BYTES) {
         auto bytes = make_unique<vector<unsigned char>>(string_len);
         copy(str.begin(), str.end(), bytes->begin());
 
-        return ObjectId( get_external_id(move(bytes)) );
+        auto external_id =  get_external_id(move(bytes), create_if_not_exists);
+        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
+            return external_id;
+        } else {
+            return external_id | VALUE_EXTERNAL_STR_MASK;
+        }
     } else {
         uint64_t res = 0;
         int shift_size = 0;
@@ -158,62 +169,63 @@ ObjectId RelationalModel::get_string_unmasked_id(const string& str) {
             res |= byte << shift_size;
             shift_size += 8;
         }
-        return ObjectId(res);
+        return res | VALUE_INLINE_STR_MASK;;
     }
 }
 
 
-ObjectId RelationalModel::get_value_masked_id(const Value& value) {
-    auto obj_bytes = value.get_bytes();
-    if (obj_bytes->size() > MAX_INLINED_BYTES) {
-        return get_external_id(move(obj_bytes)) | get_value_mask(value);
-    }
-    else {
-        uint64_t res = 0;
-        int shift_size = 0;
-        for (uint64_t byte : *obj_bytes) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
-            res |= byte << shift_size;
-            shift_size += 8;
+ObjectId RelationalModel::get_value_id(const Value& value, bool create_if_not_exists) {
+    switch (value.type()) {
+        case ObjectType::value_string : {
+            const auto& string_value = static_cast<const ValueString&>(value);
+            return ObjectId( get_string_id(string_value.value, create_if_not_exists) );
         }
-        return ObjectId( res | get_value_mask(value) );
-    }
-}
 
+        case ObjectType::value_int : {
+            const auto& int_value = static_cast<const ValueInt&>(value);
+            auto value = int_value.value;
 
-ObjectId RelationalModel::get_or_create_string_unmasked_id(const std::string& str) {
-    int string_len = str.length();
+            uint64_t mask = VALUE_POSITIVE_INT_MASK;
+            if (value < 0) {
+                value *= -1;
+                mask = VALUE_NEGATIVE_INT_MASK;
+            }
 
-    if (string_len > MAX_INLINED_BYTES) {
-        auto bytes = make_unique<vector<unsigned char>>(string_len);
-        copy(str.begin(), str.end(), bytes->begin());
-
-        return ObjectId( get_or_create_external_id(move(bytes)) );
-    }
-    else {
-        uint64_t res = 0;
-        int shift_size = 0;
-        for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
-            res |= byte << shift_size;
-            shift_size += 8;
+            // check if it needs more than 7 bytes
+            if ( (value & 0xFF00'0000'0000'0000UL) == 0) {
+                return ObjectId(mask | value);
+            } else {
+                // VALUE_EXTERNAL_INT_MASK
+                throw std::logic_error("NOT SUPPORTED YET");
+            }
         }
-        return ObjectId(res);
-    }
-}
 
+        case ObjectType::value_float : {
+            const auto& value_float = static_cast<const ValueFloat&>(value);
+            auto bytes = make_unique<vector<unsigned char>>(sizeof(value_float.value));
+            memcpy(bytes->data(), &value_float.value, sizeof(value_float.value));
 
-ObjectId RelationalModel::get_or_create_value_masked_id(const Value& value) {
-    auto obj_bytes = value.get_bytes();
-    if (obj_bytes->size() > MAX_INLINED_BYTES) {
-        return get_or_create_external_id(move(obj_bytes)) | get_value_mask(value);
-    }
-    else {
-        uint64_t res = 0;
-        int shift_size = 0;
-        for (uint64_t byte : *obj_bytes) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
-            res |= byte << shift_size;
-            shift_size += 8;
+            uint64_t res = 0;
+            int shift_size = 0;
+            for (uint64_t byte : *bytes) {
+                res |= byte << shift_size;
+                shift_size += 8;
+            }
+            return ObjectId(VALUE_FLOAT_MASK | res);
         }
-        return ObjectId( res | get_value_mask(value) );
+
+        case ObjectType::value_bool : {
+            const auto& value_bool = static_cast<const ValueBool&>(value);
+            if (value_bool.value) {
+                return ObjectId(VALUE_BOOL_MASK | 0x01);
+            } else {
+                return ObjectId(VALUE_BOOL_MASK | 0x00);
+            }
+        }
+
+        default : {
+            throw logic_error("Unexpected value type.");
+        }
     }
 }
 
@@ -221,68 +233,78 @@ ObjectId RelationalModel::get_or_create_value_masked_id(const Value& value) {
 shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
     auto mask = object_id.id & TYPE_MASK;
     auto unmasked_id = object_id & VALUE_MASK;
-    if (mask == VALUE_EXTERNAL_STR_MASK) {
-        auto cached_string = strings_cache->get(unmasked_id);
-        if (cached_string != nullptr) {
-            return cached_string;
-        } else {
-            auto bytes = object_file->read(unmasked_id);
-            string value_string(bytes->begin(), bytes->end());
-            strings_cache->insert(unmasked_id, value_string);
+    switch (mask) {
+        case VALUE_EXTERNAL_STR_MASK : {
+            auto cached_string = strings_cache->get(unmasked_id);
+            if (cached_string != nullptr) {
+                return cached_string;
+            } else {
+                auto bytes = object_file->read(unmasked_id);
+                string value_string(bytes->begin(), bytes->end());
+                strings_cache->insert(unmasked_id, value_string);
+                return make_shared<ValueString>(move(value_string));
+            }
+        }
+
+        case VALUE_INLINE_STR_MASK : {
+            string value_string = "";
+            int shift_size = 0;
+            for (int i = 0; i < MAX_INLINED_BYTES; i++) {
+                uint8_t byte = (object_id >> shift_size) & 0xFF;
+                if (byte == 0x00) {
+                    break;
+                }
+                value_string.push_back(byte);
+                shift_size += 8;
+            }
             return make_shared<ValueString>(move(value_string));
         }
-    }
-    else if (mask == VALUE_INLINE_STR_MASK) {
-        string value_string = "";
-        int shift_size = 0;
-        for (int i = 0; i < MAX_INLINED_BYTES; i++) {
-            uint8_t byte = (object_id >> shift_size) & 0xFF;
-            if (byte == 0x00) {
-                break;
-            }
-            value_string.push_back(byte);
-            shift_size += 8;
+
+        case VALUE_POSITIVE_INT_MASK : {
+            static_assert(sizeof(int64_t) == 8, "int64_t must be 8 bytes");
+            int64_t i = object_id & 0x00FF'FFFF'FFFF'FFFFUL;
+            return make_shared<ValueInt>(i);
         }
-        return make_shared<ValueString>(move(value_string));
-    }
-    else if (mask == VALUE_INT_MASK) {
-        static_assert(sizeof(int) == 4, "int must be 4 bytes");
-        int i;
-        uint8_t* dest = (uint8_t*)&i;
-        dest[0] = object_id & 0xFF;
-        dest[1] = (object_id >> 8) & 0xFF;
-        dest[2] = (object_id >> 16) & 0xFF;
-        dest[3] = (object_id >> 24) & 0xFF;
-        return make_shared<ValueInt>(i);
-    }
-    else if (mask == VALUE_FLOAT_MASK) {
-        static_assert(sizeof(float) == 4, "float must be 4 bytes");
-        float f;
-        uint8_t* dest = (uint8_t*)&f;
-        dest[0] = object_id & 0xFF;
-        dest[1] = (object_id >> 8) & 0xFF;
-        dest[2] = (object_id >> 16) & 0xFF;
-        dest[3] = (object_id >> 24) & 0xFF;
-        return make_shared<ValueFloat>(f);
-    }
-    else if (mask == VALUE_BOOL_MASK) {
-        bool b;
-        uint8_t* dest = (uint8_t*)&b;
-        *dest = object_id & 0xFF;
-        return make_shared<ValueBool>(b);
-    }
-    else if (mask == NODE_MASK) {
-        return make_shared<Node>(object_id);
-    }
-    else if (mask == EDGE_MASK) {
-        return make_shared<Edge>(object_id);
-    }
-    else {
-        cout << "wrong value prefix:\n";
-        printf("  obj_id: %lX\n", object_id.id);
-        printf("  mask: %lX\n", mask);
-        string value_string = "";
-        return make_shared<ValueString>(move(value_string));
+
+        case VALUE_NEGATIVE_INT_MASK : {
+            static_assert(sizeof(int64_t) == 8, "int64_t must be 8 bytes");
+            int64_t i = object_id & 0x00FF'FFFF'FFFF'FFFFUL;
+            return make_shared<ValueInt>(i*-1);
+        }
+
+        case VALUE_FLOAT_MASK : {
+            static_assert(sizeof(float) == 4, "float must be 4 bytes");
+            float f;
+            uint8_t* dest = (uint8_t*)&f;
+            dest[0] = object_id & 0xFF;
+            dest[1] = (object_id >> 8) & 0xFF;
+            dest[2] = (object_id >> 16) & 0xFF;
+            dest[3] = (object_id >> 24) & 0xFF;
+            return make_shared<ValueFloat>(f);
+        }
+
+        case VALUE_BOOL_MASK : {
+            bool b;
+            uint8_t* dest = (uint8_t*)&b;
+            *dest = object_id & 0xFF;
+            return make_shared<ValueBool>(b);
+        }
+
+        case NODE_MASK : {
+            return make_shared<Node>((object_id >> 40) & 0xFFFF, object_id & 0x0000'00FF'FFFF'FFFFUL);
+        }
+
+        case EDGE_MASK : {
+            return make_shared<Edge>((object_id >> 40) & 0xFFFF, object_id & 0x0000'00FF'FFFF'FFFFUL);
+        }
+
+        default : {
+            cout << "wrong value prefix:\n";
+            printf("  obj_id: %lX\n", object_id.id);
+            printf("  mask: %lX\n", mask);
+            string value_string = "";
+            return make_shared<ValueString>(move(value_string));
+        }
     }
 }
 
@@ -300,30 +322,6 @@ RelationalGraph& RelationalModel::get_graph(GraphId graph_id) {
     } else {
         graphs.insert({ graph_id, make_unique<RelationalGraph>(graph_id) });
         return *graphs[graph_id].get();
-    }
-}
-
-
-uint64_t RelationalModel::get_value_mask(const Value& value) {
-    auto type = value.type();
-    if (type == ObjectType::value_string) {
-        const auto& string_value = static_cast<const ValueString&>(value);
-        if (string_value.value.size() <= MAX_INLINED_BYTES) {
-            return VALUE_INLINE_STR_MASK;
-        }
-        else return VALUE_EXTERNAL_STR_MASK;
-    }
-    else if (type == ObjectType::value_int) {
-        return VALUE_INT_MASK;
-    }
-    else if (type == ObjectType::value_float) {
-        return VALUE_FLOAT_MASK;
-    }
-    else if (type == ObjectType::value_bool) {
-        return VALUE_BOOL_MASK;
-    }
-    else {
-        throw logic_error("Unexpected value type.");
     }
 }
 

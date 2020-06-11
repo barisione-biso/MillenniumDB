@@ -73,7 +73,7 @@ void QueryOptimizer::visit(OpMatch& op_match) {
     for (auto& op_label : op_match.labels) {
         auto graph_id = search_graph_id(op_label->graph_name);
         auto element_var_id = get_var_id(op_label->var);
-        auto label_id = relational_model.get_string_unmasked_id(op_label->label);
+        auto label_id = relational_model.get_string_id(op_label->label);
 
         if (op_label->type == ObjectType::node) {
             base_plans.push_back(
@@ -89,7 +89,7 @@ void QueryOptimizer::visit(OpMatch& op_match) {
     // Process properties from Match
     for (auto& op_property : op_match.properties) {
         auto element_var_id = get_var_id(op_property->var);
-        auto key_id = relational_model.get_string_unmasked_id(op_property->key);
+        auto key_id = relational_model.get_string_id(op_property->key);
         ObjectId value_id = get_value_id(op_property->value);
 
         auto graph_id = search_graph_id(op_property->graph_name);
@@ -109,7 +109,7 @@ void QueryOptimizer::visit(OpMatch& op_match) {
         auto graph_id = var2graph_id[var];
         auto element_var_id = get_var_id(var);
         auto value_var = get_var_id(var + '.' + key);
-        auto key_id = relational_model.get_string_unmasked_id(key);
+        auto key_id = relational_model.get_string_id(key);
         auto element_type = element_types[var];
 
         if (element_type == ObjectType::node) {
@@ -195,19 +195,19 @@ VarId QueryOptimizer::get_var_id(const std::string& var) {
 ObjectId QueryOptimizer::get_value_id(const ast::Value& value) {
     if (value.type() == typeid(string)) {
         auto val_str = boost::get<string>(value);
-        return relational_model.get_value_masked_id(ValueString(val_str));
+        return relational_model.get_value_id(ValueString(val_str));
     }
-    else if (value.type() == typeid(int)) {
-        auto val_int = boost::get<int>(value);
-        return relational_model.get_value_masked_id(ValueInt(val_int));
+    else if (value.type() == typeid(int64_t)) {
+        auto val_int = boost::get<int64_t>(value);
+        return relational_model.get_value_id(ValueInt(val_int));
     }
     else if (value.type() == typeid(float)) {
         auto val_float = boost::get<float>(value);
-        return relational_model.get_value_masked_id(ValueFloat(val_float));
+        return relational_model.get_value_id(ValueFloat(val_float));
     }
     else if (value.type() == typeid(bool)) {
         auto val_bool = boost::get<bool>(value);
-        return relational_model.get_value_masked_id(ValueBool(val_bool));
+        return relational_model.get_value_id(ValueBool(val_bool));
     }
     else {
         throw logic_error("Unknown value type.");

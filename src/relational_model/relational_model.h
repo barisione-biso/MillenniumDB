@@ -24,23 +24,28 @@ public:
 
     static constexpr uint64_t NODE_MASK                 = 0x01'0000'0000000000UL;
     static constexpr uint64_t EDGE_MASK                 = 0x02'0000'0000000000UL;
-    static constexpr uint64_t LABEL_MASK                = 0x03'0000'0000000000UL;
-    static constexpr uint64_t KEY_MASK                  = 0x04'0000'0000000000UL;
-    static constexpr uint64_t VALUE_EXTERNAL_STR_MASK   = 0x05'0000'0000000000UL;
-    static constexpr uint64_t VALUE_INLINE_STR_MASK     = 0x06'0000'0000000000UL;
-    static constexpr uint64_t VALUE_INT_MASK            = 0x07'0000'0000000000UL;
+    static constexpr uint64_t VALUE_EXTERNAL_STR_MASK   = 0x03'0000'0000000000UL;
+    static constexpr uint64_t VALUE_INLINE_STR_MASK     = 0x04'0000'0000000000UL;
+
+    static constexpr uint64_t VALUE_NEGATIVE_INT_MASK   = 0x05'0000'0000000000UL;
+    static constexpr uint64_t VALUE_POSITIVE_INT_MASK   = 0x06'0000'0000000000UL;
+
+    static_assert(VALUE_NEGATIVE_INT_MASK < VALUE_POSITIVE_INT_MASK,
+        "INLINED INTEGERS WON'T BE ORDERED PROPERTLY IN THE BPT.");
+
+    static constexpr uint64_t VALUE_EXTERNAL_INT_MASK   = 0x07'0000'0000000000UL; // TODO: not supported yet
+
     static constexpr uint64_t VALUE_FLOAT_MASK          = 0x08'0000'0000000000UL;
     static constexpr uint64_t VALUE_BOOL_MASK           = 0x09'0000'0000000000UL;
 
     static constexpr uint64_t ELEMENT_MASK              = 0x00'0000'FFFFFFFFFFUL; // for nodes and edges
     static constexpr uint64_t VALUE_MASK                = 0x00'FFFF'FFFFFFFFFFUL;
-    // static constexpr uint64_t TYPE_MASK                 = 0x0000'FF'0000000000UL;
-    // static constexpr uint64_t GRAPH_MASK                = 0xFFFF'00'0000000000UL;
+
     static constexpr uint64_t TYPE_MASK                 = 0xFF'0000'0000000000UL;
     static constexpr uint64_t GRAPH_MASK                = 0x00'FFFF'0000000000UL; // ONLY EDGES AND NODES HAVE A GRAPH_MASK
 
     static constexpr auto object_file_name  = "objects.dat";
-    static constexpr auto hash2id_file_name  = "hash2id.dat";
+    static constexpr auto hash2id_name  = "hash2id.dat";
 
     // Labels
     static constexpr auto label2node_name = "LN";
@@ -72,11 +77,11 @@ public:
     static void init(std::string db_folder, int buffer_pool_size);
     static void terminate();
 
-    ObjectId get_string_unmasked_id(const std::string& str);
-    ObjectId get_value_masked_id(const Value& value);
+    // returns an ID with mask
+    uint64_t get_string_id(const std::string& str, bool create_if_not_exists = false);\
 
-    ObjectId get_or_create_string_unmasked_id(const std::string& str);
-    ObjectId get_or_create_value_masked_id(const Value& value);
+    // returns an ID with mask
+    ObjectId get_value_id(const Value& value, bool create_if_not_exists = false);
 
     RelationalGraph& create_graph(const std::string& graph_name);
     RelationalGraph& get_graph(GraphId);
@@ -107,7 +112,7 @@ public:
 private:
     std::unique_ptr<ObjectFile> object_file;
     std::unique_ptr<StringsCache> strings_cache;
-    std::unique_ptr<HashTable> hash2id;
+    std::unique_ptr<BPlusTree> hash2id;
 
     std::unique_ptr<BPlusTree>  label2node;
     std::unique_ptr<BPlusTree>  label2edge;
@@ -131,9 +136,8 @@ private:
 
     std::map<GraphId, std::unique_ptr<RelationalGraph>> graphs;
 
-    uint64_t get_or_create_external_id(std::unique_ptr< std::vector<unsigned char> > bytes);
-    uint64_t get_external_id(std::unique_ptr< std::vector<unsigned char> > bytes);
-    uint64_t get_value_mask(const Value& value);
+    uint64_t get_external_id(std::unique_ptr< std::vector<unsigned char> > bytes,
+                            bool create_if_not_exists = false);
 };
 
 extern RelationalModel& relational_model; // global object

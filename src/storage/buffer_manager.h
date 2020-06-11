@@ -1,11 +1,10 @@
-/* TODO: recomentar !!!! IMPORTANT !!!! DON'T include this file in a header file
- *
+/*
  * BufferManager contains all pages in memory and is used to get a page, making transparent if the page is
  * already in memory or needs to be readed from disk.
  *
- * `buffer_manager` is a global object and is available when this file is included. `buffer_manager` is only
- * constructed if it will be used in the execution. Construction is performed before the first line of main()
- * is executed and destrcution is performed after the last line of main() is executed.
+ * `buffer_manager` is a global object and is available when this file is included. Before using it, somebody
+ * must call the method BufferManager::init(), usually is the responsability of the model (e.g. RelationalModel)
+ * to call it.
  *
  * A mutex object is used to prevent conflict between different threads when asking for page and
  * unpining a page.
@@ -27,7 +26,6 @@ class BufferManager {
 public:
     static constexpr int DEFAULT_BUFFER_POOL_SIZE = 1024;
 
-    BufferManager(int _buffer_pool_size);
     ~BufferManager();
 
     // necesary to be called before first usage
@@ -53,6 +51,8 @@ public:
     void unpin(Page& page);
 
 private:
+    BufferManager(int _buffer_pool_size);
+
     // maximum pages the buffer can have
     int buffer_pool_size;
 

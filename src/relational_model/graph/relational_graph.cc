@@ -35,7 +35,7 @@ uint64_t RelationalGraph::create_edge() {
 
 
 Record RelationalGraph::get_record_for_node_label(uint64_t node_id, const string& label) {
-    uint64_t label_id = relational_model.get_or_create_string_unmasked_id(label);
+    uint64_t label_id = relational_model.get_string_id(label, true);
     catalog.add_node_label(graph_id, label_id);
     return Record(
         node_id,
@@ -45,7 +45,7 @@ Record RelationalGraph::get_record_for_node_label(uint64_t node_id, const string
 
 
 Record RelationalGraph::get_record_for_edge_label(uint64_t edge_id, const string& label) {
-    uint64_t label_id = relational_model.get_or_create_string_unmasked_id(label);
+    uint64_t label_id = relational_model.get_string_id(label, true);
     catalog.add_edge_label(graph_id, label_id);
     return Record(
         edge_id,
@@ -55,8 +55,8 @@ Record RelationalGraph::get_record_for_edge_label(uint64_t edge_id, const string
 
 
 Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const string& key, const Value& value) {
-    uint64_t key_id = relational_model.get_or_create_string_unmasked_id(key);
-    uint64_t value_id = relational_model.get_or_create_value_masked_id(value);
+    uint64_t key_id = relational_model.get_string_id(key, true);
+    uint64_t value_id = relational_model.get_value_id(value, true);
 
     catalog.add_node_key(graph_id, key_id);
     return Record(
@@ -68,8 +68,8 @@ Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const str
 
 
 Record RelationalGraph::get_record_for_edge_property(uint64_t edge_id, const string& key, const Value& value) {
-    uint64_t key_id = relational_model.get_or_create_string_unmasked_id(key);
-    uint64_t value_id = relational_model.get_or_create_value_masked_id(value);
+    uint64_t key_id = relational_model.get_string_id(key, true);
+    uint64_t value_id = relational_model.get_value_id(value, true);
 
     catalog.add_edge_key(graph_id, key_id);
     return Record(

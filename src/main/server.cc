@@ -146,10 +146,14 @@ int main(int argc, char **argv) {
     }
     catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";
+        RelationalModel::terminate();
         return 1;
     }
     catch (...) {
         cerr << "Exception of unknown type!\n";
+        RelationalModel::terminate();
+        return 1;
     }
     RelationalModel::terminate();
+    return 0;
 }

@@ -1,5 +1,4 @@
-/* TODO: recomentar !!!! IMPORTANT !!!! DON'T include this file in a header file
- *
+/*
  * FileManager mantains a list (`opened_files`) with all files that were opened (even if the file is closed),
  * and another list (`filenames`) with the string of the file paths. Both list must have the same size
  * and objects at the same index are related to each other.
@@ -7,9 +6,9 @@
  * All the other clases that need to work with files should use the FileManager to obtain a reference to a
  * fstream.
  *
- * `file_manager` is a global object and is available when this file is included. `file_manager` is only constructed
- * if it will be used in the execution. Construction is performed before the first line of main() is executed
- * and destrcution is performed after the last line of main() is executed.
+ * `file_manager` is a global object and is available when this file is included. Before using it, somebody
+ * needs to call the method FileManager::init(), usually is the responsability of the model (e.g. RelationalModel)
+ * to call it.
  *
  * The instance `file_manager` cannot be destroyed before the BufferManager flushes its dirty pages on exit
  * because BufferManager needs to access the file paths from FileManager. Nifty counter trick should handle this

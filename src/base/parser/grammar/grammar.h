@@ -16,6 +16,7 @@ namespace parser
     using x3::no_case;
     using x3::alnum;
     using x3::graph;
+    using x3::int64;
     using x3::int32;
     // using x3::float_;
     x3::real_parser<float, x3::strict_real_policies<float> > const float_ = {};
@@ -93,7 +94,7 @@ namespace parser
         (lexeme['\'' >> *(char_ - '\'') >> '\'']);
 
     auto const value_def =
-        string | float_ | int32 | boolean;
+        string | float_ | int64 | boolean;
 
     auto const property_def =
         key >> ':' >> value;

@@ -1,20 +1,35 @@
-+ Terminar Merge asumiendo que llegan únicos y solo 1 variable
-+ Pensar si merge solo tiene sentido dentro de nodo/edge y no en connections
-    + no hace sentido en connecciones a menos que hubiera un salto logaritmico
-      tipo encontrar una siguiente id (tipo leapfrog)
-- Enchufar diccionario en vez de hash2id
-    - medir tiempos de carga
-    - ver si se puede medir uso de ram
+- Crear set consultas con los cambios propuestos por Domagoj
+? Comparar RDF, creando los mismos índices (como si todo fuese triple, 3 índices)
+
+- Ejecutar cada consulta 10 veces en cada motor, sacar (ignorar) minimo, maximo y promedio y tabular
+    - entre cada experimento dar un sleep de 5 segundos
+    - si todas son muy selectivas, inventar algunas con muchos resultados o costosas
+    - mandar correo
+- HASH: MURMUR3
+    - implementar extendable hashing
+
+____________________________________________________________________
+? Comparar ejecucion de MD5 y otros hash, ejecutar 100.000.000 y medir tiempos
+- Soportar cuasi-esquema en el catálogo (si son menos de X puedo tener distribuciones)
+    - O tal vez agregar la selectividad del peor caso para una key (y si no existe se asume que es total)
+
+- Support new formats:
+    - datetime
+    - long
+    - decimal
+
+- Operaciones que faltan para Short Reads:
+    - Order By
+    - Aliases (SELECT X as Y)
+    - edge neo4j: *0..
+    - Optional Match
+    - COALESCE / CASE exists(attr)
+    - edges sin dirección (o unión)
+
 - LoopNode en catalogo
 - Catalogo:
     - guardar tiempos de busqueda
     - al terminar import y opcionalmente cuando se quiera
-+ Caso conexiones de un nodo consigo mismo
-    + crear B+Tree e insertatn en bulk import
-    + crear índice (ambas permutaciones?)
-    + crear Op (operador lógico)
-    + crear join optimizer correspondiente
-+ mejorar printer para plan físico
 
 - Estimación de tuplas de output y de costo
     - Materializar resultados que se usarán varias veces?
