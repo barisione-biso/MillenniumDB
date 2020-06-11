@@ -44,12 +44,11 @@ void NodeLoopPlan::print(int indent) {
 
 double NodeLoopPlan::estimate_cost() {
     return estimate_output_size();
-    // TODO:
 }
 
 
 double NodeLoopPlan::estimate_output_size() {
-    // TODO:
+    // TODO: better estimations needed
     return 1;
 }
 

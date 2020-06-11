@@ -55,11 +55,11 @@ void EdgePropertyPlan::print(int indent) {
 
 double EdgePropertyPlan::estimate_cost() {
     return estimate_output_size();
-    // TODO:
 }
 
 
 double EdgePropertyPlan::estimate_output_size() {
+    // TODO: better estimations needed
     if (edge_assigned) {
         if (key_assigned) {
             // CASE 1 and 2, max 1 tuple
@@ -83,7 +83,11 @@ double EdgePropertyPlan::estimate_output_size() {
                 return static_cast<double>(catalog.get_edge_properties(graph_id))
                     / static_cast<double>(catalog.get_edge_distinct_properties(graph_id));
             } else {
-                return catalog.get_edge_count_for_key(graph_id, key_id);
+                if (value_assigned) {
+                    return catalog.get_edge_count_for_key(graph_id, key_id);
+                } else {
+                    return catalog.get_edge_count_for_key(graph_id, key_id);
+                }
             }
         } else {
             if (value_assigned) {

@@ -73,8 +73,6 @@ double MergePlan::estimate_cost(JoinPlan& lhs, JoinPlan& rhs) {
     }
 
     if (merge_possible) {
-        // return numeric_limits<double>::max();
-        // return 0;
         return lhs.estimate_cost() + rhs.estimate_cost();
     } else {
         return numeric_limits<double>::max();
@@ -83,7 +81,7 @@ double MergePlan::estimate_cost(JoinPlan& lhs, JoinPlan& rhs) {
 
 
 double MergePlan::estimate_output_size() {
-    // TODO:
+    // TODO: better estimation needed
     return lhs->estimate_output_size() * rhs->estimate_output_size();
 }
 

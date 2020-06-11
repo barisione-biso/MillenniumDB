@@ -23,7 +23,6 @@ unique_ptr<JoinPlan> LonelyNodePlan::duplicate() {
 
 
 double LonelyNodePlan::estimate_cost() {
-    // TODO:
     return estimate_output_size();
 }
 

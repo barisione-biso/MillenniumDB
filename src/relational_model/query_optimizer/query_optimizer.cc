@@ -236,6 +236,9 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
     double best_cost = std::numeric_limits<double>::max();
     for (size_t j = 0; j < base_plans_size; j++) {
         auto current_element_cost = base_plans[j]->estimate_cost();
+        cout << j << ", cost:" << current_element_cost << ". ";
+        base_plans[j]->print(0);
+        cout << "\n";
         if (current_element_cost < best_cost) {
             best_cost = current_element_cost;
             best_index = j;

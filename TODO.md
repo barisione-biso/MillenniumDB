@@ -1,15 +1,34 @@
-- Crear set consultas con los cambios propuestos por Domagoj
-? Comparar RDF, creando los mismos índices (como si todo fuese triple, 3 índices)
+- Subir tamaño del buffer
+- Ver como funcionariamos si tuviesemos un plan similar a neo4j para el caso de la consulta
+  new_same_university
+- contar busquedas de B+Tree?
+
+- Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
+    - guardar total y distinct keys
+    - por cada key guardar total values y distict values
+    - Problema: no estan agrupados por grafo
+        - Se podría crear un ordered file y que queden ordenados por Grafo > Key > Value.
+        - Si se esta importando un solo grafo se puede hacer un ordered file solo con Key > Value
 
 - Ejecutar cada consulta 10 veces en cada motor, sacar (ignorar) minimo, maximo y promedio y tabular
-    - entre cada experimento dar un sleep de 5 segundos
+    - para cada motor crear script python que reciba un archivo de consulta, e imprima tiempo y numero de resultados
+    - script bash que llame al script de python por cada archivo de consulta en la carpeta. Repetir 10 veces
+        - entre cada experimento dar un sleep de 5 segundos
     - si todas son muy selectivas, inventar algunas con muchos resultados o costosas
-    - mandar correo
-- HASH: MURMUR3
+
+- HASH: mumur https://github.com/aappleby/smhasher
     - implementar extendable hashing
+        - 2 archivos: directorio y buckets
+        - hash de 128 bits (16 bytes)
+        - archivo directorio guarda profundidad global (g, 1 Byte) y 2^g punteros a el bucket correspondiente
+        - bucket ocupa 1 página, y guarda profundidad local (1 Byte), numero de tuplas en bucket (n, 1 Byte)
+          y n tuplas (128bit hash, 56bit value, 23 Bytes).
+        - profundidad global inicial: 10 => 1024 buckets de 4KB => archivo de buckets inicial de 4MB
+        - al buscar string, pasar su hash y referencia al string. Comparar tanto el hash como el string
+          para manejar apropiadamente las colisiones
+        - suponer que no existirán tantas colisiones que no quepan en un bucket (máx 178 colisiones).
 
 ____________________________________________________________________
-? Comparar ejecucion de MD5 y otros hash, ejecutar 100.000.000 y medir tiempos
 - Soportar cuasi-esquema en el catálogo (si son menos de X puedo tener distribuciones)
     - O tal vez agregar la selectividad del peor caso para una key (y si no existe se asume que es total)
 

@@ -1,0 +1,6 @@
+SELECT
+  ?p1.id,
+  ?p2.id,
+  ?u.id
+MATCH (?p1 :Person)-[:STUDY_AT]->(?u :Organisation)<-[:STUDY_AT]-(?p2 :Person)
+WHERE ?p1.id != ?p2.id

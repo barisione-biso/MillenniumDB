@@ -46,11 +46,11 @@ void NodeLabelPlan::print(int indent) {
 
 double NodeLabelPlan::estimate_cost() {
     return estimate_output_size();
-    // TODO:
 }
 
 
 double NodeLabelPlan::estimate_output_size() {
+    // TODO: better estimations needed
     if (node_assigned && label_assigned) {
         return 1;
     } else if (label_assigned) {

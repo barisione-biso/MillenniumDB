@@ -47,11 +47,11 @@ void EdgeLabelPlan::print(int indent) {
 
 double EdgeLabelPlan::estimate_cost() {
     return estimate_output_size();
-    // TODO:
 }
 
 
 double EdgeLabelPlan::estimate_output_size() {
+    // TODO: better estimations needed
     if (edge_assigned && label_assigned) {
         return 1;
     } else if (label_assigned) {

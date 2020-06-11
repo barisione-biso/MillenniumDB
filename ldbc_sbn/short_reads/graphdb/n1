@@ -1,0 +1,5 @@
+// found 82338 results.
+SELECT *
+MATCH (?p1 :Person)-[:WORK_AT]->(?u)<-[:WORK_AT]-(?p2 :Person),
+      (?p1)-[:STUDY_AT]->(?c)<-[:STUDY_AT]-(?p2)
+

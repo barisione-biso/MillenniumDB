@@ -1,4 +1,3 @@
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX snvoc: <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/>
 
 SELECT
@@ -10,14 +9,14 @@ SELECT
     ?originalPostAuthorFirstName
     ?originalPostAuthorLastName
 WHERE {
-    ?person rdf:type snvoc:Person .
+    ?person a snvoc:Person .
     ?person snvoc:id "17592186052613"^^<http://www.w3.org/2001/XMLSchema#long> .
     ?message snvoc:hasCreator ?person .
     ?message snvoc:content ?messageContent .
     ?message snvoc:creationDate ?messageCreationDate .
     ?message snvoc:id ?messageId .
     ?message snvoc:replyOf ?originalPost .
-    ?originalPost rdf:type snvoc:Post .
+    ?originalPost a snvoc:Post .
     ?originalPost snvoc:id ?originalPostId .
     ?originalPost snvoc:hasCreator ?creator .
     ?creator snvoc:firstName ?originalPostAuthorFirstName .

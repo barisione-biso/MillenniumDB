@@ -48,7 +48,7 @@ double NestedLoopPlan::estimate_cost(JoinPlan& lhs, JoinPlan& rhs) {
 
 
 double NestedLoopPlan::estimate_output_size() {
-    // TODO:
+    // TODO: better estimations needed
     return lhs->estimate_output_size() * rhs->estimate_output_size();
 }
 

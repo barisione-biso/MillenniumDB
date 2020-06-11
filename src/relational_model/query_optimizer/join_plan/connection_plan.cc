@@ -50,11 +50,11 @@ void ConnectionPlan::print(int indent) {
 
 double ConnectionPlan::estimate_cost() {
     return estimate_output_size();
-    // TODO:
 }
 
 
 double ConnectionPlan::estimate_output_size() {
+    // TODO: better estimations needed
     if (node_from_assigned) {
         if (edge_assigned) {
             if (node_to_assigned) {
@@ -67,7 +67,6 @@ double ConnectionPlan::estimate_output_size() {
         } else {
             if (node_to_assigned) {
                 // CASE 3
-                // TODO: que deberias estimar?
                 return static_cast<double>(catalog.get_edge_count(graph_id))
                        / static_cast<double>(catalog.get_node_count(graph_id));
             } else {
