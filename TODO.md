@@ -1,14 +1,17 @@
-+ Subir tamaño del buffer
-    + 4KB * 1024 * 256 => 1GB
 + Ver como funcionariamos si tuviesemos un plan similar a neo4j para el caso de la consulta
   - new_same_university:
     230~843ms vs ~2300ms (sin hacer filtro del ids distintas), ~1300 eliminando labels redundantes
   - new_same_company:
     840~1505ms vs ~9500ms (sin hacer filtro del ids distintas), ~5500 eliminando labels redundantes
 
+- Analizar la consulta con universidad y company juntos (de 26 min)
+    - probar con output hacia /dev/null
 
-+ contar busquedas de B+Tree? => poder entregar algo similar al profile de neo4j
-  donde cada BindingIdIter cuantas los matches que hizo en total. Poder imprimir al final de la consulta
+- Hacer los mismos experimentos con SF-5 (8~GB)
+  - ver tambien operaciones chicas (eg: busqueda de todos los nodos con un label)
+
+- Ver consultas de property paths y ver como se comporta Neo4j
+    - tratar de encontrar algunas donde neo4j funcione mal
 
 - HASH: mumur https://github.com/aappleby/smhasher
     - implementar extendable hashing
@@ -33,7 +36,7 @@
     // El where funciona mal cuando ?p1.id y ?p2.id no estan en el select
     // debería poder expresar ?p1 != ?p2
     SELECT *
-    MATCH (?p1 :Person)-[:STUDY_AT]->(?u :Organisation {type:"university"})<-[:STUDY_AT]-(?p2 :Person)
+    MATCH (?p1 :Person)-[:STUDY_AT]->(?u :Organisation {type:"university" age:18})<-[:STUDY_AT]-(?p2 :Person)
     WHERE ?p1.id != ?p2.id
 ____________________________________________________________________
 - Soportar cuasi-esquema en el catálogo (si son menos de X puedo tener distribuciones)

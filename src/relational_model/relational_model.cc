@@ -327,6 +327,8 @@ RelationalGraph& RelationalModel::get_graph(GraphId graph_id) {
 
 
 ObjectFile& RelationalModel::get_object_file() { return *object_file; }
+StringsCache& RelationalModel::get_strings_cache() { return *strings_cache; }
+
 
 BPlusTree& RelationalModel::get_label2node() { return *label2node; }
 BPlusTree& RelationalModel::get_label2edge() { return *label2edge; }

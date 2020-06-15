@@ -12,7 +12,7 @@ HashTable::HashTable(const std::string& filename) :
 {
     auto& file = file_manager.get_file(file_id);
     file.seekg (0, file.end);
-    // If the file is empty, read the values
+    // If the file is not empty, read the values
     if (file.tellg() != 0) {
         // read tuples
         uint32_t length;

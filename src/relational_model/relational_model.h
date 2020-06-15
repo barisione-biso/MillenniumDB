@@ -88,6 +88,7 @@ public:
     std::shared_ptr<GraphObject> get_graph_object(ObjectId);
 
     ObjectFile& get_object_file();
+    StringsCache& get_strings_cache();
 
     BPlusTree& get_label2node();
     BPlusTree& get_label2edge();
