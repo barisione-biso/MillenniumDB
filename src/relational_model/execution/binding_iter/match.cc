@@ -27,3 +27,8 @@ unique_ptr<Binding> Match::next() {
         return nullptr;
     }
 }
+
+
+void Match::analyze(int indent) const {
+    root->analyze(indent);
+}

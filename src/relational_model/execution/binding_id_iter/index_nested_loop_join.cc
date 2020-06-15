@@ -1,43 +1,44 @@
 #include "index_nested_loop_join.h"
 
 #include <algorithm>
+#include <iostream>
 
 #include "base/ids/var_id.h"
 
 using namespace std;
 
-IndexNestedLoopJoin::IndexNestedLoopJoin(unique_ptr<BindingIdIter> left, unique_ptr<BindingIdIter> right) :
-    left(move(left)), right(move(right)) { }
+IndexNestedLoopJoin::IndexNestedLoopJoin(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs) :
+    lhs(move(lhs)), rhs(move(rhs)) { }
 
 
 void IndexNestedLoopJoin::begin(BindingId& input) {
     my_binding = make_unique<BindingId>(input.var_count());
-    left->begin(input);
-    current_left = left->next();
+    lhs->begin(input);
+    current_left = lhs->next();
     if (current_left != nullptr)
-        right->begin(*current_left);
+        rhs->begin(*current_left);
 }
 
 
 void IndexNestedLoopJoin::reset(BindingId& input) {
-    left->reset(input);
+    lhs->reset(input);
     if (current_left != nullptr)
-        right->reset(*current_left);
+        rhs->reset(*current_left);
 }
 
 
 BindingId* IndexNestedLoopJoin::next() {
     while (current_left != nullptr) {
-        current_right = right->next();
+        current_right = rhs->next();
 
         if (current_right != nullptr) {
             construct_binding();
             return my_binding.get();
         }
         else {
-            current_left = left->next();
+            current_left = lhs->next();
             if (current_left != nullptr)
-                right->reset(*current_left);
+                rhs->reset(*current_left);
         }
     }
     return nullptr;
@@ -47,4 +48,20 @@ BindingId* IndexNestedLoopJoin::next() {
 void IndexNestedLoopJoin::construct_binding() {
     my_binding->add_all(*current_left);
     my_binding->add_all(*current_right);
+}
+
+
+void IndexNestedLoopJoin::analyze(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "IndexNestedLoopJoin(\n";
+    lhs->analyze(indent + 2);
+    cout << ",\n";
+    rhs->analyze(indent + 2);
+    cout << "\n";
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << ")";
 }

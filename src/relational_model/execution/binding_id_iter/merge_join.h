@@ -22,6 +22,9 @@ public:
     void reset(BindingId& input);
     BindingId* next();
 
+    // prints execution statistics
+    void analyze(int indent = 0) const override;
+
 private:
     std::unique_ptr<BindingIdIter> lhs;
     std::unique_ptr<BindingIdIter> rhs;
@@ -31,6 +34,9 @@ private:
     BindingId* current_right = nullptr;
 
     std::unique_ptr<BindingId> my_binding;
+
+    // statistics
+    uint_fast32_t results_found = 0;
 
     void construct_binding();
 };

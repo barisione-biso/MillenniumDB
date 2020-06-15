@@ -1,20 +1,14 @@
-- Subir tamaño del buffer
-- Ver como funcionariamos si tuviesemos un plan similar a neo4j para el caso de la consulta
-  new_same_university
-- contar busquedas de B+Tree?
++ Subir tamaño del buffer
+    + 4KB * 1024 * 256 => 1GB
++ Ver como funcionariamos si tuviesemos un plan similar a neo4j para el caso de la consulta
+  - new_same_university:
+    230~843ms vs ~2300ms (sin hacer filtro del ids distintas), ~1300 eliminando labels redundantes
+  - new_same_company:
+    840~1505ms vs ~9500ms (sin hacer filtro del ids distintas), ~5500 eliminando labels redundantes
 
-- Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
-    - guardar total y distinct keys
-    - por cada key guardar total values y distict values
-    - Problema: no estan agrupados por grafo
-        - Se podría crear un ordered file y que queden ordenados por Grafo > Key > Value.
-        - Si se esta importando un solo grafo se puede hacer un ordered file solo con Key > Value
 
-- Ejecutar cada consulta 10 veces en cada motor, sacar (ignorar) minimo, maximo y promedio y tabular
-    - para cada motor crear script python que reciba un archivo de consulta, e imprima tiempo y numero de resultados
-    - script bash que llame al script de python por cada archivo de consulta en la carpeta. Repetir 10 veces
-        - entre cada experimento dar un sleep de 5 segundos
-    - si todas son muy selectivas, inventar algunas con muchos resultados o costosas
++ contar busquedas de B+Tree? => poder entregar algo similar al profile de neo4j
+  donde cada BindingIdIter cuantas los matches que hizo en total. Poder imprimir al final de la consulta
 
 - HASH: mumur https://github.com/aappleby/smhasher
     - implementar extendable hashing
@@ -28,6 +22,19 @@
           para manejar apropiadamente las colisiones
         - suponer que no existirán tantas colisiones que no quepan en un bucket (máx 178 colisiones).
 
+- Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
+    - guardar total y distinct keys
+    - por cada key guardar total values y distict values
+    - Problema: no estan agrupados por grafo
+        - Se podría crear un ordered file y que queden ordenados por Grafo > Key > Value.
+        - Si se esta importando un solo grafo se puede hacer un ordered file solo con Key > Value
+
+- BUG:
+    // El where funciona mal cuando ?p1.id y ?p2.id no estan en el select
+    // debería poder expresar ?p1 != ?p2
+    SELECT *
+    MATCH (?p1 :Person)-[:STUDY_AT]->(?u :Organisation {type:"university"})<-[:STUDY_AT]-(?p2 :Person)
+    WHERE ?p1.id != ?p2.id
 ____________________________________________________________________
 - Soportar cuasi-esquema en el catálogo (si son menos de X puedo tener distribuciones)
     - O tal vez agregar la selectividad del peor caso para una key (y si no existe se asume que es total)

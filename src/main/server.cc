@@ -77,10 +77,12 @@ void session(tcp::socket sock) {
             auto binding = root->next();
             int count = 0;
             while (binding != nullptr) {
-                tcp_buffer << binding->to_string();
+                // tcp_buffer << binding->to_string();
                 binding = root->next();
                 count++;
             }
+
+            root->analyze();
 
             auto end = chrono::system_clock::now();
             chrono::duration<float, std::milli> duration = end - start;

@@ -55,3 +55,12 @@ BindingId* NodeEnum::next() {
 void NodeEnum::reset(BindingId& input) {
     begin(input);
 }
+
+
+void NodeEnum::analyze(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    // TODO: añadir información?
+    cout << "NodeEnum()";
+}

@@ -20,6 +20,10 @@ private:
     std::unique_ptr<BindingId> my_binding;
     std::vector<std::unique_ptr<ScanRange>> ranges;
 
+    // statistics
+    uint_fast32_t results_found = 0;
+    uint_fast32_t bpt_searches = 0;
+
 public:
     IndexScan(BPlusTree& bpt, std::vector<std::unique_ptr<ScanRange>> ranges);
     ~IndexScan() = default;
@@ -27,6 +31,9 @@ public:
     void begin(BindingId& input);
     void reset(BindingId& input);
     BindingId* next();
+
+    // prints execution statistics
+    void analyze(int indent = 0) const override;
 };
 
 #endif // RELATIONAL_MODEL__GRAPH_SCAN_H_

@@ -31,9 +31,10 @@ namespace parser
 
     using x3::char_;
 
+    auto const line_skipper = "//" >> *(char_ - eol) >> (eol | eoi);
+
     // Declare skipper
-    auto const skipper =
-        space | "//" >> *(char_ - eol) >> (eol | eoi);
+    auto const skipper = space | line_skipper;
 
     // Declare rules
     x3::rule<class root, ast::Root>

@@ -24,6 +24,9 @@ public:
 
     void begin();
     std::unique_ptr<Binding> next();
+
+    // prints execution statistics
+    void analyze(int indent = 0) const override;
 };
 
 #endif // RELATIONAL_MODEL__MATCH_H_

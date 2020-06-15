@@ -40,3 +40,8 @@ std::unique_ptr<Binding> Projection::next() {
         }
     }
 }
+
+
+void Projection::analyze(int indent) const {
+    iter->analyze(indent);
+}

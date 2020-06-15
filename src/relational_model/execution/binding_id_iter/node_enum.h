@@ -20,6 +20,9 @@ private:
     // vector of (mask, node_count), mask includes graph and node type
     std::vector<std::pair<uint64_t, uint64_t>> graph_counts;
 
+    // prints execution statistics
+    void analyze(int indent = 0) const override;
+
 public:
     NodeEnum(GraphId graph_id, VarId var_id);
     ~NodeEnum();

@@ -24,7 +24,7 @@ class Page;
 
 class BufferManager {
 public:
-    static constexpr int DEFAULT_BUFFER_POOL_SIZE = 1024;
+    static constexpr int DEFAULT_BUFFER_POOL_SIZE = 1024 * 256;
 
     ~BufferManager();
 

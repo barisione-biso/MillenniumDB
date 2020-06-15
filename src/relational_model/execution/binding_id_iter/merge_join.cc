@@ -33,6 +33,7 @@ BindingId* MergeJoin::next() {
             construct_binding();
             current_left = lhs->next();
             current_right = rhs->next();
+            ++results_found;
             return my_binding.get();
         } else {
             if ( (*current_left)[join_var] < (*current_right)[join_var] ) {
@@ -49,4 +50,20 @@ BindingId* MergeJoin::next() {
 void MergeJoin::construct_binding() {
     my_binding->add_all(*current_left);
     my_binding->add_all(*current_right);
+}
+
+
+void MergeJoin::analyze(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "MergeJoin(found: " << results_found << "\n";
+    lhs->analyze(indent + 2);
+    cout << ",\n";
+    rhs->analyze(indent + 2);
+    cout << "\n";
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << ")";
 }

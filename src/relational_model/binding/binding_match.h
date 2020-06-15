@@ -20,9 +20,10 @@ public:
         std::unique_ptr<BindingId> binding_id);
     ~BindingMatch();
 
-    std::string to_string() const;
-    std::shared_ptr<GraphObject> operator[](const std::string& var);
-    std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key);
+    std::string to_string() const override;
+
+    std::shared_ptr<GraphObject> operator[](const std::string& var) override;
+    std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key) override;
 };
 
 #endif // RELATIONAL_MODEL__BINDING_MATCH_H_

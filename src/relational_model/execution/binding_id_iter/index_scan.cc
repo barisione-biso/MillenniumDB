@@ -39,6 +39,7 @@ void IndexScan::begin(BindingId& input) {
         Record(min_ids),
         Record(max_ids)
     );
+    ++bpt_searches;
 }
 
 
@@ -53,6 +54,7 @@ BindingId* IndexScan::next() {
             range->try_assign(*my_binding, next->ids[i]);
             ++i;
         }
+        ++results_found;
         return my_binding.get();
     } else {
         return nullptr;
@@ -79,4 +81,13 @@ void IndexScan::reset(BindingId& input) {
         Record(min_ids),
         Record(max_ids)
     );
+    ++bpt_searches;
+}
+
+
+void IndexScan::analyze(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "IndexScan(bpt_searches: " << bpt_searches << ", found: " << results_found << ")";
 }

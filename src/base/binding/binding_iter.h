@@ -11,6 +11,9 @@ public:
     virtual ~BindingIter() { };
     virtual void begin() = 0;
     virtual std::unique_ptr<Binding> next() = 0; // next returning nullptr means there are not more bindings
+
+    // prints execution statistics
+    virtual void analyze(int indent = 0) const = 0;
 };
 
 #endif // BASE__BINDING_ITER_H_

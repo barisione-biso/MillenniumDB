@@ -32,3 +32,9 @@ std::unique_ptr<Binding> Filter::next() {
     }
     return nullptr;
 }
+
+
+void Filter::analyze(int indent) const {
+    // TODO:
+    iter->analyze(indent);
+}

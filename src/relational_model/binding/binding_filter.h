@@ -21,9 +21,10 @@ public:
                   std::map<std::string, ObjectType>& element_types);
     ~BindingFilter() = default;
 
-    std::string to_string() const;
-    std::shared_ptr<GraphObject> operator[](const std::string& var);
-    std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key);
+    std::string to_string() const override;
+
+    std::shared_ptr<GraphObject> operator[](const std::string& var) override;
+    std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key) override;
 };
 
 #endif // RELATIONAL_MODEL__BINDING_FILTER_H_
