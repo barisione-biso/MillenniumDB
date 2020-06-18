@@ -4,11 +4,17 @@
   - new_same_company:
     840~1505ms vs ~9500ms (sin hacer filtro del ids distintas), ~5500 eliminando labels redundantes
 
-- Analizar la consulta con universidad y company juntos (de 26 min)
-    - probar con output hacia /dev/null
++ No podemos hacer el mismo plan que neo4J, ya que hay operaciones que al traspasarlas necesitan más
+  de una operación (ej: expandir conexiones por un label)
++ Gran cantidad de resultados intermedios se produce al expandir las conexiones y luego buscar si tienen
+  el label
++ Si saco el label en la consulta de cypher usa NodeHashJoin, no expande innecesariamente
 
-- Hacer los mismos experimentos con SF-5 (8~GB)
-  - ver tambien operaciones chicas (eg: busqueda de todos los nodos con un label)
++ Analizar la consulta con universidad y company juntos
+    + probar con output hacia /dev/null
+
++ Hacer los mismos experimentos con SF-10
+  + ver tambien operaciones chicas (eg: busqueda de todos los nodos con un label)
 
 - Ver consultas de property paths y ver como se comporta Neo4j
     - tratar de encontrar algunas donde neo4j funcione mal
@@ -31,6 +37,12 @@
     - Problema: no estan agrupados por grafo
         - Se podría crear un ordered file y que queden ordenados por Grafo > Key > Value.
         - Si se esta importando un solo grafo se puede hacer un ordered file solo con Key > Value
+
+- Tratar de optimizar BPT:
+    - reempolazar BPTParams por templates
+    - reemplazar Record por template
+    - eliminar caso del value (o usarlo y ver cómo adaptar el bulk import para que quede bien)
+        - Puede mejorar NK|V, KN|V, EK|V, KE|V y E|FT
 
 - BUG:
     // El where funciona mal cuando ?p1.id y ?p2.id no estan en el select

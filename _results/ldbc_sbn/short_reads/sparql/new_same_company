@@ -13,5 +13,5 @@ WHERE {
     ?s2 snvoc:hasOrganisation ?c .
     ?p1 snvoc:id ?p1Id .
     ?p2 snvoc:id ?p2Id .
-    ?c snvoc:id ?uId .
+    ?c snvoc:id ?cId .
 }

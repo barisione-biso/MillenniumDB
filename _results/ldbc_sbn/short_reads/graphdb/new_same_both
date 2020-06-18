@@ -1,0 +1,3 @@
+SELECT *
+MATCH (?p1 :Person)-[:WORK_AT]->(?c :Organisation {type:"company"})<-[:WORK_AT]-(?p2 :Person),
+      (?p1)-[:STUDY_AT]->(?u :Organisation {type:"university"})<-[:STUDY_AT]-(?p2)
