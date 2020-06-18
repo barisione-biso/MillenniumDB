@@ -4,8 +4,6 @@
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
 
-#include <openssl/md5.h>
-
 #include "base/graph/edge.h"
 #include "base/graph/node.h"
 #include "base/graph/value/value_int.h"
@@ -29,10 +27,9 @@ bool RelationalModel::initialized = false;
 RelationalModel::RelationalModel() {
     object_file = make_unique<ObjectFile>(object_file_name);
     strings_cache = make_unique<StringsCache>(1000);
+    strings_hash = make_unique<ExtendibleHash>(strings_hash_name);
 
     // Create BPT Params
-    auto bpt_params_hash2id = make_unique<BPlusTreeParams>(hash2id_name, 3); // Hash:2*64 + Key:64
-
     auto bpt_params_label2node = make_unique<BPlusTreeParams>(RelationalModel::label2node_name, 2);
     auto bpt_params_label2edge = make_unique<BPlusTreeParams>(RelationalModel::label2edge_name, 2);
     auto bpt_params_node2label = make_unique<BPlusTreeParams>(RelationalModel::node2label_name, 2);
@@ -55,8 +52,6 @@ RelationalModel::RelationalModel() {
 
 
     // Create BPT
-    hash2id = make_unique<BPlusTree>(move(bpt_params_hash2id));
-
     label2node = make_unique<BPlusTree>(move(bpt_params_label2node));
     label2edge = make_unique<BPlusTree>(move(bpt_params_label2edge));
     node2label = make_unique<BPlusTree>(move(bpt_params_node2label));
@@ -84,8 +79,8 @@ RelationalModel::RelationalModel() {
 RelationalModel::~RelationalModel() {
     // delete unique_ptrs
     object_file.reset();
-    // hash2id.reset();
     strings_cache.reset();
+    strings_hash.reset();
 
     catalog.~Catalog();
     buffer_manager.~BufferManager();
@@ -118,34 +113,8 @@ void RelationalModel::init(std::string db_folder, int buffer_pool_size) {
 }
 
 
-uint64_t RelationalModel::get_external_id(std::unique_ptr< std::vector<unsigned char> > bytes,
-                                          bool create_if_not_exists)
-{
-    static_assert(MD5_DIGEST_LENGTH == 16, "Hash is expected to use 16 bytes.");
-    uint64_t hash[2];
-    MD5((const unsigned char*)bytes->data(), bytes->size(), (unsigned char *)hash);
-
-    // check if bpt contains object
-    auto iter = hash2id->get_range(
-        Record(hash[0], hash[1], 0),
-        Record(hash[0], hash[1], UINT64_MAX)
-    );
-    auto next = iter->next();
-    if (next == nullptr) {
-        // object doesn't exist
-        if (create_if_not_exists) {
-            // Insert in object file
-            uint64_t obj_id = get_object_file().write(*bytes);
-            // Insert in bpt
-            hash2id->insert( Record(hash[0], hash[1], obj_id) );
-            return obj_id;
-        } else {
-            return ObjectId::OBJECT_ID_NOT_FOUND;
-        }
-    } else {
-        // object already exists
-        return next->ids[2];
-    }
+uint64_t RelationalModel::get_external_id(const string& str, bool create_if_not_exists) {
+    return strings_hash->get_id(str, create_if_not_exists);
 }
 
 
@@ -153,10 +122,7 @@ uint64_t RelationalModel::get_string_id(const string& str, bool create_if_not_ex
     int string_len = str.length();
 
     if (string_len > MAX_INLINED_BYTES) {
-        auto bytes = make_unique<vector<unsigned char>>(string_len);
-        copy(str.begin(), str.end(), bytes->begin());
-
-        auto external_id =  get_external_id(move(bytes), create_if_not_exists);
+        auto external_id =  get_external_id(str, create_if_not_exists);
         if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
             return external_id;
         } else {

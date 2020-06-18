@@ -1,6 +1,7 @@
 #include "bucket.h"
 
 #include <memory>
+#include <iostream>
 
 #include "storage/buffer_manager.h"
 #include "relational_model/relational_model.h"
@@ -23,7 +24,7 @@ Bucket::~Bucket() {
 }
 
 
-uint64_t Bucket::get_id(const string& str, uint64_t hash1, uint64_t hash2, bool insert_if_not_present) {
+uint64_t Bucket::get_id(const string& str, uint64_t hash1, uint64_t hash2, bool insert_if_not_present, bool* need_split) {
     for (uint8_t i = 0; i < *key_count; ++i) {
         if (data[3*i] == hash1 && data[3*i + 1] == hash2) {
             // check if object is
@@ -41,14 +42,16 @@ uint64_t Bucket::get_id(const string& str, uint64_t hash1, uint64_t hash2, bool 
         copy(str.begin(), str.end(), bytes->begin());
         auto new_id = relational_model.get_object_file().write(*bytes);
 
+        if (*key_count >= MAX_KEYS) {
+            *need_split = true;
+            return ObjectId::OBJECT_ID_NOT_FOUND;
+        }
+
+        ++(*key_count);
         data[3 * (*key_count)] = hash1;
         data[3 * (*key_count) + 1] = hash2;
         data[3 * (*key_count) + 2] = new_id;
-
-        ++(*key_count);
-        if (*key_count > MAX_KEYS) {
-            throw std::logic_error("bucket split not implemented yet");
-        }
+        page.make_dirty();
 
         return new_id;
     } else {

@@ -19,6 +19,8 @@
 - Ver consultas de property paths y ver como se comporta Neo4j
     - tratar de encontrar algunas donde neo4j funcione mal
 
+- Ver como importar Jena solucionando el problema del sort
+
 - HASH: mumur https://github.com/aappleby/smhasher
     - implementar extendable hashing
         - 2 archivos: directorio y buckets
@@ -43,6 +45,7 @@
     - reemplazar Record por template
     - eliminar caso del value (o usarlo y ver cómo adaptar el bulk import para que quede bien)
         - Puede mejorar NK|V, KN|V, EK|V, KE|V y E|FT
+    - reemplazar punteros a counts por counts reales. Actualizar al destruir
 
 - BUG:
     // El where funciona mal cuando ?p1.id y ?p2.id no estan en el select
@@ -50,6 +53,8 @@
     SELECT *
     MATCH (?p1 :Person)-[:STUDY_AT]->(?u :Organisation {type:"university" age:18})<-[:STUDY_AT]-(?p2 :Person)
     WHERE ?p1.id != ?p2.id
+
+- Pensar que indices nuevos necesitamos (listas ligadas + quad)
 ____________________________________________________________________
 - Soportar cuasi-esquema en el catálogo (si son menos de X puedo tener distribuciones)
     - O tal vez agregar la selectividad del peor caso para una key (y si no existe se asume que es total)

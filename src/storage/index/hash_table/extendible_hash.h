@@ -21,7 +21,7 @@ private:
     uint_fast8_t global_depth;
 
     // array of size 2^global_depth
-    uint64_t* dir;
+    uint_fast32_t* dir;
 
     void duplicate_dirs();
 };

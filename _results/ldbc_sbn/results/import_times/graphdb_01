@@ -25,3 +25,33 @@ Bulk Import duration: 213527ms
         Signals delivered: 0
         Page size (bytes): 4096
         Exit status: 0
+
+Sin Hash:
+    Reading files & writing ordered file:  153.734 ms
+    Writing non-merging indexes (7):        26.433 ms
+    Writing merging indexes (6):            33.359 ms => TOTAL : 213.526 ms
+    tamaño BD: 3,8G
+
+Using hash (global depth = 20)
+    Reading files & writing ordered file:  177.574 ms
+    Writing non-merging indexes (7):        30.971 ms
+    Writing merging indexes (6):            36.026 ms => TOTAL : 244.571 ms
+    tamaño BD: 7,7G
+
+Using hash (global depth = 18)
+    Reading files & writing ordered file:  115.277 ms
+    Writing non-merging indexes (7):        28.817 ms
+    Writing merging indexes (6):            35.658 ms => TOTAL : 179.752 ms
+    tamaño BD: 4,7G
+
+Using hash (global depth = 17)
+    Reading files & writing ordered file:  114.184 ms
+    Writing non-merging indexes (7):        28.439 ms
+    Writing merging indexes (6):            36.144 ms => TOTAL : 178.767 ms
+    tamaño BD: 4,2G
+
+Using hash (global depth = 16)
+    Reading files & writing ordered file:  112.787 ms
+    Writing non-merging indexes (7):        29.041 ms
+    Writing merging indexes (6):            35.707 ms => TOTAL : 177.535 ms
+    tamaño BD: total 4,0G

@@ -22,5 +22,5 @@
 	Page size (bytes): 4096
 	Exit status: 0
 
-ls -sh : 31G
-ls -lh : 34GB
+ls -sh : 31 GB
+ls -lh : 34 GB

@@ -6,7 +6,7 @@
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_dir.h"
 #include "storage/index/bplus_tree/bplus_tree_params.h"
-#include "storage/index/hash_table/hash_table.h"
+#include "storage/index/hash_table/extendible_hash.h"
 #include "storage/index/object_file/object_file.h"
 
 #include <memory>
@@ -45,7 +45,7 @@ public:
     static constexpr uint64_t GRAPH_MASK                = 0x00'FFFF'0000000000UL; // ONLY EDGES AND NODES HAVE A GRAPH_MASK
 
     static constexpr auto object_file_name  = "objects.dat";
-    static constexpr auto hash2id_name  = "hash2id.dat";
+    static constexpr auto strings_hash_name = "string_hash";
 
     // Labels
     static constexpr auto label2node_name = "LN";
@@ -112,8 +112,8 @@ public:
 
 private:
     std::unique_ptr<ObjectFile> object_file;
+    std::unique_ptr<ExtendibleHash> strings_hash;
     std::unique_ptr<StringsCache> strings_cache;
-    std::unique_ptr<BPlusTree> hash2id;
 
     std::unique_ptr<BPlusTree>  label2node;
     std::unique_ptr<BPlusTree>  label2edge;
@@ -137,8 +137,7 @@ private:
 
     std::map<GraphId, std::unique_ptr<RelationalGraph>> graphs;
 
-    uint64_t get_external_id(std::unique_ptr< std::vector<unsigned char> > bytes,
-                            bool create_if_not_exists = false);
+    uint64_t get_external_id(const std::string& str, bool create_if_not_exists = false);
 };
 
 extern RelationalModel& relational_model; // global object

@@ -21,21 +21,24 @@ ExtendibleHash::ExtendibleHash(const std::string& filename) :
         dir_file.read(reinterpret_cast<char*>(&f_global_depth), sizeof(f_global_depth));
         global_depth = f_global_depth;
 
-        auto dir_size = 1 << global_depth;
-        dir = new uint64_t[dir_size];
-        for (uint64_t i = 0; i < dir_size; ++i) {
-            dir_file.read(reinterpret_cast<char*>(&dir[i]), sizeof(uint64_t));
+        uint_fast32_t dir_size = 1 << global_depth;
+        dir = new uint_fast32_t[dir_size];
+        for (uint_fast32_t i = 0; i < dir_size; ++i) {
+            uint32_t tmp;
+            dir_file.read(reinterpret_cast<char*>(&tmp), sizeof(tmp));
+            dir[i] = tmp;
         }
         // TODO: check bits to ensure all values were read successfully
     } else {
-        global_depth = 10;
-        auto dir_size = 1 << global_depth;
+        global_depth = 16;
+        uint_fast32_t dir_size = 1 << global_depth;
         dir = new uint64_t[dir_size];
-        for (uint64_t i = 0; i < dir_size; ++i) {
+        for (uint_fast32_t i = 0; i < dir_size; ++i) {
             auto bucket = Bucket(buckets_file_id, i);
             *bucket.key_count = 0;
             *bucket.local_depth = global_depth;
             dir[i] = i;
+            bucket.page.make_dirty();
         }
     }
 }
@@ -46,9 +49,10 @@ ExtendibleHash::~ExtendibleHash() {
     dir_file.seekg(0, dir_file.beg);
 
     dir_file.write(reinterpret_cast<const char*>(&global_depth), sizeof(uint8_t));
-    auto dir_size = 1 << global_depth;
+    uint_fast32_t dir_size = 1 << global_depth;
     for (uint64_t i = 0; i < dir_size; ++i) {
-        dir_file.write(reinterpret_cast<const char*>(&dir[i]), sizeof(uint64_t));
+        uint32_t tmp = dir[i];
+        dir_file.write(reinterpret_cast<const char*>(&tmp), sizeof(tmp));
     }
 }
 
@@ -79,12 +83,27 @@ uint64_t ExtendibleHash::get_id(const std::string& str, bool insert_if_not_prese
     uint64_t hash[2];
     MurmurHash3_x64_128(str.data(), str.length(), 0, hash);
 
-    // se asume que la profundidad global sera <= 64
-    auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64-global_depth);
+    while (true) {
+        // se asume que la profundidad global sera <= 64
+        auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64-global_depth);
+        auto bucket_number = hash[0] & mask;
+        auto bucket = Bucket(buckets_file_id, dir[bucket_number]);
 
-    auto bucket_number = hash[0] & mask;
-
-    auto bucket = Bucket(buckets_file_id, bucket_number);
-    // TODO: no hace split por ahora
-    return bucket.get_id(str, hash[0], hash[1], insert_if_not_present);
+        bool need_split = false;
+        auto id = bucket.get_id(str, hash[0], hash[1], insert_if_not_present, &need_split);
+        // OJO: si bucket hizo split hay que intentar insertar de nuevo
+        if (need_split) {
+            throw std::logic_error("bucket split not implemented yet");
+            // TODO: do split
+            if (*bucket.local_depth < global_depth) {
+                ++(*bucket.local_depth);
+                // TODO: redistribute keys between buckets `dir[bucket_number]` and ???
+            } else {
+                duplicate_dirs();
+                // TODO: redistribute keys between buckets `dir[bucket_number]` and ???
+            }
+        } else {
+            return id;
+        }
+    }
 }
