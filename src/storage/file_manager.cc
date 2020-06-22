@@ -88,7 +88,7 @@ string FileManager::get_filename(FileId file_id) {
 
 void FileManager::flush(PageId page_id, char* bytes) {
     fstream& file = get_file(page_id.file_id);
-    file.seekp(page_id.page_number*PAGE_SIZE);
+    file.seekg(page_id.page_number*PAGE_SIZE);
     file.write(bytes, PAGE_SIZE);
 }
 
@@ -97,13 +97,14 @@ void FileManager::read_page(PageId page_id, char* bytes) {
     fstream& file = get_file(page_id.file_id);
     file.seekg(0, file.end);
     uint_fast32_t file_pos = file.tellg();
-    if (file_pos/PAGE_SIZE <= page_id.page_number) {   // new file block
+    if (file_pos/PAGE_SIZE <= page_id.page_number) {
+        // reading new file block
         for (int i = 0; i < PAGE_SIZE; i++) {
             bytes[i] = 0;
         }
-        file.write(bytes, PAGE_SIZE);
-    }
-    else {                                     // existing file block
+        file.write(bytes, PAGE_SIZE); // TODO: could be avoided?
+    } else {
+        // reading existing file block
         file.seekg(page_id.page_number*PAGE_SIZE);
         file.read(bytes, PAGE_SIZE);
     }

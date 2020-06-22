@@ -1,44 +1,19 @@
-+ Ver como funcionariamos si tuviesemos un plan similar a neo4j para el caso de la consulta
-  - new_same_university:
-    230~843ms vs ~2300ms (sin hacer filtro del ids distintas), ~1300 eliminando labels redundantes
-  - new_same_company:
-    840~1505ms vs ~9500ms (sin hacer filtro del ids distintas), ~5500 eliminando labels redundantes
-
 + No podemos hacer el mismo plan que neo4J, ya que hay operaciones que al traspasarlas necesitan más
   de una operación (ej: expandir conexiones por un label)
-+ Gran cantidad de resultados intermedios se produce al expandir las conexiones y luego buscar si tienen
-  el label
-+ Si saco el label en la consulta de cypher usa NodeHashJoin, no expande innecesariamente
-
-+ Analizar la consulta con universidad y company juntos
-    + probar con output hacia /dev/null
-
-+ Hacer los mismos experimentos con SF-10
-  + ver tambien operaciones chicas (eg: busqueda de todos los nodos con un label)
+    + Gran cantidad de resultados intermedios se produce al expandir las conexiones y luego buscar si tienen
+    el label
+    + Si saco el label en la consulta de cypher usa NodeHashJoin, no expande innecesariamente
 
 - Ver consultas de property paths y ver como se comporta Neo4j
-    - tratar de encontrar algunas donde neo4j funcione mal
+    + tratar de encontrar algunas donde neo4j funcione mal
 
 - Ver como importar Jena solucionando el problema del sort
 
-- HASH: mumur https://github.com/aappleby/smhasher
-    - implementar extendable hashing
-        - 2 archivos: directorio y buckets
-        - hash de 128 bits (16 bytes)
-        - archivo directorio guarda profundidad global (g, 1 Byte) y 2^g punteros a el bucket correspondiente
-        - bucket ocupa 1 página, y guarda profundidad local (1 Byte), numero de tuplas en bucket (n, 1 Byte)
-          y n tuplas (128bit hash, 56bit value, 23 Bytes).
-        - profundidad global inicial: 10 => 1024 buckets de 4KB => archivo de buckets inicial de 4MB
-        - al buscar string, pasar su hash y referencia al string. Comparar tanto el hash como el string
-          para manejar apropiadamente las colisiones
-        - suponer que no existirán tantas colisiones que no quepan en un bucket (máx 178 colisiones).
-
-- Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
-    - guardar total y distinct keys
-    - por cada key guardar total values y distict values
-    - Problema: no estan agrupados por grafo
-        - Se podría crear un ordered file y que queden ordenados por Grafo > Key > Value.
-        - Si se esta importando un solo grafo se puede hacer un ordered file solo con Key > Value
+- terminar de implementar extendable hashing
+    - caso split local
+    - caso split global
+    - usar solo 6 bytes para puntero a string file, dejar hashes juntos
+    - no usar puntero para count (escribir en destructor, sin hace make_dirty, cosa de que solo se escriba si se modifico)
 
 - Tratar de optimizar BPT:
     - reempolazar BPTParams por templates
@@ -46,6 +21,13 @@
     - eliminar caso del value (o usarlo y ver cómo adaptar el bulk import para que quede bien)
         - Puede mejorar NK|V, KN|V, EK|V, KE|V y E|FT
     - reemplazar punteros a counts por counts reales. Actualizar al destruir
+
+- Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
+    - guardar total y distinct keys
+    - por cada key guardar total values y distict values
+    - Problema: no estan agrupados por grafo
+        - Se podría crear un ordered file y que queden ordenados por Grafo > Key > Value.
+        - Si se esta importando un solo grafo se puede hacer un ordered file solo con Key > Value
 
 - BUG:
     // El where funciona mal cuando ?p1.id y ?p2.id no estan en el select

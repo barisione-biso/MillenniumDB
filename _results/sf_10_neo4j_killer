@@ -1,0 +1,22 @@
+PROFILE MATCH (x), (y)
+WHERE x.id = y.id
+RETURN count(*);
+
++-------------------+----------------+-------------+-------------+
+| Operator          | Estimated Rows | Identifiers | Other       |
++-------------------+----------------+-------------+-------------+
+| +ProduceResults   |              1 | count(*)    |             |
+| |                 +----------------+-------------+-------------+
+| +EagerAggregation |              1 | count(*)    |             |
+| |                 +----------------+-------------+-------------+
+| +ValueHashJoin    | 89927024798723 | x, y        | x.id = y.id |
+| |\                +----------------+-------------+-------------+
+| | +AllNodesScan   |       29987835 | y           |             |
+| |                 +----------------+-------------+-------------+
+| +AllNodesScan     |       29987835 | x           |             |
++-------------------+----------------+-------------+-------------+
+
+There is not enough memory to perform the current task.
+Please try increasing 'dbms.memory.heap.max_size' in the neo4j configuration (normally in 'conf/neo4j.conf' or,
+if you you are using Neo4j Desktop, found through the user interface) or if you are running an embedded
+installation increase the heap by using '-Xmx' command line flag, and then restart the database.

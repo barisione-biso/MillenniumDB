@@ -9,6 +9,8 @@
 
 class ExtendibleHash {
 public:
+    static constexpr auto DEFAULT_GLOBAL_DEPTH = 10;
+
     ExtendibleHash(const std::string& filename);
     ~ExtendibleHash();
 
