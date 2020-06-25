@@ -96,13 +96,13 @@ unique_ptr<BindingIdIter> NodeLoopPlan::get_binding_id_iter() {
         ranges.push_back(get_node_range());
         ranges.push_back(get_edge_range());
 
-        return make_unique<IndexScan>(relational_model.get_nodeloop_edge(), move(ranges));
+        return make_unique<IndexScan<2>>(relational_model.get_nodeloop_edge(), move(ranges));
     } else {
         // case 3 uses EN
         ranges.push_back(get_edge_range());
         ranges.push_back(get_node_range());
 
-        return make_unique<IndexScan>(relational_model.get_edge_nodeloop(), move(ranges));
+        return make_unique<IndexScan<2>>(relational_model.get_edge_nodeloop(), move(ranges));
     }
 }
 

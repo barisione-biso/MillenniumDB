@@ -5,9 +5,10 @@
 #include "storage/index/ordered_file/bpt_leaf_provider.h"
 #include "storage/index/ordered_file/ordered_file.h"
 
+template <std::size_t N>
 class BptMerger : public BptLeafProvider {
 public:
-    BptMerger(OrderedFile&, BPlusTree&);
+    BptMerger(OrderedFile<N>&, BPlusTree<N>&);
     ~BptMerger();
 
     void begin() override;
@@ -15,13 +16,16 @@ public:
     uint_fast32_t next_tuples(uint64_t* output, uint_fast32_t max_tuples) override;
 
 private:
-    OrderedFile& ordered_file;
-    BPlusTree& bpt;
-    const uint_fast8_t record_size;
+    OrderedFile<N>& ordered_file;
+    BPlusTree<N>& bpt;
 
-    std::unique_ptr<BPlusTree::Iter> bpt_iter;
-    std::unique_ptr<Record> bpt_record;
-    std::unique_ptr<Record> ordered_file_record;
+    std::unique_ptr<BptIter<N>> bpt_iter;
+    std::unique_ptr<Record<N>> bpt_record;
+    std::unique_ptr<Record<N>> ordered_file_record;
 };
+
+template class BptMerger<2>;
+template class BptMerger<3>;
+template class BptMerger<4>;
 
 #endif // STORAGE__BPT_MERGER_H_

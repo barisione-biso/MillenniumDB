@@ -5,7 +5,6 @@
 #include "relational_model/cache/strings_cache.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_dir.h"
-#include "storage/index/bplus_tree/bplus_tree_params.h"
 #include "storage/index/hash_table/extendible_hash.h"
 #include "storage/index/object_file/object_file.h"
 
@@ -90,50 +89,50 @@ public:
     ObjectFile& get_object_file();
     StringsCache& get_strings_cache();
 
-    BPlusTree& get_label2node();
-    BPlusTree& get_label2edge();
-    BPlusTree& get_node2label();
-    BPlusTree& get_edge2label();
+    BPlusTree<2>& get_label2node();
+    BPlusTree<2>& get_label2edge();
+    BPlusTree<2>& get_node2label();
+    BPlusTree<2>& get_edge2label();
 
-    BPlusTree& get_key_value_node();
-    BPlusTree& get_node_key_value();
-    BPlusTree& get_key_node_value();
+    BPlusTree<3>& get_key_value_node();
+    BPlusTree<3>& get_node_key_value();
+    BPlusTree<3>& get_key_node_value();
 
-    BPlusTree& get_key_value_edge();
-    BPlusTree& get_edge_key_value();
-    BPlusTree& get_key_edge_value();
+    BPlusTree<3>& get_key_value_edge();
+    BPlusTree<3>& get_edge_key_value();
+    BPlusTree<3>& get_key_edge_value();
 
-    BPlusTree& get_from_to_edge();
-    BPlusTree& get_to_edge_from();
-    BPlusTree& get_edge_from_to();
+    BPlusTree<3>& get_from_to_edge();
+    BPlusTree<3>& get_to_edge_from();
+    BPlusTree<3>& get_edge_from_to();
 
-    BPlusTree& get_nodeloop_edge();
-    BPlusTree& get_edge_nodeloop();
+    BPlusTree<2>& get_nodeloop_edge();
+    BPlusTree<2>& get_edge_nodeloop();
 
 private:
     std::unique_ptr<ObjectFile> object_file;
     std::unique_ptr<ExtendibleHash> strings_hash;
     std::unique_ptr<StringsCache> strings_cache;
 
-    std::unique_ptr<BPlusTree>  label2node;
-    std::unique_ptr<BPlusTree>  label2edge;
-    std::unique_ptr<BPlusTree>  node2label;
-    std::unique_ptr<BPlusTree>  edge2label;
+    std::unique_ptr<BPlusTree<2>>  label2node;
+    std::unique_ptr<BPlusTree<2>>  label2edge;
+    std::unique_ptr<BPlusTree<2>>  node2label;
+    std::unique_ptr<BPlusTree<2>>  edge2label;
 
-    std::unique_ptr<BPlusTree>  key_value_node;
-    std::unique_ptr<BPlusTree>  node_key_value;
-    std::unique_ptr<BPlusTree>  key_node_value;
+    std::unique_ptr<BPlusTree<3>>  key_value_node;
+    std::unique_ptr<BPlusTree<3>>  node_key_value;
+    std::unique_ptr<BPlusTree<3>>  key_node_value;
 
-    std::unique_ptr<BPlusTree>  key_value_edge;
-    std::unique_ptr<BPlusTree>  edge_key_value;
-    std::unique_ptr<BPlusTree>  key_edge_value;
+    std::unique_ptr<BPlusTree<3>>  key_value_edge;
+    std::unique_ptr<BPlusTree<3>>  edge_key_value;
+    std::unique_ptr<BPlusTree<3>>  key_edge_value;
 
-    std::unique_ptr<BPlusTree>  from_to_edge;
-    std::unique_ptr<BPlusTree>  to_edge_from;
-    std::unique_ptr<BPlusTree>  edge_from_to;
+    std::unique_ptr<BPlusTree<3>>  from_to_edge;
+    std::unique_ptr<BPlusTree<3>>  to_edge_from;
+    std::unique_ptr<BPlusTree<3>>  edge_from_to;
 
-    std::unique_ptr<BPlusTree>  nodeloop_edge;
-    std::unique_ptr<BPlusTree>  edge_nodeloop;
+    std::unique_ptr<BPlusTree<2>>  nodeloop_edge;
+    std::unique_ptr<BPlusTree<2>>  edge_nodeloop;
 
     std::map<GraphId, std::unique_ptr<RelationalGraph>> graphs;
 

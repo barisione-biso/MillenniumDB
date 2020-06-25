@@ -23,19 +23,20 @@ private:
     std::ifstream nodes_file;
     std::ifstream edges_file;
 
-    OrderedFile node_labels;
-    OrderedFile edge_labels;
-    OrderedFile node_key_value;
-    OrderedFile edge_key_value;
-    OrderedFile connections;
-    OrderedFile self_connected_nodes;
+    OrderedFile<2> node_labels;
+    OrderedFile<2> edge_labels;
+    OrderedFile<3> node_key_value;
+    OrderedFile<3> edge_key_value;
+    OrderedFile<3> connections;
+    OrderedFile<2> self_connected_nodes;
 
     std::map<uint64_t, uint64_t> node_dict;
 
     void process_node(const bulk_import_ast::Node& node);
     void process_edge(const bulk_import_ast::Edge& edge);
 
-    void merge_tree_and_ordered_file(const std::string& original_filename, BPlusTree&, OrderedFile&);
+    template <std::size_t N>
+    void merge_tree_and_ordered_file(const std::string& original_filename, BPlusTree<N>&, OrderedFile<N>&);
 };
 
 #endif // RELATIONAL_MODEL__BULK_IMPORT_H_

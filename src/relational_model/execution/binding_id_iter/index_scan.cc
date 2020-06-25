@@ -9,30 +9,30 @@
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
-#include "storage/index/bplus_tree/bplus_tree_params.h"
 
 using namespace std;
 
-IndexScan::IndexScan(BPlusTree& bpt, std::vector<std::unique_ptr<ScanRange>> ranges)
-    : record_size(bpt.params->total_size), bpt(bpt), ranges(move(ranges)) { }
+template <std::size_t N>
+IndexScan<N>::IndexScan(BPlusTree<N>& bpt, std::vector<std::unique_ptr<ScanRange>> ranges) :
+    bpt(bpt),
+    ranges(move(ranges)) { }
 
 
-void IndexScan::begin(BindingId& input) {
-    assert(ranges.size() == static_cast<size_t>(bpt.params->total_size)
+template <std::size_t N>
+void IndexScan<N>::begin(BindingId& input) {
+    assert(ranges.size() == static_cast<size_t>(N)
         && "Inconsistent size of ranges and bpt");
 
     my_binding = make_unique<BindingId>(input.var_count());
     my_input = &input;
     my_binding->add_all(*my_input);
 
-    vector<uint64_t> min_ids(record_size);
-    vector<uint64_t> max_ids(record_size);
+    std::array<uint64_t, N> min_ids;
+    std::array<uint64_t, N> max_ids;
 
-    int i = 0;
-    for (auto& range : ranges) {
-        min_ids[i] = range->get_min(input);
-        max_ids[i] = range->get_max(input);
-        ++i;
+    for (uint_fast32_t i = 0; i < N; ++i) {
+        min_ids[i] = ranges[i]->get_min(input);
+        max_ids[i] = ranges[i]->get_max(input);
     }
 
     it = bpt.get_range(
@@ -43,16 +43,15 @@ void IndexScan::begin(BindingId& input) {
 }
 
 
-BindingId* IndexScan::next() {
+template <std::size_t N>
+BindingId* IndexScan<N>::next() {
     if (it == nullptr)
         return nullptr;
 
     auto next = it->next();
     if (next != nullptr) {
-        int i = 0;
-        for (auto& range : ranges) {
-            range->try_assign(*my_binding, next->ids[i]);
-            ++i;
+        for (uint_fast32_t i = 0; i < N; ++i) {
+            ranges[i]->try_assign(*my_binding, next->ids[i]);
         }
         ++results_found;
         return my_binding.get();
@@ -62,30 +61,30 @@ BindingId* IndexScan::next() {
 }
 
 
-void IndexScan::reset(BindingId& input) {
+template <std::size_t N>
+void IndexScan<N>::reset(BindingId& input) {
     my_input = &input;
     // TODO: if nulls were supported a my_binding->clean should be performed to set NULL_OBJECT_ID
     my_binding->add_all(*my_input);
 
-    vector<uint64_t> min_ids(record_size);
-    vector<uint64_t> max_ids(record_size);
+    std::array<uint64_t, N> min_ids;
+    std::array<uint64_t, N> max_ids;
 
-    int i = 0;
-    for (auto& range : ranges) {
-        min_ids[i] = range->get_min(input);
-        max_ids[i] = range->get_max(input);
-        ++i;
+    for (uint_fast32_t i = 0; i < N; ++i) {
+        min_ids[i] = ranges[i]->get_min(input);
+        max_ids[i] = ranges[i]->get_max(input);
     }
 
     it = bpt.get_range(
-        Record(min_ids),
-        Record(max_ids)
+        Record<N>(min_ids),
+        Record<N>(max_ids)
     );
     ++bpt_searches;
 }
 
 
-void IndexScan::analyze(int indent) const {
+template <std::size_t N>
+void IndexScan<N>::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }

@@ -4,31 +4,41 @@
 
 using namespace std;
 
-BptMerger::BptMerger(OrderedFile& ordered_file, BPlusTree& bpt)
-    : ordered_file(ordered_file), bpt(bpt), record_size(bpt.params->total_size) { }
+template <std::size_t N>
+BptMerger<N>::BptMerger(OrderedFile<N>& ordered_file, BPlusTree<N>& bpt) :
+    ordered_file(ordered_file),
+    bpt(bpt) { }
 
 
-BptMerger::~BptMerger() = default;
+template <std::size_t N>
+BptMerger<N>::~BptMerger() = default;
 
 
-void BptMerger::begin() {
+template <std::size_t N>
+void BptMerger<N>::begin() {
     ordered_file.begin();
 
-    auto min_range = vector<uint64_t>(record_size, 0);
-    auto max_range = vector<uint64_t>(record_size, UINT64_MAX);
-    bpt_iter = bpt.get_range(Record(min_range), Record(max_range));
+    std::array<uint64_t, N> min_range;
+    min_range.fill(0);
+
+    std::array<uint64_t, N> max_range;
+    max_range.fill(UINT64_MAX);
+
+    bpt_iter = bpt.get_range(Record<N>(min_range), Record<N>(max_range));
 
     ordered_file_record = ordered_file.next_record();
     bpt_record = bpt_iter->next();
 }
 
 
-bool BptMerger::has_more_tuples() {
+template <std::size_t N>
+bool BptMerger<N>::has_more_tuples() {
     return ordered_file_record != nullptr || bpt_record != nullptr;
 }
 
 
-uint_fast32_t BptMerger::next_tuples(uint64_t* output, uint_fast32_t max_tuples) {
+template <std::size_t N>
+uint_fast32_t BptMerger<N>::next_tuples(uint64_t* output, uint_fast32_t max_tuples) {
     auto current_output = output;
     uint_fast32_t copied_tuples = 0;
     while (copied_tuples < max_tuples && (ordered_file_record != nullptr || bpt_record != nullptr)) {
@@ -37,7 +47,7 @@ uint_fast32_t BptMerger::next_tuples(uint64_t* output, uint_fast32_t max_tuples)
             memcpy(
                 current_output,
                 bpt_record->ids.data(),
-                record_size * sizeof(uint64_t)
+                N * sizeof(uint64_t)
             );
             bpt_record = bpt_iter->next();
         }
@@ -45,7 +55,7 @@ uint_fast32_t BptMerger::next_tuples(uint64_t* output, uint_fast32_t max_tuples)
             memcpy(
                 current_output,
                 ordered_file_record->ids.data(),
-                record_size * sizeof(uint64_t)
+                N * sizeof(uint64_t)
             );
             ordered_file_record = ordered_file.next_record();
         }
@@ -53,7 +63,7 @@ uint_fast32_t BptMerger::next_tuples(uint64_t* output, uint_fast32_t max_tuples)
             memcpy(
                 current_output,
                 ordered_file_record->ids.data(),
-                record_size * sizeof(uint64_t)
+                N * sizeof(uint64_t)
             );
             ordered_file_record = ordered_file.next_record();
         }
@@ -61,14 +71,14 @@ uint_fast32_t BptMerger::next_tuples(uint64_t* output, uint_fast32_t max_tuples)
             memcpy(
                 current_output,
                 bpt_record->ids.data(),
-                record_size * sizeof(uint64_t)
+                N * sizeof(uint64_t)
             );
             bpt_record = bpt_iter->next();
         }
         else {
             throw logic_error("duplicated record at merging.");
         }
-        current_output += record_size;
+        current_output += N;
     }
     return copied_tuples;
 }

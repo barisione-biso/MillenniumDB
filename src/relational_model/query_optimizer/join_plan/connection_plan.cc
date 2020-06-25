@@ -163,13 +163,13 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
             ranges.push_back(get_node_from_range());
             ranges.push_back(get_node_to_range());
 
-            return make_unique<IndexScan>(relational_model.get_edge_from_to(), move(ranges));
+            return make_unique<IndexScan<3>>(relational_model.get_edge_from_to(), move(ranges));
         } else { // CASES 3 and 4 => FTE
             ranges.push_back(get_node_from_range());
             ranges.push_back(get_node_to_range());
             ranges.push_back(get_edge_range());
 
-            return make_unique<IndexScan>(relational_model.get_from_to_edge(), move(ranges));
+            return make_unique<IndexScan<3>>(relational_model.get_from_to_edge(), move(ranges));
         }
     } else {
         if (node_to_assigned) { // CASES 5 and 7 => TEF
@@ -177,13 +177,13 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
             ranges.push_back(get_edge_range());
             ranges.push_back(get_node_from_range());
 
-            return make_unique<IndexScan>(relational_model.get_to_edge_from(), move(ranges));
+            return make_unique<IndexScan<3>>(relational_model.get_to_edge_from(), move(ranges));
         } else { // CASES 6 and 8 => EFT
             ranges.push_back(get_edge_range());
             ranges.push_back(get_node_from_range());
             ranges.push_back(get_node_to_range());
 
-            return make_unique<IndexScan>(relational_model.get_edge_from_to(), move(ranges));
+            return make_unique<IndexScan<3>>(relational_model.get_edge_from_to(), move(ranges));
         }
     }
 }

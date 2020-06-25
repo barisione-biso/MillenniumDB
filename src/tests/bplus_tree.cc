@@ -1,17 +1,14 @@
 #include <climits>
 #include <memory>
 
-#include "storage/index/bplus_tree/bplus_tree.h"
-#include "storage/index/bplus_tree/bplus_tree_params.h"
-
 #include "storage/file_manager.h"
 #include "storage/buffer_manager.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
 
 using namespace std;
 
 void create_ascending(int size, std::string& bpt_name) {
-    auto bpt_params =  make_unique<BPlusTreeParams>(bpt_name, 3);
-    BPlusTree bpt = BPlusTree(move(bpt_params));
+    auto bpt = BPlusTree<3>(bpt_name);
 
     uint64_t n = 0;
     for (int i = 1; i <= size; i++) {
@@ -20,7 +17,7 @@ void create_ascending(int size, std::string& bpt_name) {
         c[1] = n++;
         c[2] = n++;
 
-        bpt.insert( Record(c[0], c[1], c[2]) );
+        bpt.insert( RecordFactory::get(c[0], c[1], c[2]) );
     }
 
     if (!bpt.check()) {
@@ -32,8 +29,7 @@ void create_ascending(int size, std::string& bpt_name) {
 
 
 void create_descending(int size, std::string& bpt_name) {
-    auto bpt_params =  make_unique<BPlusTreeParams>(bpt_name, 3);
-    BPlusTree bpt = BPlusTree(move(bpt_params));
+    auto bpt = BPlusTree<3>(bpt_name);
 
     uint64_t n = UINT64_MAX;
     for (int i = 1; i <= size; i++) {
@@ -42,7 +38,7 @@ void create_descending(int size, std::string& bpt_name) {
         c[1] = n--;
         c[2] = n--;
 
-        bpt.insert( Record(c[0], c[1], c[2]) );
+        bpt.insert( RecordFactory::get(c[0], c[1], c[2]) );
     }
 
     if (!bpt.check()) {
@@ -54,8 +50,7 @@ void create_descending(int size, std::string& bpt_name) {
 
 
 void create_random(int size, std::string& bpt_name) {
-    auto bpt_params =  make_unique<BPlusTreeParams>(bpt_name, 3);
-    BPlusTree bpt = BPlusTree(move(bpt_params));
+    auto bpt = BPlusTree<3>(bpt_name);
 
     for (int i = 1; i <= size; i++) {
         uint64_t c[3] = {};
@@ -63,7 +58,7 @@ void create_random(int size, std::string& bpt_name) {
         c[1] = (uint64_t) rand();
         c[2] = (uint64_t) rand();
 
-        bpt.insert( Record(c[0], c[1], c[2]) );
+        bpt.insert( RecordFactory::get(c[0], c[1], c[2]) );
     }
 
     if (!bpt.check()) {
@@ -75,12 +70,11 @@ void create_random(int size, std::string& bpt_name) {
 
 
 int test_order(std::string& bpt_name) {
-    auto bpt_params = make_unique<BPlusTreeParams>(bpt_name, 3);
-    BPlusTree bpt = BPlusTree(move(bpt_params));
+    auto bpt = BPlusTree<2>(bpt_name);
 
     uint64_t min[] = {0, 0};
 	uint64_t max[] = {UINT64_MAX, UINT64_MAX};
-	auto it = bpt.get_range(Record(min[0], min[1]), Record(max[0], max[1]));
+	auto it = bpt.get_range(RecordFactory::get(min[0], min[1]), RecordFactory::get(max[0], max[1]));
 	auto x = it->next();
 	auto y = it->next();
     int i = 1;

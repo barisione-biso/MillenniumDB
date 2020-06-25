@@ -29,48 +29,26 @@ RelationalModel::RelationalModel() {
     strings_cache = make_unique<StringsCache>(1000);
     strings_hash = make_unique<ExtendibleHash>(strings_hash_name);
 
-    // Create BPT Params
-    auto bpt_params_label2node = make_unique<BPlusTreeParams>(RelationalModel::label2node_name, 2);
-    auto bpt_params_label2edge = make_unique<BPlusTreeParams>(RelationalModel::label2edge_name, 2);
-    auto bpt_params_node2label = make_unique<BPlusTreeParams>(RelationalModel::node2label_name, 2);
-    auto bpt_params_edge2label = make_unique<BPlusTreeParams>(RelationalModel::edge2label_name, 2);
-
-    auto bpt_params_key_value_node = make_unique<BPlusTreeParams>(RelationalModel::key_value_node_name, 3);
-    auto bpt_params_node_key_value = make_unique<BPlusTreeParams>(RelationalModel::node_key_value_name, 3);
-    auto bpt_params_key_node_value = make_unique<BPlusTreeParams>(RelationalModel::key_node_value_name, 3);
-
-    auto bpt_params_key_value_edge = make_unique<BPlusTreeParams>(RelationalModel::key_value_edge_name, 3);
-    auto bpt_params_edge_key_value = make_unique<BPlusTreeParams>(RelationalModel::edge_key_value_name, 3);
-    auto bpt_params_key_edge_value = make_unique<BPlusTreeParams>(RelationalModel::key_edge_value_name, 3);
-
-    auto bpt_params_from_to_edge = make_unique<BPlusTreeParams>(RelationalModel::from_to_edge_name, 3);
-    auto bpt_params_to_edge_from = make_unique<BPlusTreeParams>(RelationalModel::to_edge_from_name, 3);
-    auto bpt_params_edge_from_to = make_unique<BPlusTreeParams>(RelationalModel::edge_from_to_name, 3);
-
-    auto bpt_params_nodeloop_edge = make_unique<BPlusTreeParams>(RelationalModel::nodeloop_edge_name, 2);
-    auto bpt_params_edge_nodeloop = make_unique<BPlusTreeParams>(RelationalModel::edge_nodeloop_name, 2);
-
-
     // Create BPT
-    label2node = make_unique<BPlusTree>(move(bpt_params_label2node));
-    label2edge = make_unique<BPlusTree>(move(bpt_params_label2edge));
-    node2label = make_unique<BPlusTree>(move(bpt_params_node2label));
-    edge2label = make_unique<BPlusTree>(move(bpt_params_edge2label));
+    label2node = make_unique<BPlusTree<2>>(RelationalModel::label2node_name);
+    label2edge = make_unique<BPlusTree<2>>(RelationalModel::label2edge_name);
+    node2label = make_unique<BPlusTree<2>>(RelationalModel::node2label_name);
+    edge2label = make_unique<BPlusTree<2>>(RelationalModel::edge2label_name);
 
-    key_value_node = make_unique<BPlusTree>(move(bpt_params_key_value_node));
-    node_key_value = make_unique<BPlusTree>(move(bpt_params_node_key_value));
-    key_node_value = make_unique<BPlusTree>(move(bpt_params_key_node_value));
+    key_value_node = make_unique<BPlusTree<3>>(RelationalModel::key_value_node_name);
+    node_key_value = make_unique<BPlusTree<3>>(RelationalModel::node_key_value_name);
+    key_node_value = make_unique<BPlusTree<3>>(RelationalModel::key_node_value_name);
 
-    key_value_edge = make_unique<BPlusTree>(move(bpt_params_key_value_edge));
-    edge_key_value = make_unique<BPlusTree>(move(bpt_params_edge_key_value));
-    key_edge_value = make_unique<BPlusTree>(move(bpt_params_key_edge_value));
+    key_value_edge = make_unique<BPlusTree<3>>(RelationalModel::key_value_edge_name);
+    edge_key_value = make_unique<BPlusTree<3>>(RelationalModel::edge_key_value_name);
+    key_edge_value = make_unique<BPlusTree<3>>(RelationalModel::key_edge_value_name);
 
-    from_to_edge = make_unique<BPlusTree>(move(bpt_params_from_to_edge));
-    to_edge_from = make_unique<BPlusTree>(move(bpt_params_to_edge_from));
-    edge_from_to = make_unique<BPlusTree>(move(bpt_params_edge_from_to));
+    from_to_edge = make_unique<BPlusTree<3>>(RelationalModel::from_to_edge_name);
+    to_edge_from = make_unique<BPlusTree<3>>(RelationalModel::to_edge_from_name);
+    edge_from_to = make_unique<BPlusTree<3>>(RelationalModel::edge_from_to_name);
 
-    nodeloop_edge = make_unique<BPlusTree>(move(bpt_params_nodeloop_edge));
-    edge_nodeloop = make_unique<BPlusTree>(move(bpt_params_edge_nodeloop));
+    nodeloop_edge = make_unique<BPlusTree<2>>(RelationalModel::nodeloop_edge_name);
+    edge_nodeloop = make_unique<BPlusTree<2>>(RelationalModel::edge_nodeloop_name);
 
     catalog.print();
 }
@@ -296,22 +274,22 @@ ObjectFile& RelationalModel::get_object_file() { return *object_file; }
 StringsCache& RelationalModel::get_strings_cache() { return *strings_cache; }
 
 
-BPlusTree& RelationalModel::get_label2node() { return *label2node; }
-BPlusTree& RelationalModel::get_label2edge() { return *label2edge; }
-BPlusTree& RelationalModel::get_node2label() { return *node2label; }
-BPlusTree& RelationalModel::get_edge2label() { return *edge2label; }
+BPlusTree<2>& RelationalModel::get_label2node() { return *label2node; }
+BPlusTree<2>& RelationalModel::get_label2edge() { return *label2edge; }
+BPlusTree<2>& RelationalModel::get_node2label() { return *node2label; }
+BPlusTree<2>& RelationalModel::get_edge2label() { return *edge2label; }
 
-BPlusTree& RelationalModel::get_key_value_node() { return *key_value_node; }
-BPlusTree& RelationalModel::get_node_key_value() { return *node_key_value; }
-BPlusTree& RelationalModel::get_key_node_value() { return *key_node_value; }
+BPlusTree<3>& RelationalModel::get_key_value_node() { return *key_value_node; }
+BPlusTree<3>& RelationalModel::get_node_key_value() { return *node_key_value; }
+BPlusTree<3>& RelationalModel::get_key_node_value() { return *key_node_value; }
 
-BPlusTree& RelationalModel::get_key_value_edge() { return *key_value_edge; }
-BPlusTree& RelationalModel::get_edge_key_value() { return *edge_key_value; }
-BPlusTree& RelationalModel::get_key_edge_value() { return *key_edge_value; }
+BPlusTree<3>& RelationalModel::get_key_value_edge() { return *key_value_edge; }
+BPlusTree<3>& RelationalModel::get_edge_key_value() { return *edge_key_value; }
+BPlusTree<3>& RelationalModel::get_key_edge_value() { return *key_edge_value; }
 
-BPlusTree& RelationalModel::get_from_to_edge() { return *from_to_edge; }
-BPlusTree& RelationalModel::get_to_edge_from() { return *to_edge_from; }
-BPlusTree& RelationalModel::get_edge_from_to() { return *edge_from_to; }
+BPlusTree<3>& RelationalModel::get_from_to_edge() { return *from_to_edge; }
+BPlusTree<3>& RelationalModel::get_to_edge_from() { return *to_edge_from; }
+BPlusTree<3>& RelationalModel::get_edge_from_to() { return *edge_from_to; }
 
-BPlusTree& RelationalModel::get_nodeloop_edge() { return *nodeloop_edge; }
-BPlusTree& RelationalModel::get_edge_nodeloop() { return *edge_nodeloop; }
+BPlusTree<2>& RelationalModel::get_nodeloop_edge() { return *nodeloop_edge; }
+BPlusTree<2>& RelationalModel::get_edge_nodeloop() { return *edge_nodeloop; }

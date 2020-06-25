@@ -36,19 +36,18 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
         auto key_object_id = relational_model.get_string_id(key);
         auto var_value = binding[var];
 
-        unique_ptr<BPlusTree::Iter> it = nullptr;
+        unique_ptr<BptIter<3>> it = nullptr;
         if (element_type == ObjectType::node) {
             Node node = static_cast<const Node&>(*var_value);
             it = relational_model.get_node_key_value().get_range(
-                Record(node.id, key_object_id, 0),
-                Record(node.id, key_object_id, UINT64_MAX)
+                RecordFactory::get(node.id, key_object_id, 0),
+                RecordFactory::get(node.id, key_object_id, UINT64_MAX)
             );
-        }
-        else {
+        } else {
             Edge edge = static_cast<const Edge&>(*var_value);
             it = relational_model.get_edge_key_value().get_range(
-                Record(edge.id, key_object_id, 0),
-                Record(edge.id, key_object_id, UINT64_MAX)
+                RecordFactory::get(edge.id, key_object_id, 0),
+                RecordFactory::get(edge.id, key_object_id, UINT64_MAX)
             );
         }
 

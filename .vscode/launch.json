@@ -63,13 +63,13 @@
             "program": "${workspaceFolder}/build/Debug/bin/import_graph",
             "args": [
                 "-n",
-                "${workspaceFolder}/test_files/graph_creation_example/nodes.txt",
+                "${workspaceFolder}/test_files/snb01/nodes.txt",
                 "-e",
-                "${workspaceFolder}/test_files/graph_creation_example/edges.txt",
+                "${workspaceFolder}/test_files/snb01/edges.txt",
                 "-g",
                 "graph debug",
                 "-d",
-                "${workspaceFolder}/test_files/db"
+                "${workspaceFolder}/test_files/db_debug"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

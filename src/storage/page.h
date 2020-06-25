@@ -17,6 +17,9 @@ const int PAGE_SIZE = 4096;
 class Page {
 friend class BufferManager; // needed to access private constructor
 public:
+    // contains file_id and page_number of this page
+    PageId page_id;
+
     // mark as dirty so when page is replaced it is written back to disk.
     void make_dirty();
 
@@ -27,7 +30,6 @@ public:
     uint_fast32_t get_page_number() const { return page_id.page_number; };
 
 private:
-    PageId page_id;                 // contains file_id and page_number of this page
     uint_fast32_t pins;             // count of objects using this page, modified only by buffer_manager
     char* bytes;                    // start memory address of the page, of size `PAGE_SIZE`
     bool dirty;                     // true if data in memory is different from disk

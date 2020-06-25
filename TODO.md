@@ -9,6 +9,8 @@
 
 - Ver como importar Jena solucionando el problema del sort
 
+- Agregar test para recorrer todos los strings y checkear que estan bien en el hash
+
 - terminar de implementar extendable hashing
     - caso split local
     - caso split global

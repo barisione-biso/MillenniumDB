@@ -9,8 +9,6 @@
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
-#include <openssl/md5.h>
-
 using namespace std;
 
 RelationalGraph::RelationalGraph(GraphId graph_id)
@@ -34,32 +32,32 @@ uint64_t RelationalGraph::create_edge() {
 }
 
 
-Record RelationalGraph::get_record_for_node_label(uint64_t node_id, const string& label) {
+Record<2> RelationalGraph::get_record_for_node_label(uint64_t node_id, const string& label) {
     uint64_t label_id = relational_model.get_string_id(label, true);
     catalog.add_node_label(graph_id, label_id);
-    return Record(
+    return RecordFactory::get(
         node_id,
         label_id
     );
 }
 
 
-Record RelationalGraph::get_record_for_edge_label(uint64_t edge_id, const string& label) {
+Record<2> RelationalGraph::get_record_for_edge_label(uint64_t edge_id, const string& label) {
     uint64_t label_id = relational_model.get_string_id(label, true);
     catalog.add_edge_label(graph_id, label_id);
-    return Record(
+    return RecordFactory::get(
         edge_id,
         label_id
     );
 }
 
 
-Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const string& key, const Value& value) {
+Record<3> RelationalGraph::get_record_for_node_property(uint64_t node_id, const string& key, const Value& value) {
     uint64_t key_id = relational_model.get_string_id(key, true);
     uint64_t value_id = relational_model.get_value_id(value, true);
 
     catalog.add_node_key(graph_id, key_id);
-    return Record(
+    return RecordFactory::get(
         node_id,
         key_id,
         value_id
@@ -67,12 +65,12 @@ Record RelationalGraph::get_record_for_node_property(uint64_t node_id, const str
 }
 
 
-Record RelationalGraph::get_record_for_edge_property(uint64_t edge_id, const string& key, const Value& value) {
+Record<3> RelationalGraph::get_record_for_edge_property(uint64_t edge_id, const string& key, const Value& value) {
     uint64_t key_id = relational_model.get_string_id(key, true);
     uint64_t value_id = relational_model.get_value_id(value, true);
 
     catalog.add_edge_key(graph_id, key_id);
-    return Record(
+    return RecordFactory::get(
         edge_id,
         key_id,
         value_id

@@ -117,13 +117,13 @@ unique_ptr<BindingIdIter> NodeLabelPlan::get_binding_id_iter() {
         ranges.push_back(get_node_range());
         ranges.push_back(get_label_range());
 
-        return make_unique<IndexScan>(relational_model.get_node2label(), move(ranges));
+        return make_unique<IndexScan<2>>(relational_model.get_node2label(), move(ranges));
     } else {
         // case 3 uses LN
         ranges.push_back(get_label_range());
         ranges.push_back(get_node_range());
 
-        return make_unique<IndexScan>(relational_model.get_label2node(), move(ranges));
+        return make_unique<IndexScan<2>>(relational_model.get_label2node(), move(ranges));
     }
 }
 

@@ -199,7 +199,7 @@ unique_ptr<BindingIdIter> EdgePropertyPlan::get_binding_id_iter() {
         ranges.push_back(get_key_range());
         ranges.push_back(get_value_range());
 
-        return make_unique<IndexScan>(relational_model.get_edge_key_value(), move(ranges));
+        return make_unique<IndexScan<3>>(relational_model.get_edge_key_value(), move(ranges));
     } else {
         if (key_assigned) {
             if (value_assigned) { // Case 5: KEY AND VALUE
@@ -207,20 +207,20 @@ unique_ptr<BindingIdIter> EdgePropertyPlan::get_binding_id_iter() {
                 ranges.push_back(get_value_range());
                 ranges.push_back(get_edge_range());
 
-                return make_unique<IndexScan>(relational_model.get_key_value_edge(), move(ranges));
+                return make_unique<IndexScan<3>>(relational_model.get_key_value_edge(), move(ranges));
             } else {              // Case 6: JUST KEY
                 if (graph_id.is_default()) {
                     ranges.push_back(get_key_range());
                     ranges.push_back(get_value_range());
                     ranges.push_back(get_edge_range());
 
-                    return make_unique<IndexScan>(relational_model.get_key_value_edge(), move(ranges));
+                    return make_unique<IndexScan<3>>(relational_model.get_key_value_edge(), move(ranges));
                 } else {
                     ranges.push_back(get_key_range());
                     ranges.push_back(get_edge_range());
                     ranges.push_back(get_value_range());
 
-                    return make_unique<IndexScan>(relational_model.get_key_edge_value(), move(ranges));
+                    return make_unique<IndexScan<3>>(relational_model.get_key_edge_value(), move(ranges));
                 }
             }
         } else {
@@ -231,7 +231,7 @@ unique_ptr<BindingIdIter> EdgePropertyPlan::get_binding_id_iter() {
                 ranges.push_back(get_key_range());
                 ranges.push_back(get_value_range());
 
-                return make_unique<IndexScan>(relational_model.get_edge_key_value(), move(ranges));
+                return make_unique<IndexScan<3>>(relational_model.get_edge_key_value(), move(ranges));
             }
         }
     }

@@ -10,11 +10,11 @@
 #include <memory>
 #include <tuple>
 
+template <std::size_t N>
 class IndexScan : public BindingIdIter {
 private:
-    int record_size;
-    BPlusTree& bpt;
-    std::unique_ptr<BPlusTree::Iter> it;
+    BPlusTree<N>& bpt;
+    std::unique_ptr<BptIter<N>> it;
 
     BindingId* my_input;
     std::unique_ptr<BindingId> my_binding;
@@ -25,7 +25,7 @@ private:
     uint_fast32_t bpt_searches = 0;
 
 public:
-    IndexScan(BPlusTree& bpt, std::vector<std::unique_ptr<ScanRange>> ranges);
+    IndexScan(BPlusTree<N>& bpt, std::vector<std::unique_ptr<ScanRange>> ranges);
     ~IndexScan() = default;
 
     void begin(BindingId& input);
@@ -35,5 +35,9 @@ public:
     // prints execution statistics
     void analyze(int indent = 0) const override;
 };
+
+template class IndexScan<2>;
+template class IndexScan<3>;
+template class IndexScan<4>;
 
 #endif // RELATIONAL_MODEL__GRAPH_SCAN_H_
