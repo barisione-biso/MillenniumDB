@@ -52,14 +52,14 @@ uint64_t Bucket::get_id(const string& str, uint64_t hash1, uint64_t hash2, bool 
         }
     }
     if (insert_if_not_present) {
-        auto bytes = make_unique<vector<unsigned char>>(str.length());
-        copy(str.begin(), str.end(), bytes->begin());
-        auto new_id = relational_model.get_object_file().write(*bytes);
-
         if (key_count == MAX_KEYS) {
             *need_split = true;
             return ObjectId::OBJECT_ID_NOT_FOUND;
         }
+
+        auto bytes = make_unique<vector<unsigned char>>(str.length());
+        copy(str.begin(), str.end(), bytes->begin());
+        auto new_id = relational_model.get_object_file().write(*bytes);
 
         hashes[2 * key_count]     = hash1;
         hashes[2 * key_count + 1] = hash2;

@@ -1,28 +1,10 @@
-+ No podemos hacer el mismo plan que neo4J, ya que hay operaciones que al traspasarlas necesitan más
-  de una operación (ej: expandir conexiones por un label)
-    + Gran cantidad de resultados intermedios se produce al expandir las conexiones y luego buscar si tienen
-    el label
-    + Si saco el label en la consulta de cypher usa NodeHashJoin, no expande innecesariamente
-
-- Ver consultas de property paths y ver como se comporta Neo4j
-    + tratar de encontrar algunas donde neo4j funcione mal
-
-- Ver como importar Jena solucionando el problema del sort
+- Tratar de optimizar BPT:
+    + Usar templates para BPTParams/Record/OrderedFile/etc
+    - reemplazar punteros a counts por counts reales. Actualizar al destruir
 
 - Agregar test para recorrer todos los strings y checkear que estan bien en el hash
 
-- terminar de implementar extendable hashing
-    - caso split local
-    - caso split global
-    - usar solo 6 bytes para puntero a string file, dejar hashes juntos
-    - no usar puntero para count (escribir en destructor, sin hace make_dirty, cosa de que solo se escriba si se modifico)
-
-- Tratar de optimizar BPT:
-    - reempolazar BPTParams por templates
-    - reemplazar Record por template
-    - eliminar caso del value (o usarlo y ver cómo adaptar el bulk import para que quede bien)
-        - Puede mejorar NK|V, KN|V, EK|V, KE|V y E|FT
-    - reemplazar punteros a counts por counts reales. Actualizar al destruir
+- Ver como importar Jena solucionando el problema del sort
 
 - Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
     - guardar total y distinct keys

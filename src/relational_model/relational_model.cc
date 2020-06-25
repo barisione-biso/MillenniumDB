@@ -271,6 +271,7 @@ RelationalGraph& RelationalModel::get_graph(GraphId graph_id) {
 
 
 ObjectFile& RelationalModel::get_object_file() { return *object_file; }
+ExtendibleHash& RelationalModel::get_strings_hash() { return *strings_hash; }
 StringsCache& RelationalModel::get_strings_cache() { return *strings_cache; }
 
 

@@ -28,12 +28,13 @@ set(BUILD_TARGETS
     import_graph
     grammar
     query
-    check_bpts
     server
 )
 
 set(TEST_TARGETS
-    bplus_tree
+    create_bpt
+    check_bpts
+    check_extendible_hash
 )
 
 foreach(target ${BUILD_TARGETS})

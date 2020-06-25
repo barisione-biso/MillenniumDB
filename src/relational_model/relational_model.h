@@ -88,6 +88,7 @@ public:
 
     ObjectFile& get_object_file();
     StringsCache& get_strings_cache();
+    ExtendibleHash& get_strings_hash();
 
     BPlusTree<2>& get_label2node();
     BPlusTree<2>& get_label2edge();

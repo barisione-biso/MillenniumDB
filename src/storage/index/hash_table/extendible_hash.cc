@@ -108,7 +108,7 @@ uint64_t ExtendibleHash::get_id(const std::string& str, bool insert_if_not_prese
             // std::cout << "bucket        " << std::bitset<8*sizeof(bucket_number)>(bucket_number) << " split, global depth: " << (int)global_depth
             //     << ". local depth: " << (int)bucket.local_depth << ". key_count: " << (int)bucket.key_count << "\n";
             // std::cout << "hash:         " << std::bitset<8*sizeof(hash[0])>(hash[0]) << " | " << std::bitset<8*sizeof(hash[1])>(hash[1]) << "\n";
-            // throw std::logic_error("bucket split not implemented yet");
+
             if (bucket.local_depth < global_depth) {
                 auto new_bucket_number = bucket_number | (1 << bucket.local_depth);
                 ++bucket.local_depth;
