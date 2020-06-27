@@ -1,8 +1,15 @@
-- Tratar de optimizar BPT:
-    + Usar templates para BPTParams/Record/OrderedFile/etc
-    - reemplazar punteros a counts por counts reales. Actualizar al destruir
+Lunes 16:00
 
-- Agregar test para recorrer todos los strings y checkear que estan bien en el hash
+- Tratar de optimizar BPT:
+    - reemplazar punteros a counts por counts reales. Actualizar al destruir
+    - usar array en IndexScan
+
+- Agregar quad Edge+Label
+    - modificar Query Optimizer para incluir el quad
+    - medir tiempos de carga
+    - medir tiempo consulta (especial new_same_both SF10)
+
+- Pensar como dar el plan de la consulta sin tener que modificar el codigo y recompilar
 
 - Ver como importar Jena solucionando el problema del sort
 

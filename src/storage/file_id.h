@@ -20,6 +20,10 @@ public:
     bool operator<(const FileId other) const {
         return this->id < other.id;
     }
+
+    bool operator==(const FileId other) const {
+        return this->id == other.id;
+    }
 };
 
 #endif // STORAGE__FILE_ID_H_

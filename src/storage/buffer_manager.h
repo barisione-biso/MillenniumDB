@@ -16,6 +16,7 @@
 #include "storage/file_id.h"
 #include "storage/page_id.h"
 
+#include <unordered_map>
 #include <map>
 #include <mutex>
 #include <string>
@@ -57,7 +58,8 @@ private:
     int buffer_pool_size;
 
     // map used to search the index in the `buffer_pool` of a certain page
-    std::map<PageId, int> pages;
+    // std::map<PageId, int> pages;
+    std::unordered_map<PageId, int, PageIdHasher> pages;
 
     // array of `BUFFER_POOL_SIZE` pages
     Page* buffer_pool;
