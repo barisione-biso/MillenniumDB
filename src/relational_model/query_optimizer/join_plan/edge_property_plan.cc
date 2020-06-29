@@ -188,37 +188,37 @@ vector<VarId> EdgePropertyPlan::get_var_order() {
  * ╚═╩════════╩═══════╩═════════╩═══════════════╩═════════════╝
  */
 unique_ptr<BindingIdIter> EdgePropertyPlan::get_binding_id_iter() {
-    vector<unique_ptr<ScanRange>> ranges;
+    array<unique_ptr<ScanRange>, 3> ranges;
 
     if (edge_assigned) {
         if (!key_assigned && value_assigned) { // Case 3: EDGE AND VALUE
             throw logic_error("fixed values with open key is not supported");
         }
         // cases 1,2 and 4 uses NKV, and case 3 throws exception
-        ranges.push_back(get_edge_range());
-        ranges.push_back(get_key_range());
-        ranges.push_back(get_value_range());
+        ranges[0] = get_edge_range();
+        ranges[1] = get_key_range();
+        ranges[2] = get_value_range();
 
         return make_unique<IndexScan<3>>(relational_model.get_edge_key_value(), move(ranges));
     } else {
         if (key_assigned) {
             if (value_assigned) { // Case 5: KEY AND VALUE
-                ranges.push_back(get_key_range());
-                ranges.push_back(get_value_range());
-                ranges.push_back(get_edge_range());
+                ranges[0] = get_key_range();
+                ranges[1] = get_value_range();
+                ranges[2] = get_edge_range();
 
                 return make_unique<IndexScan<3>>(relational_model.get_key_value_edge(), move(ranges));
             } else {              // Case 6: JUST KEY
                 if (graph_id.is_default()) {
-                    ranges.push_back(get_key_range());
-                    ranges.push_back(get_value_range());
-                    ranges.push_back(get_edge_range());
+                    ranges[0] = get_key_range();
+                    ranges[1] = get_value_range();
+                    ranges[2] = get_edge_range();
 
                     return make_unique<IndexScan<3>>(relational_model.get_key_value_edge(), move(ranges));
                 } else {
-                    ranges.push_back(get_key_range());
-                    ranges.push_back(get_edge_range());
-                    ranges.push_back(get_value_range());
+                    ranges[0] = get_key_range();
+                    ranges[1] = get_edge_range();
+                    ranges[2] = get_value_range();
 
                     return make_unique<IndexScan<3>>(relational_model.get_key_edge_value(), move(ranges));
                 }
@@ -227,9 +227,9 @@ unique_ptr<BindingIdIter> EdgePropertyPlan::get_binding_id_iter() {
             if (value_assigned) { // Case 7: JUST VALUE
                 throw logic_error("fixed values with open key is not supported");
             } else {              // Case 8: NOTHING
-                ranges.push_back(get_edge_range());
-                ranges.push_back(get_key_range());
-                ranges.push_back(get_value_range());
+                ranges[0] = get_edge_range();
+                ranges[1] = get_key_range();
+                ranges[2] = get_value_range();
 
                 return make_unique<IndexScan<3>>(relational_model.get_edge_key_value(), move(ranges));
             }

@@ -13,15 +13,14 @@
 using namespace std;
 
 template <std::size_t N>
-IndexScan<N>::IndexScan(BPlusTree<N>& bpt, std::vector<std::unique_ptr<ScanRange>> ranges) :
+IndexScan<N>::IndexScan(BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges) :
     bpt(bpt),
     ranges(move(ranges)) { }
 
 
 template <std::size_t N>
 void IndexScan<N>::begin(BindingId& input) {
-    assert(ranges.size() == static_cast<size_t>(N)
-        && "Inconsistent size of ranges and bpt");
+    assert(ranges.size() == N && "Inconsistent size of ranges and bpt");
 
     my_binding = make_unique<BindingId>(input.var_count());
     my_input = &input;

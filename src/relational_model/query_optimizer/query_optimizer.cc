@@ -1,5 +1,6 @@
 #include "query_optimizer.h"
 
+#include <cassert>
 #include <iostream>
 #include <set>
 
@@ -228,8 +229,7 @@ GraphId QueryOptimizer::search_graph_id(const std::string& graph_name) {
 unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr<JoinPlan>>& base_plans) {
     auto base_plans_size = base_plans.size();
 
-    assert(base_plans_size > 0
-        && "base_plans size in Match must be greater than 0");
+    assert(base_plans_size > 0 && "base_plans size in Match must be greater than 0");
 
     // choose the first scan
     int best_index = 0;

@@ -22,8 +22,6 @@ public:
     uint64_t get_id(const std::string& str, uint64_t hash1, uint64_t hash2, bool insert_if_not_present, bool* need_split);
 
 private:
-    // FileId file_id;
-    // uint_fast32_t bucket_number;
     Page& page;
     uint8_t key_count;
     uint8_t local_depth;

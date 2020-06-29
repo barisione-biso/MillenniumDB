@@ -1,11 +1,14 @@
 Lunes 16:00
 
 - Tratar de optimizar BPT:
+    - usar solo 2 bytes para key_count
     - reemplazar punteros a counts por counts reales. Actualizar al destruir
-    - usar array en IndexScan
+    + usar array en IndexScan
 
 - Agregar quad Edge+Label
     - modificar Query Optimizer para incluir el quad
+        - Fase de eliminacion de duplicados
+        - Reemplazo de EdgeLabel + Connection por LabeledConnection
     - medir tiempos de carga
     - medir tiempo consulta (especial new_same_both SF10)
 
@@ -55,11 +58,6 @@ ____________________________________________________________________
     - Selinger
 - Reemplazar el B+Tree de hash=>Id por una estructura de datos para diccionarios.
 
-
-- cambiar asserts por macro que pueda desactivarlos
-    - definir funcion en módulo test
-    - por defecto hace el assert tanto en RELEASE como DEBUG
-    - debería ser fácil quitar el assert para RELEASE
 - Añadir Databases de pruebas como archivo comprimido al repositorio
 
 - rename en file mananager no edita el buffer_manager (FileId se re asocia).

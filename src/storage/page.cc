@@ -17,7 +17,7 @@ Page::~Page() = default;
 
 
 Page& Page::operator=(const Page& other) {
-    assert(pins == 0 && "Cannor reassign page if it is pinned");
+    assert(pins == 0 && "Cannot reassign page if it is pinned");
     this->flush();
     this->page_id = other.page_id;
     this->pins    = other.pins;

@@ -18,14 +18,14 @@ private:
 
     BindingId* my_input;
     std::unique_ptr<BindingId> my_binding;
-    std::vector<std::unique_ptr<ScanRange>> ranges;
+    std::array<std::unique_ptr<ScanRange>, N> ranges;
 
     // statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
 public:
-    IndexScan(BPlusTree<N>& bpt, std::vector<std::unique_ptr<ScanRange>> ranges);
+    IndexScan(BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges);
     ~IndexScan() = default;
 
     void begin(BindingId& input);

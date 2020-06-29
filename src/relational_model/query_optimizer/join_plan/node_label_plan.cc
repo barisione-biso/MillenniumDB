@@ -111,17 +111,17 @@ vector<VarId> NodeLabelPlan::get_var_order() {
  * ╚═╩══════════╩═════════╩═════════╝
  */
 unique_ptr<BindingIdIter> NodeLabelPlan::get_binding_id_iter() {
-    vector<unique_ptr<ScanRange>> ranges;
+    array<unique_ptr<ScanRange>, 2> ranges;
     if (node_assigned || !label_assigned) {
         // cases 1, 2 and 4 uses NL
-        ranges.push_back(get_node_range());
-        ranges.push_back(get_label_range());
+        ranges[0] = get_node_range();
+        ranges[1] = get_label_range();
 
         return make_unique<IndexScan<2>>(relational_model.get_node2label(), move(ranges));
     } else {
         // case 3 uses LN
-        ranges.push_back(get_label_range());
-        ranges.push_back(get_node_range());
+        ranges[0] = get_label_range();
+        ranges[1] = get_node_range();
 
         return make_unique<IndexScan<2>>(relational_model.get_label2node(), move(ranges));
     }

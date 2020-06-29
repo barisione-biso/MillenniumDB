@@ -1,6 +1,5 @@
 #include "match.h"
 
-#include <cassert>
 #include <limits>
 
 #include "storage/index/object_file/object_file.h"

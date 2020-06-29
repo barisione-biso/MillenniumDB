@@ -155,33 +155,33 @@ vector<VarId> ConnectionPlan::get_var_order() {
  * ╚═╩══════════╩════════╩══════════╩══════════╝
  */
 unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
-    vector<unique_ptr<ScanRange>> ranges;
+    array<unique_ptr<ScanRange>, 3> ranges;
 
     if (node_from_assigned) {
         if (edge_assigned) { // CASES 1 and 2 => EFT
-            ranges.push_back(get_edge_range());
-            ranges.push_back(get_node_from_range());
-            ranges.push_back(get_node_to_range());
+            ranges[0] = get_edge_range();
+            ranges[1] = get_node_from_range();
+            ranges[2] = get_node_to_range();
 
             return make_unique<IndexScan<3>>(relational_model.get_edge_from_to(), move(ranges));
         } else { // CASES 3 and 4 => FTE
-            ranges.push_back(get_node_from_range());
-            ranges.push_back(get_node_to_range());
-            ranges.push_back(get_edge_range());
+            ranges[0] = get_node_from_range();
+            ranges[1] = get_node_to_range();
+            ranges[2] = get_edge_range();
 
             return make_unique<IndexScan<3>>(relational_model.get_from_to_edge(), move(ranges));
         }
     } else {
         if (node_to_assigned) { // CASES 5 and 7 => TEF
-            ranges.push_back(get_node_to_range());
-            ranges.push_back(get_edge_range());
-            ranges.push_back(get_node_from_range());
+            ranges[0] = get_node_to_range();
+            ranges[1] = get_edge_range();
+            ranges[2] = get_node_from_range();
 
             return make_unique<IndexScan<3>>(relational_model.get_to_edge_from(), move(ranges));
         } else { // CASES 6 and 8 => EFT
-            ranges.push_back(get_edge_range());
-            ranges.push_back(get_node_from_range());
-            ranges.push_back(get_node_to_range());
+            ranges[0] = get_edge_range();
+            ranges[1] = get_node_from_range();
+            ranges[2] = get_node_to_range();
 
             return make_unique<IndexScan<3>>(relational_model.get_edge_from_to(), move(ranges));
         }
