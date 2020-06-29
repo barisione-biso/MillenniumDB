@@ -25,23 +25,6 @@ BPlusTreeLeaf<N>::~BPlusTreeLeaf() {
 }
 
 
-// template <std::size_t N>
-// unique_ptr<Record<N>> BPlusTreeLeaf<N>::get(const Record<N>& key) {
-//     int index = search_index(0, *value_count-1, key);
-
-//     if (equal_record(key, index)) {
-//         std::array<uint64_t, N> ids;
-//         for (int i = 0; i < N; i++) {
-//             ids[i] = records[index * (N + 1) + i];
-//         }
-//         return make_unique<Record>(ids);
-//     }
-//     else {
-//         return nullptr;
-//     }
-// }
-
-
 template <std::size_t N>
 unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(int pos) {
     std::array<uint64_t, N> ids;
@@ -166,33 +149,34 @@ SearchLeafResult BPlusTreeLeaf<N>::search_leaf(const Record<N>& min) {
 // returns the position of the minimum key greater (or equal) than the record given.
 template <std::size_t N>
 uint_fast32_t BPlusTreeLeaf<N>::search_index(int from, int to, const Record<N>& record) {
-    if (from >= to) {
-        for (uint_fast32_t i = 0; i < N; i++) {
-            auto id = records[from*N + i];
-            if (record.ids[i] < id) {
-                return from;
-            }
-            else if (record.ids[i] > id) {
-                return from+1;
-            }
-            // continue if they were equal
-        }
-        return from;
-    }
-    auto middle = (from + to) / 2;
+search_index_begin:
+    if (from < to) {
+        auto middle = (from + to) / 2;
 
-    for (uint_fast32_t i = 0; i < N; i++) {
-        auto id = records[middle*N + i];
-        if (record.ids[i] < id) { // record is smaller
-            return search_index(from, middle-1, record);
+        for (uint_fast32_t i = 0; i < N; i++) {
+            auto id = records[middle*N + i];
+            if (record.ids[i] < id) { // record is smaller
+                to = middle - 1;
+                goto search_index_begin;
+            } else if (record.ids[i] > id) { // record is greater
+                from = middle + 1;
+                goto search_index_begin;
+            }
         }
-        else if (record.ids[i] > id) { // record is greater
-            return search_index(middle+1, to, record);
+        // record is equal
+        return middle;
+    }
+    // from >= to
+    for (uint_fast32_t i = 0; i < N; ++i) {
+        auto id = records[from*N + i];
+        if (record.ids[i] < id) {
+            return from;
+        } else if (record.ids[i] > id) {
+            return from + 1;
         }
         // continue if they were equal
     }
-    // record is equal
-    return middle;
+    return from;
 }
 
 

@@ -32,24 +32,6 @@ BPlusTreeDir<N>::~BPlusTreeDir() {
 }
 
 
-// template <std::size_t N>
-// std::unique_ptr<Record<N>> BPlusTreeDir<N>::get(const Record<N>& key) {
-//     int index = search_child_index(0, *key_count, key);
-//     int page_pointer = children[index];
-
-//     if (page_pointer < 0) { // negative number: pointer to dir
-//         Page& child_page = buffer_manager.get_page(dir_file_id, page_pointer*-1);
-//         auto child =  BPlusTreeDir(child_page);
-//         return child.get(key);
-//     }
-//     else { // positive number: pointer to leaf
-//         Page& child_page = buffer_manager.get_page(page_pointer);
-//         auto child =  BPlusTreeLeaf(child_page);
-//         return child.get(key);
-//     }
-// }
-
-
 // requieres first insert manually
 template <std::size_t N>
 std::unique_ptr<BPlusTreeSplit<N>> BPlusTreeDir<N>::bulk_insert(BPlusTreeLeaf<N>& leaf) {
@@ -368,6 +350,7 @@ SearchLeafResult BPlusTreeDir<N>::search_leaf(const Record<N>& min) {
 
 template <std::size_t N>
 int BPlusTreeDir<N>::search_child_index(int dir_from, int dir_to, const Record<N>& record) {
+search_child_index_begin:
     if (dir_from == dir_to) {
         return dir_from;
     }
@@ -377,14 +360,16 @@ int BPlusTreeDir<N>::search_child_index(int dir_from, int dir_to, const Record<N
     for (uint_fast32_t i = 0; i < N; i++) {
         auto id = keys[middle_record*N + i];
         if (record.ids[i] < id) {
-            return search_child_index(dir_from, middle_record, record);
-        }
-        else if (record.ids[i] > id) {
-            return search_child_index(middle_record+1, dir_to, record);
+            dir_to = middle_record;
+            goto search_child_index_begin;
+        } else if (record.ids[i] > id) {
+            dir_from = middle_record+1;
+            goto search_child_index_begin;
         }
         // continue if they were equal
     }
-    return search_child_index(middle_record+1, dir_to, record);
+    dir_from = middle_record+1;
+    goto search_child_index_begin;
 }
 
 
