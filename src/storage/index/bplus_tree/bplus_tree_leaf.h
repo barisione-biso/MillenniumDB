@@ -38,8 +38,8 @@ class BPlusTreeLeaf {
         void create_new(const Record<N>& record);
 
         bool is_leaf()  { return true; }
-        int get_value_count() { return *value_count; }
-        int has_next()  { return *next_leaf != 0; }
+        uint32_t get_value_count() { return value_count; }
+        int has_next()  { return next_leaf != 0; }
 
         bool check() const;
         void print() const;
@@ -50,8 +50,8 @@ class BPlusTreeLeaf {
     private:
         Page& page;
         FileId leaf_file_id;
-        uint32_t* value_count;
-        int* next_leaf;
+        uint32_t value_count;
+        uint32_t next_leaf;
         uint64_t* records;
 
         uint_fast32_t search_index(int from, int to, const Record<N>& record);

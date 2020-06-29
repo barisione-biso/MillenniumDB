@@ -432,7 +432,7 @@ bool BPlusTreeDir<N>::check() const {
             auto& left_page = buffer_manager.get_page(leaf_file_id, left_pointer);
             auto left_child =  BPlusTreeLeaf<N>(left_page);
             for (uint_fast32_t j = 0; j < N; j++) {
-                greatest_left_key.ids[j] = left_child.records[((*left_child.value_count-1) * N) + j];
+                greatest_left_key.ids[j] = left_child.records[((left_child.value_count-1) * N) + j];
             }
         }
 
@@ -455,7 +455,7 @@ bool BPlusTreeDir<N>::check() const {
             for (uint_fast32_t j = 0; j < N; j++) {
                 smallest_right_key.ids[j] = right_child.records[j];
             }
-            if (*right_child.value_count == 0) {
+            if (right_child.value_count == 0) {
                 right_empty = true;
             }
         }

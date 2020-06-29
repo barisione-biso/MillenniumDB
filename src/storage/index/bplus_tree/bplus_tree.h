@@ -37,7 +37,7 @@ public:
 
 private:
     const FileId leaf_file_id;
-    int current_pos;
+    uint32_t current_pos;
     const Record<N> max;
     std::unique_ptr<BPlusTreeLeaf<N>> current_leaf;
 };
