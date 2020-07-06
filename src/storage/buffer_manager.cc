@@ -75,10 +75,7 @@ int BufferManager::get_buffer_available() {
 
 
 Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) {
-    // if (file_manager.count_pages(file_id) < page_number) {
-    //     std::cout << "Page Number: " << page_number << ", FileId: " << file_id.id << "(" << file_manager.get_filename(file_id) <<  ")\n";
-    //     throw std::logic_error("getting wrong page_number.");
-    // }
+
     auto page_id = PageId(file_id, page_number);
     auto it = pages.find(page_id);
 
@@ -107,4 +104,17 @@ void BufferManager::unpin(Page& page) {
     std::lock_guard<std::mutex> lck(pin_mutex);
     assert(page.pins != 0 && "Must not unpin if pin count is equal to 0. There is a logic error.");
     page.pins--;
+}
+
+
+void BufferManager::remove(FileId file_id) {
+    if (buffer_pool == nullptr) {
+        return;
+    }
+    for (int i = 0; i < buffer_pool_size; i++) {
+        if (buffer_pool[i].page_id.file_id == file_id) {
+            pages.erase(buffer_pool[i].page_id);
+            buffer_pool[i].reset();
+        }
+    }
 }

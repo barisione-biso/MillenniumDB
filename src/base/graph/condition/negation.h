@@ -20,8 +20,8 @@ public:
         return ConditionType::negation;
     }
 
-    void check_names(std::map<std::string, ObjectType>& m) {
-        condition->check_names(m);
+    void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) {
+        condition->check_names(node_names, edge_names);
     }
 };
 

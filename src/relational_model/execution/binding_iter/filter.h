@@ -7,6 +7,7 @@
 #include "base/graph/graph_object.h"
 #include "relational_model/binding/binding_id_iter.h"
 
+#include <set>
 #include <map>
 #include <memory>
 
@@ -18,13 +19,15 @@ private:
     std::unique_ptr<BindingIter> iter;
     std::unique_ptr<Condition> condition;
     std::map<std::string, GraphId> var2graph_id;
-    std::map<std::string, ObjectType> element_types;
+    std::set<std::string> node_names;
+    std::set<std::string> edge_names;
 
 public:
     Filter(std::unique_ptr<BindingIter> iter,
            std::unique_ptr<Condition> condition,
            std::map<std::string, GraphId> var2graph_id,
-           std::map<std::string, ObjectType> element_types);
+           std::set<std::string> node_names,
+           std::set<std::string> edge_names);
     ~Filter() = default;
 
     void begin();

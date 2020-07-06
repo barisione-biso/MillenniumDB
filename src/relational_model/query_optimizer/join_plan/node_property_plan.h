@@ -10,8 +10,13 @@
 class NodePropertyPlan : public JoinPlan {
 public:
     NodePropertyPlan(const NodePropertyPlan& other);
-    NodePropertyPlan(GraphId graph_id, VarId node_var_id, VarId key_var_id, VarId value_var_id,
-                 ObjectId key_id, ObjectId value_id);
+
+    // constructor used when projecting the value of a key
+    NodePropertyPlan(GraphId graph_id, VarId node_var_id, ObjectId key_id, VarId value_var_id);
+
+    // constructor used when matching a node with a property
+    NodePropertyPlan(GraphId graph_id, VarId node_var_id, ObjectId key_id, ObjectId value_id);
+
     ~NodePropertyPlan() = default;
 
     double estimate_cost() override;

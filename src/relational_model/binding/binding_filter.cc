@@ -6,8 +6,11 @@
 using namespace std;
 
 BindingFilter::BindingFilter(Binding& binding, map<string, GraphId>& var2graph_id,
-                             map<string, ObjectType>& element_types)
-    : binding(binding), var2graph_id(var2graph_id), element_types(element_types) { }
+                             set<string>& node_names, set<string>& edge_names) :
+    binding(binding),
+    var2graph_id(var2graph_id),
+    node_names(node_names),
+    edge_names(edge_names) { }
 
 
 std::string BindingFilter::to_string() const {
@@ -32,12 +35,12 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
     }
     else { // no esta en el cache ni el el binding original
         auto graph_id = var2graph_id[var];
-        auto element_type = element_types[var];
         auto key_object_id = relational_model.get_string_id(key);
         auto var_value = binding[var];
 
         unique_ptr<BptIter<3>> it = nullptr;
-        if (element_type == ObjectType::node) {
+        auto node_search = node_names.find(var);
+        if (node_search != node_names.end()) {
             Node node = static_cast<const Node&>(*var_value);
             it = relational_model.get_node_key_value().get_range(
                 RecordFactory::get(node.id, key_object_id, 0),

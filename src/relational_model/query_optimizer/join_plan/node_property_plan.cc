@@ -12,17 +12,30 @@
 
 using namespace std;
 
-NodePropertyPlan::NodePropertyPlan(GraphId graph_id, VarId node_var_id, VarId key_var_id,
-                                   VarId value_var_id, ObjectId key_id, ObjectId value_id) :
-    graph_id(graph_id),
-    node_var_id(node_var_id),
-    key_var_id(key_var_id),
-    value_var_id(value_var_id),
-    key_id(key_id),
-    value_id(value_id),
-    node_assigned(false),
-    key_assigned( !key_id.is_null() ),
-    value_assigned( !value_id.is_null() ) { }
+NodePropertyPlan::NodePropertyPlan(GraphId graph_id, VarId node_var_id,
+                                   ObjectId key_id, VarId value_var_id) :
+    graph_id       (graph_id),
+    node_var_id    (node_var_id),
+    key_var_id     (ObjectId::get_null()),
+    value_var_id   (value_var_id),
+    key_id         (key_id),
+    value_id       (VarId::get_null()),
+    node_assigned  (false),
+    key_assigned   (true),
+    value_assigned (false) { }
+
+
+NodePropertyPlan::NodePropertyPlan(GraphId graph_id, VarId node_var_id,
+                                   ObjectId key_id, ObjectId value_id) :
+    graph_id       (graph_id),
+    node_var_id    (node_var_id),
+    key_var_id     (ObjectId::get_null()),
+    value_var_id   (ObjectId::get_null()),
+    key_id         (key_id),
+    value_id       (value_id),
+    node_assigned  (false),
+    key_assigned   (true),
+    value_assigned (true) { }
 
 
 NodePropertyPlan::NodePropertyPlan(const NodePropertyPlan& other) :

@@ -51,6 +51,8 @@ public:
     // reduces the count of objects using the page. Should be called when a object using the page is destroyed.
     void unpin(Page& page);
 
+    // invalidates all pages using `file_id`
+    void remove(FileId file_id);
 private:
     BufferManager(int _buffer_pool_size);
 

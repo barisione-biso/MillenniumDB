@@ -1,12 +1,13 @@
 #include "ordered_file.h"
 
-#include "storage/index/record.h"
-#include "storage/file_manager.h"
-
+#include <experimental/filesystem>
 #include <chrono>
 #include <climits>
 #include <iostream>
 #include <memory>
+
+#include "storage/index/record.h"
+#include "storage/file_manager.h"
 
 using namespace std;
 
@@ -210,11 +211,18 @@ void OrderedFile<N>::order(std::array<uint_fast8_t, N> column_order) {
     }
 
     if (!reading_orginal_file) {
-        file_manager.remove(file_id);
-        file_manager.rename(tmp_file_id, file_id);
+        // file_manager.remove(file_id);
+        file_manager.close(file_id);
+        std::remove( file_manager.get_absolute_path(file_id).c_str() );
+
+        // file_manager.rename(tmp_file_id, file_manager.get_absolute_path(file_id) );
+        file_manager.close(tmp_file_id);
+        experimental::filesystem::rename(file_manager.get_absolute_path(tmp_file_id), file_manager.get_absolute_path(file_id));
     }
     else {
-        file_manager.remove(tmp_file_id);
+        // file_manager.remove(tmp_file_id);
+        file_manager.close(file_id);
+        std::remove( file_manager.get_absolute_path(tmp_file_id).c_str() );
     }
     file_manager.ensure_open(file_id);
 

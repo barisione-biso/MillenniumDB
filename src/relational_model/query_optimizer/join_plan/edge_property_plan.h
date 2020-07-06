@@ -10,8 +10,13 @@
 class EdgePropertyPlan : public JoinPlan {
 public:
     EdgePropertyPlan(const EdgePropertyPlan& other);
-    EdgePropertyPlan(GraphId graph_id, VarId edge_var_id, VarId key_var_id, VarId value_var_id,
-                 ObjectId key_id, ObjectId value_id);
+
+    // constructor used when projecting the value of a key
+    EdgePropertyPlan(GraphId graph_id, VarId edge_var_id, ObjectId key_id, VarId value_var_id);
+
+    // constructor used when matching an edge with a property
+    EdgePropertyPlan(GraphId graph_id, VarId edge_var_id, ObjectId key_id, ObjectId value_id);
+
     ~EdgePropertyPlan() = default;
 
     double estimate_cost() override;

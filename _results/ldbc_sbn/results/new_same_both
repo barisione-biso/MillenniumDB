@@ -1,6 +1,6 @@
 GraphDB
-SF01: 17.004 ms
-SF10: timeout luego de 3 horas
+SF01: 17.004 ms |    881 ms
+SF10: timeout   | 24.456 ms
 
 Neo4J
 SF01:  2.012 ms

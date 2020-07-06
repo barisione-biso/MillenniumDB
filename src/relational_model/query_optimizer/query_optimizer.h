@@ -8,6 +8,7 @@
 #include "base/parser/grammar/ast.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 
+#include <set>
 #include <map>
 #include <memory>
 #include <vector>
@@ -25,7 +26,9 @@ private:
     std::map<std::string, VarId> id_map;
     std::map<std::string, GraphId> graph_ids; // graph_name to graph_id
     std::map<std::string, GraphId> var2graph_id;
-    std::map<std::string, ObjectType> element_types;
+    // std::map<std::string, ObjectType> element_types;
+    std::set<std::string> node_names;
+    std::set<std::string> edge_names;
     std::vector<std::pair<std::string, std::string>> select_items;
     int_fast32_t id_count = 0;
 
@@ -44,8 +47,10 @@ public:
     void visit(OpSelect&);
     void visit(OpMatch&);
     void visit(OpFilter&);
-    void visit(OpLabel&);
-    void visit(OpProperty&);
+    void visit(OpNodeLabel&);
+    void visit(OpEdgeLabel&);
+    void visit(OpNodeProperty&);
+    void visit(OpEdgeProperty&);
     void visit(OpConnection&);
     void visit(OpLonelyNode&);
     void visit(OpNodeLoop&);

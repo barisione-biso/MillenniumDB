@@ -16,7 +16,7 @@ public:
         return value;
     }
 
-    void check_names(std::map<std::string, ObjectType>&) { }
+    void check_names(std::set<std::string>&, std::set<std::string>& ) { }
 };
 
 #endif // BASE__VALUE_ASSIGN_CONSTANT_H_

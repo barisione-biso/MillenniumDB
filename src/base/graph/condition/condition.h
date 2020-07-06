@@ -1,7 +1,7 @@
 #ifndef BASE__CONDITION_H_
 #define BASE__CONDITION_H_
 
-#include <map>
+#include <set>
 
 #include "base/graph/graph_object.h"
 
@@ -21,7 +21,7 @@ public:
     virtual ~Condition() { };
     virtual bool eval(Binding&) = 0;
     virtual ConditionType type() = 0;
-    virtual void check_names(std::map<std::string, ObjectType>&) = 0;
+    virtual void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) = 0;
 };
 
 #endif // BASE__CONDITION_H_

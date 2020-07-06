@@ -36,17 +36,12 @@ void MergePlan::print(int indent) {
 
 
 double MergePlan::estimate_cost() {
-    return estimate_cost(*lhs, *rhs);
-}
-
-
-double MergePlan::estimate_cost(JoinPlan& lhs, JoinPlan& rhs) {
     bool merge_possible = true;
 
     // check merge is possible
     std::vector<VarId> join_vars;
-    auto left_vars = lhs.get_var_order();
-    auto right_vars = rhs.get_var_order();
+    auto left_vars  = lhs->get_var_order();
+    auto right_vars = rhs->get_var_order();
 
     // merge must be on first variable
     if (left_vars[0] != right_vars[0]) {
@@ -74,7 +69,7 @@ double MergePlan::estimate_cost(JoinPlan& lhs, JoinPlan& rhs) {
 
     if (merge_possible) {
         return numeric_limits<double>::max();
-        // return lhs.estimate_cost() + rhs.estimate_cost();
+        // return lhs->estimate_cost() + rhs->estimate_cost();
     } else {
         return numeric_limits<double>::max();
     }

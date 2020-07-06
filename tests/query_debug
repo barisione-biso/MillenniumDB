@@ -1,3 +1,4 @@
-// Busqueda de todas las conecciones
 SELECT *
-MATCH (?x)->()
+MATCH (?x {key:1})->(?x {key2:2, key:1})
+// MATCH  (?x :Label1 :Label1 :Label2), (?x :Label2)
+LIMIT 100

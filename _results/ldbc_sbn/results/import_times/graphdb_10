@@ -27,3 +27,14 @@ Bulk Import duration: 2.95264e+06ms
         Exit status: 0
 
 37G
+_____________
+Con Labeled conections
+
+Reading files & writing ordered file: 884553ms
+WARNING root not dirty after bulk import.
+WARNING root not dirty after bulk import.
+Writing non-merging indexes (7): 1.37927e+06ms
+Writing merging indexes (6): 604332ms
+Bulk Import duration: 2.86825e+06ms (~48 minutos)
+
+48GB

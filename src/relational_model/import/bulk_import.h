@@ -9,6 +9,7 @@
 #include <fstream>
 #include <list>
 #include <map>
+#include <memory>
 
 class BulkImport {
 public:
@@ -23,12 +24,13 @@ private:
     std::ifstream nodes_file;
     std::ifstream edges_file;
 
-    OrderedFile<2> node_labels;
-    OrderedFile<2> edge_labels;
-    OrderedFile<3> node_key_value;
-    OrderedFile<3> edge_key_value;
-    OrderedFile<3> connections;
-    OrderedFile<2> self_connected_nodes;
+    OrderedFile<2> node_labels;             // node_id, label_id
+    OrderedFile<2> edge_labels;             // edge_id, label_id
+    OrderedFile<3> node_key_value;          // node_id, key_id, value_id
+    OrderedFile<3> edge_key_value;          // edge_id, key_id, value_id
+    OrderedFile<3> connections;             // from_id, to_id, edge_id
+    OrderedFile<2> self_connected_nodes;    // node_id, edge_id
+    OrderedFile<4> labeled_edges;           // label_id, from_id, to_id, edge_id
 
     std::map<uint64_t, uint64_t> node_dict;
 
@@ -36,7 +38,7 @@ private:
     void process_edge(const bulk_import_ast::Edge& edge);
 
     template <std::size_t N>
-    void merge_tree_and_ordered_file(const std::string& original_filename, BPlusTree<N>&, OrderedFile<N>&);
+    void merge_tree_and_ordered_file(std::unique_ptr<BPlusTree<N>>&, OrderedFile<N>&);
 };
 
 #endif // RELATIONAL_MODEL__BULK_IMPORT_H_

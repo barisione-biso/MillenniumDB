@@ -101,5 +101,13 @@ int main(int argc, char **argv) {
     if (!relational_model.get_edge_nodeloop().check())
         std::cout << "wrong BPlusTree: edge_nodeloop\n";
 
+    // LABELED EDGES
+    std::cout << "Checking label_from_to_edge\n";
+    if (!relational_model.get_label_from_to_edge().check())
+        std::cout << "wrong BPlusTree: label_from_to_edge\n";
+    std::cout << "Checking label_to_from_edge\n";
+    if (!relational_model.get_label_to_from_edge().check())
+        std::cout << "wrong BPlusTree: label_to_from_edge\n";
+
     RelationalModel::terminate();
 }

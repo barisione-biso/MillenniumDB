@@ -21,7 +21,8 @@ BulkImport::BulkImport(const string& nodes_file_name, const string& edges_file_n
     node_key_value(OrderedFile<3>("node_key_value.dat")),
     edge_key_value(OrderedFile<3>("edge_key_value.dat")),
     connections(OrderedFile<3>("connections.dat")),
-    self_connected_nodes(OrderedFile<2>("self_connection.dat"))
+    self_connected_nodes(OrderedFile<2>("self_connection.dat")),
+    labeled_edges(OrderedFile<4>("labeled_edges.dat"))
 {
     nodes_file = ifstream(nodes_file_name);
     edges_file = ifstream(edges_file_name);
@@ -121,6 +122,13 @@ void BulkImport::start_import() {
     self_connected_nodes.order(std::array<uint_fast8_t, 2> { 1, 0 });
     relational_model.get_edge_nodeloop().bulk_import(self_connected_nodes);
 
+    // LABELED EDGES
+    labeled_edges.order(std::array<uint_fast8_t, 4> { 0, 1, 2, 3 });
+    relational_model.get_label_from_to_edge().bulk_import(labeled_edges);
+
+    labeled_edges.order(std::array<uint_fast8_t, 4> { 0, 2, 1, 3 });
+    relational_model.get_label_to_from_edge().bulk_import(labeled_edges);
+
     auto finish_creating_non_merging_index = chrono::system_clock::now();
     chrono::duration<float, milli> duration2 = finish_creating_non_merging_index - finish_reading_files;
     cout << "Writing non-merging indexes (7): " << duration2.count() << "ms\n";
@@ -129,38 +137,32 @@ void BulkImport::start_import() {
     // LABEL - NODE
     node_labels.order(std::array<uint_fast8_t, 2> { 1, 0 });
     // relational_model.get_label2node().bulk_import(node_labels);
-    merge_tree_and_ordered_file(relational_model.label2node_name, relational_model.get_label2node(),
-                                node_labels);
+    merge_tree_and_ordered_file(relational_model.label2node, node_labels);
 
     // LABEL - EDGE
     edge_labels.order(std::array<uint_fast8_t, 2> { 1, 0 });
     // relational_model.get_label2edge().bulk_import(edge_labels);
-    merge_tree_and_ordered_file(relational_model.label2edge_name, relational_model.get_label2edge(),
-                                edge_labels);
+    merge_tree_and_ordered_file(relational_model.label2edge, edge_labels);
 
     // KEY - VALUE - NODE
     node_key_value.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });
     // relational_model.get_key_value_node().bulk_import(node_key_value);
-    merge_tree_and_ordered_file(relational_model.key_value_node_name, relational_model.get_key_value_node(),
-                                node_key_value);
+    merge_tree_and_ordered_file(relational_model.key_value_node, node_key_value);
 
     // KEY - VALUE - EDGE
     edge_key_value.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });
     // relational_model.get_key_value_edge().bulk_import(edge_key_value);
-    merge_tree_and_ordered_file(relational_model.key_value_edge_name, relational_model.get_key_value_edge(),
-                                edge_key_value);
+    merge_tree_and_ordered_file(relational_model.key_value_edge, edge_key_value);
 
     // KEY - NODE - VALUE
     node_key_value.order(std::array<uint_fast8_t, 3> { 0, 2, 1 });
     // relational_model.get_key_node_value().bulk_import(node_key_value);
-    merge_tree_and_ordered_file(relational_model.key_node_value_name, relational_model.get_key_node_value(),
-                                node_key_value);
+    merge_tree_and_ordered_file(relational_model.key_node_value, node_key_value);
 
     // KEY - EDGE - VALUE
     edge_key_value.order(std::array<uint_fast8_t, 3> { 0, 2, 1 });
     // relational_model.get_key_edge_value().bulk_import(edge_key_value);
-    merge_tree_and_ordered_file(relational_model.key_edge_value_name, relational_model.get_key_edge_value(),
-                                edge_key_value);
+    merge_tree_and_ordered_file(relational_model.key_edge_value, edge_key_value);
 
     auto finish_creating_index = chrono::system_clock::now();
     chrono::duration<float, milli> duration3 = finish_creating_index - finish_creating_non_merging_index;
@@ -169,21 +171,32 @@ void BulkImport::start_import() {
 
 
 template <std::size_t N>
-void BulkImport::merge_tree_and_ordered_file(const string& original_filename, BPlusTree<N>& bpt,
-                                             OrderedFile<N>& ordered_file)
+void BulkImport::merge_tree_and_ordered_file(unique_ptr<BPlusTree<N>>& bpt, OrderedFile<N>& ordered_file)
 {
+    auto original_dir_filename  = file_manager.get_filename(bpt->dir_file_id);
+    auto original_leaf_filename = file_manager.get_filename(bpt->leaf_file_id);
+    auto original_filename = original_dir_filename.substr(0, original_dir_filename.size()-4);
     auto tmp_filename = original_filename + ".tmp";
-    auto new_bpt = BPlusTree<N>(tmp_filename);
-    auto bpt_merger = BptMerger<N>(ordered_file, bpt);
-    new_bpt.bulk_import(bpt_merger);
 
-    buffer_manager.flush();
+    auto new_bpt = make_unique<BPlusTree<N>>(tmp_filename);
+    { // new scope so bpt_merger is destroyed before file_manager.remove
+        auto bpt_merger = BptMerger<N>(ordered_file, *bpt);
+        new_bpt->bulk_import(bpt_merger);
+    }
 
-    file_manager.remove(bpt.dir_file_id);
-    file_manager.remove(bpt.leaf_file_id);
+    auto old_dir_file_id  = bpt->dir_file_id;
+    auto old_leaf_file_id = bpt->leaf_file_id;
 
-    file_manager.rename(new_bpt.dir_file_id, bpt.dir_file_id);
-    file_manager.rename(new_bpt.leaf_file_id, bpt.leaf_file_id);
+    auto new_dir_file_id  = new_bpt->dir_file_id;
+    auto new_leaf_file_id = new_bpt->leaf_file_id;
+
+    bpt = move(new_bpt);
+
+    file_manager.remove(old_dir_file_id);
+    file_manager.remove(old_leaf_file_id);
+
+    file_manager.rename(new_dir_file_id,  original_dir_filename);
+    file_manager.rename(new_leaf_file_id, original_leaf_filename);
 }
 
 
@@ -225,7 +238,21 @@ void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
     }
 
     for (auto& label : edge.labels) {
-        edge_labels.append_record(graph.get_record_for_edge_label(edge_id, label));
+        auto record = graph.get_record_for_edge_label(edge_id, label);
+        if (edge.direction == bulk_import_ast::EdgeDirection::right) {
+            labeled_edges.append_record(RecordFactory::get(
+                                            record.ids[1],
+                                            left_id->second,
+                                            right_id->second,
+                                            edge_id ));
+        } else {
+            labeled_edges.append_record(RecordFactory::get(
+                                            record.ids[1],
+                                            right_id->second,
+                                            left_id->second,
+                                            edge_id ));
+        }
+        edge_labels.append_record(record);
     }
 
     for (auto& property : edge.properties) {

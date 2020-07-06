@@ -12,8 +12,11 @@
 #include <map>
 
 class RelationalGraph;
+class BulkImport;
 
 class RelationalModel {
+friend class BulkImport;
+
 public:
     static bool initialized;
 
@@ -71,6 +74,10 @@ public:
     static constexpr auto nodeloop_edge_name = "NE";
     static constexpr auto edge_nodeloop_name = "EN";
 
+    // Labeled Edges
+    static constexpr auto label_from_to_edge_name = "LFTE";
+    static constexpr auto label_to_from_edge_name = "LTFE";
+
     RelationalModel();
     ~RelationalModel();
     static void init(std::string db_folder, int buffer_pool_size);
@@ -110,6 +117,9 @@ public:
     BPlusTree<2>& get_nodeloop_edge();
     BPlusTree<2>& get_edge_nodeloop();
 
+    BPlusTree<4>& get_label_from_to_edge();
+    BPlusTree<4>& get_label_to_from_edge();
+
 private:
     std::unique_ptr<ObjectFile> object_file;
     std::unique_ptr<ExtendibleHash> strings_hash;
@@ -134,6 +144,9 @@ private:
 
     std::unique_ptr<BPlusTree<2>>  nodeloop_edge;
     std::unique_ptr<BPlusTree<2>>  edge_nodeloop;
+
+    std::unique_ptr<BPlusTree<4>>  label_from_to_edge;
+    std::unique_ptr<BPlusTree<4>>  label_to_from_edge;
 
     std::map<GraphId, std::unique_ptr<RelationalGraph>> graphs;
 

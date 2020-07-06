@@ -9,15 +9,25 @@
 class OpLonelyNode : public Op {
 public:
     const std::string graph_name;
-    const std::string var;
+    const std::string node_name;
 
-    OpLonelyNode(std::string graph_name, std::string var)
-        : graph_name(graph_name), var(std::move(var)) { }
+    OpLonelyNode(std::string graph_name, std::string node_name):
+        graph_name(std::move(graph_name)),
+        node_name (std::move(node_name )) { }
 
     ~OpLonelyNode() = default;
 
     void accept_visitor(OpVisitor& visitor) {
         visitor.visit(*this);
+    }
+
+    bool operator<(const OpLonelyNode& other) const {
+        if (graph_name < other.graph_name) {
+            return true;
+        } else if (node_name < other.node_name) {
+            return true;
+        }
+        return false;
     }
 };
 

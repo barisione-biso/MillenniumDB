@@ -82,7 +82,9 @@ void session(tcp::socket sock) {
                 count++;
             }
 
+            // print execution stats
             root->analyze();
+            cout << "\n";
 
             auto end = chrono::system_clock::now();
             chrono::duration<float, std::milli> duration = end - start;

@@ -1,6 +1,7 @@
 #include "query_optimizer.h"
 
 #include <cassert>
+// #include <queue>
 #include <iostream>
 #include <set>
 
@@ -18,6 +19,7 @@
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/projection.h"
 
+#include "relational_model/query_optimizer/join_plan/labeled_connection_plan.h"
 #include "relational_model/query_optimizer/join_plan/connection_plan.h"
 #include "relational_model/query_optimizer/join_plan/edge_label_plan.h"
 #include "relational_model/query_optimizer/join_plan/edge_property_plan.h"
@@ -60,7 +62,6 @@ void QueryOptimizer::visit(OpSelect& op_select) {
 
 
 void QueryOptimizer::visit(OpMatch& op_match) {
-    VarId null_var = VarId::get_null();
     vector<unique_ptr<JoinPlan>> base_plans;
 
     for (auto&& [var_name, graph_name] : op_match.var_name2graph_name) {
@@ -68,60 +69,100 @@ void QueryOptimizer::visit(OpMatch& op_match) {
         graph_ids.insert({ graph_name, graph_id }); // may try to insert a repeated pair, this is OK, it won't be duplicated
         var2graph_id.insert({ var_name, graph_id });
     }
-    element_types =  op_match.var_name2type;
+    // element_types = op_match.var_name2type;
+    node_names = op_match.node_names;
+    edge_names = op_match.edge_names;
 
     // Process Labels
-    for (auto& op_label : op_match.labels) {
-        auto graph_id = search_graph_id(op_label->graph_name);
-        auto element_var_id = get_var_id(op_label->var);
-        auto label_id = relational_model.get_string_id(op_label->label);
+    for (auto& op_node_label : op_match.node_labels) {
+        auto graph_id = search_graph_id(op_node_label.graph_name);
+        auto node_var_id = get_var_id(op_node_label.node_name);
+        auto label_id = relational_model.get_string_id(op_node_label.label);
 
-        if (op_label->type == ObjectType::node) {
+        base_plans.push_back(
+            make_unique<NodeLabelPlan>(graph_id, node_var_id, label_id)
+        );
+    }
+
+    // order labels by cost using catalog
+    vector<OpEdgeLabel> edge_labels(op_match.edge_labels.begin(), op_match.edge_labels.end());
+    std::sort(edge_labels.begin(), edge_labels.end(), [this](const auto& lhs, const auto& rhs) {
+        auto lhs_cost = catalog.get_edge_count_for_label(search_graph_id(lhs.graph_name),
+                                                         relational_model.get_string_id(lhs.label));
+
+        auto rhs_cost = catalog.get_edge_count_for_label(search_graph_id(rhs.graph_name),
+                                                         relational_model.get_string_id(rhs.label));
+        return lhs_cost < rhs_cost;
+    });
+
+    for (auto& op_edge_label : edge_labels) {
+        auto graph_id    = search_graph_id(op_edge_label.graph_name);
+        auto edge_var_id = get_var_id(op_edge_label.edge_name);
+        auto label_id    = relational_model.get_string_id(op_edge_label.label);
+
+        bool labeled_edge_added = false;
+
+        for (auto it = op_match.connections.begin(); it != op_match.connections.end(); ++it) {
+            if (it->edge == op_edge_label.edge_name) {
+                auto graph_id         = search_graph_id(it->graph_name);
+                auto node_from_var_id = get_var_id(it->node_from);
+                auto node_to_var_id   = get_var_id(it->node_to);
+
+                base_plans.push_back(
+                    make_unique<LabeledConnectionPlan>(graph_id, label_id, node_from_var_id, node_to_var_id, edge_var_id)
+                );
+                labeled_edge_added = true;
+                op_match.connections.erase(it);
+                break;
+            }
+        }
+
+        if (!labeled_edge_added) {
             base_plans.push_back(
-                make_unique<NodeLabelPlan>(graph_id, element_var_id, null_var, label_id)
-            );
-        } else {
-            base_plans.push_back(
-                make_unique<EdgeLabelPlan>(graph_id, element_var_id, null_var, label_id)
+                make_unique<EdgeLabelPlan>(graph_id, edge_var_id, label_id)
             );
         }
     }
 
     // Process properties from Match
-    for (auto& op_property : op_match.properties) {
-        auto element_var_id = get_var_id(op_property->var);
-        auto key_id = relational_model.get_string_id(op_property->key);
-        ObjectId value_id = get_value_id(op_property->value);
+    for (auto& op_node_property : op_match.node_properties) {
+        auto node_var_id = get_var_id(op_node_property.node_name);
+        auto key_id      = relational_model.get_string_id(op_node_property.key);
+        auto value_id    = get_value_id(op_node_property.value);
 
-        auto graph_id = search_graph_id(op_property->graph_name);
-        if (op_property->type == ObjectType::node) {
-            base_plans.push_back(
-                make_unique<NodePropertyPlan>(graph_id, element_var_id, null_var, null_var, key_id, value_id)
-            );
-        } else {
-            base_plans.push_back(
-                make_unique<EdgePropertyPlan>(graph_id, element_var_id, null_var, null_var, key_id, value_id)
-            );
-        }
+        auto graph_id = search_graph_id(op_node_property.graph_name);
+        base_plans.push_back(
+            make_unique<NodePropertyPlan>(graph_id, node_var_id, key_id, value_id)
+        );
+    }
+
+    for (auto& op_edge_property : op_match.edge_properties) {
+        auto graph_id    = search_graph_id(op_edge_property.graph_name);
+        auto edge_var_id = get_var_id(op_edge_property.edge_name);
+        auto key_id      = relational_model.get_string_id(op_edge_property.key);
+        auto value_id    = get_value_id(op_edge_property.value);
+
+        base_plans.push_back(
+            make_unique<EdgePropertyPlan>(graph_id, edge_var_id, key_id, value_id)
+        );
     }
 
     // Process properties from select
     for (auto&& [var, key] : select_items) {
-        auto graph_id = var2graph_id[var];
+        auto graph_id       = var2graph_id[var];
         auto element_var_id = get_var_id(var);
-        auto value_var = get_var_id(var + '.' + key);
-        auto key_id = relational_model.get_string_id(key);
-        auto element_type = element_types[var];
+        auto value_var      = get_var_id(var + '.' + key);
+        auto key_id         = relational_model.get_string_id(key);
 
-        if (element_type == ObjectType::node) {
+        // check if var is a node or an edge
+        auto node_search = node_names.find(var);
+        if (node_search != node_names.end()) {
             base_plans.push_back(
-                make_unique<NodePropertyPlan>(graph_id, element_var_id, null_var, value_var, key_id,
-                                              ObjectId::get_null())
+                make_unique<NodePropertyPlan>(graph_id, element_var_id, key_id, value_var)
             );
         } else {
             base_plans.push_back(
-                make_unique<EdgePropertyPlan>(graph_id, element_var_id, null_var, value_var, key_id,
-                                              ObjectId::get_null())
+                make_unique<EdgePropertyPlan>(graph_id, element_var_id, key_id, value_var)
             );
         }
     }
@@ -130,37 +171,37 @@ void QueryOptimizer::visit(OpMatch& op_match) {
     for (auto& lonely_node : op_match.lonely_nodes) {
         bool lonely_node_mentioned_int_select = false;
         for (auto& pair : select_items) {
-            if (pair.first == lonely_node->var) {
+            if (pair.first == lonely_node.node_name) {
                 lonely_node_mentioned_int_select = true;
                 break;
             }
         }
         if (!lonely_node_mentioned_int_select) {
-            auto graph_id = search_graph_id(lonely_node->graph_name);
-            auto element_var_id = get_var_id(lonely_node->var);
+            auto graph_id = search_graph_id(lonely_node.graph_name);
+            auto node_var_id = get_var_id(lonely_node.node_name);
             base_plans.push_back(
-                make_unique<LonelyNodePlan>(graph_id, element_var_id)
+                make_unique<LonelyNodePlan>(graph_id, node_var_id)
             );
         }
     }
 
     // Process connections
     for (auto& op_connection : op_match.connections) {
-        auto graph_id = search_graph_id(op_connection->graph_name);
+        auto graph_id = search_graph_id(op_connection.graph_name);
 
-        auto node_from_var_id = get_var_id(op_connection->node_from);
-        auto node_to_var_id   = get_var_id(op_connection->node_to);
-        auto edge_var_id      = get_var_id(op_connection->edge);
+        auto node_from_var_id = get_var_id(op_connection.node_from);
+        auto node_to_var_id   = get_var_id(op_connection.node_to);
+        auto edge_var_id      = get_var_id(op_connection.edge);
 
         base_plans.push_back(
             make_unique<ConnectionPlan>(graph_id, node_from_var_id, node_to_var_id, edge_var_id)
         );
     }
     for (auto& op_node_loop : op_match.node_loops) {
-        auto graph_id = search_graph_id(op_node_loop->graph_name);
+        auto graph_id = search_graph_id(op_node_loop.graph_name);
 
-        auto node_id     = get_var_id(op_node_loop->node);
-        auto edge_var_id = get_var_id(op_node_loop->edge);
+        auto node_id     = get_var_id(op_node_loop.node);
+        auto edge_var_id = get_var_id(op_node_loop.edge);
 
         base_plans.push_back(
             make_unique<NodeLoopPlan>(graph_id, node_id, edge_var_id)
@@ -174,7 +215,7 @@ void QueryOptimizer::visit(OpMatch& op_match) {
 void QueryOptimizer::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
     if (op_filter.condition != nullptr) {
-        tmp = make_unique<Filter>(move(tmp), move(op_filter.condition), var2graph_id, element_types);
+        tmp = make_unique<Filter>(move(tmp), move(op_filter.condition), var2graph_id, node_names, edge_names);
     }
     // else tmp stays the same
 }
@@ -256,20 +297,23 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
             if (base_plans[j] != nullptr
                 && !base_plans[j]->cartesian_product_needed(*root_plan) )
             {
-                auto nested_loop_cost = NestedLoopPlan::estimate_cost(*root_plan, *base_plans[j]);
-                auto merge_cost = MergePlan::estimate_cost(*root_plan, *base_plans[j]);
+                auto merge_plan       =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                auto nested_loop_plan =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+
+                auto merge_cost       = merge_plan->estimate_cost();
+                auto nested_loop_cost = nested_loop_plan->estimate_cost();
 
                 if (nested_loop_cost <= merge_cost) {
                     if (nested_loop_cost < best_cost) {
                         best_cost = nested_loop_cost;
                         best_index = j;
-                        best_step_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                        best_step_plan = move(nested_loop_plan);
                     }
                 } else { // merge_cost < nested_loop_cost
                     if (merge_cost < best_cost) {
                         best_cost = merge_cost;
                         best_index = j;
-                        best_step_plan = make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                        best_step_plan = move(merge_plan);
                     }
                 }
             }
@@ -283,20 +327,23 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
                 if (base_plans[j] == nullptr) {
                     continue;
                 }
-                auto nested_loop_cost = NestedLoopPlan::estimate_cost(*root_plan, *base_plans[j]);
-                auto merge_cost = MergePlan::estimate_cost(*root_plan, *base_plans[j]);
+                auto merge_plan       =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                auto nested_loop_plan =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+
+                auto merge_cost       = merge_plan->estimate_cost();
+                auto nested_loop_cost = nested_loop_plan->estimate_cost();
 
                 if (nested_loop_cost <= merge_cost) {
                     if (nested_loop_cost < best_cost) {
                         best_cost = nested_loop_cost;
                         best_index = j;
-                        best_step_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                        best_step_plan = move(nested_loop_plan);
                     }
                 } else { // merge_cost < nested_loop_cost
                     if (merge_cost < best_cost) {
                         best_cost = merge_cost;
                         best_index = j;
-                        best_step_plan = make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                        best_step_plan = move(merge_plan);
                     }
                 }
             }
@@ -310,8 +357,10 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
 }
 
 
-void QueryOptimizer::visit (OpLabel&) { }
-void QueryOptimizer::visit (OpProperty&) { }
+void QueryOptimizer::visit (OpNodeLabel&) { }
+void QueryOptimizer::visit (OpEdgeLabel&) { }
+void QueryOptimizer::visit (OpNodeProperty&) { }
+void QueryOptimizer::visit (OpEdgeProperty&) { }
 void QueryOptimizer::visit (OpConnection&) { }
 void QueryOptimizer::visit (OpLonelyNode&) { }
 void QueryOptimizer::visit (OpNodeLoop&) { }

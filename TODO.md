@@ -1,22 +1,14 @@
-Lunes 16:00
-
 - Tratar de optimizar BPT:
-    - usar solo 2 bytes para key_count
-    - reemplazar punteros a counts por counts reales. Actualizar al destruir
-    + usar array en IndexScan
+    - usar solo 2 (1?) bytes para key_count
 
 - Agregar quad Edge+Label
     - modificar Query Optimizer para incluir el quad
-        - Fase de eliminacion de duplicados
-        - Reemplazo de EdgeLabel + Connection por LabeledConnection
-    - medir tiempos de carga
-    - medir tiempo consulta (especial new_same_both SF10)
 
 - Pensar como dar el plan de la consulta sin tener que modificar el codigo y recompilar
-
-- Ver como importar Jena solucionando el problema del sort
+    - nuevo ejecutable recibe directo el join plan
 
 - Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
+    - LoopNode en catalogo
     - guardar total y distinct keys
     - por cada key guardar total values y distict values
     - Problema: no estan agrupados por grafo
@@ -48,22 +40,11 @@ ____________________________________________________________________
     - COALESCE / CASE exists(attr)
     - edges sin dirección (o unión)
 
-- LoopNode en catalogo
 - Catalogo:
     - guardar tiempos de busqueda
     - al terminar import y opcionalmente cuando se quiera
 
-- Estimación de tuplas de output y de costo
-    - Materializar resultados que se usarán varias veces?
-    - Selinger
-- Reemplazar el B+Tree de hash=>Id por una estructura de datos para diccionarios.
-
 - Añadir Databases de pruebas como archivo comprimido al repositorio
-
-- rename en file mananager no edita el buffer_manager (FileId se re asocia).
-    - checkear que nuevo nombre no existe en el disco ni en el file manager.
-- remove en file manager limpia el buffer manager
-    - checkear pin == 0 para las páginas a ser eliminadas
 
 - automatizar test con script bash
 - Reescritura de consulta (igualdades de where hacia match)
@@ -71,10 +52,6 @@ ____________________________________________________________________
 - Hacer más tests de cosas en conjunto (ej: label+property)
 - hacer diagramas de flujo de las siguientes operaciones:
     - bplustree search
-
-- Usar Buckets pasando por buffer manager con la estructura de hash que guarda el id de un hash md5
-- permitir añadir datos a grafo existente -> otro ejecutable?
-- permitir cargar varios grafos al mismo tiempo
 
 - Importar varios grafos en el mismo bulk_import
 - Presentar plan pointer swizzling (cuántos punteros como máximo permitir?)

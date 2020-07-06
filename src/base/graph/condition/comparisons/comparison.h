@@ -53,9 +53,9 @@ public:
         return ConditionType::comparison;
     }
 
-    void check_names(std::map<std::string, ObjectType>& m) {
-        lhs->check_names(m);
-        rhs->check_names(m);
+    void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) {
+        lhs->check_names(node_names, edge_names);
+        rhs->check_names(node_names, edge_names);
     }
 };
 

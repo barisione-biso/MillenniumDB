@@ -16,8 +16,8 @@ public:
     std::vector< std::pair<std::string, std::string> > select_items;
     std::unique_ptr<Op> op;
 
-    OpSelect(const boost::variant<ast::All, std::vector<ast::Element>>& selection, std::unique_ptr<Op> op,
-             uint_fast32_t limit);
+    OpSelect(const boost::variant<ast::All, std::vector<ast::Element>>& selection,
+             std::unique_ptr<Op> op, uint_fast32_t limit);
     ~OpSelect() = default;
     void accept_visitor(OpVisitor&);
 };

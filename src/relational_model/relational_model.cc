@@ -25,9 +25,9 @@ RelationalModel& relational_model = reinterpret_cast<RelationalModel&>(relationa
 bool RelationalModel::initialized = false;
 
 RelationalModel::RelationalModel() {
-    object_file = make_unique<ObjectFile>(object_file_name);
+    object_file   = make_unique<ObjectFile>(object_file_name);
     strings_cache = make_unique<StringsCache>(1000);
-    strings_hash = make_unique<ExtendibleHash>(strings_hash_name);
+    strings_hash  = make_unique<ExtendibleHash>(strings_hash_name);
 
     // Create BPT
     label2node = make_unique<BPlusTree<2>>(RelationalModel::label2node_name);
@@ -50,6 +50,9 @@ RelationalModel::RelationalModel() {
     nodeloop_edge = make_unique<BPlusTree<2>>(RelationalModel::nodeloop_edge_name);
     edge_nodeloop = make_unique<BPlusTree<2>>(RelationalModel::edge_nodeloop_name);
 
+    label_from_to_edge = make_unique<BPlusTree<4>>(RelationalModel::label_from_to_edge_name);
+    label_to_from_edge = make_unique<BPlusTree<4>>(RelationalModel::label_to_from_edge_name);
+
     catalog.print();
 }
 
@@ -59,6 +62,24 @@ RelationalModel::~RelationalModel() {
     object_file.reset();
     strings_cache.reset();
     strings_hash.reset();
+
+    label2node.reset();
+    label2edge.reset();
+    node2label.reset();
+    edge2label.reset();
+    key_value_node.reset();
+    node_key_value.reset();
+    key_node_value.reset();
+    key_value_edge.reset();
+    edge_key_value.reset();
+    key_edge_value.reset();
+    from_to_edge.reset();
+    to_edge_from.reset();
+    edge_from_to.reset();
+    nodeloop_edge.reset();
+    edge_nodeloop.reset();
+    label_from_to_edge.reset();
+    label_to_from_edge.reset();
 
     catalog.~Catalog();
     buffer_manager.~BufferManager();
@@ -294,3 +315,7 @@ BPlusTree<3>& RelationalModel::get_edge_from_to() { return *edge_from_to; }
 
 BPlusTree<2>& RelationalModel::get_nodeloop_edge() { return *nodeloop_edge; }
 BPlusTree<2>& RelationalModel::get_edge_nodeloop() { return *edge_nodeloop; }
+
+BPlusTree<4>& RelationalModel::get_label_from_to_edge() { return *label_from_to_edge; }
+BPlusTree<4>& RelationalModel::get_label_to_from_edge() { return *label_to_from_edge; }
+

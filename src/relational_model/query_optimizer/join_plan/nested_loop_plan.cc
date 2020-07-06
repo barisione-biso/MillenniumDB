@@ -38,12 +38,7 @@ void NestedLoopPlan::print(int indent) {
 
 
 double NestedLoopPlan::estimate_cost() {
-    return estimate_cost(*lhs, *rhs);
-}
-
-
-double NestedLoopPlan::estimate_cost(JoinPlan& lhs, JoinPlan& rhs) {
-    return lhs.estimate_cost() + (lhs.estimate_output_size() * rhs.estimate_cost());
+    return lhs->estimate_cost() + (lhs->estimate_output_size() * rhs->estimate_cost());
 }
 
 

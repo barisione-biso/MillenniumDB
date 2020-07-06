@@ -40,6 +40,9 @@ public:
     FileId get_file_id(const std::string& filename);
 
     // returns the filename assignated to `file_id`
+    std::string get_absolute_path(FileId file_id);
+
+    // returns the filename assignated to `file_id`
     std::string get_filename(FileId file_id);
 
     // get the file stream assignated to `file_id` as a reference
@@ -54,11 +57,11 @@ public:
     // close the file represented by `file_id`
     void close(FileId file_id);
 
-    // delete the file represented by `file_id`
+    // delete the file represented by `file_id`, pages in buffer using that file_id are cleared
     void remove(FileId file_id);
 
-    // rename the file represented by `old_name_id` to the name of the file represented by `new_name_id`
-    void rename(FileId old_name_id, FileId new_name_id);
+    // rename the file represented by `file_id` to `new_name`
+    void rename(FileId file_id, std::string new_name);
 
     // write the data pointed by `bytes` page represented by `page_id` to disk.
     // `bytes` must point to the start memory position of `PAGE_SIZE` allocated bytes
@@ -79,7 +82,7 @@ private:
 
     // contains all filenames that have been used. The position in this vector is equivalent to the FileId
     // representing that file
-    std::vector<std::string> filenames;
+    std::vector<std::string> absolute_file_paths;
 };
 
 extern FileManager& file_manager; // global object

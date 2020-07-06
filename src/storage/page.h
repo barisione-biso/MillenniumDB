@@ -23,13 +23,16 @@ public:
     // mark as dirty so when page is replaced it is written back to disk.
     void make_dirty();
 
+    // only meant for buffer_manager.remove()
+    void reset();
+
     // get the start memory position of `PAGE_SIZE` allocated bytes
     char* get_bytes() const { return bytes; };
 
     // get page number
     uint_fast32_t get_page_number() const { return page_id.page_number; };
 
-private:
+// private: TODO:
     uint_fast32_t pins;             // count of objects using this page, modified only by buffer_manager
     char* bytes;                    // start memory address of the page, of size `PAGE_SIZE`
     bool dirty;                     // true if data in memory is different from disk

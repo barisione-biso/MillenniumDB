@@ -12,29 +12,42 @@
 
 using namespace std;
 
-EdgePropertyPlan::EdgePropertyPlan(GraphId graph_id, VarId edge_var_id, VarId key_var_id,
-                                   VarId value_var_id, ObjectId key_id, ObjectId value_id) :
-    graph_id(graph_id),
-    edge_var_id(edge_var_id),
-    key_var_id(key_var_id),
-    value_var_id(value_var_id),
-    key_id(key_id),
-    value_id(value_id),
-    edge_assigned(false),
-    key_assigned( !key_id.is_null() ),
-    value_assigned( !value_id.is_null() ) { }
+EdgePropertyPlan::EdgePropertyPlan(GraphId graph_id, VarId edge_var_id,
+                                   ObjectId key_id, VarId value_var_id) :
+    graph_id       (graph_id),
+    edge_var_id    (edge_var_id),
+    key_var_id     (ObjectId::get_null()),
+    value_var_id   (value_var_id),
+    key_id         (key_id),
+    value_id       (VarId::get_null()),
+    edge_assigned  (false),
+    key_assigned   (true),
+    value_assigned (false) { }
+
+
+EdgePropertyPlan::EdgePropertyPlan(GraphId graph_id, VarId edge_var_id,
+                                   ObjectId key_id, ObjectId value_id) :
+    graph_id       (graph_id),
+    edge_var_id    (edge_var_id),
+    key_var_id     (ObjectId::get_null()),
+    value_var_id   (ObjectId::get_null()),
+    key_id         (key_id),
+    value_id       (value_id),
+    edge_assigned  (false),
+    key_assigned   (true),
+    value_assigned (true) { }
 
 
 EdgePropertyPlan::EdgePropertyPlan(const EdgePropertyPlan& other) :
-    graph_id(other.graph_id),
-    edge_var_id(other.edge_var_id),
-    key_var_id(other.key_var_id),
-    value_var_id(other.value_var_id),
-    key_id(other.key_id),
-    value_id(other.value_id),
-    edge_assigned(other.edge_assigned),
-    key_assigned(other.key_assigned),
-    value_assigned(other.value_assigned) { }
+    graph_id       (other.graph_id),
+    edge_var_id    (other.edge_var_id),
+    key_var_id     (other.key_var_id),
+    value_var_id   (other.value_var_id),
+    key_id         (other.key_id),
+    value_id       (other.value_id),
+    edge_assigned  (other.edge_assigned),
+    key_assigned   (other.key_assigned),
+    value_assigned (other.value_assigned) { }
 
 
 std::unique_ptr<JoinPlan> EdgePropertyPlan::duplicate() {

@@ -1,16 +1,23 @@
 #include "page.h"
 
 #include <cassert>
+#include <iostream>
 
 #include "storage/file_id.h"
 #include "storage/file_manager.h"
 
-Page::Page(PageId page_id, char* bytes)
-    : page_id(page_id), pins(1), bytes(bytes), dirty(false) { }
+Page::Page(PageId page_id, char* bytes) :
+    page_id(page_id),
+    pins(1),
+    bytes(bytes),
+    dirty(false) { }
 
 
-Page::Page()
-    : page_id(FileId(FileId::UNASSIGNED), 0), pins(0), bytes(nullptr), dirty(false) { }
+Page::Page() :
+    page_id(FileId(FileId::UNASSIGNED), 0),
+    pins(0),
+    bytes(nullptr),
+    dirty(false) { }
 
 
 Page::~Page() = default;
@@ -24,6 +31,15 @@ Page& Page::operator=(const Page& other) {
     this->dirty   = other.dirty;
     this->bytes   = other.bytes;
     return *this;
+}
+
+
+void Page::reset() {
+    assert(pins == 0 && "Cannot reset page if it is pinned");
+    this->page_id = PageId(FileId(FileId::UNASSIGNED), 0);
+    this->pins    = 0;
+    this->dirty   = false;
+    this->bytes   = nullptr;
 }
 
 

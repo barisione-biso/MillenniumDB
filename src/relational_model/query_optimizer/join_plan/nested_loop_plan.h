@@ -20,8 +20,6 @@ public:
     std::unique_ptr<BindingIdIter> get_binding_id_iter() override;
     std::unique_ptr<JoinPlan> duplicate() override;
 
-    static double estimate_cost(JoinPlan& lhs, JoinPlan& rhs);
-
     void print(int indent) override;
 private:
     std::unique_ptr<JoinPlan> lhs;

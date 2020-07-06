@@ -10,7 +10,7 @@
 class EdgeLabelPlan : public JoinPlan {
 public:
     EdgeLabelPlan(const EdgeLabelPlan& other);
-    EdgeLabelPlan(GraphId graph_id, VarId edge_var_id, VarId label_var_id, ObjectId label_id);
+    EdgeLabelPlan(GraphId graph_id, VarId edge_var_id, ObjectId label_id);
     ~EdgeLabelPlan() = default;
 
     double estimate_cost() override;

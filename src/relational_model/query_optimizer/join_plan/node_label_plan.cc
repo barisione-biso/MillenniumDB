@@ -11,10 +11,10 @@
 
 using namespace std;
 
-NodeLabelPlan::NodeLabelPlan(GraphId graph_id, VarId node_var_id, VarId label_var_id, ObjectId label_id) :
+NodeLabelPlan::NodeLabelPlan(GraphId graph_id, VarId node_var_id, ObjectId label_id) :
     graph_id(graph_id),
     node_var_id(node_var_id),
-    label_var_id(label_var_id),
+    label_var_id(VarId::get_null()),
     label_id(label_id),
     node_assigned(false),
     label_assigned( !label_id.is_null() ) { }

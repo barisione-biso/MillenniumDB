@@ -10,7 +10,7 @@
 class NodeLabelPlan : public JoinPlan {
 public:
     NodeLabelPlan(const NodeLabelPlan& other);
-    NodeLabelPlan(GraphId graph_id, VarId node_var_id, VarId label_var_id, ObjectId label_id);
+    NodeLabelPlan(GraphId graph_id, VarId node_var_id, ObjectId label_id);
     ~NodeLabelPlan() = default;
 
     double estimate_cost() override;

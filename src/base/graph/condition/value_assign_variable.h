@@ -17,10 +17,13 @@ public:
         return binding.get(var, key);
     }
 
-    void check_names(std::map<std::string, ObjectType>& m) {
-        auto search = m.find(var);
-        if (search == m.end()) {
-            throw QuerySemanticException("Variable \"" + var + "\" used in WHERE is not declared in MATCH");
+    void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) {
+        auto node_search = node_names.find(var);
+        if (node_search == node_names.end()) {
+            auto edge_search = edge_names.find(var);
+            if (edge_search == edge_names.end()) {
+                throw QuerySemanticException("Variable \"" + var + "\" used in WHERE is not declared in MATCH");
+            }
         }
     }
 };

@@ -27,14 +27,13 @@ class BPlusTreeDir {
 
         bool check() const;
 
-        bool is_leaf()  { return false; }
-        int get_key_count() { return *key_count; }
+        bool is_leaf() { return false; }
 
     private:
         FileId const dir_file_id;
         FileId const leaf_file_id;
         Page& page;
-        uint32_t* key_count;
+        uint32_t key_count;
         uint64_t* keys;
         int* children;
 

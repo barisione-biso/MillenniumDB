@@ -12,10 +12,10 @@
 
 using namespace std;
 
-EdgeLabelPlan::EdgeLabelPlan(GraphId graph_id, VarId edge_var_id, VarId label_var_id, ObjectId label_id) :
+EdgeLabelPlan::EdgeLabelPlan(GraphId graph_id, VarId edge_var_id, ObjectId label_id) :
     graph_id(graph_id),
     edge_var_id(edge_var_id),
-    label_var_id(label_var_id),
+    label_var_id(VarId::get_null()),
     label_id(label_id),
     edge_assigned(false),
     label_assigned( !label_id.is_null() ) { }

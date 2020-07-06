@@ -21,3 +21,7 @@ Graph DB
 Neo4J
     - SF 01:  4.350 milliseconds
     - SF 10: 33.950 milliseconds
+
+GraphDB 2.0
+    - SF 01:  1.129 milliseconds
+    - SF 10: 12.205 milliseconds
