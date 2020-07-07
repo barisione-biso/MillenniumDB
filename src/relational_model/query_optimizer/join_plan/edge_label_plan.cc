@@ -46,7 +46,7 @@ void EdgeLabelPlan::print(int indent) {
 
 
 double EdgeLabelPlan::estimate_cost() {
-    return estimate_output_size();
+    return 1 + estimate_output_size();
 }
 
 

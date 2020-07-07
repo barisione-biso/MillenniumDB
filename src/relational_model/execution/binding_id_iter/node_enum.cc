@@ -39,7 +39,7 @@ BindingId* NodeEnum::next() {
         ++current_node;
         if (current_node <= graph_counts[current_graph].second) {
             my_binding->add_all(*my_input);
-            my_binding->add(var_id, current_node | graph_counts[current_graph].first );
+            my_binding->add(var_id, ObjectId(current_node | graph_counts[current_graph].first) );
             return my_binding.get();
         }
         else {

@@ -45,7 +45,7 @@ void NodeLabelPlan::print(int indent) {
 
 
 double NodeLabelPlan::estimate_cost() {
-    return estimate_output_size();
+    return 1 + estimate_output_size();
 }
 
 

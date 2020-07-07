@@ -43,14 +43,14 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const st
         if (node_search != node_names.end()) {
             Node node = static_cast<const Node&>(*var_value);
             it = relational_model.get_node_key_value().get_range(
-                RecordFactory::get(node.id, key_object_id, 0),
-                RecordFactory::get(node.id, key_object_id, UINT64_MAX)
+                RecordFactory::get(node.id, key_object_id.id, 0),
+                RecordFactory::get(node.id, key_object_id.id, UINT64_MAX)
             );
         } else {
             Edge edge = static_cast<const Edge&>(*var_value);
             it = relational_model.get_edge_key_value().get_range(
-                RecordFactory::get(edge.id, key_object_id, 0),
-                RecordFactory::get(edge.id, key_object_id, UINT64_MAX)
+                RecordFactory::get(edge.id, key_object_id.id, 0),
+                RecordFactory::get(edge.id, key_object_id.id, UINT64_MAX)
             );
         }
 

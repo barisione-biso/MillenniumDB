@@ -43,7 +43,7 @@ void NodeLoopPlan::print(int indent) {
 
 
 double NodeLoopPlan::estimate_cost() {
-    return estimate_output_size();
+    return 1 + estimate_output_size();
 }
 
 

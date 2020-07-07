@@ -16,7 +16,7 @@ public:
         if (obj_id.is_null()) {
             throw std::logic_error("var should be assigned in binding");
         } else {
-            return obj_id;
+            return obj_id.id;
         }
     }
 
@@ -25,7 +25,7 @@ public:
         if (obj_id.is_null()) {
             throw std::logic_error("var should be assigned in binding");
         } else {
-            return obj_id;
+            return obj_id.id;
         }
     }
 

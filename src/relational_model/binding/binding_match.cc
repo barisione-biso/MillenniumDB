@@ -18,7 +18,7 @@ std::string BindingMatch::to_string() const {
     result += '{';
     bool first = true;
     for (auto&& [var, varid] : var_pos) {
-        auto type = (*binding_id)[varid] & RelationalModel::TYPE_MASK;
+        auto type = (*binding_id)[varid].id & RelationalModel::TYPE_MASK;
         if (first) {
             first = false;
         } else {
@@ -26,8 +26,8 @@ std::string BindingMatch::to_string() const {
         }
 
         if (type == RelationalModel::NODE_MASK) {
-            auto graph = ((*binding_id)[varid] & RelationalModel::GRAPH_MASK) >> RelationalModel::GRAPH_OFFSET;
-            auto node_id = (*binding_id)[varid] & RelationalModel::ELEMENT_MASK;
+            auto graph = ((*binding_id)[varid].id & RelationalModel::GRAPH_MASK) >> RelationalModel::GRAPH_OFFSET;
+            auto node_id = (*binding_id)[varid].id & RelationalModel::ELEMENT_MASK;
 
             result += var;
             result += ":NodeId(";
@@ -37,8 +37,8 @@ std::string BindingMatch::to_string() const {
             result += ')';
         }
         else if (type == RelationalModel::EDGE_MASK) {
-            auto graph = ((*binding_id)[varid] & RelationalModel::GRAPH_MASK) >> RelationalModel::GRAPH_OFFSET;
-            auto edge_id = (*binding_id)[varid] & RelationalModel::ELEMENT_MASK;
+            auto graph = ((*binding_id)[varid].id & RelationalModel::GRAPH_MASK) >> RelationalModel::GRAPH_OFFSET;
+            auto edge_id = (*binding_id)[varid].id & RelationalModel::ELEMENT_MASK;
 
             result += var;
             result += ":EdgeId(";
@@ -48,8 +48,8 @@ std::string BindingMatch::to_string() const {
             result += ')';
         }
         else {
-            auto type = ((*binding_id)[varid] & RelationalModel::TYPE_MASK) >> RelationalModel::TYPE_OFFSET;
-            auto value_id = (*binding_id)[varid] & RelationalModel::VALUE_MASK;
+            auto type = ((*binding_id)[varid].id & RelationalModel::TYPE_MASK) >> RelationalModel::TYPE_OFFSET;
+            auto value_id = (*binding_id)[varid].id & RelationalModel::VALUE_MASK;
 
             result += var;
             result += ":Value(";

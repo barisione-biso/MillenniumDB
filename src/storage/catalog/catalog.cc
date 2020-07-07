@@ -394,21 +394,21 @@ uint_fast16_t Catalog::get_graph_count() {
 }
 
 
-uint64_t Catalog::get_node_count_for_label(GraphId graph_id, uint64_t label_id) {
-    return get_map_value(node_label_stats[graph_id], label_id);
+uint64_t Catalog::get_node_count_for_label(GraphId graph_id, ObjectId label_id) {
+    return get_map_value(node_label_stats[graph_id], label_id.id);
 }
 
 
-uint64_t Catalog::get_edge_count_for_label(GraphId graph_id, uint64_t label_id) {
-    return get_map_value(edge_label_stats[graph_id], label_id);
+uint64_t Catalog::get_edge_count_for_label(GraphId graph_id, ObjectId label_id) {
+    return get_map_value(edge_label_stats[graph_id], label_id.id);
 }
 
 
-uint64_t Catalog::get_node_count_for_key(GraphId graph_id, uint64_t key_id) {
-    return get_map_value(node_key_stats[graph_id], key_id);
+uint64_t Catalog::get_node_count_for_key(GraphId graph_id, ObjectId key_id) {
+    return get_map_value(node_key_stats[graph_id], key_id.id);
 }
 
 
-uint64_t Catalog::get_edge_count_for_key(GraphId graph_id, uint64_t key_id){
-    return get_map_value(edge_key_stats[graph_id], key_id);
+uint64_t Catalog::get_edge_count_for_key(GraphId graph_id, ObjectId key_id){
+    return get_map_value(edge_key_stats[graph_id], key_id.id);
 }

@@ -29,11 +29,6 @@ bool ObjectId::not_found() {
 }
 
 
-ObjectId::operator uint64_t() const {
-    return id;
-}
-
-
 void ObjectId::operator=(const ObjectId& other) {
     this->id = other.id;
 }

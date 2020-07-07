@@ -16,10 +16,10 @@ EdgePropertyPlan::EdgePropertyPlan(GraphId graph_id, VarId edge_var_id,
                                    ObjectId key_id, VarId value_var_id) :
     graph_id       (graph_id),
     edge_var_id    (edge_var_id),
-    key_var_id     (ObjectId::get_null()),
+    key_var_id     (VarId::get_null()),
     value_var_id   (value_var_id),
     key_id         (key_id),
-    value_id       (VarId::get_null()),
+    value_id       (ObjectId::get_null()),
     edge_assigned  (false),
     key_assigned   (true),
     value_assigned (false) { }
@@ -29,8 +29,8 @@ EdgePropertyPlan::EdgePropertyPlan(GraphId graph_id, VarId edge_var_id,
                                    ObjectId key_id, ObjectId value_id) :
     graph_id       (graph_id),
     edge_var_id    (edge_var_id),
-    key_var_id     (ObjectId::get_null()),
-    value_var_id   (ObjectId::get_null()),
+    key_var_id     (VarId::get_null()),
+    value_var_id   (VarId::get_null()),
     key_id         (key_id),
     value_id       (value_id),
     edge_assigned  (false),
@@ -67,7 +67,7 @@ void EdgePropertyPlan::print(int indent) {
 
 
 double EdgePropertyPlan::estimate_cost() {
-    return estimate_output_size();
+    return 1 + estimate_output_size();
 }
 
 

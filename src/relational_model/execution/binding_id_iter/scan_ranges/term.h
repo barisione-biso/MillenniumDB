@@ -12,11 +12,11 @@ public:
         : object_id(object_id) { }
 
     uint64_t get_min(BindingId&) override {
-        return object_id;
+        return object_id.id;
     }
 
     uint64_t get_max(BindingId&) override {
-        return object_id;
+        return object_id.id;
     }
 
     void try_assign(BindingId&, ObjectId) override { }

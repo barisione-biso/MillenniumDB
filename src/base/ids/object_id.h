@@ -10,7 +10,7 @@ public:
 
     uint64_t id;
 
-    ObjectId(uint64_t id);
+    explicit ObjectId(uint64_t id);
     ObjectId(); // initialized with NULL_OBJECT_ID
     ~ObjectId();
 
@@ -18,8 +18,6 @@ public:
     static ObjectId get_null();
     bool is_null();
     bool not_found();
-
-    operator uint64_t() const;
 
     void operator = (const ObjectId& other);
     bool operator ==(const ObjectId& rhs) const;

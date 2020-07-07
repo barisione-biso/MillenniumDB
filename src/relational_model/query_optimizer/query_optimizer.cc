@@ -1,7 +1,6 @@
 #include "query_optimizer.h"
 
 #include <cassert>
-// #include <queue>
 #include <iostream>
 #include <set>
 
@@ -14,11 +13,13 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/op_lonely_node.h"
+
 #include "relational_model/relational_model.h"
 #include "relational_model/execution/binding_iter/filter.h"
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/projection.h"
 
+#include "relational_model/query_optimizer/selinger_optimizer.h"
 #include "relational_model/query_optimizer/join_plan/labeled_connection_plan.h"
 #include "relational_model/query_optimizer/join_plan/connection_plan.h"
 #include "relational_model/query_optimizer/join_plan/edge_label_plan.h"
@@ -29,7 +30,7 @@
 #include "relational_model/query_optimizer/join_plan/join_plan.h"
 #include "relational_model/query_optimizer/join_plan/nested_loop_plan.h"
 #include "relational_model/query_optimizer/join_plan/node_loop_plan.h"
-#include "relational_model/query_optimizer/join_plan/merge_plan.h"
+// #include "relational_model/query_optimizer/join_plan/merge_plan.h"
 
 #include "storage/catalog/catalog.h"
 
@@ -208,7 +209,9 @@ void QueryOptimizer::visit(OpMatch& op_match) {
         );
     }
 
-    tmp = make_unique<Match>(get_greedy_join_plan(base_plans), move(id_map));
+    auto selinger_optimizer = SelingerOptimizer(move(base_plans));
+    tmp = make_unique<Match>(selinger_optimizer.get_binding_id_iter(), move(id_map));
+    // tmp = make_unique<Match>(get_greedy_join_plan(move(base_plans)), move(id_map));
 }
 
 
@@ -267,7 +270,8 @@ GraphId QueryOptimizer::search_graph_id(const std::string& graph_name) {
     }
 }
 
-unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr<JoinPlan>>& base_plans) {
+
+unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr<JoinPlan>> base_plans) {
     auto base_plans_size = base_plans.size();
 
     assert(base_plans_size > 0 && "base_plans size in Match must be greater than 0");
@@ -297,25 +301,25 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
             if (base_plans[j] != nullptr
                 && !base_plans[j]->cartesian_product_needed(*root_plan) )
             {
-                auto merge_plan       =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
-                auto nested_loop_plan =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                // auto merge_plan       =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                auto nested_loop_plan =  make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
 
-                auto merge_cost       = merge_plan->estimate_cost();
+                // auto merge_cost       = merge_plan->estimate_cost();
                 auto nested_loop_cost = nested_loop_plan->estimate_cost();
 
-                if (nested_loop_cost <= merge_cost) {
+                // if (nested_loop_cost <= merge_cost) {
                     if (nested_loop_cost < best_cost) {
                         best_cost = nested_loop_cost;
                         best_index = j;
                         best_step_plan = move(nested_loop_plan);
                     }
-                } else { // merge_cost < nested_loop_cost
-                    if (merge_cost < best_cost) {
-                        best_cost = merge_cost;
-                        best_index = j;
-                        best_step_plan = move(merge_plan);
-                    }
-                }
+                // } else { // merge_cost < nested_loop_cost
+                //     if (merge_cost < best_cost) {
+                //         best_cost = merge_cost;
+                //         best_index = j;
+                //         best_step_plan = move(merge_plan);
+                //     }
+                // }
             }
         }
 
@@ -327,32 +331,33 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
                 if (base_plans[j] == nullptr) {
                     continue;
                 }
-                auto merge_plan       =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
-                auto nested_loop_plan =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                // auto merge_plan       =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                auto nested_loop_plan =  make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
 
-                auto merge_cost       = merge_plan->estimate_cost();
+                // auto merge_cost       = merge_plan->estimate_cost();
                 auto nested_loop_cost = nested_loop_plan->estimate_cost();
 
-                if (nested_loop_cost <= merge_cost) {
+                // if (nested_loop_cost <= merge_cost) {
                     if (nested_loop_cost < best_cost) {
                         best_cost = nested_loop_cost;
                         best_index = j;
                         best_step_plan = move(nested_loop_plan);
                     }
-                } else { // merge_cost < nested_loop_cost
-                    if (merge_cost < best_cost) {
-                        best_cost = merge_cost;
-                        best_index = j;
-                        best_step_plan = move(merge_plan);
-                    }
-                }
+                // } else { // merge_cost < nested_loop_cost
+                //     if (merge_cost < best_cost) {
+                //         best_cost = merge_cost;
+                //         best_index = j;
+                //         best_step_plan = move(merge_plan);
+                //     }
+                // }
             }
         }
         base_plans[best_index] = nullptr;
         root_plan = move(best_step_plan);
     }
+    cout << "\nPlan Generated:\n";
     root_plan->print(0);
-    cout << "\n";
+    cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
     return root_plan->get_binding_id_iter();
 }
 

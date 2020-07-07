@@ -36,7 +36,7 @@ private:
     ObjectId get_value_id(const ast::Value& value);
     GraphId search_graph_id(const std::string& graph_name);
 
-    std::unique_ptr<BindingIdIter> get_greedy_join_plan(std::vector<std::unique_ptr<JoinPlan>>& base_plans);
+    std::unique_ptr<BindingIdIter> get_greedy_join_plan(std::vector<std::unique_ptr<JoinPlan>> base_plans);
 
 public:
     QueryOptimizer();

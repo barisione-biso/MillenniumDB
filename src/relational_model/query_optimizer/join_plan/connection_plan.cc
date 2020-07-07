@@ -49,52 +49,35 @@ void ConnectionPlan::print(int indent) {
 
 
 double ConnectionPlan::estimate_cost() {
-    return estimate_output_size();
+    return 1 + estimate_output_size();
 }
 
 
 double ConnectionPlan::estimate_output_size() {
     // TODO: better estimations needed
+    if (edge_assigned) {
+        return 1;
+    }
     if (node_from_assigned) {
-        if (edge_assigned) {
-            if (node_to_assigned) {
-                // CASE 1
-                return 1;
-            } else {
-                // CASE 2
-                return 1;
-            }
+        if (node_to_assigned) {
+            // CASE 3
+            return static_cast<double>(catalog.get_edge_count(graph_id))
+                    / (static_cast<double>(catalog.get_node_count(graph_id)) * 2);
         } else {
-            if (node_to_assigned) {
-                // CASE 3
-                return static_cast<double>(catalog.get_edge_count(graph_id))
-                       / static_cast<double>(catalog.get_node_count(graph_id));
-            } else {
-                // CASE 4
-                // total_edges / total_nodes
-                return static_cast<double>(catalog.get_edge_count(graph_id))
-                       / static_cast<double>(catalog.get_node_count(graph_id));
-            }
+            // CASE 4
+            // total_edges / total_nodes
+            return static_cast<double>(catalog.get_edge_count(graph_id))
+                    / static_cast<double>(catalog.get_node_count(graph_id));
         }
     } else {
-        if (edge_assigned) {
-            if (node_to_assigned) {
-                // CASE 5
-                return 1;
-            } else {
-                // CASE 6
-                return 1;
-            }
+        if (node_to_assigned) {
+            // CASE 7
+            // total_edges / total_nodes
+            return static_cast<double>(catalog.get_edge_count(graph_id))
+                    / static_cast<double>(catalog.get_node_count(graph_id));
         } else {
-            if (node_to_assigned) {
-                // CASE 7
-                // total_edges / total_nodes
-                return static_cast<double>(catalog.get_edge_count(graph_id))
-                       / static_cast<double>(catalog.get_node_count(graph_id));
-            } else {
-                // CASE 8
-                return static_cast<double>(catalog.get_edge_count(graph_id));
-            }
+            // CASE 8
+            return static_cast<double>(catalog.get_edge_count(graph_id));
         }
     }
 }

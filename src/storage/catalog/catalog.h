@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "base/ids/graph_id.h"
+#include "base/ids/object_id.h"
 
 class Catalog {
 public:
@@ -47,10 +48,10 @@ public:
     void add_node_key  (GraphId, uint64_t key_id);
     void add_edge_key  (GraphId, uint64_t key_id);
 
-    uint64_t get_node_count_for_label(GraphId, uint64_t label_id);
-    uint64_t get_edge_count_for_label(GraphId, uint64_t label_id);
-    uint64_t get_node_count_for_key  (GraphId, uint64_t key_id);
-    uint64_t get_edge_count_for_key  (GraphId, uint64_t key_id);
+    uint64_t get_node_count_for_label(GraphId, ObjectId label_id);
+    uint64_t get_edge_count_for_label(GraphId, ObjectId label_id);
+    uint64_t get_node_count_for_key  (GraphId, ObjectId key_id);
+    uint64_t get_edge_count_for_key  (GraphId, ObjectId key_id);
 
     // does not count the default graph
     uint_fast16_t get_graph_count();

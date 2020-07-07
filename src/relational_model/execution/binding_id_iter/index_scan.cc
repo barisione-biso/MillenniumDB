@@ -50,7 +50,7 @@ BindingId* IndexScan<N>::next() {
     auto next = it->next();
     if (next != nullptr) {
         for (uint_fast32_t i = 0; i < N; ++i) {
-            ranges[i]->try_assign(*my_binding, next->ids[i]);
+            ranges[i]->try_assign(*my_binding, ObjectId(next->ids[i]));
         }
         ++results_found;
         return my_binding.get();

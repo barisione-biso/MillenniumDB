@@ -53,16 +53,29 @@ void LabeledConnectionPlan::print(int indent) {
 
 
 double LabeledConnectionPlan::estimate_cost() {
-    return estimate_output_size();
+    return 1 + estimate_output_size();
 }
 
 
 double LabeledConnectionPlan::estimate_output_size() {
     // TODO: better estimations needed
+
     if (edge_assigned) {
         return numeric_limits<double>::max();
     }
-    return catalog.get_edge_count_for_label(graph_id, label_id);
+    if (node_from_assigned) {
+        if (node_to_assigned) {
+            return 1;
+        } else {
+            return static_cast<double>(catalog.get_edge_count_for_label(graph_id, label_id))
+                    / static_cast<double>(catalog.get_node_count(graph_id));
+        }
+    } if (node_to_assigned) {
+        return static_cast<double>(catalog.get_edge_count_for_label(graph_id, label_id))
+                    / static_cast<double>(catalog.get_node_count(graph_id));
+    } else {
+        return catalog.get_edge_count_for_label(graph_id, label_id);
+    }
 }
 
 

@@ -29,14 +29,14 @@ void MergeJoin::reset(BindingId& input) {
 
 BindingId* MergeJoin::next() {
     while (current_left != nullptr && current_right != nullptr) {
-        if ( (*current_left)[join_var] == (*current_right)[join_var] ) {
+        if ( (*current_left)[join_var].id == (*current_right)[join_var].id ) {
             construct_binding();
             current_left = lhs->next();
             current_right = rhs->next();
             ++results_found;
             return my_binding.get();
         } else {
-            if ( (*current_left)[join_var] < (*current_right)[join_var] ) {
+            if ( (*current_left)[join_var].id < (*current_right)[join_var].id ) {
                 current_left = lhs->next();
             } else {
                 current_right = rhs->next();

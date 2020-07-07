@@ -24,19 +24,19 @@ void BindingId::add_all(BindingId& other) {
 
 
 void BindingId::add(VarId var_id, ObjectId id) {
-    object_ids[var_id] = id;
+    object_ids[var_id.id] = id;
 }
 
 
 ObjectId BindingId::operator[](VarId var_id) {
-    return object_ids[var_id];
+    return object_ids[var_id.id];
 }
 
 
 void BindingId::print() const {
     std::cout << "BindingId: ";
     for (size_t i = 0; i < object_ids.size(); ++i) {
-        std::cout << i << ":[" << (object_ids[i] >> 56) << "]" << (object_ids[i] & 0x00'0000'FFFFFFFFFFUL) << "\t";
+        std::cout << i << ":[" << (object_ids[i].id >> 56) << "]" << (object_ids[i].id & 0x00'0000'FFFFFFFFFFUL) << "\t";
     }
     std::cout << endl;
 }

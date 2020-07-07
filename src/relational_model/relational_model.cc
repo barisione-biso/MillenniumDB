@@ -117,15 +117,15 @@ uint64_t RelationalModel::get_external_id(const string& str, bool create_if_not_
 }
 
 
-uint64_t RelationalModel::get_string_id(const string& str, bool create_if_not_exists) {
+ObjectId RelationalModel::get_string_id(const string& str, bool create_if_not_exists) {
     int string_len = str.length();
 
     if (string_len > MAX_INLINED_BYTES) {
         auto external_id =  get_external_id(str, create_if_not_exists);
         if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
-            return external_id;
+            return ObjectId(external_id);
         } else {
-            return external_id | VALUE_EXTERNAL_STR_MASK;
+            return ObjectId(external_id | VALUE_EXTERNAL_STR_MASK);
         }
     } else {
         uint64_t res = 0;
@@ -134,7 +134,7 @@ uint64_t RelationalModel::get_string_id(const string& str, bool create_if_not_ex
             res |= byte << shift_size;
             shift_size += 8;
         }
-        return res | VALUE_INLINE_STR_MASK;;
+        return ObjectId(res | VALUE_INLINE_STR_MASK);
     }
 }
 
@@ -143,7 +143,7 @@ ObjectId RelationalModel::get_value_id(const Value& value, bool create_if_not_ex
     switch (value.type()) {
         case ObjectType::value_string : {
             const auto& string_value = static_cast<const ValueString&>(value);
-            return ObjectId( get_string_id(string_value.value, create_if_not_exists) );
+            return get_string_id(string_value.value, create_if_not_exists);
         }
 
         case ObjectType::value_int : {
@@ -197,7 +197,7 @@ ObjectId RelationalModel::get_value_id(const Value& value, bool create_if_not_ex
 
 shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
     auto mask = object_id.id & TYPE_MASK;
-    auto unmasked_id = object_id & VALUE_MASK;
+    auto unmasked_id = object_id.id & VALUE_MASK;
     switch (mask) {
         case VALUE_EXTERNAL_STR_MASK : {
             auto cached_string = strings_cache->get(unmasked_id);
@@ -215,7 +215,7 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
             string value_string = "";
             int shift_size = 0;
             for (int i = 0; i < MAX_INLINED_BYTES; i++) {
-                uint8_t byte = (object_id >> shift_size) & 0xFF;
+                uint8_t byte = (object_id.id >> shift_size) & 0xFF;
                 if (byte == 0x00) {
                     break;
                 }
@@ -227,13 +227,13 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
 
         case VALUE_POSITIVE_INT_MASK : {
             static_assert(sizeof(int64_t) == 8, "int64_t must be 8 bytes");
-            int64_t i = object_id & 0x00FF'FFFF'FFFF'FFFFUL;
+            int64_t i = object_id.id & 0x00FF'FFFF'FFFF'FFFFUL;
             return make_shared<ValueInt>(i);
         }
 
         case VALUE_NEGATIVE_INT_MASK : {
             static_assert(sizeof(int64_t) == 8, "int64_t must be 8 bytes");
-            int64_t i = object_id & 0x00FF'FFFF'FFFF'FFFFUL;
+            int64_t i = object_id.id & 0x00FF'FFFF'FFFF'FFFFUL;
             return make_shared<ValueInt>(i*-1);
         }
 
@@ -241,26 +241,26 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
             static_assert(sizeof(float) == 4, "float must be 4 bytes");
             float f;
             uint8_t* dest = (uint8_t*)&f;
-            dest[0] = object_id & 0xFF;
-            dest[1] = (object_id >> 8) & 0xFF;
-            dest[2] = (object_id >> 16) & 0xFF;
-            dest[3] = (object_id >> 24) & 0xFF;
+            dest[0] = object_id.id & 0xFF;
+            dest[1] = (object_id.id >> 8) & 0xFF;
+            dest[2] = (object_id.id >> 16) & 0xFF;
+            dest[3] = (object_id.id >> 24) & 0xFF;
             return make_shared<ValueFloat>(f);
         }
 
         case VALUE_BOOL_MASK : {
             bool b;
             uint8_t* dest = (uint8_t*)&b;
-            *dest = object_id & 0xFF;
+            *dest = object_id.id & 0xFF;
             return make_shared<ValueBool>(b);
         }
 
         case NODE_MASK : {
-            return make_shared<Node>((object_id >> 40) & 0xFFFF, object_id & 0x0000'00FF'FFFF'FFFFUL);
+            return make_shared<Node>((object_id.id >> 40) & 0xFFFF, object_id.id & 0x0000'00FF'FFFF'FFFFUL);
         }
 
         case EDGE_MASK : {
-            return make_shared<Edge>((object_id >> 40) & 0xFFFF, object_id & 0x0000'00FF'FFFF'FFFFUL);
+            return make_shared<Edge>((object_id.id >> 40) & 0xFFFF, object_id.id & 0x0000'00FF'FFFF'FFFFUL);
         }
 
         default : {
