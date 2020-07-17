@@ -55,60 +55,59 @@ std::unique_ptr<JoinPlan> EdgePropertyPlan::duplicate() {
 }
 
 
-void EdgePropertyPlan::print(int indent) {
-    for (int i = 0; i < indent; ++i) {
+void EdgePropertyPlan::print(int indent, std::vector<std::string>& var_names) {
+        for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "EdgeProperty(edge: " << edge_var_id.id << (edge_assigned ? " assigned" : " not-assigned")
-         << ", key: " << key_var_id.id << (key_assigned ? " assigned" : " not-assigned")
-         << ", value: " << value_var_id.id << (value_assigned ? " assigned" : " not-assigned")
-         << ")";
+    cout << "EdgeProperty(?" << var_names[edge_var_id.id];
+    if (key_var_id.is_null()) {
+        cout << ", " << relational_model.get_graph_object(key_id)->to_string();
+    } else {
+        cout << ", ?" << var_names[key_var_id.id];
+    }
+
+    if (value_var_id.is_null()) {
+        cout << ", " << relational_model.get_graph_object(value_id)->to_string();
+    } else {
+        cout << ", ?" << var_names[value_var_id.id];
+    }
+    cout << ")";
 }
 
 
 double EdgePropertyPlan::estimate_cost() {
-    return 1 + estimate_output_size();
+    return 100 + estimate_output_size();
 }
 
 
 double EdgePropertyPlan::estimate_output_size() {
-    // TODO: better estimations needed
-    if (edge_assigned) {
-        if (key_assigned) {
-            // CASE 1 and 2, max 1 tuple
-            return 1;
-        } else {
-            if (value_assigned) {
-                // CASE 3
-                throw logic_error("fixed values with open key is not supported");
+    auto unique_values         = static_cast<double>(catalog.get_edge_count_for_key(graph_id, key_id)); //TODO:
+    auto edge_keys             = static_cast<double>(catalog.get_edge_count_for_key(graph_id, key_id));
+    auto total_edges           = static_cast<double>(catalog.get_edge_count(graph_id));
+    auto total_edge_properties = static_cast<double>(catalog.get_edge_properties(graph_id));
+
+    if (key_assigned) {
+        if (value_assigned) {
+            if (edge_assigned) {
+                return edge_keys / (unique_values * total_edges);
             } else {
-                // CASE 4
-                // total_edge_properties / total_edges
-                return static_cast<double>(catalog.get_edge_properties(graph_id))
-                       / static_cast<double>(catalog.get_edge_count(graph_id));
+                return edge_keys / unique_values;
+            }
+        } else {
+            if (edge_assigned) {
+                return edge_keys / total_edges;
+            } else {
+                return edge_keys;
             }
         }
-    } else { // edge_assigned = false
-        if (key_assigned) {
-            // CASE 5 and CASE 6
-            if (key_id.is_null()) {
-                // total_properties / distinct_properties
-                return static_cast<double>(catalog.get_edge_properties(graph_id))
-                    / static_cast<double>(catalog.get_edge_distinct_properties(graph_id));
-            } else {
-                if (value_assigned) {
-                    return catalog.get_edge_count_for_key(graph_id, key_id);
-                } else {
-                    return catalog.get_edge_count_for_key(graph_id, key_id);
-                }
-            }
+    } else {
+        if (value_assigned) {
+            throw logic_error("fixed values without fixed key is not supported");
         } else {
-            if (value_assigned) {
-                // CASE 7
-                throw logic_error("fixed values with open key is not supported");
+            if (edge_assigned) {
+                return total_edge_properties / total_edges;
             } else {
-                // CASE 8
-                return catalog.get_edge_properties(graph_id);
+                return total_edge_properties;
             }
         }
     }

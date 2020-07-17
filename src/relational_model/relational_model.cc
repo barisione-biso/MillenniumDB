@@ -196,6 +196,10 @@ ObjectId RelationalModel::get_value_id(const Value& value, bool create_if_not_ex
 
 
 shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
+    // TODO:
+    if (object_id.not_found()) {
+        return make_shared<ValueString>("");
+    }
     auto mask = object_id.id & TYPE_MASK;
     auto unmasked_id = object_id.id & VALUE_MASK;
     switch (mask) {

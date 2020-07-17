@@ -1,11 +1,5 @@
-- Tratar de optimizar BPT:
-    - usar solo 2 (1?) bytes para key_count
-
-- Agregar quad Edge+Label
-    - modificar Query Optimizer para incluir el quad
-
-- Pensar como dar el plan de la consulta sin tener que modificar el codigo y recompilar
-    - nuevo ejecutable recibe directo el join plan
+- Ver que pasa en estimación si key/label no aparece en la BD
+    - Optimizar transformando a null plan?
 
 - Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
     - LoopNode en catalogo
@@ -15,6 +9,8 @@
         - Se podría crear un ordered file y que queden ordenados por Grafo > Key > Value.
         - Si se esta importando un solo grafo se puede hacer un ordered file solo con Key > Value
 
+- Mejorar impresion de plan ejecutado con las estimaciones
+
 - BUG:
     // El where funciona mal cuando ?p1.id y ?p2.id no estan en el select
     // debería poder expresar ?p1 != ?p2
@@ -22,7 +18,16 @@
     MATCH (?p1 :Person)-[:STUDY_AT]->(?u :Organisation {type:"university" age:18})<-[:STUDY_AT]-(?p2 :Person)
     WHERE ?p1.id != ?p2.id
 
+- Para la presentación:
+    - Preparar consultas y correr en distintos motores.
+    - preparar scripts para correrlas en vivo
+
+- Filtros con Id, pasar hacia Join
+
 - Pensar que indices nuevos necesitamos (listas ligadas + quad)
+
+- optimizar BPT?:
+    - usar solo 2 (1?) bytes para key_count
 ____________________________________________________________________
 - Soportar cuasi-esquema en el catálogo (si son menos de X puedo tener distribuciones)
     - O tal vez agregar la selectividad del peor caso para una key (y si no existe se asume que es total)

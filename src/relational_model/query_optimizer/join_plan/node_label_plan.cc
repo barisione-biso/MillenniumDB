@@ -34,38 +34,43 @@ std::unique_ptr<JoinPlan> NodeLabelPlan::duplicate() {
 }
 
 
-void NodeLabelPlan::print(int indent) {
+void NodeLabelPlan::print(int indent, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "NodeLabel(node: " << node_var_id.id << (node_assigned ? " assigned" : " not-assigned")
-         << ", label: " << label_var_id.id << (label_assigned ? " assigned" : " not-assigned")
-         << ")";
+    cout << "EdgeLabel(?" << var_names[node_var_id.id];
+    if (label_var_id.is_null()) {
+        cout << ", " << relational_model.get_graph_object(label_id)->to_string();
+    } else {
+        cout << ", ?" << var_names[label_var_id.id];
+    }
+    cout << ")";
 }
 
 
 double NodeLabelPlan::estimate_cost() {
-    return 1 + estimate_output_size();
+    return 100 + estimate_output_size();
 }
 
 
 double NodeLabelPlan::estimate_output_size() {
-    // TODO: better estimations needed
-    if (node_assigned && label_assigned) {
-        return 1;
-    } else if (label_assigned) {
-        if (label_id.is_null()) {
-            // total_labels / distinct_labels
-            return static_cast<double>(catalog.get_node_labels(graph_id))
-                   / static_cast<double>(catalog.get_node_distinct_labels(graph_id));
+    auto total_nodes = static_cast<double>(catalog.get_node_count(graph_id));
+    auto total_node_labels = static_cast<double>(catalog.get_node_labels(graph_id));
+    // nodes with label `label_id`
+    auto node_labels = static_cast<double>(catalog.get_node_count_for_label(graph_id, label_id));
+
+    if (label_assigned) {
+        if (node_assigned) {
+            return node_labels / total_nodes;
         } else {
-            return catalog.get_node_count_for_label(graph_id, label_id);
+            return node_labels;
         }
-    } else if (node_assigned) {
-        return static_cast<double>(catalog.get_node_labels(graph_id))
-               / static_cast<double>(catalog.get_node_count(graph_id)) ;
     } else {
-        return catalog.get_node_labels(graph_id);
+        if (node_assigned) {
+            return total_node_labels / total_nodes;
+        } else {
+            return total_nodes;
+        }
     }
 }
 

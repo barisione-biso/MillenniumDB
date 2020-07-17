@@ -84,7 +84,7 @@ public:
     static void terminate();
 
     // returns an ID with mask
-    ObjectId get_string_id(const std::string& str, bool create_if_not_exists = false);\
+    ObjectId get_string_id(const std::string& str, bool create_if_not_exists = false);
 
     // returns an ID with mask
     ObjectId get_value_id(const Value& value, bool create_if_not_exists = false);

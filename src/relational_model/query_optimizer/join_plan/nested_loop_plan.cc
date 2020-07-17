@@ -9,11 +9,23 @@ NestedLoopPlan::NestedLoopPlan(unique_ptr<JoinPlan> _lhs, unique_ptr<JoinPlan> _
 {
     auto var_order = lhs->get_var_order();
     rhs->set_input_vars(var_order);
+
+    auto lhs_output_size = lhs->estimate_output_size();
+    output_size = lhs_output_size * rhs->estimate_output_size();
+
+    if (lhs_output_size > 1) {
+        cost = lhs->estimate_cost() + (lhs_output_size * rhs->estimate_cost());
+    } else {
+        cost = lhs->estimate_cost() + (rhs->estimate_cost());
+    }
 }
 
 
 NestedLoopPlan::NestedLoopPlan(const NestedLoopPlan& other) :
-    lhs(other.lhs->duplicate()), rhs(other.rhs->duplicate()) { }
+    lhs         (other.lhs->duplicate()),
+    rhs         (other.rhs->duplicate()),
+    output_size (other.output_size),
+    cost        (other.cost) { }
 
 
 unique_ptr<JoinPlan> NestedLoopPlan::duplicate() {
@@ -21,30 +33,41 @@ unique_ptr<JoinPlan> NestedLoopPlan::duplicate() {
 }
 
 
-void NestedLoopPlan::print(int indent) {
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << "IndexNestedLoopJoin(\n";
-    lhs->print(indent + 2);
+void NestedLoopPlan::print(int indent, std::vector<std::string>& var_names) {
+    // for (int i = 0; i < indent; ++i) {
+    //     cout << ' ';
+    // }
+    // cout << "IndexNestedLoopJoin(\n";
+    // lhs->print(indent + 2, var_names);
+    // cout << ",\n";
+    // rhs->print(indent + 2, var_names);
+    // cout << "\n";
+    // for (int i = 0; i < indent; ++i) {
+    //     cout << ' ';
+    // }
+    // cout << ")";
+
+    lhs->print(indent, var_names);
     cout << ",\n";
-    rhs->print(indent + 2);
-    cout << "\n";
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << ")";
+    rhs->print(indent, var_names);
 }
 
 
 double NestedLoopPlan::estimate_cost() {
-    return lhs->estimate_cost() + ((1+lhs->estimate_output_size()) * rhs->estimate_cost());
+    // auto lhs_output_size = lhs->estimate_output_size();
+    // if (lhs_output_size > 1) {
+    //     return lhs->estimate_cost() + ((lhs->estimate_output_size()) * rhs->estimate_cost());
+    // } else {
+    //     return lhs->estimate_cost() + (rhs->estimate_cost());
+    // }
+
+    return cost;
 }
 
 
 double NestedLoopPlan::estimate_output_size() {
-    // TODO: better estimations needed
-    return lhs->estimate_output_size() * rhs->estimate_output_size();
+    // return lhs->estimate_output_size() * rhs->estimate_output_size();
+    return output_size;
 }
 
 
@@ -67,10 +90,11 @@ vector<VarId> NestedLoopPlan::get_var_order() {
 }
 
 
-void NestedLoopPlan::set_input_vars(std::vector<VarId>& input_var_order) {
-    lhs->set_input_vars(input_var_order);
-    auto left_var_order = lhs->get_var_order();
-    rhs->set_input_vars(left_var_order);
+void NestedLoopPlan::set_input_vars(std::vector<VarId>& /*input_var_order*/) {
+    // lhs->set_input_vars(input_var_order);
+    // auto left_var_order = lhs->get_var_order();
+    // rhs->set_input_vars(left_var_order);
+    throw std::logic_error("NestedLoop only works for left deep plans.");
 }
 
 

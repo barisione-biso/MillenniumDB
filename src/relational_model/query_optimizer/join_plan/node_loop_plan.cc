@@ -32,18 +32,18 @@ std::unique_ptr<JoinPlan> NodeLoopPlan::duplicate() {
 }
 
 
-void NodeLoopPlan::print(int indent) {
+void NodeLoopPlan::print(int indent, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "NodeLoop(node: " << node_var_id.id << (node_assigned ? " assigned" : " not-assigned")
-         << ", edge: " << edge_var_id.id << (edge_assigned ? " assigned" : " not-assigned")
+    cout << "NodeLoop(?" << var_names[node_var_id.id]
+         << ", ?" << var_names[edge_var_id.id]
          << ")";
 }
 
 
 double NodeLoopPlan::estimate_cost() {
-    return 1 + estimate_output_size();
+    return 100 + estimate_output_size();
 }
 
 

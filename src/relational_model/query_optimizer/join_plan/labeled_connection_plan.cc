@@ -41,40 +41,42 @@ std::unique_ptr<JoinPlan> LabeledConnectionPlan::duplicate() {
 }
 
 
-void LabeledConnectionPlan::print(int indent) {
+void LabeledConnectionPlan::print(int indent, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "LabeledConnection(node_from: " << node_from_var_id.id << (node_from_assigned ? " assigned" : " not-assigned")
-         << ", node_to: " << node_to_var_id.id << (node_to_assigned ? " assigned" : " not-assigned")
-         << ", edge: " << edge_var_id.id << (edge_assigned ? " assigned" : " not-assigned")
+    cout << "LabeledConnection(" << relational_model.get_graph_object(label_id)->to_string()
+         << ", ?" << var_names[edge_var_id.id]
+         << ", ?" << var_names[node_from_var_id.id]
+         << ", ?" << var_names[node_to_var_id.id]
          << ")";
 }
 
 
 double LabeledConnectionPlan::estimate_cost() {
-    return 1 + estimate_output_size();
+    return 100 + estimate_output_size();
 }
 
 
 double LabeledConnectionPlan::estimate_output_size() {
-    // TODO: better estimations needed
-
     if (edge_assigned) {
         return numeric_limits<double>::max();
     }
+    auto labeled_connections = static_cast<double>(catalog.get_edge_count_for_label(graph_id, label_id));
+    auto total_nodes         = static_cast<double>(catalog.get_node_count(graph_id));
+
     if (node_from_assigned) {
         if (node_to_assigned) {
-            return 1;
+            return labeled_connections / (total_nodes*total_nodes);
         } else {
-            return static_cast<double>(catalog.get_edge_count_for_label(graph_id, label_id))
-                    / static_cast<double>(catalog.get_node_count(graph_id));
+            return labeled_connections / total_nodes;
         }
-    } if (node_to_assigned) {
-        return static_cast<double>(catalog.get_edge_count_for_label(graph_id, label_id))
-                    / static_cast<double>(catalog.get_node_count(graph_id));
     } else {
-        return catalog.get_edge_count_for_label(graph_id, label_id);
+        if (node_to_assigned) {
+            return labeled_connections / total_nodes;
+        } else {
+            return labeled_connections;
+        }
     }
 }
 
@@ -90,6 +92,7 @@ void LabeledConnectionPlan::set_input_vars(std::vector<VarId>& input_var_order) 
         }
     }
 }
+
 
 // Must be consistent with the index scan returned in get_binding_id_iter()
 vector<VarId> LabeledConnectionPlan::get_var_order() {

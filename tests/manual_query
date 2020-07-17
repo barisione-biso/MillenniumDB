@@ -1,0 +1,13 @@
+// NodeLabel(node_name, label)
+// EdgeLabel(edge_name, label)
+// NodeProperty(node_name, key, value)
+// EdgeProperty(edge_name, key, value)
+// Connection(edge_name, node_from_name, node_to_name)
+// LabeledConnection(label, edge_name, node_from_name, node_to_name)
+
+NodeProperty(?c, "type", "company"),
+LabeledConnection("WORK_AT", ?_e1, ?p2, ?c),
+LabeledConnection("WORK_AT", ?_e0, ?p1, ?c),
+EdgeLabel(?p2, "Person"),
+EdgeLabel(?p1, "Person"),
+EdgeLabel(?c, "Organisation")

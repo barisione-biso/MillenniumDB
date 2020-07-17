@@ -19,7 +19,7 @@ public:
     std::unique_ptr<BindingIdIter> get_binding_id_iter() override;
     std::unique_ptr<JoinPlan> duplicate() override;
 
-    void print(int indent) override;
+    void print(int indent, std::vector<std::string>& var_names) override;
 private:
     GraphId graph_id;
     VarId node_var_id;

@@ -55,60 +55,59 @@ std::unique_ptr<JoinPlan> NodePropertyPlan::duplicate() {
 }
 
 
-void NodePropertyPlan::print(int indent) {
+void NodePropertyPlan::print(int indent, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "NodeProperty(node: " << node_var_id.id << (node_assigned ? " assigned" : " not-assigned")
-         << ", key: " << key_var_id.id << (key_assigned ? " assigned" : " not-assigned")
-         << ", value: " << value_var_id.id << (value_assigned ? " assigned" : " not-assigned")
-         << ")";
+    cout << "NodeProperty(?" << var_names[node_var_id.id];
+    if (key_var_id.is_null()) {
+        cout << ", " << relational_model.get_graph_object(key_id)->to_string();
+    } else {
+        cout << ", ?" << var_names[key_var_id.id];
+    }
+
+    if (value_var_id.is_null()) {
+        cout << ", " << relational_model.get_graph_object(value_id)->to_string();
+    } else {
+        cout << ", ?" << var_names[value_var_id.id];
+    }
+    cout << ")";
 }
 
 
 double NodePropertyPlan::estimate_cost() {
-    return 1 + estimate_output_size();
+    return 100 + estimate_output_size();
 }
 
 
 double NodePropertyPlan::estimate_output_size() {
-    // TODO: better estimations needed
-    if (node_assigned) {
-        if (key_assigned) {
-            // CASE 1 and 2, max 1 tuple
-            return 1;
-        } else {
-            if (value_assigned) {
-                // CASE 3
-                throw logic_error("fixed values with open key is not supported");
+    auto unique_values         = static_cast<double>(catalog.get_node_count_for_key(graph_id, key_id)); //TODO:
+    auto node_keys             = static_cast<double>(catalog.get_node_count_for_key(graph_id, key_id));
+    auto total_nodes           = static_cast<double>(catalog.get_node_count(graph_id));
+    auto total_node_properties = static_cast<double>(catalog.get_node_properties(graph_id));
+
+    if (key_assigned) {
+        if (value_assigned) {
+            if (node_assigned) {
+                return node_keys / (unique_values * total_nodes);
             } else {
-                // CASE 4
-                // total_node_properties / total_nodes
-                return static_cast<double>(catalog.get_node_properties(graph_id))
-                       / static_cast<double>(catalog.get_node_count(graph_id));
+                return node_keys / unique_values;
+            }
+        } else {
+            if (node_assigned) {
+                return node_keys / total_nodes;
+            } else {
+                return node_keys;
             }
         }
     } else {
-        if (key_assigned) {
-            // CASE 5 and CASE 6
-            if (key_id.is_null()) {
-                // total_properties / distinct_properties
-                return static_cast<double>(catalog.get_node_properties(graph_id))
-                    / static_cast<double>(catalog.get_node_distinct_properties(graph_id));
-            } else {
-                if (value_assigned) {
-                    return catalog.get_node_count_for_key(graph_id, key_id);
-                } else {
-                    return catalog.get_node_count_for_key(graph_id, key_id);
-                }
-            }
+        if (value_assigned) {
+            throw logic_error("fixed values without fixed key is not supported");
         } else {
-            if (value_assigned) {
-                // CASE 7
-                throw logic_error("fixed values with open key is not supported");
+            if (node_assigned) {
+                return total_node_properties / total_nodes;
             } else {
-                // CASE 8
-                return catalog.get_node_properties(graph_id);
+                return total_node_properties;
             }
         }
     }

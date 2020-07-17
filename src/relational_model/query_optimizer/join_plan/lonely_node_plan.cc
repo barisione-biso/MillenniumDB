@@ -23,14 +23,14 @@ unique_ptr<JoinPlan> LonelyNodePlan::duplicate() {
 
 
 double LonelyNodePlan::estimate_cost() {
-    return 1 + estimate_output_size();
+    return 100 + estimate_output_size();
 }
 
-void LonelyNodePlan::print(int indent) {
+void LonelyNodePlan::print(int indent, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "LonelyNode()";
+    cout << "LonelyNode(" << var_names[node_var_id.id] << ")";
 }
 
 double LonelyNodePlan::estimate_output_size() {

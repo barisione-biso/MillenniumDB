@@ -13,6 +13,7 @@ struct CombinationEnumerator {
     int count;
     size_t size;
 
+    // 0111000000
     CombinationEnumerator(size_t _size, size_t ones_needed) :
         size(_size)
     {
@@ -51,8 +52,9 @@ struct CombinationEnumerator {
 };
 
 
-SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<JoinPlan>>&& base_plans) :
-    plans_size(base_plans.size())
+SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<JoinPlan>>&& base_plans, std::vector<std::string> _var_names) :
+    plans_size(base_plans.size()),
+    var_names(move(_var_names))
 {
     optimal_plans = new unique_ptr<JoinPlan>*[plans_size];
 
@@ -62,7 +64,7 @@ SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<JoinPlan>>&& base_plans) 
 
         optimal_plans[i] = new unique_ptr<JoinPlan>[arr_size];
         optimal_plans[0][i] = move(base_plans[i]);
-        optimal_plans[0][i]->print(0);
+        optimal_plans[0][i]->print(0, var_names);
         cout << ", cost:" << optimal_plans[0][i]->estimate_cost() << ". ";
         cout << "\n";
     }
@@ -78,7 +80,6 @@ SelingerOptimizer::~SelingerOptimizer() {
 
 
 unique_ptr<BindingIdIter> SelingerOptimizer::get_binding_id_iter() {
-    // TODO: remove
     for (size_t i = 2; i <= plans_size; ++i) {
         auto combination_enumerator = CombinationEnumerator(plans_size, i);
 
@@ -136,7 +137,7 @@ unique_ptr<BindingIdIter> SelingerOptimizer::get_binding_id_iter() {
     }
     cout << "\nPlan Generated:\n";
 
-    optimal_plans[plans_size-1][0]->print(0);
+    optimal_plans[plans_size-1][0]->print(2, var_names);
     cout << "\nestimated cost: " << optimal_plans[plans_size-1][0]->estimate_cost() << "\n";
     return optimal_plans[plans_size-1][0]->get_binding_id_iter();
 }

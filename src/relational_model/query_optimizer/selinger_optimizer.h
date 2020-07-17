@@ -9,15 +9,15 @@
 
 class SelingerOptimizer {
 public:
-    SelingerOptimizer(std::vector<std::unique_ptr<JoinPlan>>&& base_plans);
+    SelingerOptimizer(std::vector<std::unique_ptr<JoinPlan>>&& base_plans, std::vector<std::string> var_names);
     ~SelingerOptimizer();
 
     std::unique_ptr<BindingIdIter> get_binding_id_iter();
-    std::unique_ptr<JoinPlan>** optimal_plans;
 
 private:
     std::size_t plans_size;
-    // std::vector<std::unique_ptr<JoinPlan>> base_plans;
+    std::unique_ptr<JoinPlan>** optimal_plans;
+    std::vector<std::string> var_names;
 
     // from n elements choose r, returns how many combinations can be formed
     // returns 0 if r > n although is a math error (necesary to get_index)

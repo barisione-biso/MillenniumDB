@@ -11,8 +11,8 @@
 
 using namespace std;
 
-ConnectionPlan::ConnectionPlan(GraphId graph_id, VarId node_from_var_id,
-                               VarId node_to_var_id, VarId edge_var_id) :
+ConnectionPlan::ConnectionPlan(GraphId graph_id, VarId node_from_var_id, VarId node_to_var_id,
+                               VarId edge_var_id) :
     graph_id(graph_id),
     node_from_var_id(node_from_var_id),
     node_to_var_id(node_to_var_id),
@@ -37,47 +37,57 @@ std::unique_ptr<JoinPlan> ConnectionPlan::duplicate() {
 }
 
 
-void ConnectionPlan::print(int indent) {
+void ConnectionPlan::print(int indent, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "Connection(node_from: " << node_from_var_id.id << (node_from_assigned ? " assigned" : " not-assigned")
-         << ", node_to: " << node_to_var_id.id << (node_to_assigned ? " assigned" : " not-assigned")
-         << ", edge: " << edge_var_id.id << (edge_assigned ? " assigned" : " not-assigned")
+    cout << "Connection(?" << var_names[edge_var_id.id]
+         << ", ?" << var_names[node_from_var_id.id]
+         << ", ?" << var_names[node_to_var_id.id]
          << ")";
 }
 
 
 double ConnectionPlan::estimate_cost() {
-    return 1 + estimate_output_size();
+    // return 1 + estimate_output_size();
+    // d: cost of traveling down the B+Tree;
+    // t: cost per tuple;
+    // n: estimated output size
+    // return d + t*n;
+    return 100 + estimate_output_size();
 }
 
 
 double ConnectionPlan::estimate_output_size() {
-    // TODO: better estimations needed
-    if (edge_assigned) {
-        return 1;
-    }
+    auto total_connections = static_cast<double>(catalog.get_edge_count(graph_id));
+    auto total_nodes       = static_cast<double>(catalog.get_node_count(graph_id));
     if (node_from_assigned) {
         if (node_to_assigned) {
-            // CASE 3
-            return static_cast<double>(catalog.get_edge_count(graph_id))
-                    / (static_cast<double>(catalog.get_node_count(graph_id)) * 2);
+            if (edge_assigned) {
+                return 1.0 / (total_connections * total_nodes * total_nodes);
+            } else {
+                return total_connections / (total_nodes * total_nodes);
+            }
         } else {
-            // CASE 4
-            // total_edges / total_nodes
-            return static_cast<double>(catalog.get_edge_count(graph_id))
-                    / static_cast<double>(catalog.get_node_count(graph_id));
+            if (edge_assigned) {
+                return 1.0 / (total_connections * total_nodes);
+            } else {
+                return total_connections / total_nodes;
+            }
         }
     } else {
         if (node_to_assigned) {
-            // CASE 7
-            // total_edges / total_nodes
-            return static_cast<double>(catalog.get_edge_count(graph_id))
-                    / static_cast<double>(catalog.get_node_count(graph_id));
+            if (edge_assigned) {
+                return 1.0 / (total_connections * total_nodes);
+            } else {
+                return total_connections / total_nodes;
+            }
         } else {
-            // CASE 8
-            return static_cast<double>(catalog.get_edge_count(graph_id));
+            if (edge_assigned) {
+                return 1;
+            } else {
+                return total_connections;
+            }
         }
     }
 }

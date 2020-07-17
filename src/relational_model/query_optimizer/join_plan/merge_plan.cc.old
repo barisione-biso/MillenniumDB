@@ -19,7 +19,7 @@ unique_ptr<JoinPlan> MergePlan::duplicate() {
 }
 
 
-void MergePlan::print(int indent) {
+void MergePlan::print(int indent, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }

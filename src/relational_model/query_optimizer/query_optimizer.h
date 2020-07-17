@@ -1,6 +1,11 @@
 #ifndef RELATIONAL_MODEL__QUERY_OPTIMIZER_H_
 #define RELATIONAL_MODEL__QUERY_OPTIMIZER_H_
 
+#include <set>
+#include <map>
+#include <memory>
+#include <vector>
+
 #include "base/ids/var_id.h"
 #include "base/ids/object_id.h"
 #include "base/ids/graph_id.h"
@@ -8,10 +13,7 @@
 #include "base/parser/grammar/ast.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 
-#include <set>
-#include <map>
-#include <memory>
-#include <vector>
+#include "relational_model/manual_plan/grammar/manual_plan_ast.h"
 
 class BindingIter;
 class BindingIdIter;
@@ -43,6 +45,7 @@ public:
     ~QueryOptimizer() = default;
 
     std::unique_ptr<BindingIter> exec(OpSelect&);
+    std::unique_ptr<BindingIter> exec(manual_plan_ast::Root&);
 
     void visit(OpSelect&);
     void visit(OpMatch&);

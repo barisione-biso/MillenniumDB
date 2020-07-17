@@ -35,38 +35,43 @@ std::unique_ptr<JoinPlan> EdgeLabelPlan::duplicate() {
 }
 
 
-void EdgeLabelPlan::print(int indent) {
+void EdgeLabelPlan::print(int indent, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "EdgeLabel(edge: " << edge_var_id.id << (edge_assigned ? " assigned" : " not-assigned")
-         << ", label: " << label_var_id.id << (label_assigned ? " assigned" : " not-assigned")
-         << ")";
+    cout << "EdgeLabel(?" << var_names[edge_var_id.id];
+    if (label_var_id.is_null()) {
+        cout << ", " << relational_model.get_graph_object(label_id)->to_string();
+    } else {
+        cout << ", ?" << var_names[label_var_id.id];
+    }
+    cout << ")";
 }
 
 
 double EdgeLabelPlan::estimate_cost() {
-    return 1 + estimate_output_size();
+    return 100 + estimate_output_size();
 }
 
 
 double EdgeLabelPlan::estimate_output_size() {
-    // TODO: better estimations needed
-    if (edge_assigned && label_assigned) {
-        return 1;
-    } else if (label_assigned) {
-        if (label_id.is_null()) {
-            // total_labels / distinct_labels
-            return static_cast<double>(catalog.get_edge_labels(graph_id))
-                   / static_cast<double>(catalog.get_edge_distinct_labels(graph_id));
+    auto total_edges = static_cast<double>(catalog.get_edge_count(graph_id));
+    auto total_edge_labels = static_cast<double>(catalog.get_edge_labels(graph_id));
+    // edges with label `label_id`
+    auto edge_labels = static_cast<double>(catalog.get_edge_count_for_label(graph_id, label_id));
+
+    if (label_assigned) {
+        if (edge_assigned) {
+            return edge_labels / total_edges;
         } else {
-            return catalog.get_edge_count_for_label(graph_id, label_id);
+            return edge_labels;
         }
-    } else if (edge_assigned) {
-        return static_cast<double>(catalog.get_edge_labels(graph_id))
-               / static_cast<double>(catalog.get_edge_count(graph_id)) ;
     } else {
-        return catalog.get_edge_labels(graph_id);
+        if (edge_assigned) {
+            return total_edge_labels / total_edges;
+        } else {
+            return total_edges;
+        }
     }
 }
 

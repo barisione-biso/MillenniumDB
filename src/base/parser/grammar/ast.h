@@ -1,10 +1,6 @@
 #ifndef BASE__AST_H_
 #define BASE__AST_H_
 
-#include "base/ids/graph_id.h"
-#include "base/ids/var_id.h"
-
-#include <iostream>
 #include <string>
 
 #include <boost/variant.hpp>
@@ -13,6 +9,8 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
+#include "base/ids/graph_id.h"
+#include "base/ids/var_id.h"
 
 namespace ast
 {

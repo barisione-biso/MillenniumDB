@@ -1,6 +1,8 @@
 #ifndef RELATIONAL_MODEL__CONNECTION_PLAN_H_
 #define RELATIONAL_MODEL__CONNECTION_PLAN_H_
 
+#include <string>
+
 #include "base/ids/graph_id.h"
 #include "base/graph/graph_object.h"
 #include "relational_model/query_optimizer/join_plan/join_plan.h"
@@ -20,7 +22,8 @@ public:
     std::unique_ptr<BindingIdIter> get_binding_id_iter() override;
     std::unique_ptr<JoinPlan> duplicate() override;
 
-    void print(int indent) override;
+    void print(int indent, std::vector<std::string>& var_names) override;
+
 private:
     GraphId graph_id;
 

@@ -61,6 +61,7 @@ int main(int argc, char **argv) {
         stringstream str_stream;
         str_stream << in.rdbuf();
         string query = str_stream.str();
+        // cout << "Query:\n" << query << "\n";
 
         boost::asio::io_service io_service;
 
@@ -70,9 +71,11 @@ int main(int argc, char **argv) {
 
         // Send Query
         auto query_length = query.size();
+        // cout << "Query length: " << query_length << "\n";
+
         unsigned char query_size_b[db_server::BYTES_FOR_QUERY_LENGTH];
         for (int i = 0, offset = 0; i < db_server::BYTES_FOR_QUERY_LENGTH; i++, offset += 8) {
-            char c = (query_length << offset) & 0xFF;
+            unsigned char c = (query_length >> offset) & 0xFF;
             query_size_b[i] = c;
         }
         boost::asio::write(s, boost::asio::buffer(query_size_b, db_server::BYTES_FOR_QUERY_LENGTH));
