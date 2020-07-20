@@ -64,8 +64,8 @@ SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<JoinPlan>>&& base_plans, 
 
         optimal_plans[i] = new unique_ptr<JoinPlan>[arr_size];
         optimal_plans[0][i] = move(base_plans[i]);
-        optimal_plans[0][i]->print(0, var_names);
-        cout << ", cost:" << optimal_plans[0][i]->estimate_cost() << ". ";
+        optimal_plans[0][i]->print(0, true, var_names);
+        // cout << ", cost:" << optimal_plans[0][i]->estimate_cost() << ". ";
         cout << "\n";
     }
 }
@@ -137,7 +137,7 @@ unique_ptr<BindingIdIter> SelingerOptimizer::get_binding_id_iter() {
     }
     cout << "\nPlan Generated:\n";
 
-    optimal_plans[plans_size-1][0]->print(2, var_names);
+    optimal_plans[plans_size-1][0]->print(2, true, var_names);
     cout << "\nestimated cost: " << optimal_plans[plans_size-1][0]->estimate_cost() << "\n";
     return optimal_plans[plans_size-1][0]->get_binding_id_iter();
 }

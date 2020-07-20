@@ -123,7 +123,7 @@ public:
             auto search = node_names.find(edge_name);
 
             // check no node has same name
-            if (search != edge_names.end()) {
+            if (search != node_names.end()) {
                 throw QuerySemanticException("\"" + edge_name
                     + "\" has already been declared as an Node and cannot be a Edge");
             }

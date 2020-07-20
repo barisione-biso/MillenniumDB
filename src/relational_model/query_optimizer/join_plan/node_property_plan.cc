@@ -55,7 +55,7 @@ std::unique_ptr<JoinPlan> NodePropertyPlan::duplicate() {
 }
 
 
-void NodePropertyPlan::print(int indent, std::vector<std::string>& var_names) {
+void NodePropertyPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
@@ -72,21 +72,39 @@ void NodePropertyPlan::print(int indent, std::vector<std::string>& var_names) {
         cout << ", ?" << var_names[value_var_id.id];
     }
     cout << ")";
+
+    if (estimated_cost) {
+        cout << ",\n";
+        for (int i = 0; i < indent; ++i) {
+            cout << ' ';
+        }
+        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    }
 }
 
 
 double NodePropertyPlan::estimate_cost() {
-    return 100 + estimate_output_size();
+    return /*100.0 +*/ estimate_output_size();
 }
 
 
 double NodePropertyPlan::estimate_output_size() {
-    auto unique_values         = static_cast<double>(catalog.get_node_count_for_key(graph_id, key_id)); //TODO:
-    auto node_keys             = static_cast<double>(catalog.get_node_count_for_key(graph_id, key_id));
+    auto unique_values         = static_cast<double>(catalog.get_node_key_unique_values(graph_id, key_id));
+    auto node_keys             = static_cast<double>(catalog.get_node_key_count(graph_id, key_id));
     auto total_nodes           = static_cast<double>(catalog.get_node_count(graph_id));
     auto total_node_properties = static_cast<double>(catalog.get_node_properties(graph_id));
 
+    if (total_nodes == 0) { // To avoid division by 0
+        cout << "\nWARNING: total nodes = 0\n";
+        return 0;
+    }
+
     if (key_assigned) {
+        if (unique_values == 0) { // To avoid division by 0
+            cout << "\nWARNING: unique_values = 0\n";
+            return 0;
+        }
+
         if (value_assigned) {
             if (node_assigned) {
                 return node_keys / (unique_values * total_nodes);

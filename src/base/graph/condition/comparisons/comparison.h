@@ -1,6 +1,7 @@
 #ifndef BASE__COMPARISON_H_
 #define BASE__COMPARISON_H_
 
+#include <iostream>
 #include <memory>
 
 #include "base/binding/binding.h"
@@ -37,14 +38,12 @@ public:
     virtual bool compare(GraphObject& lhs, GraphObject& rhs) = 0;
 
     bool eval(Binding& binding) {
-
-        auto left_value = lhs->get_value(binding);
+        auto left_value = lhs->get_value(binding); // TODO: bug
         auto right_value = rhs->get_value(binding);
 
         if (left_value != nullptr) {
             return compare(*left_value, *right_value);
-        }
-        else {
+        } else {
             return false;
         }
     }

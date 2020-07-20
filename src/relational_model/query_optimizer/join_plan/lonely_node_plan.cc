@@ -23,14 +23,22 @@ unique_ptr<JoinPlan> LonelyNodePlan::duplicate() {
 
 
 double LonelyNodePlan::estimate_cost() {
-    return 100 + estimate_output_size();
+    return /*100.0 +*/ estimate_output_size();
 }
 
-void LonelyNodePlan::print(int indent, std::vector<std::string>& var_names) {
+void LonelyNodePlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
     cout << "LonelyNode(" << var_names[node_var_id.id] << ")";
+
+    if (estimated_cost) {
+        cout << ",\n";
+        for (int i = 0; i < indent; ++i) {
+            cout << ' ';
+        }
+        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    }
 }
 
 double LonelyNodePlan::estimate_output_size() {
@@ -46,10 +54,6 @@ vector<VarId> LonelyNodePlan::get_var_order() {
 void LonelyNodePlan::set_input_vars(vector<VarId>& input_var_order) {
     for (auto& var_id : input_var_order) {
         if (node_var_id == var_id) {
-            // TODO: para que esto se cumpla hay que eliminar redundancia
-            // EJ:
-            // SELECT *
-            // MATCH (?n), (?n)
             throw std::logic_error("LonelyNode should appear once and only if no other node with "
                                 "the same name is present in the Graph Pattern");
         }

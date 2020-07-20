@@ -53,6 +53,11 @@ bool OrderedFile<N>::has_more_tuples() {
 
 
 template <std::size_t N>
+uint64_t OrderedFile<N>::get_total_tuples() {
+    return filesize / bytes_per_tuple;
+}
+
+template <std::size_t N>
 uint_fast32_t OrderedFile<N>::next_tuples(uint64_t* output, uint_fast32_t max_tuples) {
     file.read(reinterpret_cast<char*>(output), max_tuples*bytes_per_tuple);
     auto res = file.gcount()/bytes_per_tuple;

@@ -90,10 +90,10 @@ void QueryOptimizer::visit(OpMatch& op_match) {
     // order labels by cost using catalog
     vector<OpEdgeLabel> edge_labels(op_match.edge_labels.begin(), op_match.edge_labels.end());
     std::sort(edge_labels.begin(), edge_labels.end(), [this](const auto& lhs, const auto& rhs) {
-        auto lhs_cost = catalog.get_edge_count_for_label(search_graph_id(lhs.graph_name),
+        auto lhs_cost = catalog.get_edge_label_count(search_graph_id(lhs.graph_name),
                                                          relational_model.get_string_id(lhs.label));
 
-        auto rhs_cost = catalog.get_edge_count_for_label(search_graph_id(rhs.graph_name),
+        auto rhs_cost = catalog.get_edge_label_count(search_graph_id(rhs.graph_name),
                                                          relational_model.get_string_id(rhs.label));
         return lhs_cost < rhs_cost;
     });
@@ -294,8 +294,8 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
     double best_cost = std::numeric_limits<double>::max();
     for (size_t j = 0; j < base_plans_size; j++) {
         auto current_element_cost = base_plans[j]->estimate_cost();
-        cout << j << ", cost:" << current_element_cost << ". ";
-        base_plans[j]->print(0, var_names);
+        // cout << j << ", cost:" << current_element_cost << ". ";
+        base_plans[j]->print(0, true, var_names);
         cout << "\n";
         if (current_element_cost < best_cost) {
             best_cost = current_element_cost;
@@ -369,7 +369,7 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
         root_plan = move(best_step_plan);
     }
     cout << "\nPlan Generated:\n";
-    root_plan->print(2, var_names);
+    root_plan->print(2, true, var_names);
     cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
     return root_plan->get_binding_id_iter();
 }

@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 
     RelationalModel::init(db_folder, BufferManager::DEFAULT_BUFFER_POOL_SIZE);
 
-    // TODO:
+    // TODO: storage sould not include relational_model
     auto& object_file = relational_model.get_object_file();
     auto& strings_hash = relational_model.get_strings_hash();
 

@@ -5,15 +5,17 @@
 
 class Node : public GraphObject {
 public:
-    const uint_fast16_t graph;
+    // const uint_fast16_t graph;
     const uint64_t id;
 
-    Node(uint_fast16_t graph, uint64_t id)
-        : graph(graph), id(id) { }
+    Node(uint64_t id)
+        : id(id) { }
     ~Node() = default;
 
     std::string to_string() const override {
-        return "Node(" + std::to_string(graph) + ", " + std::to_string(id) + ")";
+        auto graph = (id >> 40) & 0xFFFF;
+        auto unmasked_id = id & 0x0000'00FF'FFFF'FFFFUL;
+        return "Node(" + std::to_string(graph) + ", " + std::to_string(unmasked_id) + ")";
     }
 
     ObjectType type() const override {

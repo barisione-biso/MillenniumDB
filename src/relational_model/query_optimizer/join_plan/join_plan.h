@@ -30,7 +30,7 @@ public:
     virtual std::unique_ptr<BindingIdIter> get_binding_id_iter() = 0;
     virtual std::unique_ptr<JoinPlan> duplicate() = 0;
 
-    virtual void print(int indent, std::vector<std::string>& var_names) = 0;
+    virtual void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) = 0;
 };
 
 #endif // RELATIONAL_MODEL__JOIN_PLAN_H_

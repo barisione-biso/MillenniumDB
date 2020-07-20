@@ -37,7 +37,7 @@ std::unique_ptr<JoinPlan> ConnectionPlan::duplicate() {
 }
 
 
-void ConnectionPlan::print(int indent, std::vector<std::string>& var_names) {
+void ConnectionPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
@@ -45,6 +45,14 @@ void ConnectionPlan::print(int indent, std::vector<std::string>& var_names) {
          << ", ?" << var_names[node_from_var_id.id]
          << ", ?" << var_names[node_to_var_id.id]
          << ")";
+
+    if (estimated_cost) {
+        cout << ",\n";
+        for (int i = 0; i < indent; ++i) {
+            cout << ' ';
+        }
+        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    }
 }
 
 
@@ -54,13 +62,17 @@ double ConnectionPlan::estimate_cost() {
     // t: cost per tuple;
     // n: estimated output size
     // return d + t*n;
-    return 100 + estimate_output_size();
+    return /*100.0 +*/ estimate_output_size();
 }
 
 
 double ConnectionPlan::estimate_output_size() {
     auto total_connections = static_cast<double>(catalog.get_edge_count(graph_id));
     auto total_nodes       = static_cast<double>(catalog.get_node_count(graph_id));
+
+    if (total_connections == 0 || total_nodes == 0) { // to avoid division by 0
+        return 0;
+    }
     if (node_from_assigned) {
         if (node_to_assigned) {
             if (edge_assigned) {

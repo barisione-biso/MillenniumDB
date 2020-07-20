@@ -1,17 +1,15 @@
-- Ver que pasa en estimación si key/label no aparece en la BD
-    - Optimizar transformando a null plan?
++ Ver que pasa en estimación si key/label no aparece en la BD
 
 - Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
-    - LoopNode en catalogo
-    - guardar total y distinct keys
-    - por cada key guardar total values y distict values
-    - Problema: no estan agrupados por grafo
+    + LoopNode en catalogo
+    + por cada key guardar total values y distict values
+    - Problema: no estan agrupados por grafo (si al hacer bulk import)
         - Se podría crear un ordered file y que queden ordenados por Grafo > Key > Value.
-        - Si se esta importando un solo grafo se puede hacer un ordered file solo con Key > Value
+        + Si se esta importando un solo grafo se puede hacer un ordered file solo con Key > Value
 
 - Mejorar impresion de plan ejecutado con las estimaciones
 
-- BUG:
++ BUG:
     // El where funciona mal cuando ?p1.id y ?p2.id no estan en el select
     // debería poder expresar ?p1 != ?p2
     SELECT *
@@ -23,7 +21,7 @@
     - preparar scripts para correrlas en vivo
 
 - Filtros con Id, pasar hacia Join
-
+- Proyeccion de properties en manual plan
 - Pensar que indices nuevos necesitamos (listas ligadas + quad)
 
 - optimizar BPT?:

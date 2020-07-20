@@ -34,22 +34,30 @@ std::unique_ptr<JoinPlan> NodeLabelPlan::duplicate() {
 }
 
 
-void NodeLabelPlan::print(int indent, std::vector<std::string>& var_names) {
+void NodeLabelPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "EdgeLabel(?" << var_names[node_var_id.id];
+    cout << "NodeLabel(?" << var_names[node_var_id.id];
     if (label_var_id.is_null()) {
         cout << ", " << relational_model.get_graph_object(label_id)->to_string();
     } else {
         cout << ", ?" << var_names[label_var_id.id];
     }
     cout << ")";
+
+    if (estimated_cost) {
+        cout << ",\n";
+        for (int i = 0; i < indent; ++i) {
+            cout << ' ';
+        }
+        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    }
 }
 
 
 double NodeLabelPlan::estimate_cost() {
-    return 100 + estimate_output_size();
+    return /*100.0 +*/ estimate_output_size();
 }
 
 
@@ -57,7 +65,11 @@ double NodeLabelPlan::estimate_output_size() {
     auto total_nodes = static_cast<double>(catalog.get_node_count(graph_id));
     auto total_node_labels = static_cast<double>(catalog.get_node_labels(graph_id));
     // nodes with label `label_id`
-    auto node_labels = static_cast<double>(catalog.get_node_count_for_label(graph_id, label_id));
+    auto node_labels = static_cast<double>(catalog.get_node_label_count(graph_id, label_id));
+
+    if (total_nodes == 0) { // to avoid division by 0
+        return 0;
+    }
 
     if (label_assigned) {
         if (node_assigned) {

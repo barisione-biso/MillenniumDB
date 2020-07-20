@@ -32,24 +32,31 @@ std::unique_ptr<JoinPlan> NodeLoopPlan::duplicate() {
 }
 
 
-void NodeLoopPlan::print(int indent, std::vector<std::string>& var_names) {
+void NodeLoopPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
     cout << "NodeLoop(?" << var_names[node_var_id.id]
          << ", ?" << var_names[edge_var_id.id]
          << ")";
+
+    if (estimated_cost) {
+        cout << ",\n";
+        for (int i = 0; i < indent; ++i) {
+            cout << ' ';
+        }
+        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    }
 }
 
 
 double NodeLoopPlan::estimate_cost() {
-    return 100 + estimate_output_size();
+    return /*100.0 +*/ estimate_output_size();
 }
 
 
 double NodeLoopPlan::estimate_output_size() {
-    // TODO: better estimations needed
-    return 1;
+    return catalog.get_node_loop_count(graph_id);
 }
 
 

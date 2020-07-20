@@ -10,15 +10,16 @@
 #ifndef RELATIONAL_MODEL__GRAPH_H_
 #define RELATIONAL_MODEL__GRAPH_H_
 
+#include <map>
 #include <memory>
 #include <string>
 
 #include "base/ids/graph_id.h"
+#include "base/ids/object_id.h"
 #include "base/graph/node.h"
 #include "base/graph/edge.h"
 #include "storage/index/object_file/object_file.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
-#include "base/ids/object_id.h"
 
 class Value;
 
@@ -30,7 +31,7 @@ public:
     ~RelationalGraph();
 
     uint64_t create_node();
-    uint64_t create_edge();
+    uint64_t create_edge(bool node_loop);
 
     // node/edge ids received already have the graph and type masked
     Record<3> get_record_for_connection(uint64_t node_from_id, uint64_t node_to_id, uint64_t edge_id);
@@ -40,6 +41,9 @@ public:
 
     Record<3> get_record_for_node_property(uint64_t node_id, const std::string& key, const Value& value);
     Record<3> get_record_for_edge_property(uint64_t edge_id, const std::string& key, const Value& value);
+
+    void set_node_properties_stats(uint64_t property_count, std::map<uint64_t, std::pair<uint64_t, uint64_t>>);
+    void set_edge_properties_stats(uint64_t property_count, std::map<uint64_t, std::pair<uint64_t, uint64_t>>);
 };
 
 #endif // RELATIONAL_MODEL__GRAPH_H_

@@ -96,7 +96,7 @@ uint64_t ExtendibleHash::get_id(const std::string& str, bool insert_if_not_prese
     while (true) {
         // global_depth must be <= 64
         auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
-        auto suffix = hash[0] & mask; // TODO: try XOR hash[0]^hash[1]?
+        auto suffix = hash[0] & mask;
         auto bucket_number = dir[suffix];
         auto bucket = Bucket(buckets_file_id, bucket_number);
 

@@ -36,6 +36,9 @@ public:
     void print();
     void check_order();
 
+    // begin() must be called before calling this method
+    uint64_t get_total_tuples();
+
     // BptLeafProvider methods
     void begin() override;
     bool has_more_tuples() override;

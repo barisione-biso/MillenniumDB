@@ -41,7 +41,7 @@ std::unique_ptr<JoinPlan> LabeledConnectionPlan::duplicate() {
 }
 
 
-void LabeledConnectionPlan::print(int indent, std::vector<std::string>& var_names) {
+void LabeledConnectionPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
@@ -50,11 +50,19 @@ void LabeledConnectionPlan::print(int indent, std::vector<std::string>& var_name
          << ", ?" << var_names[node_from_var_id.id]
          << ", ?" << var_names[node_to_var_id.id]
          << ")";
+
+    if (estimated_cost) {
+        cout << ",\n";
+        for (int i = 0; i < indent; ++i) {
+            cout << ' ';
+        }
+        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    }
 }
 
 
 double LabeledConnectionPlan::estimate_cost() {
-    return 100 + estimate_output_size();
+    return /*100.0 +*/ estimate_output_size();
 }
 
 
@@ -62,8 +70,12 @@ double LabeledConnectionPlan::estimate_output_size() {
     if (edge_assigned) {
         return numeric_limits<double>::max();
     }
-    auto labeled_connections = static_cast<double>(catalog.get_edge_count_for_label(graph_id, label_id));
+    auto labeled_connections = static_cast<double>(catalog.get_edge_label_count(graph_id, label_id));
     auto total_nodes         = static_cast<double>(catalog.get_node_count(graph_id));
+
+    if (total_nodes == 0) { // to avoid division by 0
+        return 0;
+    }
 
     if (node_from_assigned) {
         if (node_to_assigned) {

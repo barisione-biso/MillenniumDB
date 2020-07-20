@@ -39,6 +39,7 @@ private:
 
     template <std::size_t N>
     void merge_tree_and_ordered_file(std::unique_ptr<BPlusTree<N>>&, OrderedFile<N>&);
+    void set_property_stats(std::map<uint64_t, std::pair<uint64_t, uint64_t>>& m, OrderedFile<3>& ordered_properties);
 };
 
 #endif // RELATIONAL_MODEL__BULK_IMPORT_H_

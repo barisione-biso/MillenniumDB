@@ -35,7 +35,7 @@ std::unique_ptr<JoinPlan> EdgeLabelPlan::duplicate() {
 }
 
 
-void EdgeLabelPlan::print(int indent, std::vector<std::string>& var_names) {
+void EdgeLabelPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
@@ -46,11 +46,19 @@ void EdgeLabelPlan::print(int indent, std::vector<std::string>& var_names) {
         cout << ", ?" << var_names[label_var_id.id];
     }
     cout << ")";
+
+    if (estimated_cost) {
+        cout << ",\n";
+        for (int i = 0; i < indent; ++i) {
+            cout << ' ';
+        }
+        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    }
 }
 
 
 double EdgeLabelPlan::estimate_cost() {
-    return 100 + estimate_output_size();
+    return /*100.0 +*/ estimate_output_size();
 }
 
 
@@ -58,7 +66,11 @@ double EdgeLabelPlan::estimate_output_size() {
     auto total_edges = static_cast<double>(catalog.get_edge_count(graph_id));
     auto total_edge_labels = static_cast<double>(catalog.get_edge_labels(graph_id));
     // edges with label `label_id`
-    auto edge_labels = static_cast<double>(catalog.get_edge_count_for_label(graph_id, label_id));
+    auto edge_labels = static_cast<double>(catalog.get_edge_label_count(graph_id, label_id));
+
+    if (total_edges == 0) { // to avoid division by 0
+        return 0;
+    }
 
     if (label_assigned) {
         if (edge_assigned) {

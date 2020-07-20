@@ -29,8 +29,7 @@ unique_ptr<Binding> Filter::next() {
 
         if (condition->eval(binding_filter)) {
             return next_binding;
-        }
-        else {
+        } else {
             next_binding = iter->next();
         }
     }

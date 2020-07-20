@@ -6,4 +6,5 @@ RETURN
 
 
 PROFILE MATCH (p1:Person)-[:WORK_AT]->(c:Organisation {type:"company"})<-[:WORK_AT]-(p2:Person)
+WHERE p1.id <> p2.id
 RETURN count(*) as count;

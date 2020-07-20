@@ -136,32 +136,38 @@ void BulkImport::start_import() {
     // INDEXES WHERE APPENDING AT END IS NOT POSSIBLE AND MERGE IS NEEDED
     // LABEL - NODE
     node_labels.order(std::array<uint_fast8_t, 2> { 1, 0 });
-    // relational_model.get_label2node().bulk_import(node_labels);
     merge_tree_and_ordered_file(relational_model.label2node, node_labels);
 
     // LABEL - EDGE
     edge_labels.order(std::array<uint_fast8_t, 2> { 1, 0 });
-    // relational_model.get_label2edge().bulk_import(edge_labels);
     merge_tree_and_ordered_file(relational_model.label2edge, edge_labels);
 
     // KEY - VALUE - NODE
     node_key_value.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });
-    // relational_model.get_key_value_node().bulk_import(node_key_value);
-    merge_tree_and_ordered_file(relational_model.key_value_node, node_key_value);
 
-    // KEY - VALUE - EDGE
-    edge_key_value.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });
-    // relational_model.get_key_value_edge().bulk_import(edge_key_value);
-    merge_tree_and_ordered_file(relational_model.key_value_edge, edge_key_value);
+    // create distinct values statistic
+    map<uint64_t, pair<uint64_t, uint64_t>> node_property_stats; // key_id -> (count, distinct_values)
+    set_property_stats(node_property_stats, node_key_value);
+    graph.set_node_properties_stats(node_key_value.get_total_tuples() , move(node_property_stats));
+
+    merge_tree_and_ordered_file(relational_model.key_value_node, node_key_value);
 
     // KEY - NODE - VALUE
     node_key_value.order(std::array<uint_fast8_t, 3> { 0, 2, 1 });
-    // relational_model.get_key_node_value().bulk_import(node_key_value);
     merge_tree_and_ordered_file(relational_model.key_node_value, node_key_value);
+
+    // KEY - VALUE - EDGE
+    edge_key_value.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });
+
+    // create distinct values statistic
+    map<uint64_t, pair<uint64_t, uint64_t>> edge_property_stats; // key_id -> (count, distinct_values)
+    set_property_stats(edge_property_stats, edge_key_value);
+    graph.set_edge_properties_stats(edge_key_value.get_total_tuples(), move(edge_property_stats));
+
+    merge_tree_and_ordered_file(relational_model.key_value_edge, edge_key_value);
 
     // KEY - EDGE - VALUE
     edge_key_value.order(std::array<uint_fast8_t, 3> { 0, 2, 1 });
-    // relational_model.get_key_edge_value().bulk_import(edge_key_value);
     merge_tree_and_ordered_file(relational_model.key_edge_value, edge_key_value);
 
     auto finish_creating_index = chrono::system_clock::now();
@@ -218,7 +224,8 @@ void BulkImport::process_node(const bulk_import_ast::Node& node) {
 
 
 void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
-    uint64_t edge_id = graph.create_edge();
+    bool node_loop = edge.left_id == edge.right_id;
+    uint64_t edge_id = graph.create_edge(node_loop);
 
     auto left_id = node_dict.find(edge.left_id);
     auto right_id = node_dict.find(edge.right_id);
@@ -227,7 +234,7 @@ void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
         throw logic_error("Edge using undeclared node.");
     }
 
-    if (left_id->second == right_id->second) {
+    if (node_loop) {
         self_connected_nodes.append_record(RecordFactory::get(left_id->second, edge_id));
     }
 
@@ -260,4 +267,46 @@ void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
         auto value = visitor(property.value);
         edge_key_value.append_record(graph.get_record_for_edge_property(edge_id, property.key, *value));
     }
+}
+
+
+void BulkImport::set_property_stats(map<uint64_t, pair<uint64_t, uint64_t>>& m, OrderedFile<3>& ordered_properties) {
+    uint64_t current_key = 0;
+    uint64_t current_value = 0;
+    uint64_t key_count = 0;
+    uint64_t distinct_values = 0;
+
+    ordered_properties.begin();
+    auto record = ordered_properties.next_record();
+    while (record != nullptr) {
+        // check same key
+        if (record->ids[0] == current_key) {
+            ++key_count;
+            // check if value changed
+            if (record->ids[1] != current_value) {
+                ++distinct_values;
+            }
+        } else {
+            // save stats from last key
+            if (current_key != 0) {
+                m.insert({ current_key, make_pair(key_count, distinct_values) });
+            }
+            current_key = record->ids[0];
+            current_value = record->ids[1];
+
+            key_count = 1;
+            distinct_values = 1;
+        }
+        record = ordered_properties.next_record();
+    }
+    // save stats from last key
+    if (current_key != 0) {
+        m.insert({ current_key, make_pair(key_count, distinct_values) });
+    }
+
+    for (auto&&[k, v] : m) {
+        auto obj = ObjectId(k);
+        cout << k << " " << relational_model.get_graph_object(obj)->to_string() << ": " << "(" << v.first << ", " << v.second << ")\n";
+    }
+    cout << "----\n";
 }

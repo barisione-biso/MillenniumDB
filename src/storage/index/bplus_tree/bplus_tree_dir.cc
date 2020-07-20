@@ -71,11 +71,6 @@ std::unique_ptr<BPlusTreeSplit<N>> BPlusTreeDir<N>::bulk_insert(BPlusTreeLeaf<N>
             ++key_count;
             update_child(key_count, split->encoded_page_number);
             page.make_dirty();
-            if (page.get_page_number() == 0) {
-                if (!page.dirty) {
-                    cout << "Error at no split root: not dirty.\n";
-                }
-            }
             return nullptr;
         }
         // Case 2: we need to split this node and this node is the root
@@ -117,10 +112,6 @@ std::unique_ptr<BPlusTreeSplit<N>> BPlusTreeDir<N>::bulk_insert(BPlusTreeLeaf<N>
             new_left_page.make_dirty();
             new_right_page.make_dirty();
             this->page.make_dirty();
-
-            if (!page.dirty) {
-                cout << "Error at split root: not dirty.\n";
-            }
 
             return nullptr;
         }

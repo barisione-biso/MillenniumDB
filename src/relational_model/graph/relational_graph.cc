@@ -25,8 +25,8 @@ uint64_t RelationalGraph::create_node() {
 }
 
 
-uint64_t RelationalGraph::create_edge() {
-    return catalog.create_edge(graph_id)
+uint64_t RelationalGraph::create_edge(bool node_loop) {
+    return catalog.create_edge(graph_id, node_loop)
            | RelationalModel::EDGE_MASK
            | (graph_id << RelationalModel::GRAPH_OFFSET);
 }
@@ -56,7 +56,7 @@ Record<3> RelationalGraph::get_record_for_node_property(uint64_t node_id, const 
     auto key_id = relational_model.get_string_id(key, true).id;
     auto value_id = relational_model.get_value_id(value, true).id;
 
-    catalog.add_node_key(graph_id, key_id);
+    // catalog.add_node_key(graph_id, key_id);
     return RecordFactory::get(
         node_id,
         key_id,
@@ -69,10 +69,19 @@ Record<3> RelationalGraph::get_record_for_edge_property(uint64_t edge_id, const 
     auto key_id = relational_model.get_string_id(key, true).id;
     auto value_id = relational_model.get_value_id(value, true).id;
 
-    catalog.add_edge_key(graph_id, key_id);
+    // catalog.add_edge_key(graph_id, key_id);
     return RecordFactory::get(
         edge_id,
         key_id,
         value_id
     );
+}
+
+void RelationalGraph::set_node_properties_stats(uint64_t property_count, map<uint64_t, pair<uint64_t, uint64_t>> m) {
+    catalog.set_node_properties_stats(graph_id, property_count, move(m));
+}
+
+
+void RelationalGraph::set_edge_properties_stats(uint64_t property_count, map<uint64_t, pair<uint64_t, uint64_t>> m) {
+    catalog.set_edge_properties_stats(graph_id, property_count, move(m));
 }

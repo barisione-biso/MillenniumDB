@@ -260,11 +260,11 @@ shared_ptr<GraphObject> RelationalModel::get_graph_object(ObjectId object_id) {
         }
 
         case NODE_MASK : {
-            return make_shared<Node>((object_id.id >> 40) & 0xFFFF, object_id.id & 0x0000'00FF'FFFF'FFFFUL);
+            return make_shared<Node>(object_id.id);
         }
 
         case EDGE_MASK : {
-            return make_shared<Edge>((object_id.id >> 40) & 0xFFFF, object_id.id & 0x0000'00FF'FFFF'FFFFUL);
+            return make_shared<Edge>(object_id.id >> 40);
         }
 
         default : {

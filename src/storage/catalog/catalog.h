@@ -27,10 +27,11 @@ public:
     // Create_node and create_edge return the new id without the corresponding mask
     // boths methods must skip id = 0 (reserved for null ids)
     uint64_t create_node(GraphId);
-    uint64_t create_edge(GraphId);
+    uint64_t create_edge(GraphId, bool node_loop);
 
     uint64_t get_node_count(GraphId);
     uint64_t get_edge_count(GraphId);
+    uint64_t get_node_loop_count(GraphId);
 
     uint64_t get_node_labels(GraphId);
     uint64_t get_edge_labels(GraphId);
@@ -45,13 +46,20 @@ public:
     // IDs received are unmasked (no type or graph)
     void add_node_label(GraphId, uint64_t label_id);
     void add_edge_label(GraphId, uint64_t label_id);
-    void add_node_key  (GraphId, uint64_t key_id);
-    void add_edge_key  (GraphId, uint64_t key_id);
 
-    uint64_t get_node_count_for_label(GraphId, ObjectId label_id);
-    uint64_t get_edge_count_for_label(GraphId, ObjectId label_id);
-    uint64_t get_node_count_for_key  (GraphId, ObjectId key_id);
-    uint64_t get_edge_count_for_key  (GraphId, ObjectId key_id);
+    void set_node_properties_stats(GraphId, uint64_t property_count,
+                                   std::map<uint64_t, std::pair<uint64_t, uint64_t>>);
+    void set_edge_properties_stats(GraphId, uint64_t property_count,
+                                   std::map<uint64_t, std::pair<uint64_t, uint64_t>>);
+
+    uint64_t get_node_label_count(GraphId, ObjectId label_id);
+    uint64_t get_edge_label_count(GraphId, ObjectId label_id);
+
+    uint64_t get_node_key_count(GraphId, ObjectId key_id);
+    uint64_t get_edge_key_count(GraphId, ObjectId key_id);
+
+    uint64_t get_node_key_unique_values(GraphId,  ObjectId key_id);
+    uint64_t get_edge_key_unique_values(GraphId, ObjectId key_id);
 
     // does not count the default graph
     uint_fast16_t get_graph_count();
@@ -78,10 +86,14 @@ private:
     std::vector<uint64_t> edge_label_count;
     std::vector<uint64_t> edge_property_count;
 
+    std::vector<uint64_t> node_loop_count;
+
     std::vector<std::map<uint64_t, uint64_t>> node_label_stats;
     std::vector<std::map<uint64_t, uint64_t>> edge_label_stats;
-    std::vector<std::map<uint64_t, uint64_t>> node_key_stats;
-    std::vector<std::map<uint64_t, uint64_t>> edge_key_stats;
+
+    // key_id -> (count, distinct_values)
+    std::vector<std::map<uint64_t, std::pair<uint64_t, uint64_t>>> node_key_stats;
+    std::vector<std::map<uint64_t, std::pair<uint64_t, uint64_t>>> edge_key_stats;
 
     uint64_t read_uint64();
     uint_fast32_t read_uint32();

@@ -55,8 +55,8 @@ std::unique_ptr<JoinPlan> EdgePropertyPlan::duplicate() {
 }
 
 
-void EdgePropertyPlan::print(int indent, std::vector<std::string>& var_names) {
-        for (int i = 0; i < indent; ++i) {
+void EdgePropertyPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
+    for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
     cout << "EdgeProperty(?" << var_names[edge_var_id.id];
@@ -72,21 +72,36 @@ void EdgePropertyPlan::print(int indent, std::vector<std::string>& var_names) {
         cout << ", ?" << var_names[value_var_id.id];
     }
     cout << ")";
+
+    if (estimated_cost) {
+        cout << ",\n";
+        for (int i = 0; i < indent; ++i) {
+            cout << ' ';
+        }
+        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    }
 }
 
 
 double EdgePropertyPlan::estimate_cost() {
-    return 100 + estimate_output_size();
+    return /*100.0 +*/ estimate_output_size();
 }
 
 
 double EdgePropertyPlan::estimate_output_size() {
-    auto unique_values         = static_cast<double>(catalog.get_edge_count_for_key(graph_id, key_id)); //TODO:
-    auto edge_keys             = static_cast<double>(catalog.get_edge_count_for_key(graph_id, key_id));
+    auto unique_values         = static_cast<double>(catalog.get_edge_key_unique_values(graph_id, key_id));
+    auto edge_keys             = static_cast<double>(catalog.get_edge_key_count(graph_id, key_id));
     auto total_edges           = static_cast<double>(catalog.get_edge_count(graph_id));
     auto total_edge_properties = static_cast<double>(catalog.get_edge_properties(graph_id));
 
+    if (total_edges == 0) { // To avoid division by 0
+        return 0;
+    }
+
     if (key_assigned) {
+        if (unique_values == 0) { // To avoid division by 0
+            return 0;
+        }
         if (value_assigned) {
             if (edge_assigned) {
                 return edge_keys / (unique_values * total_edges);

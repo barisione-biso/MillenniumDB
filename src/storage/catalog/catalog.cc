@@ -11,7 +11,7 @@
 using namespace std;
 
 // memory for the object
-static typename std::aligned_storage<sizeof(Catalog), alignof(Catalog)>::type catalog_buf;
+static typename aligned_storage<sizeof(Catalog), alignof(Catalog)>::type catalog_buf;
 // global object
 Catalog& catalog = reinterpret_cast<Catalog&>(catalog_buf);
 
@@ -21,18 +21,18 @@ Catalog::Catalog() {
     file->seekg(0, file->end);
     if (file->tellg() == 0) {
         graph_count = 0;
-        node_count           = std::vector<uint64_t>(1);
-        node_label_count     = std::vector<uint64_t>(1);
-        node_property_count  = std::vector<uint64_t>(1);
+        node_count           = vector<uint64_t>(1);
+        node_label_count     = vector<uint64_t>(1);
+        node_property_count  = vector<uint64_t>(1);
 
-        edge_count           = std::vector<uint64_t>(1);
-        edge_label_count     = std::vector<uint64_t>(1);
-        edge_property_count  = std::vector<uint64_t>(1);
+        edge_count           = vector<uint64_t>(1);
+        edge_label_count     = vector<uint64_t>(1);
+        edge_property_count  = vector<uint64_t>(1);
 
-        node_label_stats = std::vector<std::map<uint64_t, uint64_t>>(1);
-        edge_label_stats = std::vector<std::map<uint64_t, uint64_t>>(1);
-        node_key_stats   = std::vector<std::map<uint64_t, uint64_t>>(1);
-        edge_key_stats   = std::vector<std::map<uint64_t, uint64_t>>(1);
+        node_label_stats = vector<map<uint64_t, uint64_t>>(1);
+        edge_label_stats = vector<map<uint64_t, uint64_t>>(1);
+        node_key_stats   = vector<map<uint64_t, pair<uint64_t, uint64_t>>>(1);
+        edge_key_stats   = vector<map<uint64_t, pair<uint64_t, uint64_t>>>(1);
 
         node_count[0]           = 0;
         node_label_count[0]     = 0;
@@ -49,25 +49,25 @@ Catalog::Catalog() {
 
         graph_count = read_uint32();
         if (graph_count >= 65536 /*2^16*/ ) {
-            throw std::logic_error("Catalog file inconsistent: graph_count must be less than 2^16 (65536).");
+            throw logic_error("Catalog file inconsistent: graph_count must be less than 2^16 (65536).");
             return;
         }
         if (graph_count == 0) {
-            throw std::logic_error("Catalog file inconsistent: graph_count must be more than 0.");
+            throw logic_error("Catalog file inconsistent: graph_count must be more than 0.");
             return;
         }
-        node_count           = std::vector<uint64_t>(graph_count + 1);
-        node_label_count     = std::vector<uint64_t>(graph_count + 1);
-        node_property_count  = std::vector<uint64_t>(graph_count + 1);
+        node_count           = vector<uint64_t>(graph_count + 1);
+        node_label_count     = vector<uint64_t>(graph_count + 1);
+        node_property_count  = vector<uint64_t>(graph_count + 1);
 
-        edge_count           = std::vector<uint64_t>(graph_count + 1);
-        edge_label_count     = std::vector<uint64_t>(graph_count + 1);
-        edge_property_count  = std::vector<uint64_t>(graph_count + 1);
+        edge_count           = vector<uint64_t>(graph_count + 1);
+        edge_label_count     = vector<uint64_t>(graph_count + 1);
+        edge_property_count  = vector<uint64_t>(graph_count + 1);
 
-        node_label_stats = std::vector<std::map<uint64_t, uint64_t>>(graph_count + 1);
-        edge_label_stats = std::vector<std::map<uint64_t, uint64_t>>(graph_count + 1);
-        node_key_stats   = std::vector<std::map<uint64_t, uint64_t>>(graph_count + 1);
-        edge_key_stats   = std::vector<std::map<uint64_t, uint64_t>>(graph_count + 1);
+        node_label_stats = vector<map<uint64_t, uint64_t>>(graph_count + 1);
+        edge_label_stats = vector<map<uint64_t, uint64_t>>(graph_count + 1);
+        node_key_stats   = vector<map<uint64_t, pair<uint64_t, uint64_t>>>(graph_count + 1);
+        edge_key_stats   = vector<map<uint64_t, pair<uint64_t, uint64_t>>>(graph_count + 1);
 
 
         for (uint32_t graph = 0; graph <= graph_count; graph++) {
@@ -98,7 +98,8 @@ Catalog::Catalog() {
             for (uint64_t i = 0; i < node_distinct_keys; i++) {
                 auto key_id = read_uint64();
                 auto key_count = read_uint64();
-                node_key_stats[graph].insert({key_id, key_count});
+                auto distinct_values = read_uint64();
+                node_key_stats[graph].insert({key_id, make_pair(key_count, distinct_values)});
             }
             for (uint64_t i = 0; i < edge_distinct_labels; i++) {
                 auto label_id = read_uint64();
@@ -108,7 +109,8 @@ Catalog::Catalog() {
             for (uint64_t i = 0; i < edge_distinct_keys; i++) {
                 auto key_id = read_uint64();
                 auto key_count = read_uint64();
-                edge_key_stats[graph].insert({key_id, key_count});
+                auto distinct_values = read_uint64();
+                edge_key_stats[graph].insert({key_id, make_pair(key_count, distinct_values)});
             }
         }
     }
@@ -124,7 +126,7 @@ Catalog::~Catalog() {
 }
 
 
-GraphId Catalog::get_graph(const std::string& graph_name) {
+GraphId Catalog::get_graph(const string& graph_name) {
     if (graph_name.empty()) {
         return GraphId(GraphId::DEFAULT_GRAPH_ID);
     }
@@ -136,14 +138,14 @@ GraphId Catalog::get_graph(const std::string& graph_name) {
 }
 
 
-GraphId Catalog::create_graph(const std::string& graph_name) {
+GraphId Catalog::create_graph(const string& graph_name) {
     if (graph_name.empty()) {
-        throw std::invalid_argument("Graph must have a name.");
+        throw invalid_argument("Graph must have a name.");
     }
     else {
         auto search = graph_ids.find(graph_name);
         if (search != graph_ids.end()) {
-            throw std::invalid_argument("\"" + graph_name + "\" graph name already exixsts.");
+            throw invalid_argument("\"" + graph_name + "\" graph name already exixsts.");
         }
     }
     auto graph_id = GraphId(++graph_count);
@@ -158,11 +160,11 @@ GraphId Catalog::create_graph(const std::string& graph_name) {
     edge_label_count.push_back(0);
     edge_property_count.push_back(0);
 
-    node_label_stats.push_back(std::map<uint64_t, uint64_t>());
-    node_key_stats.push_back(std::map<uint64_t, uint64_t>());
+    node_label_stats.push_back(map<uint64_t, uint64_t>());
+    node_key_stats.push_back(map<uint64_t, pair<uint64_t, uint64_t>>());
 
-    edge_label_stats.push_back(std::map<uint64_t, uint64_t>());
-    edge_key_stats.push_back(std::map<uint64_t, uint64_t>());
+    edge_label_stats.push_back(map<uint64_t, uint64_t>());
+    edge_key_stats.push_back(map<uint64_t, pair<uint64_t, uint64_t>>());
 
     return graph_id;
 }
@@ -195,17 +197,19 @@ void Catalog::flush() {
             write_uint64(id);
             write_uint64(count);
         }
-        for (auto&& [id, count] : node_key_stats[graph]) {
+        for (auto&& [id, s] : node_key_stats[graph]) {
             write_uint64(id);
-            write_uint64(count);
+            write_uint64(s.first);
+            write_uint64(s.second);
         }
         for (auto&& [id, count] : edge_label_stats[graph]) {
             write_uint64(id);
             write_uint64(count);
         }
-        for (auto&& [id, count] : edge_key_stats[graph]) {
+        for (auto&& [id, s] : edge_key_stats[graph]) {
             write_uint64(id);
-            write_uint64(count);
+            write_uint64(s.first);
+            write_uint64(s.second);
         }
     }
 }
@@ -214,15 +218,15 @@ void Catalog::flush() {
 void Catalog::print() {
     for (uint_fast16_t graph = 0; graph <= graph_count; graph++) {
         cout << graph_names[graph] << ":" << endl;
-        cout << "  node count: " << node_count[graph] << endl;
-        cout << "  node labels: " << node_label_count[graph] << endl;
-        cout << "  node keys:   " << edge_property_count[graph] << endl;
+        cout << "  node count:          " << node_count[graph] << endl;
+        cout << "  node labels:         " << node_label_count[graph] << endl;
+        cout << "  node properties:     " << node_property_count[graph] << endl;
         cout << "  node disinct labels: " << node_label_stats[graph].size() << endl;
         cout << "  node disinct keys:   " << node_key_stats[graph].size() << endl;
 
-        cout << "  edge count: " << edge_count[graph] << endl;
-        cout << "  edge labels: " << edge_label_count[graph] << endl;
-        cout << "  edge keys:   " << edge_property_count[graph] << endl;
+        cout << "  edge count:          " << edge_count[graph] << endl;
+        cout << "  edge labels:         " << edge_label_count[graph] << endl;
+        cout << "  edge properties:     " << edge_property_count[graph] << endl;
         cout << "  edge disinct labels: " << edge_label_stats[graph].size() << endl;
         cout << "  edge disinct keys:   " << edge_key_stats[graph].size() << endl;
 
@@ -281,6 +285,12 @@ uint64_t Catalog::get_edge_count(GraphId graph_id) {
     return edge_count[graph_id];
 }
 
+
+uint64_t Catalog::get_node_loop_count(GraphId graph_id) {
+    return node_loop_count[graph_id];
+}
+
+
 uint64_t Catalog::get_node_labels(GraphId graph_id) {
     return node_label_count[graph_id];
 }
@@ -327,9 +337,14 @@ uint64_t Catalog::create_node(GraphId graph_id) {
 }
 
 
-uint64_t Catalog::create_edge(GraphId graph_id) {
+uint64_t Catalog::create_edge(GraphId graph_id, bool node_loop) {
     assert(graph_id != 0 && "shouldn't call create_edge for default graph");
     ++edge_count[0];
+
+    if (node_loop) {
+        ++node_loop_count[0];
+        ++node_loop_count[graph_id];
+    }
     return ++edge_count[graph_id];
 }
 
@@ -352,21 +367,28 @@ void Catalog::add_edge_label(GraphId graph_id, uint64_t label_id) {
 }
 
 
-void Catalog::add_node_key(GraphId graph_id, uint64_t key_id) {
-    assert(graph_id != 0 && "shouldn't call add_node_key for default graph");
-    ++node_property_count[0];
-    ++node_property_count[graph_id];
-    add_to_map(node_key_stats[0], key_id);
-    add_to_map(node_key_stats[graph_id], key_id);
+void Catalog::set_node_properties_stats(GraphId graph_id, uint64_t property_count,
+                                        map<uint64_t, pair<uint64_t, uint64_t>> m)
+{
+    assert(graph_id != 0 && "shouldn't call set_node_properties_stats for default graph");
+    node_property_count[0] += property_count;
+    node_property_count[graph_id] = property_count;
+    node_key_stats[graph_id] = move(m);
+    // TODO: default graph stats
+    node_key_stats[0] = node_key_stats[graph_id];
 }
 
 
-void Catalog::add_edge_key(GraphId graph_id, uint64_t key_id) {
-    assert(graph_id != 0 && "shouldn't call edge_key_count for default graph");
-    ++edge_property_count[0];
-    ++edge_property_count[graph_id];
-    add_to_map(edge_key_stats[0], key_id);
-    add_to_map(edge_key_stats[graph_id], key_id);
+void Catalog::set_edge_properties_stats(GraphId graph_id, uint64_t property_count,
+                                        map<uint64_t, pair<uint64_t, uint64_t>> m)
+{
+    assert(graph_id != 0 && "shouldn't call set_edge_properties_stats for default graph");
+    edge_property_count[0] += property_count;
+    edge_property_count[graph_id] = property_count;
+    edge_key_stats[graph_id] = move(m);
+    // TODO: default graph stats
+    edge_key_stats[0] = edge_key_stats[graph_id];
+
 }
 
 
@@ -389,26 +411,60 @@ uint64_t Catalog::get_map_value(map<uint64_t, uint64_t>& map, uint64_t key) {
     }
 }
 
+
 uint_fast16_t Catalog::get_graph_count() {
     return graph_count;
 }
 
 
-uint64_t Catalog::get_node_count_for_label(GraphId graph_id, ObjectId label_id) {
+uint64_t Catalog::get_node_label_count(GraphId graph_id, ObjectId label_id) {
     return get_map_value(node_label_stats[graph_id], label_id.id);
 }
 
 
-uint64_t Catalog::get_edge_count_for_label(GraphId graph_id, ObjectId label_id) {
+uint64_t Catalog::get_edge_label_count(GraphId graph_id, ObjectId label_id) {
     return get_map_value(edge_label_stats[graph_id], label_id.id);
 }
 
 
-uint64_t Catalog::get_node_count_for_key(GraphId graph_id, ObjectId key_id) {
-    return get_map_value(node_key_stats[graph_id], key_id.id);
+uint64_t Catalog::get_node_key_count(GraphId graph_id, ObjectId key_id) {
+    auto& map = node_key_stats[graph_id];
+    auto it = map.find(key_id.id);
+    if ( it == map.end() ) {
+        return 0;
+    } else {
+        return it->second.first;
+    }
 }
 
 
-uint64_t Catalog::get_edge_count_for_key(GraphId graph_id, ObjectId key_id){
-    return get_map_value(edge_key_stats[graph_id], key_id.id);
+uint64_t Catalog::get_edge_key_count(GraphId graph_id, ObjectId key_id){
+    auto& map = edge_key_stats[graph_id];
+    auto it = map.find(key_id.id);
+    if ( it == map.end() ) {
+        return 0;
+    } else {
+        return it->second.first;
+    }
+}
+
+uint64_t Catalog::get_node_key_unique_values(GraphId graph_id, ObjectId key_id) {
+    auto& map = node_key_stats[graph_id];
+    auto it = map.find(key_id.id);
+    if ( it == map.end() ) {
+        return 0;
+    } else {
+        return it->second.second;
+    }
+}
+
+
+uint64_t Catalog::get_edge_key_unique_values(GraphId graph_id, ObjectId key_id) {
+    auto& map = edge_key_stats[graph_id];
+    auto it = map.find(key_id.id);
+    if ( it == map.end() ) {
+        return 0;
+    } else {
+        return it->second.second;
+    }
 }
