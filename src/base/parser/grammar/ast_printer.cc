@@ -132,7 +132,7 @@ void ASTPrinter::operator() (ast::StepPath step_path) const {
 void ASTPrinter::operator() (ast::Node node) const {
     out << "\"NODE\": {\n";
     indent("\"VAR\": ", 1);
-    out << "\"" << node.var << "\",\n";
+    out << "\"" << node.var.name << "\",\n";
     indent("\"LABELS\": [", 1);
     auto label_iter = node.labels.begin();
     while (label_iter != node.labels.end()) {
@@ -178,7 +178,7 @@ void ASTPrinter::operator() (ast::Edge edge) const {
         out << "\"LEFT\",\n";
     }
     indent("\"VAR\": ", 1);
-    out << "\"" << edge.var << "\",\n";
+    out << "\"" << edge.var.name << "\",\n";
     indent("\"LABELS\": [", 1);
     auto label_iter = edge.labels.begin();
     while (label_iter != edge.labels.end()) {
@@ -216,14 +216,14 @@ void ASTPrinter::operator() (ast::Edge edge) const {
 
 void ASTPrinter::operator()(ast::Element const& element) const {
     out << "{\n";
-    if (!element.function.empty()) {
-        indent("\"FUNCTION\": \"", 1);
-        out << element.function << "\",\n";
-    }
+    // if (!element.function.empty()) {
+    //     indent("\"FUNCTION\": \"", 1);
+    //     out << element.function << "\",\n";
+    // }
     indent("\"KEY\": \"", 1);
     out << element.key << "\",\n";
     indent("\"VAR\": \"", 1);
-    out << element.variable << "\"\n";
+    out << element.var.name << "\"\n";
     indent("}");
 }
 
@@ -264,7 +264,7 @@ void ASTPrinter::operator()(ast::Condition const& condition) const {
 
 void ASTPrinter::operator()(ast::Statement const& statement) const {
     out << "\"LEFT\": ";
-    (*this)(statement.lhs);
+    boost::apply_visitor(*this, statement.lhs);
     out << ",\n";
     indent("\"COMPARATOR\": ");
     boost::apply_visitor(*this, statement.comparator);
@@ -291,6 +291,12 @@ void ASTPrinter::operator()(ast::Value const& v) const {
 void ASTPrinter::operator()(std::string const& text) const {
     out << "\"" << text << "\"";
 }
+
+
+void ASTPrinter::operator()(ast::Var const& var) const {
+    out << "\"" << var.name << "\"";
+}
+
 
 
 void ASTPrinter::operator() (VarId const& var_id) const {out << "VarId(" << var_id.id << ")"; }

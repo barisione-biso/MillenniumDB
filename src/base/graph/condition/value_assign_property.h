@@ -1,20 +1,21 @@
-#ifndef BASE__VALUE_ASSIGN_VARIABLE_H_
-#define BASE__VALUE_ASSIGN_VARIABLE_H_
+#ifndef BASE__VALUE_ASSIGN_PROPERTY_H_
+#define BASE__VALUE_ASSIGN_PROPERTY_H_
 
 #include "base/graph/condition/value_assign.h"
 #include "base/parser/logical_plan/exceptions.h"
 
-class ValueAssignVariable : public ValueAssign {
+class ValueAssignProperty : public ValueAssign {
 private:
     std::string var;
+    std::string key;
 
 public:
-    ValueAssignVariable(std::string var) :
-        var(std::move(var)) { }
-    ~ValueAssignVariable() = default;
+    ValueAssignProperty(std::string var, std::string key)
+        : var(std::move(var)), key(std::move(key)) { }
+    ~ValueAssignProperty() = default;
 
     std::shared_ptr<GraphObject> get_value(Binding& binding) {
-        return binding[var];
+        return binding.get(var, key);
     }
 
     void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) {
@@ -28,4 +29,4 @@ public:
     }
 };
 
-#endif // BASE__VALUE_ASSIGN_VARIABLE_H_
+#endif // BASE__VALUE_ASSIGN_PROPERTY_H_

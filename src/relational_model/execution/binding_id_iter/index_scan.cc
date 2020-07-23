@@ -87,5 +87,10 @@ void IndexScan<N>::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "IndexScan(bpt_searches: " << bpt_searches << ", found: " << results_found << ")";
+    auto real_factor = static_cast<double>(results_found) / static_cast<double>(bpt_searches);
+    cout << "IndexScan(bpt_searches: " << bpt_searches << ", found: " << results_found << ")\n";
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "  ↳ Real factor: " << real_factor;
 }

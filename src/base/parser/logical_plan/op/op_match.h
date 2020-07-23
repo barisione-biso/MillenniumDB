@@ -71,10 +71,10 @@ public:
 
     std::string process_node(const std::string& graph_name, const ast::Node& node) {
         std::string node_name;
-        if (node.var.empty()) {
+        if (node.var.name.empty()) {
             node_name = "_n" + std::to_string(anonymous_var_count++);
         } else {
-            node_name = node.var;
+            node_name = node.var.name;
             auto search = edge_names.find(node_name);
 
             // check no edge has same name
@@ -115,10 +115,10 @@ public:
 
     std::string process_edge(const std::string& graph_name, const ast::Edge& edge) {
         std::string edge_name;
-        if (edge.var.empty()) {
+        if (edge.var.name.empty()) {
             edge_name = "_e" + std::to_string(anonymous_var_count++);
         } else {
-            edge_name = edge.var;
+            edge_name = edge.var.name;
 
             auto search = node_names.find(edge_name);
 

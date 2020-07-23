@@ -43,6 +43,8 @@ namespace parser
         element = "element";
     x3::rule<class linear_pattern, ast::LinearPattern>
         linear_pattern = "linear_pattern";
+    x3::rule<class var, ast::Var>
+        var = "var";
     x3::rule<class node, ast::Node>
         node = "node";
     x3::rule<class edge, ast::Edge>
@@ -75,7 +77,7 @@ namespace parser
         (lexeme[no_case["and"]] >> attr(ast::And()) ) |  // add no_case?
         (lexeme[no_case["or"]]  >> attr(ast::Or()) );
 
-    auto const var =
+    auto const var_def =
         lexeme['?' >> +(alnum)];
 
     auto const key =
@@ -118,7 +120,7 @@ namespace parser
         lit('*') >> attr(ast::All()) | (element % ',');
 
     auto const statement_def =
-        element >> comparator >> (element | value);
+        (element | var) >> comparator >> (element | var | value);
 
     auto const condition_def =
         -(no_case["NOT"] >> attr(true)) >>
@@ -147,13 +149,13 @@ namespace parser
         (attr(false)) >> select_statement >> match_statement >> -(where_statement) >> -(limit_statement);
 
     auto const element_def =
-        (attr(std::string()) >> var >> '.' >> key) | // using attr("") won't work propertly
-        (func >> '(' >> var >> '.' >> key >> ')');
+        var >> '.' >> key;
 
     BOOST_SPIRIT_DEFINE(
         root,
         element,
         linear_pattern,
+        var,
         node,
         edge,
         property,

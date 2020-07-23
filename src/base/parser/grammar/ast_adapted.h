@@ -17,6 +17,10 @@ BOOST_FUSION_ADAPT_STRUCT(ast::StepPath,
     edge, node
 )
 
+BOOST_FUSION_ADAPT_STRUCT(ast::Var,
+    name
+)
+
 BOOST_FUSION_ADAPT_STRUCT(ast::Node,
     var, labels, properties
 )
@@ -30,7 +34,7 @@ BOOST_FUSION_ADAPT_STRUCT(ast::Property,
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::Element,
-    function, variable, key
+    var, key
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::Statement,

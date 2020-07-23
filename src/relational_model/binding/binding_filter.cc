@@ -18,8 +18,9 @@ std::string BindingFilter::to_string() const {
 }
 
 
-std::shared_ptr<GraphObject> BindingFilter::operator[](const std::string&) {
-    throw std::logic_error("Binding filter only intended to be used by get()");
+std::shared_ptr<GraphObject> BindingFilter::operator[](const std::string& var_name) {
+    // throw std::logic_error("Binding filter only intended to be used by get()");
+    return binding[var_name];
 }
 
 

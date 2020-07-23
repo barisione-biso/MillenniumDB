@@ -303,10 +303,4 @@ void BulkImport::set_property_stats(map<uint64_t, pair<uint64_t, uint64_t>>& m, 
     if (current_key != 0) {
         m.insert({ current_key, make_pair(key_count, distinct_values) });
     }
-
-    for (auto&&[k, v] : m) {
-        auto obj = ObjectId(k);
-        cout << k << " " << relational_model.get_graph_object(obj)->to_string() << ": " << "(" << v.first << ", " << v.second << ")\n";
-    }
-    cout << "----\n";
 }

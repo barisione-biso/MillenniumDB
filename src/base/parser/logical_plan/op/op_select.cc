@@ -16,7 +16,7 @@ OpSelect::OpSelect(const boost::variant<ast::All, vector<ast::Element>>& selecti
         auto& select_list = boost::get<vector<ast::Element>>(selection);
 
         for (auto& select_item : select_list) {
-            select_items.push_back({ select_item.variable, select_item.key });
+            select_items.push_back({ select_item.var.name, select_item.key });
         }
     }
 }

@@ -18,9 +18,13 @@ namespace ast
 
     typedef boost::variant<std::string, int64_t, float, bool> Value;
 
+    struct Var {
+        std::string name;
+        operator std::string() { return name; }
+    };
+
     struct Element {
-        std::string function; // If empty string then no function
-        std::string variable;
+        Var var;
         std::string key;
     };
 
@@ -32,14 +36,14 @@ namespace ast
     enum class EdgeDirection { right, left };
 
     struct Edge {
-        std::string var;
+        Var var;
         std::vector<std::string> labels;
         std::vector<Property> properties;
         EdgeDirection direction;
     };
 
     struct Node {
-        std::string var;
+        Var var;
         std::vector<std::string> labels;
         std::vector<Property> properties;
     };
@@ -75,9 +79,9 @@ namespace ast
     // }
 
     struct Statement {
-        Element lhs;
+        boost::variant<Var, Element> lhs;
         Comparator comparator;
-        boost::variant<Element, Value> rhs;
+        boost::variant<Var, Element, Value> rhs;
     };
 
     struct Formula;

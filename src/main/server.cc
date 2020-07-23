@@ -58,7 +58,8 @@ void execute_query(unique_ptr<BindingIter> root, TcpBuffer& tcp_buffer) {
     }
 
     // print execution stats
-    root->analyze();
+    cout << "\nPlan Executed:\n";
+    root->analyze(2);
     cout << "\n";
 
     auto end = chrono::system_clock::now();

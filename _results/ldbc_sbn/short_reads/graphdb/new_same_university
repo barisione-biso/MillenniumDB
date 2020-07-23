@@ -1,3 +1,3 @@
 SELECT ?p1.id, ?p2.id
 MATCH (?p1 :Person)-[:STUDY_AT]->(?u :Organisation {type:"university"})<-[:STUDY_AT]-(?p2 :Person)
-WHERE ?p1.id != ?p2.id
+WHERE ?p1 != ?p2

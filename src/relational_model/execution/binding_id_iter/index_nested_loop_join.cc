@@ -52,16 +52,16 @@ void IndexNestedLoopJoin::construct_binding() {
 
 
 void IndexNestedLoopJoin::analyze(int indent) const {
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << "IndexNestedLoopJoin(\n";
-    lhs->analyze(indent + 2);
+    // for (int i = 0; i < indent; ++i) {
+    //     cout << ' ';
+    // }
+    // cout << "IndexNestedLoopJoin(\n";
+    lhs->analyze(indent);
     cout << ",\n";
-    rhs->analyze(indent + 2);
-    cout << "\n";
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << ")";
+    rhs->analyze(indent);
+    // cout << "\n";
+    // for (int i = 0; i < indent; ++i) {
+    //     cout << ' ';
+    // }
+    // cout << ")";
 }
