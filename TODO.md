@@ -1,7 +1,10 @@
-- Para la presentación:
-    - Preparar consultas y correr en distintos motores.
-    - preparar scripts para correrlas en vivo
-    - tabla comparación resultados (4 combinaciones)-> select */proyeccion , con/sin WHERE !=
+- Consultas para mostrar default graph (BD con varios grafos)
+    - 3 consultas para mostrar que default = union
+- Mostrar q2
+ - mosatrar plan
+ - mostrar post stats
+- analisis con company/university
+- 15:00
 
 - Filtros con Id, pasar hacia Join
 

@@ -52,7 +52,7 @@ void execute_query(unique_ptr<BindingIter> root, TcpBuffer& tcp_buffer) {
     auto binding = root->next();
     int count = 0;
     while (binding != nullptr) {
-        // tcp_buffer << binding->to_string();
+        tcp_buffer << binding->to_string();
         binding = root->next();
         count++;
     }
