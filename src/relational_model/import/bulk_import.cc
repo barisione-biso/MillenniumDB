@@ -122,13 +122,6 @@ void BulkImport::start_import() {
     self_connected_nodes.order(std::array<uint_fast8_t, 2> { 1, 0 });
     relational_model.get_edge_nodeloop().bulk_import(self_connected_nodes);
 
-    // LABELED EDGES
-    labeled_edges.order(std::array<uint_fast8_t, 4> { 0, 1, 2, 3 });
-    relational_model.get_label_from_to_edge().bulk_import(labeled_edges);
-
-    labeled_edges.order(std::array<uint_fast8_t, 4> { 0, 2, 1, 3 });
-    relational_model.get_label_to_from_edge().bulk_import(labeled_edges);
-
     auto finish_creating_non_merging_index = chrono::system_clock::now();
     chrono::duration<float, milli> duration2 = finish_creating_non_merging_index - finish_reading_files;
     cout << "Writing non-merging indexes (7): " << duration2.count() << "ms\n";
@@ -141,6 +134,13 @@ void BulkImport::start_import() {
     // LABEL - EDGE
     edge_labels.order(std::array<uint_fast8_t, 2> { 1, 0 });
     merge_tree_and_ordered_file(relational_model.label2edge, edge_labels);
+
+    // LABELED EDGES
+    labeled_edges.order(std::array<uint_fast8_t, 4> { 0, 1, 2, 3 });
+    merge_tree_and_ordered_file(relational_model.label_from_to_edge, labeled_edges);
+
+    labeled_edges.order(std::array<uint_fast8_t, 4> { 0, 2, 1, 3 });
+    merge_tree_and_ordered_file(relational_model.label_to_from_edge, labeled_edges);
 
     // KEY - VALUE - NODE
     node_key_value.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });

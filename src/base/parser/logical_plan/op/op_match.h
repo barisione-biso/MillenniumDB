@@ -83,7 +83,8 @@ public:
                     + "\" has already been declared as an Edge and cannot be a Node");
             }
             // check graph name is the same
-            if (var_name2graph_name[node_name] != graph_name) {
+            auto graph_search = var_name2graph_name.find(node_name);
+            if (graph_search != var_name2graph_name.end() && graph_search->second != graph_name) {
                 throw QuerySemanticException("\"" + node_name + "\" has already been declared in graph '"
                     + var_name2graph_name[node_name]
                     + "' and cannot be declared in another graph (" + graph_name + ")");
@@ -128,7 +129,8 @@ public:
                     + "\" has already been declared as an Node and cannot be a Edge");
             }
             // check graph name is the same
-            if (var_name2graph_name[edge_name] != graph_name) {
+            auto graph_search = var_name2graph_name.find(edge_name);
+            if (graph_search != var_name2graph_name.end() && graph_search->second != graph_name) {
                 throw QuerySemanticException("\"" + edge_name + "\" has already been declared in graph '"
                     + var_name2graph_name[edge_name]
                     + "' and cannot be declared in another graph (" + graph_name + ")");
