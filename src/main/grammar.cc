@@ -45,7 +45,6 @@ int main(int argc, char **argv)
 
     ast::Root ast; // Our tree
 
-    using boost::spirit::x3::ascii::space;
     string::const_iterator iter = storage.begin();
     string::const_iterator end = storage.end();
     bool r = phrase_parse(iter, end, parser::root, parser::skipper, ast);

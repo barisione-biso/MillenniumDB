@@ -9,7 +9,6 @@
 namespace manual_plan_parser
 {
     namespace x3 = boost::spirit::x3;
-    namespace ascii = boost::spirit::x3::ascii;
 
     using x3::lit;
     using x3::lexeme;

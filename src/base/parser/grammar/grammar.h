@@ -9,7 +9,6 @@
 namespace parser
 {
     namespace x3 = boost::spirit::x3;
-    namespace ascii = boost::spirit::x3::ascii;
 
     using x3::lit;
     using x3::lexeme;
@@ -92,9 +91,20 @@ namespace parser
     auto const boolean =
         (lexeme[no_case["true"]] >> attr(true)) | lexeme[no_case["false"]] >> attr(false);
 
+    auto const escaped =
+        '\\' >> (
+            "n"  >> attr('\n') |
+            "t"  >> attr('\t') |
+            "b"  >> attr('\b') |
+            "f"  >> attr('\f') |
+            "r"  >> attr('\r') |
+            "\\" >> attr('\\') |
+            "\"" >> attr('\"')
+        );
+
     auto const string =
-        (lexeme['"' >> *(char_ - '"') >> '"']) |
-        (lexeme['\'' >> *(char_ - '\'') >> '\'']);
+    //(lexeme['"' >> *(char_ - '"') >> '"'])
+        no_skip['"' >> *((escaped | (char_ - '"'))) >> '"'];
 
     auto const value_def =
         string | float_ | int64 | boolean;
