@@ -1,5 +1,5 @@
 // Uncomment for parser debugging:
-// #define BOOST_SPIRIT_X3_DEBUG
+#define BOOST_SPIRIT_X3_DEBUG
 
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
