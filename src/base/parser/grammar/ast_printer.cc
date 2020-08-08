@@ -50,6 +50,13 @@ void ASTPrinter::operator()(ast::Root const& r) const {
     out << ",\n";
     printer.indent();
     printer(r.where);
+    out << ",\n";
+    printer.indent("\"LIMIT\":");
+    if (r.limit) {
+        out << r.limit.get();
+    } else {
+        out << 0;
+    }
     indent("\n}\n");
 }
 
@@ -100,6 +107,8 @@ void ASTPrinter::operator() (std::vector<ast::LinearPattern> const& graph_patter
 void ASTPrinter::operator() (ast::LinearPattern const& linear_pattern) const {
     out << "{\n";
     auto printer = ASTPrinter(out, base_indent+1);
+    printer.indent("\"GRAPH\": ");
+    out << '"' << linear_pattern.graph_name << '"'<< ",\n";
     printer.indent();
     printer(linear_pattern.root);
     for (auto const& step_path : linear_pattern.path) {
@@ -123,7 +132,7 @@ void ASTPrinter::operator() (ast::StepPath step_path) const {
 void ASTPrinter::operator() (ast::Node node) const {
     out << "\"NODE\": {\n";
     indent("\"VAR\": ", 1);
-    out << "\"" << node.var << "\",\n";
+    out << "\"" << node.var.name << "\",\n";
     indent("\"LABELS\": [", 1);
     auto label_iter = node.labels.begin();
     while (label_iter != node.labels.end()) {
@@ -169,7 +178,7 @@ void ASTPrinter::operator() (ast::Edge edge) const {
         out << "\"LEFT\",\n";
     }
     indent("\"VAR\": ", 1);
-    out << "\"" << edge.var << "\",\n";
+    out << "\"" << edge.var.name << "\",\n";
     indent("\"LABELS\": [", 1);
     auto label_iter = edge.labels.begin();
     while (label_iter != edge.labels.end()) {
@@ -207,14 +216,14 @@ void ASTPrinter::operator() (ast::Edge edge) const {
 
 void ASTPrinter::operator()(ast::Element const& element) const {
     out << "{\n";
-    if (!element.function.empty()) {
-        indent("\"FUNCTION\": \"", 1);
-        out << element.function << "\",\n";
-    }
+    // if (!element.function.empty()) {
+    //     indent("\"FUNCTION\": \"", 1);
+    //     out << element.function << "\",\n";
+    // }
     indent("\"KEY\": \"", 1);
     out << element.key << "\",\n";
     indent("\"VAR\": \"", 1);
-    out << element.variable << "\"\n";
+    out << element.var.name << "\"\n";
     indent("}");
 }
 
@@ -255,7 +264,7 @@ void ASTPrinter::operator()(ast::Condition const& condition) const {
 
 void ASTPrinter::operator()(ast::Statement const& statement) const {
     out << "\"LEFT\": ";
-    (*this)(statement.lhs);
+    boost::apply_visitor(*this, statement.lhs);
     out << ",\n";
     indent("\"COMPARATOR\": ");
     boost::apply_visitor(*this, statement.comparator);
@@ -284,8 +293,14 @@ void ASTPrinter::operator()(std::string const& text) const {
 }
 
 
+void ASTPrinter::operator()(ast::Var const& var) const {
+    out << "\"" << var.name << "\"";
+}
+
+
+
 void ASTPrinter::operator() (VarId const& var_id) const {out << "VarId(" << var_id.id << ")"; }
-void ASTPrinter::operator() (int const& n)        const {out << "(int)" << n; }
+void ASTPrinter::operator() (int64_t const& n)    const {out << "(int)" << n; }
 void ASTPrinter::operator() (float const& n)      const {out << "(float)" << n; }
 void ASTPrinter::operator() (ast::And const&)     const {out << "\"AND\""; }
 void ASTPrinter::operator() (ast::Or const&)      const {out << "\"OR\""; }

@@ -12,7 +12,14 @@ using namespace std;
 unique_ptr<OpSelect> Op::get_select_plan(ast::Root& ast) {
     unique_ptr<Op> op_match = make_unique<OpMatch>(ast.graph_pattern);
     unique_ptr<Op> op_filter = make_unique<OpFilter>(ast.where, move(op_match));
-    return make_unique<OpSelect>(ast.selection, move(op_filter));
+    int_fast32_t limit = 0;
+    if (ast.limit) {
+        limit = ast.limit.get();
+        if (limit <= 0) {
+            throw QuerySemanticException("LIMIT must be a positive number");
+        }
+    }
+    return make_unique<OpSelect>(ast.selection, move(op_filter), limit);
 }
 
 
@@ -32,7 +39,7 @@ unique_ptr<OpSelect> Op::get_select_plan(string query) {
         return res;
     }
     else {
-        throw ParsingException();
+        throw QueryParsingException();
     }
 }
 

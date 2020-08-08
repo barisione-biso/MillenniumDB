@@ -3,10 +3,14 @@
 
 #include "storage/index/record.h"
 
+template <std::size_t N>
 struct BPlusTreeSplit {
-    BPlusTreeSplit(Record record, int encoded_page_number)
-        : record(record), encoded_page_number(encoded_page_number) { }
-    Record record;
+    BPlusTreeSplit(Record<N> record, int encoded_page_number) :
+        record(record),
+        encoded_page_number(encoded_page_number) { }
+
+    Record<N> record;
+    // positive number: pointer to leaf, negative number: pointer to dir
     int encoded_page_number;
 };
 

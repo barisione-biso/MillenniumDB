@@ -9,13 +9,13 @@
 namespace parser
 {
     namespace x3 = boost::spirit::x3;
-    namespace ascii = boost::spirit::x3::ascii;
 
     using x3::lit;
     using x3::lexeme;
     using x3::no_case;
     using x3::alnum;
     using x3::graph;
+    using x3::int64;
     using x3::int32;
     // using x3::float_;
     x3::real_parser<float, x3::strict_real_policies<float> > const float_ = {};
@@ -28,11 +28,12 @@ namespace parser
     using x3::eoi;
     // using x3::string;
 
-    using ascii::char_;
+    using x3::char_;
+
+    auto const line_skipper = "//" >> *(char_ - eol) >> (eol | eoi);
 
     // Declare skipper
-    auto const skipper =
-        space | "//" >> *(char_ - eol) >> (eol | eoi);
+    auto const skipper = space | line_skipper;
 
     // Declare rules
     x3::rule<class root, ast::Root>
@@ -41,6 +42,8 @@ namespace parser
         element = "element";
     x3::rule<class linear_pattern, ast::LinearPattern>
         linear_pattern = "linear_pattern";
+    x3::rule<class var, ast::Var>
+        var = "var";
     x3::rule<class node, ast::Node>
         node = "node";
     x3::rule<class edge, ast::Edge>
@@ -73,7 +76,7 @@ namespace parser
         (lexeme[no_case["and"]] >> attr(ast::And()) ) |  // add no_case?
         (lexeme[no_case["or"]]  >> attr(ast::Or()) );
 
-    auto const var =
+    auto const var_def =
         lexeme['?' >> +(alnum)];
 
     auto const key =
@@ -88,12 +91,23 @@ namespace parser
     auto const boolean =
         (lexeme[no_case["true"]] >> attr(true)) | lexeme[no_case["false"]] >> attr(false);
 
+    auto const escaped =
+        '\\' >> (
+            "n"  >> attr('\n') |
+            "t"  >> attr('\t') |
+            "b"  >> attr('\b') |
+            "f"  >> attr('\f') |
+            "r"  >> attr('\r') |
+            "\\" >> attr('\\') |
+            "\"" >> attr('\"')
+        );
+
     auto const string =
-        (lexeme['"' >> *(char_ - '"') >> '"']) |
-        (lexeme['\'' >> *(char_ - '\'') >> '\'']);
+    //(lexeme['"' >> *(char_ - '"') >> '"'])
+        no_skip['"' >> *((escaped | (char_ - '"'))) >> '"'];
 
     auto const value_def =
-        string | float_ | int32 | boolean;
+        string | float_ | int64 | boolean;
 
     auto const property_def =
         key >> ':' >> value;
@@ -116,7 +130,7 @@ namespace parser
         lit('*') >> attr(ast::All()) | (element % ',');
 
     auto const statement_def =
-        element >> comparator >> (element | value);
+        (element | var) >> comparator >> (element | var | value);
 
     auto const condition_def =
         -(no_case["NOT"] >> attr(true)) >>
@@ -137,18 +151,21 @@ namespace parser
     auto const where_statement =
         no_case["where"] >> formula;
 
+    auto const limit_statement =
+        no_case["limit"] >> int32;
+
     auto const root_def =
-        (no_case["explain"] >> attr(true)) >> select_statement >> match_statement >> -(where_statement) |
-        (attr(false)) >> select_statement >> match_statement >> -(where_statement);
+        (no_case["explain"] >> attr(true)) >> select_statement >> match_statement >> -(where_statement) >> -(limit_statement) |
+        (attr(false)) >> select_statement >> match_statement >> -(where_statement) >> -(limit_statement);
 
     auto const element_def =
-        (attr(std::string()) >> var >> '.' >> key) | // using attr("") won't work propertly
-        (func >> '(' >> var >> '.' >> key >> ')');
+        var >> '.' >> key;
 
     BOOST_SPIRIT_DEFINE(
         root,
         element,
         linear_pattern,
+        var,
         node,
         edge,
         property,

@@ -1,10 +1,6 @@
 #ifndef BASE__AST_H_
 #define BASE__AST_H_
 
-#include "base/ids/graph_id.h"
-#include "base/ids/var_id.h"
-
-#include <iostream>
 #include <string>
 
 #include <boost/variant.hpp>
@@ -13,16 +9,22 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
+#include "base/ids/graph_id.h"
+#include "base/ids/var_id.h"
 
 namespace ast
 {
     namespace x3 = boost::spirit::x3;
 
-    typedef boost::variant<std::string, int, float, bool> Value;
+    typedef boost::variant<std::string, int64_t, float, bool> Value;
+
+    struct Var {
+        std::string name;
+        operator std::string() { return name; }
+    };
 
     struct Element {
-        std::string function; // If empty string then no function
-        std::string variable;
+        Var var;
         std::string key;
     };
 
@@ -34,14 +36,14 @@ namespace ast
     enum class EdgeDirection { right, left };
 
     struct Edge {
-        std::string var;
+        Var var;
         std::vector<std::string> labels;
         std::vector<Property> properties;
         EdgeDirection direction;
     };
 
     struct Node {
-        std::string var;
+        Var var;
         std::vector<std::string> labels;
         std::vector<Property> properties;
     };
@@ -77,9 +79,9 @@ namespace ast
     // }
 
     struct Statement {
-        Element lhs;
+        boost::variant<Var, Element> lhs;
         Comparator comparator;
-        boost::variant<Element, Value> rhs;
+        boost::variant<Var, Element, Value> rhs;
     };
 
     struct Formula;
@@ -112,6 +114,7 @@ namespace ast
         boost::variant<All, std::vector<Element>> selection;
         std::vector<LinearPattern> graph_pattern;
         boost::optional<Formula> where;
+        boost::optional<int> limit;
     };
 }
 

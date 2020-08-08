@@ -1,0 +1,10 @@
+MATCH (n:Person {id:"30786325583618"})-[:IS_LOCATED_IN]->(p:Place)
+RETURN
+  n.firstName,
+  n.lastName,
+  n.birthday,
+  n.locationIP,
+  n.browserUsed,
+  p.id,
+  n.gender,
+  n.creationDate;

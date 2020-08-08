@@ -6,6 +6,7 @@
 #include "base/ids/graph_id.h"
 #include "base/ids/var_id.h"
 
+#include <set>
 #include <map>
 
 class BindingFilter : public Binding {
@@ -14,16 +15,18 @@ private:
     Binding& binding;
     std::map<std::string, std::shared_ptr<GraphObject>> cache;
     std::map<std::string, GraphId>& var2graph_id;
-    std::map<std::string, ObjectType>& element_types;
+    std::set<std::string>& node_names;
+    std::set<std::string>& edge_names;
 
 public:
     BindingFilter(Binding& binding, std::map<std::string, GraphId>& var2graph_id,
-                  std::map<std::string, ObjectType>& element_types);
+                  std::set<std::string>& node_names, std::set<std::string>& edge_names);
     ~BindingFilter() = default;
 
-    void print() const;
-    std::shared_ptr<GraphObject> operator[](const std::string& var);
-    std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key);
+    std::string to_string() const override;
+
+    std::shared_ptr<GraphObject> operator[](const std::string& var) override;
+    std::shared_ptr<GraphObject> get(const std::string& var, const std::string& key) override;
 };
 
 #endif // RELATIONAL_MODEL__BINDING_FILTER_H_

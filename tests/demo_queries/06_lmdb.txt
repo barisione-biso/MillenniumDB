@@ -1,0 +1,3 @@
+SELECT ?f.title, ?a.actor_name
+MATCH (?f :film)-[:actor]->(?a :Person)
+// 194649 results

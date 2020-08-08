@@ -1,0 +1,57 @@
+Reading files & writing ordered file: 153734ms
+Writing non-merging indexes (7): 26433.3ms
+Writing merging indexes (6): 33359.3ms
+Bulk Import duration: 213527ms
+        Command being timed: "build/Release/bin/import_graph -d test_files/sbn01 -n test_files/snb01/nodes.txt -e test_files/snb01/edges.txt -g snb"
+        User time (seconds): 148.12
+        System time (seconds): 64.83
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 3:33.88
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 1280664
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 8
+        Minor (reclaiming a frame) page faults: 318995
+        Voluntary context switches: 154
+        Involuntary context switches: 840
+        Swaps: 0
+        File system inputs: 3236784
+        File system outputs: 34350160
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+Sin Hash:
+    Reading files & writing ordered file:  153.734 ms
+    Writing non-merging indexes (7):        26.433 ms
+    Writing merging indexes (6):            33.359 ms => TOTAL : 213.526 ms
+    tamaño BD: 3,8G
+
+Using hash (global depth = 20)
+    Reading files & writing ordered file:  177.574 ms
+    Writing non-merging indexes (7):        30.971 ms
+    Writing merging indexes (6):            36.026 ms => TOTAL : 244.571 ms
+    tamaño BD: 7,7G
+
+Using hash (global depth = 18)
+    Reading files & writing ordered file:  115.277 ms
+    Writing non-merging indexes (7):        28.817 ms
+    Writing merging indexes (6):            35.658 ms => TOTAL : 179.752 ms
+    tamaño BD: 4,7G
+
+Using hash (global depth = 17)
+    Reading files & writing ordered file:  114.184 ms
+    Writing non-merging indexes (7):        28.439 ms
+    Writing merging indexes (6):            36.144 ms => TOTAL : 178.767 ms
+    tamaño BD: 4,2G
+
+Using hash (global depth = 16)
+    Reading files & writing ordered file:  112.787 ms
+    Writing non-merging indexes (7):        29.041 ms
+    Writing merging indexes (6):            35.707 ms => TOTAL : 177.535 ms
+    tamaño BD: total 4,0G

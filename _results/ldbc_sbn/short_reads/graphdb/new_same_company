@@ -1,0 +1,3 @@
+SELECT ?p1.id, ?p2.id
+MATCH (?p1 :Person)-[:WORK_AT]->(?c :Organisation {type:"company"})<-[:WORK_AT]-(?p2 :Person)
+WHERE ?p1 != ?p2

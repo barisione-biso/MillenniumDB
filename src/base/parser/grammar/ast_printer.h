@@ -38,9 +38,10 @@ public:
     void operator() (ast::StepFormula const&) const;
     void operator() (ast::Value const&) const;
 
+    void operator() (ast::Var const&) const;
     void operator() (std::string const&) const;
     void operator() (VarId    const&) const;
-    void operator() (int      const&) const;
+    void operator() (int64_t  const&) const;
     void operator() (float    const&) const;
     void operator() (bool     const&) const;
     void operator() (ast::And const&) const;

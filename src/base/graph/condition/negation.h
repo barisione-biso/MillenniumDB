@@ -1,10 +1,9 @@
 #ifndef BASE__NEGATION_H_
 #define BASE__NEGATION_H_
 
-#include "base/graph/condition/condition.h"
-
 #include <memory>
-#include <iostream>
+
+#include "base/graph/condition/condition.h"
 
 class Negation : public Condition {
 public:
@@ -21,9 +20,9 @@ public:
         return ConditionType::negation;
     }
 
-    void check_names(std::map<std::string, ObjectType>& m) {
-        condition->check_names(m);
+    void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) {
+        condition->check_names(node_names, edge_names);
     }
 };
 
-#endif //BASE__NEGATION_H_
+#endif // BASE__NEGATION_H_

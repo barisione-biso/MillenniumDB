@@ -30,9 +30,8 @@ unique_ptr<vector<unsigned char>> ObjectFile::read(uint64_t id) {
 
     // check sanity
     if (file.eof()) {
-        cout << "OBJECT FILE ERROR: tried to read inexistent object.\n";
         file.clear(); // important to clear, otherwise following calls to this method will throw same error.
-        return value;
+        throw runtime_error("OBJECT FILE ERROR: tried to read inexistent object");
     }
 
     file.read((char*) value->data(), length);

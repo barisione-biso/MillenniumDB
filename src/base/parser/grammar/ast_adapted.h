@@ -6,7 +6,7 @@
 #include <boost/fusion/include/adapt_struct.hpp>
 
 BOOST_FUSION_ADAPT_STRUCT(ast::Root,
-    explain, selection, graph_pattern, where
+    explain, selection, graph_pattern, where, limit
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::LinearPattern,
@@ -15,6 +15,10 @@ BOOST_FUSION_ADAPT_STRUCT(ast::LinearPattern,
 
 BOOST_FUSION_ADAPT_STRUCT(ast::StepPath,
     edge, node
+)
+
+BOOST_FUSION_ADAPT_STRUCT(ast::Var,
+    name
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::Node,
@@ -30,7 +34,7 @@ BOOST_FUSION_ADAPT_STRUCT(ast::Property,
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::Element,
-    function, variable, key
+    var, key
 )
 
 BOOST_FUSION_ADAPT_STRUCT(ast::Statement,

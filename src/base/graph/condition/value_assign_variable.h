@@ -7,22 +7,25 @@
 class ValueAssignVariable : public ValueAssign {
 private:
     std::string var;
-    std::string key;
+
 public:
-    ValueAssignVariable(std::string var, std::string key)
-        : var(std::move(var)), key(std::move(key)) { }
+    ValueAssignVariable(std::string var) :
+        var(std::move(var)) { }
     ~ValueAssignVariable() = default;
 
     std::shared_ptr<GraphObject> get_value(Binding& binding) {
-        return binding.get(var, key);
+        return binding[var];
     }
 
-    void check_names(std::map<std::string, ObjectType>& m) {
-        auto search = m.find(var);
-        if (search == m.end()) {
-            throw QuerySemanticException("Variable \"" + var + "\" used in WHERE is not declared in MATCH");
+    void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) {
+        auto node_search = node_names.find(var);
+        if (node_search == node_names.end()) {
+            auto edge_search = edge_names.find(var);
+            if (edge_search == edge_names.end()) {
+                throw QuerySemanticException("Variable \"" + var + "\" used in WHERE is not declared in MATCH");
+            }
         }
     }
 };
 
-#endif //BASE__VALUE_ASSIGN_VARIABLE_H_
+#endif // BASE__VALUE_ASSIGN_VARIABLE_H_
