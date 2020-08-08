@@ -26,11 +26,6 @@ BPlusTreeDir<N>::BPlusTreeDir(FileId const leaf_file_id, Page& page) :
     children  = reinterpret_cast<int*>(page.get_bytes()
                                        + sizeof(int)
                                        + (sizeof(uint64_t) * BPlusTree<N>::dir_max_records * N));
-
-    // if (page.pins > 1) {
-    //     throw logic_error("Why are there 2 instances of the same node?");
-    // }
-    assert(page.pins == 1 && "Why are there 2 instances of the same node?");
 }
 
 

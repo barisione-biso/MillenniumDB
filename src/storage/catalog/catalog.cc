@@ -26,6 +26,7 @@ Catalog::Catalog() {
         node_property_count  = vector<uint64_t>(1);
 
         edge_count           = vector<uint64_t>(1);
+        node_loop_count      = vector<uint64_t>(1);
         edge_label_count     = vector<uint64_t>(1);
         edge_property_count  = vector<uint64_t>(1);
 
@@ -39,6 +40,7 @@ Catalog::Catalog() {
         node_property_count[0]  = 0;
 
         edge_count[0]           = 0;
+        node_loop_count[0]      = 0;
         edge_label_count[0]     = 0;
         edge_property_count[0]  = 0;
 
@@ -61,6 +63,7 @@ Catalog::Catalog() {
         node_property_count  = vector<uint64_t>(graph_count + 1);
 
         edge_count           = vector<uint64_t>(graph_count + 1);
+        node_loop_count      = vector<uint64_t>(graph_count + 1);
         edge_label_count     = vector<uint64_t>(graph_count + 1);
         edge_property_count  = vector<uint64_t>(graph_count + 1);
 
@@ -85,6 +88,7 @@ Catalog::Catalog() {
             auto node_distinct_keys     = read_uint64();
 
             edge_count[graph]           = read_uint64();
+            node_loop_count[graph]      = read_uint64();
             edge_label_count[graph]     = read_uint64();
             edge_property_count[graph]  = read_uint64();
             auto edge_distinct_labels   = read_uint64();
@@ -157,6 +161,7 @@ GraphId Catalog::create_graph(const string& graph_name) {
     node_property_count.push_back(0);
 
     edge_count.push_back(0);
+    node_loop_count.push_back(0);
     edge_label_count.push_back(0);
     edge_property_count.push_back(0);
 
@@ -188,6 +193,7 @@ void Catalog::flush() {
         write_uint64(node_key_stats[graph].size());
 
         write_uint64(edge_count[graph]);
+        write_uint64(node_loop_count[graph]);
         write_uint64(edge_label_count[graph]);
         write_uint64(edge_property_count[graph]);
         write_uint64(edge_label_stats[graph].size());
@@ -225,6 +231,7 @@ void Catalog::print() {
         cout << "  node disinct keys:   " << node_key_stats[graph].size() << endl;
 
         cout << "  edge count:          " << edge_count[graph] << endl;
+        cout << "  node_loop count:     " << node_loop_count[graph] << endl;
         cout << "  edge labels:         " << edge_label_count[graph] << endl;
         cout << "  edge properties:     " << edge_property_count[graph] << endl;
         cout << "  edge disinct labels: " << edge_label_stats[graph].size() << endl;
