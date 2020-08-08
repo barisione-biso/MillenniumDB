@@ -39,8 +39,6 @@
 
 - Proyeccion de properties en manual plan
 
-- BUG en NodeLoop si el B+Tree esta vacío
-
 - optimizar BPT?:
     - usar solo 2 (1?) bytes para key_count
 ____________________________________________________________________
