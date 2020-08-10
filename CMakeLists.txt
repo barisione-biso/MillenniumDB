@@ -10,7 +10,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY bin)
 
 # set the project name and version
-project(GraphDB VERSION 0.1)
+project(MilleniumDB VERSION 0.1)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Og -g3 -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -O3 -g0 -pthread")
@@ -22,7 +22,7 @@ file(GLOB_RECURSE SRCS src/*.cc)
 set(sources ${SRCS})
 list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/*)
 list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/*)
-add_library(graphdb STATIC ${sources})
+add_library(milleniumdb STATIC ${sources})
 
 set(BUILD_TARGETS
     import_graph
@@ -38,11 +38,11 @@ set(TEST_TARGETS
 
 foreach(target ${BUILD_TARGETS})
     add_executable(${target} ${CMAKE_SOURCE_DIR}/src/main/${target}.cc)
-    target_link_libraries(${target} graphdb stdc++fs boost_program_options boost_system)
+    target_link_libraries(${target} milleniumdb stdc++fs boost_program_options boost_system)
 endforeach(target)
 
 foreach(target ${TEST_TARGETS})
     add_executable(${target} ${CMAKE_SOURCE_DIR}/src/tests/${target}.cc)
-    target_link_libraries(${target} graphdb stdc++fs boost_program_options boost_system)
+    target_link_libraries(${target} milleniumdb stdc++fs boost_program_options boost_system)
     # add_test(NAME ${target} COMMAND ${target})
 endforeach(target)

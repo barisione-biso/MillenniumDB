@@ -4,8 +4,8 @@ BENCHMARK_FOLDER=/home/crojas/Documents/IMFD/Benchmark
 JENA_FOLDER=$BENCHMARK_FOLDER/apache-jena-3.15.0
 NEO4J_FOLDER=$BENCHMARK_FOLDER/neo4j-community-3.5.18
 RDF3X_FOLDER=$BENCHMARK_FOLDER/gh-rdf3x
-GRAPHDB_FOLDER=/home/crojas/GraphDB
-QUERIES_FOLDER=$GRAPHDB_FOLDER/ldbc_sbn/short_reads
+MILLENIUM_DB_FOLDER=/home/crojas/MilleniumDB
+QUERIES_FOLDER=$MILLENIUM_DB_FOLDER/ldbc_sbn/short_reads
 
 ## APACHE JENA
 # start fuseki server for Apache Jena
@@ -51,15 +51,15 @@ kill $FUSEKI_PID
 #     done
 # done
 
-$GRAPHDB_FOLDER/build/Release/bin/server -d $GRAPHDB_FOLDER/test_files/db  > /dev/null 2>&1 & disown
+$MILLENIUM_DB_FOLDER/build/Release/bin/server -d $MILLENIUM_DB_FOLDER/test_files/db  > /dev/null 2>&1 & disown
 GRAPH_DB_SERVER_PID=$!
 echo Graph server runing at pid $GRAPH_DB_SERVER_PID
 for (( c=1; c<=10; c++ ))
 do
-   for file in $QUERIES_FOLDER/graphdb/q*; do
+   for file in $QUERIES_FOLDER/millenium_db/q*; do
         sleep 5
         ts=$(date +%s%N)
-        $GRAPHDB_FOLDER/build/Release/bin/query $file > /dev/null
+        $MILLENIUM_DB_FOLDER/build/Release/bin/query $file > /dev/null
         tt=$((($(date +%s%N) - $ts)/1000000))
         name=$(basename $file)
         echo "$name: $tt ms"
