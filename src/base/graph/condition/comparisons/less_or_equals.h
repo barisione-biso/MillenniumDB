@@ -5,8 +5,8 @@
 
 class LessOrEquals : public Comparison {
 public:
-    LessOrEquals(ast::Statement const& statement)
-        : Comparison(statement) { }
+    LessOrEquals(query_ast::Statement const& statement) :
+        Comparison(statement) { }
 
     bool compare(GraphObject& lhs, GraphObject& rhs) override {
         return lhs <= rhs;

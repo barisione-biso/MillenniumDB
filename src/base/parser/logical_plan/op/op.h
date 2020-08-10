@@ -7,14 +7,14 @@
 #include <memory>
 #include <iostream>
 
-#include "base/parser/grammar/ast_printer.h"
+#include "base/parser/grammar/query/query_ast.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 
 class OpSelect;
 
 class Op {
 private:
-    static std::unique_ptr<OpSelect> get_select_plan(ast::Root& ast);
+    static std::unique_ptr<OpSelect> get_select_plan(query_ast::Root& ast);
     static void check_select_plan(OpSelect& op_select);
 
 public:

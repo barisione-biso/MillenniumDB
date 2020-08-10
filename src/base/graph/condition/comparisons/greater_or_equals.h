@@ -5,8 +5,8 @@
 
 class GreaterOrEquals : public Comparison {
 public:
-    GreaterOrEquals(ast::Statement const& statement)
-        : Comparison(statement) { }
+    GreaterOrEquals(query_ast::Statement const& statement) :
+        Comparison(statement) { }
 
     bool compare(GraphObject& lhs, GraphObject& rhs) override {
         return lhs >= rhs;

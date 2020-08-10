@@ -1,5 +1,5 @@
-#ifndef BASE__AST_H_
-#define BASE__AST_H_
+#ifndef BASE__QUERY_AST_H_
+#define BASE__QUERY_AST_H_
 
 #include <string>
 
@@ -9,28 +9,15 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
-#include "base/ids/graph_id.h"
-#include "base/ids/var_id.h"
+#include "base/parser/grammar/common/common_ast.h"
 
-namespace ast
-{
+namespace query_ast {
     namespace x3 = boost::spirit::x3;
-
-    typedef boost::variant<std::string, int64_t, float, bool> Value;
-
-    struct Var {
-        std::string name;
-        operator std::string() { return name; }
-    };
+    using namespace ast;
 
     struct Element {
         Var var;
         std::string key;
-    };
-
-    struct Property {
-        std::string key;
-        Value value;
     };
 
     enum class EdgeDirection { right, left };
@@ -54,7 +41,6 @@ namespace ast
     };
 
     struct LinearPattern {
-        // GraphId graph_id;
         Node root;
         std::vector<StepPath> path;
         std::string graph_name;
@@ -73,10 +59,6 @@ namespace ast
     struct LE { };
 
     typedef boost::variant<EQ, NE, GT, LT, GE, LE> Comparator;
-
-    // struct valueWrap {
-    //     boost::variant<element, value> value_
-    // }
 
     struct Statement {
         boost::variant<Var, Element> lhs;
@@ -118,4 +100,4 @@ namespace ast
     };
 }
 
-#endif // BASE__AST_H_
+#endif // BASE__QUERY_AST_H_

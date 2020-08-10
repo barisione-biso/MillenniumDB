@@ -380,9 +380,10 @@ void Catalog::set_node_properties_stats(GraphId graph_id, uint64_t property_coun
     assert(graph_id != 0 && "shouldn't call set_node_properties_stats for default graph");
     node_property_count[0] += property_count;
     node_property_count[graph_id] = property_count;
+
     node_key_stats[graph_id] = move(m);
-    // TODO: default graph stats
-    node_key_stats[0] = node_key_stats[graph_id];
+    node_key_stats[0] = node_key_stats[graph_id]; // TODO:  this is ovewriting previous values
+                                                  // will cause problems if more than one graph is loaded
 }
 
 
@@ -392,10 +393,10 @@ void Catalog::set_edge_properties_stats(GraphId graph_id, uint64_t property_coun
     assert(graph_id != 0 && "shouldn't call set_edge_properties_stats for default graph");
     edge_property_count[0] += property_count;
     edge_property_count[graph_id] = property_count;
-    edge_key_stats[graph_id] = move(m);
-    // TODO: default graph stats
-    edge_key_stats[0] = edge_key_stats[graph_id];
 
+    edge_key_stats[graph_id] = move(m);
+    edge_key_stats[0] = edge_key_stats[graph_id]; // TODO:  this is ovewriting previous values
+                                                  // will cause problems if more than one graph is loaded
 }
 
 

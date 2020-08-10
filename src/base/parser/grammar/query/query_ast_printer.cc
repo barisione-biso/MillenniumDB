@@ -1,4 +1,4 @@
-#include "ast_printer.h"
+#include "query_ast_printer.h"
 
 /*
  * Each operator() overload should not begin nor end with whitespaces
@@ -6,14 +6,16 @@
  * new line (if necesary) after the call.
  */
 
-ASTPrinter::ASTPrinter(std::ostream& out)
+using namespace query_ast;
+
+QueryAstPrinter::QueryAstPrinter(std::ostream& out)
     : out(out), base_indent(0) {}
 
-ASTPrinter::ASTPrinter(std::ostream& out, int_fast32_t base_indent)
+QueryAstPrinter::QueryAstPrinter(std::ostream& out, int_fast32_t base_indent)
     : out(out), base_indent(base_indent) {}
 
 
-void ASTPrinter::indent(std::string str) const {
+void QueryAstPrinter::indent(std::string str) const {
     int_fast32_t spaces = base_indent * tab_size;
     for (int_fast32_t i = 0; i < spaces; i++) {
         out << " ";
@@ -22,7 +24,7 @@ void ASTPrinter::indent(std::string str) const {
 }
 
 
-void ASTPrinter::indent() const {
+void QueryAstPrinter::indent() const {
     int_fast32_t spaces = base_indent * tab_size;
     for (int_fast32_t i = 0; i < spaces; i++) {
         out << " ";
@@ -30,7 +32,7 @@ void ASTPrinter::indent() const {
 }
 
 
-void ASTPrinter::indent(std::string str, int_fast32_t extra_indent) const {
+void QueryAstPrinter::indent(std::string str, int_fast32_t extra_indent) const {
     int_fast32_t spaces = (base_indent + extra_indent) * tab_size;
     for (int_fast32_t i = 0; i < spaces; i++) {
         out << " ";
@@ -39,9 +41,9 @@ void ASTPrinter::indent(std::string str, int_fast32_t extra_indent) const {
 }
 
 
-void ASTPrinter::operator()(ast::Root const& r) const {
+void QueryAstPrinter::operator()(Root const& r) const {
     indent("{\n");
-    auto printer = ASTPrinter(out, base_indent+1);
+    auto printer = QueryAstPrinter(out, base_indent+1);
     printer.indent();
     boost::apply_visitor(printer, r.selection);
     out << ",\n";
@@ -61,9 +63,9 @@ void ASTPrinter::operator()(ast::Root const& r) const {
 }
 
 
-void ASTPrinter::operator()(std::vector<ast::Element> const& select) const {
+void QueryAstPrinter::operator()(std::vector<Element> const& select) const {
     out << "\"SELECT\": [\n";
-    auto printer = ASTPrinter(out, base_indent+1);
+    auto printer = QueryAstPrinter(out, base_indent+1);
     auto it = select.begin();
     while (it != select.end()) {
         printer.indent();
@@ -80,14 +82,14 @@ void ASTPrinter::operator()(std::vector<ast::Element> const& select) const {
 }
 
 
-void ASTPrinter::operator() (ast::All const&) const {
+void QueryAstPrinter::operator() (All const&) const {
     out << "\"SELECT\": \"<ALL>\"";
 }
 
 
-void ASTPrinter::operator() (std::vector<ast::LinearPattern> const& graph_pattern) const {
+void QueryAstPrinter::operator() (std::vector<LinearPattern> const& graph_pattern) const {
     out << "\"MATCH\": [\n";
-    auto printer = ASTPrinter(out, base_indent+1);
+    auto printer = QueryAstPrinter(out, base_indent+1);
     auto it = graph_pattern.begin();
     while (it != graph_pattern.end()) {
         printer.indent();
@@ -104,9 +106,9 @@ void ASTPrinter::operator() (std::vector<ast::LinearPattern> const& graph_patter
 }
 
 
-void ASTPrinter::operator() (ast::LinearPattern const& linear_pattern) const {
+void QueryAstPrinter::operator() (LinearPattern const& linear_pattern) const {
     out << "{\n";
-    auto printer = ASTPrinter(out, base_indent+1);
+    auto printer = QueryAstPrinter(out, base_indent+1);
     printer.indent("\"GRAPH\": ");
     out << '"' << linear_pattern.graph_name << '"'<< ",\n";
     printer.indent();
@@ -121,7 +123,7 @@ void ASTPrinter::operator() (ast::LinearPattern const& linear_pattern) const {
 }
 
 
-void ASTPrinter::operator() (ast::StepPath step_path) const {
+void QueryAstPrinter::operator() (StepPath step_path) const {
     (*this)(step_path.edge);
     out << ",\n";
     indent();
@@ -129,7 +131,7 @@ void ASTPrinter::operator() (ast::StepPath step_path) const {
 }
 
 
-void ASTPrinter::operator() (ast::Node node) const {
+void QueryAstPrinter::operator() (Node node) const {
     out << "\"NODE\": {\n";
     indent("\"VAR\": ", 1);
     out << "\"" << node.var.name << "\",\n";
@@ -168,10 +170,10 @@ void ASTPrinter::operator() (ast::Node node) const {
 }
 
 
-void ASTPrinter::operator() (ast::Edge edge) const {
+void QueryAstPrinter::operator() (Edge edge) const {
     out << "\"EDGE\": {\n";
     indent("\"DIRECTION\": ", 1);
-    if (edge.direction == ast::EdgeDirection::right) {
+    if (edge.direction == EdgeDirection::right) {
         out << "\"RIGHT\",\n";
     }
     else {
@@ -214,7 +216,7 @@ void ASTPrinter::operator() (ast::Edge edge) const {
 }
 
 
-void ASTPrinter::operator()(ast::Element const& element) const {
+void QueryAstPrinter::operator()(Element const& element) const {
     out << "{\n";
     // if (!element.function.empty()) {
     //     indent("\"FUNCTION\": \"", 1);
@@ -228,11 +230,11 @@ void ASTPrinter::operator()(ast::Element const& element) const {
 }
 
 
-void ASTPrinter::operator()(boost::optional<ast::Formula> const& where) const {
+void QueryAstPrinter::operator()(boost::optional<Formula> const& where) const {
     out << "\"FORMULA\": {\n";
     if (where) {
-        ast::Formula formula = static_cast<ast::Formula>(where.get());
-        auto printer = ASTPrinter(out, base_indent+1);
+        Formula formula = static_cast<Formula>(where.get());
+        auto printer = QueryAstPrinter(out, base_indent+1);
         printer.indent();
         printer(formula.root);
         for (const auto& step_formula : formula.path) {
@@ -246,7 +248,7 @@ void ASTPrinter::operator()(boost::optional<ast::Formula> const& where) const {
 }
 
 
-void ASTPrinter::operator()(ast::Condition const& condition) const {
+void QueryAstPrinter::operator()(Condition const& condition) const {
     if (condition.negation) {
         out << "\"NOT CONDITION\": {\n";
     }
@@ -254,7 +256,7 @@ void ASTPrinter::operator()(ast::Condition const& condition) const {
     else {
         out << "\"CONDITION\": {\n";
     }
-    auto printer = ASTPrinter(out, base_indent+1);
+    auto printer = QueryAstPrinter(out, base_indent+1);
     printer.indent();
     boost::apply_visitor(printer, condition.content);
     out << "\n";
@@ -262,7 +264,7 @@ void ASTPrinter::operator()(ast::Condition const& condition) const {
 }
 
 
-void ASTPrinter::operator()(ast::Statement const& statement) const {
+void QueryAstPrinter::operator()(Statement const& statement) const {
     out << "\"LEFT\": ";
     boost::apply_visitor(*this, statement.lhs);
     out << ",\n";
@@ -274,7 +276,7 @@ void ASTPrinter::operator()(ast::Statement const& statement) const {
 }
 
 
-void ASTPrinter::operator()(ast::StepFormula const& step_formula) const {
+void QueryAstPrinter::operator()(StepFormula const& step_formula) const {
     out << "\"CONNECTOR\": ";
     boost::apply_visitor(*this, step_formula.op);
     out << ",\n";
@@ -283,36 +285,35 @@ void ASTPrinter::operator()(ast::StepFormula const& step_formula) const {
 }
 
 
-void ASTPrinter::operator()(ast::Value const& v) const {
+void QueryAstPrinter::operator()(Value const& v) const {
     boost::apply_visitor(*this, v);
 }
 
 
-void ASTPrinter::operator()(std::string const& text) const {
+void QueryAstPrinter::operator()(std::string const& text) const {
     out << "\"" << text << "\"";
 }
 
 
-void ASTPrinter::operator()(ast::Var const& var) const {
+void QueryAstPrinter::operator()(Var const& var) const {
     out << "\"" << var.name << "\"";
 }
 
 
+void QueryAstPrinter::operator() (VarId const& var_id) const {out << "VarId(" << var_id.id << ")"; }
+void QueryAstPrinter::operator() (int64_t const& n)    const {out << "(int)" << n; }
+void QueryAstPrinter::operator() (float const& n)      const {out << "(float)" << n; }
+void QueryAstPrinter::operator() (And const&)          const {out << "\"AND\""; }
+void QueryAstPrinter::operator() (Or const&)           const {out << "\"OR\""; }
+void QueryAstPrinter::operator() (EQ const&)           const {out << "\"==\""; }
+void QueryAstPrinter::operator() (NE const&)           const {out << "\"!=\""; }
+void QueryAstPrinter::operator() (GT const&)           const {out << "\">\""; }
+void QueryAstPrinter::operator() (LT const&)           const {out << "\"<\""; }
+void QueryAstPrinter::operator() (GE const&)           const {out << "\">=\""; }
+void QueryAstPrinter::operator() (LE const&)           const {out << "\"<=\""; }
 
-void ASTPrinter::operator() (VarId const& var_id) const {out << "VarId(" << var_id.id << ")"; }
-void ASTPrinter::operator() (int64_t const& n)    const {out << "(int)" << n; }
-void ASTPrinter::operator() (float const& n)      const {out << "(float)" << n; }
-void ASTPrinter::operator() (ast::And const&)     const {out << "\"AND\""; }
-void ASTPrinter::operator() (ast::Or const&)      const {out << "\"OR\""; }
-void ASTPrinter::operator() (ast::EQ const&)      const {out << "\"==\""; }
-void ASTPrinter::operator() (ast::NE const&)      const {out << "\"!=\""; }
-void ASTPrinter::operator() (ast::GT const&)      const {out << "\">\""; }
-void ASTPrinter::operator() (ast::LT const&)      const {out << "\"<\""; }
-void ASTPrinter::operator() (ast::GE const&)      const {out << "\">=\""; }
-void ASTPrinter::operator() (ast::LE const&)      const {out << "\"<=\""; }
 
-
-void ASTPrinter::operator() (bool const& b) const {
+void QueryAstPrinter::operator() (bool const& b) const {
     if (b)
         out << "TRUE";
     else

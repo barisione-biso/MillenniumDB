@@ -5,8 +5,8 @@
 
 class LessThan : public Comparison {
 public:
-    LessThan(ast::Statement const& statement)
-        : Comparison(statement) { }
+    LessThan(query_ast::Statement const& statement) :
+        Comparison(statement) { }
 
     bool compare(GraphObject& lhs, GraphObject& rhs) override {
         return lhs < rhs;

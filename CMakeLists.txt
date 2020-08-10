@@ -26,7 +26,6 @@ add_library(graphdb STATIC ${sources})
 
 set(BUILD_TARGETS
     import_graph
-    grammar
     query
     server
 )

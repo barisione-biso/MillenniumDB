@@ -10,7 +10,7 @@
 #include "base/ids/object_id.h"
 #include "base/ids/graph_id.h"
 #include "base/graph/graph_object.h"
-#include "base/parser/grammar/ast.h"
+#include "base/parser/grammar/query/query_ast.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 
 #include "relational_model/manual_plan/grammar/manual_plan_ast.h"
