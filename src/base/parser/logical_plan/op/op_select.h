@@ -7,17 +7,22 @@
 #include <memory>
 
 #include "base/parser/logical_plan/op/op.h"
+#include "base/parser/grammar/query/query_ast.h"
 
 class OpSelect : public Op {
 public:
-    uint_fast32_t limit;
     bool select_all;
-    // pair <var_name, key_name>
-    std::vector< std::pair<std::string, std::string> > select_items;
+    uint_fast32_t limit;
     std::unique_ptr<Op> op;
 
-    OpSelect(const boost::variant<query_ast::All, std::vector<query_ast::Element>>& selection,
-             std::unique_ptr<Op> op, uint_fast32_t limit);
+    // pair <var_name, key_name>
+    std::vector< std::pair<std::string, std::string> > select_items;
+
+    OpSelect(std::vector<query_ast::Element> select_list, std::unique_ptr<Op> op, uint_fast32_t limit);
+
+    // constructor for select*
+    OpSelect(std::unique_ptr<Op> op, uint_fast32_t limit);
+
     ~OpSelect() = default;
     void accept_visitor(OpVisitor&);
 };

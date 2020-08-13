@@ -20,8 +20,6 @@ namespace query_ast {
         std::string key;
     };
 
-    enum class EdgeDirection { right, left };
-
     struct Edge {
         Var var;
         std::vector<std::string> labels;
@@ -63,7 +61,7 @@ namespace query_ast {
     struct Statement {
         boost::variant<Var, Element> lhs;
         Comparator comparator;
-        boost::variant<Var, Element, Value> rhs;
+        boost::variant<Var, Element, ast::Value> rhs;
     };
 
     struct Formula;

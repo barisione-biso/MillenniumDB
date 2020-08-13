@@ -25,6 +25,11 @@ namespace ast {
         std::string key;
         Value value;
     };
+
+    enum class EdgeDirection {
+        right,
+        left
+    };
 }
 
 #endif // BASE__COMMON_AST_H_

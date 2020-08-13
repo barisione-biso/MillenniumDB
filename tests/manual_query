@@ -7,13 +7,13 @@
 
 NodeProperty(?u, "type", "university"),
 NodeLabel(?u, "Organisation"),
-LabeledConnection("STUDY_AT", ?_e3, ?p2, ?u),
-LabeledConnection("STUDY_AT", ?_e2, ?p1, ?u),
-LabeledConnection("WORK_AT", ?_e1, ?p2, ?c),
+LabeledConnection("STUDY_AT", ?e3, ?p2, ?u),
+LabeledConnection("STUDY_AT", ?e2, ?p1, ?u),
+LabeledConnection("WORK_AT", ?e1, ?p2, ?c),
 NodeLabel(?p2, "Person"),
 NodeProperty(?c, "type", "company"),
-LabeledConnection("WORK_AT", ?_e0, ?p1, ?c),
+LabeledConnection("WORK_AT", ?e0, ?p1, ?c),
 NodeLabel(?p1, "Person"),
-NodeLabel(?c, "Organisation"),
-NodeProperty(?p1, "id", ?p1.id),
-NodeProperty(?p2, "id", ?p2.id)
+NodeLabel(?c, "Organisation")
+//NodeProperty(?p1, "id", ?p1.id),
+//NodeProperty(?p2, "id", ?p2.id)

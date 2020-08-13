@@ -7,8 +7,9 @@
 #include "base/parser/grammar/query/query_ast_adapted.h"
 #include "base/parser/grammar/common/common_grammar.h"
 
-namespace parser {
+namespace query_parser {
     namespace x3 = boost::spirit::x3;
+    using namespace common_parser;
 
     using x3::int32;
 
@@ -56,7 +57,7 @@ namespace parser {
         ("<-" >> -('[' >> nomen >> "]-") >> attr(query_ast::EdgeDirection::left));
 
     auto const linear_pattern_def =
-        node >> *(edge >> node) >> ((no_case["ON"] >> string) | attr(std::string()) );
+        node >> *(edge >> node) >> ((no_case["ON"] >> common_parser::string) | attr(std::string()) );
 
     auto const selection =
         lit('*') >> attr(query_ast::All()) | (element % ',');

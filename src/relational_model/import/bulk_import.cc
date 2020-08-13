@@ -5,8 +5,8 @@
 #include <boost/spirit/include/support_istream_iterator.hpp>
 
 #include "base/graph/value/value_string.h"
-#include "relational_model/import/bulk_import_grammar.h"
-#include "relational_model/import/bulk_import_value_visitor.h"
+#include "base/parser/grammar/import/import_grammar.h"
+#include "base/parser/grammar/common/value_visitor.h"
 #include "relational_model/relational_model.h"
 #include "storage/index/ordered_file/bpt_merger.h"
 #include "storage/buffer_manager.h"
@@ -49,8 +49,8 @@ void BulkImport::start_import() {
     boost::spirit::istream_iterator node_iter( nodes_file );
     boost::spirit::istream_iterator node_end;
     do {
-        bulk_import_ast::Node node;
-        bool r = phrase_parse(node_iter, node_end, bulk_import_parser::node, bulk_import_parser::skipper, node);
+        import_ast::Node node;
+        bool r = phrase_parse(node_iter, node_end, import_parser::node, import_parser::skipper, node);
         if (r) {
             // cout << "\r  line " << line_number << std::flush;
             process_node(node);
@@ -69,8 +69,8 @@ void BulkImport::start_import() {
     boost::spirit::istream_iterator edge_iter( edges_file );
     boost::spirit::istream_iterator edge_end;
     do {
-        bulk_import_ast::Edge edge;
-        bool r = phrase_parse(edge_iter, edge_end, bulk_import_parser::edge, bulk_import_parser::skipper, edge);
+        import_ast::Edge edge;
+        bool r = phrase_parse(edge_iter, edge_end, import_parser::edge, import_parser::skipper, edge);
         if (r) {
             // cout << "\r  line " << line_number << std::flush;
             process_edge(edge);
@@ -206,7 +206,7 @@ void BulkImport::merge_tree_and_ordered_file(unique_ptr<BPlusTree<N>>& bpt, Orde
 }
 
 
-void BulkImport::process_node(const bulk_import_ast::Node& node) {
+void BulkImport::process_node(const import_ast::Node& node) {
     uint64_t node_id = graph.create_node();
 
     node_dict.insert(pair<uint64_t, uint64_t>(node.id, node_id));
@@ -216,14 +216,14 @@ void BulkImport::process_node(const bulk_import_ast::Node& node) {
     }
 
     for (auto& property : node.properties) {
-        BulkImportValueVisitor visitor;
+        ValueVisitor visitor;
         auto value = visitor(property.value);
         node_key_value.append_record(graph.get_record_for_node_property(node_id, property.key, *value));
     }
 }
 
 
-void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
+void BulkImport::process_edge(const import_ast::Edge& edge) {
     bool node_loop = edge.left_id == edge.right_id;
     uint64_t edge_id = graph.create_edge(node_loop);
 
@@ -238,7 +238,7 @@ void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
         self_connected_nodes.append_record(RecordFactory::get(left_id->second, edge_id));
     }
 
-    if (edge.direction == bulk_import_ast::EdgeDirection::right) {
+    if (edge.direction == import_ast::EdgeDirection::right) {
         connections.append_record(RecordFactory::get(left_id->second, right_id->second, edge_id));
     } else {
         connections.append_record(RecordFactory::get(right_id->second, left_id->second, edge_id));
@@ -246,7 +246,7 @@ void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
 
     for (auto& label : edge.labels) {
         auto record = graph.get_record_for_edge_label(edge_id, label);
-        if (edge.direction == bulk_import_ast::EdgeDirection::right) {
+        if (edge.direction == import_ast::EdgeDirection::right) {
             labeled_edges.append_record(RecordFactory::get(
                                             record.ids[1],
                                             left_id->second,
@@ -263,7 +263,7 @@ void BulkImport::process_edge(const bulk_import_ast::Edge& edge) {
     }
 
     for (auto& property : edge.properties) {
-        BulkImportValueVisitor visitor;
+        ValueVisitor visitor;
         auto value = visitor(property.value);
         edge_key_value.append_record(graph.get_record_for_edge_property(edge_id, property.key, *value));
     }

@@ -1,36 +1,36 @@
-#ifndef RELATIONAL_MODEL__MANUAL_PLAN_AST_ADAPTED_H_
-#define RELATIONAL_MODEL__MANUAL_PLAN_AST_ADAPTED_H_
+#ifndef BASE__MANUAL_PLAN_AST_ADAPTED_H_
+#define BASE__MANUAL_PLAN_AST_ADAPTED_H_
 
 #include <boost/fusion/include/adapt_struct.hpp>
 
-#include "relational_model/manual_plan/grammar/manual_plan_ast.h"
+#include "base/parser/grammar/manual_plan/manual_plan_ast.h"
 
 BOOST_FUSION_ADAPT_STRUCT(manual_plan_ast::Root,
     relations
 )
 
 BOOST_FUSION_ADAPT_STRUCT(manual_plan_ast::NodeLabel,
-    node_name, label
+    node, label
 )
 
 BOOST_FUSION_ADAPT_STRUCT(manual_plan_ast::EdgeLabel,
-    edge_name, label
+    edge, label
 )
 
 BOOST_FUSION_ADAPT_STRUCT(manual_plan_ast::NodeProperty,
-    node_name, key, value
+    node, key, value
 )
 
 BOOST_FUSION_ADAPT_STRUCT(manual_plan_ast::EdgeProperty,
-    edge_name, key, value
+    edge, key, value
 )
 
 BOOST_FUSION_ADAPT_STRUCT(manual_plan_ast::Connection,
-    edge_name, node_from_name, node_to_name
+    edge, node_from, node_to
 )
 
 BOOST_FUSION_ADAPT_STRUCT(manual_plan_ast::LabeledConnection,
-    label, edge_name, node_from_name, node_to_name
+    label, edge, node_from, node_to
 )
 
-#endif // RELATIONAL_MODEL__MANUAL_PLAN_AST_ADAPTED_H_
+#endif // BASE__MANUAL_PLAN_AST_ADAPTED_H_

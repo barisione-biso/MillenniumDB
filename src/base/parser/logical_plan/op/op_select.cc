@@ -4,20 +4,18 @@
 
 using namespace std;
 
-OpSelect::OpSelect(const boost::variant<query_ast::All, vector<query_ast::Element>>& selection,
-                   unique_ptr<Op> op, uint_fast32_t limit) :
+OpSelect::OpSelect(unique_ptr<Op> op, uint_fast32_t limit) :
+    select_all(true),
+    limit(limit),
+    op(move(op)) { }
+
+OpSelect::OpSelect(vector<query_ast::Element> select_list, unique_ptr<Op> op, uint_fast32_t limit) :
+    select_all(false),
     limit(limit),
     op(move(op))
 {
-    if (selection.type() == typeid(query_ast::All)) {
-        select_all = true;
-    } else {
-        select_all = false;
-        auto& select_list = boost::get<vector<query_ast::Element>>(selection);
-
-        for (auto& select_item : select_list) {
-            select_items.push_back({ select_item.var.name, select_item.key });
-        }
+    for (auto& select_item : select_list) {
+        select_items.push_back({ select_item.var.name, select_item.key });
     }
 }
 

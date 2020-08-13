@@ -5,14 +5,14 @@
 #include <memory>
 
 #include "base/binding/binding.h"
-#include "base/parser/grammar/query/query_ast.h"
-#include "base/parser/grammar/value_visitor.h"
 #include "base/graph/condition/condition.h"
 #include "base/graph/condition/value_assign.h"
 #include "base/graph/condition/value_assign_constant.h"
 #include "base/graph/condition/value_assign_property.h"
 #include "base/graph/condition/value_assign_variable.h"
 #include "base/graph/value/value.h"
+#include "base/parser/grammar/query/query_ast.h"
+#include "base/parser/grammar/common/value_visitor.h"
 
 class Comparison : public Condition {
 public:

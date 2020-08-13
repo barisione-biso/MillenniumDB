@@ -30,9 +30,6 @@
 #include "relational_model/query_optimizer/join_plan/join_plan.h"
 #include "relational_model/query_optimizer/join_plan/nested_loop_plan.h"
 #include "relational_model/query_optimizer/join_plan/node_loop_plan.h"
-// #include "relational_model/query_optimizer/join_plan/merge_plan.h"
-
-#include "relational_model/manual_plan/grammar/manual_plan_ast.h"
 
 #include "storage/catalog/catalog.h"
 
@@ -386,7 +383,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
         if (relation.type() == typeid(manual_plan_ast::NodeLabel)) {
             auto node_label = boost::get<manual_plan_ast::NodeLabel>(relation);
 
-            auto node_var_id = get_var_id(node_label.node_name);
+            auto node_var_id = get_var_id(node_label.node);
             auto label_id = relational_model.get_string_id(node_label.label);
 
             current_plan = make_unique<NodeLabelPlan>(graph_id, node_var_id, label_id);
@@ -395,7 +392,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
         else if (relation.type() == typeid(manual_plan_ast::EdgeLabel)) {
             auto edge_label = boost::get<manual_plan_ast::EdgeLabel>(relation);
 
-            auto edge_var_id = get_var_id(edge_label.edge_name);
+            auto edge_var_id = get_var_id(edge_label.edge);
             auto label_id = relational_model.get_string_id(edge_label.label);
 
             current_plan = make_unique<NodeLabelPlan>(graph_id, edge_var_id, label_id);
@@ -404,7 +401,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
         else if (relation.type() == typeid(manual_plan_ast::NodeProperty)) {
             auto node_prop = boost::get<manual_plan_ast::NodeProperty>(relation);
 
-            auto node_var_id = get_var_id(node_prop.node_name);
+            auto node_var_id = get_var_id(node_prop.node);
             auto key_id      = relational_model.get_string_id(node_prop.key);
             auto value_id    = get_value_id(node_prop.value);
 
@@ -414,7 +411,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
         if (relation.type() == typeid(manual_plan_ast::EdgeProperty)) {
             auto edge_prop = boost::get<manual_plan_ast::EdgeProperty>(relation);
 
-            auto edge_var_id = get_var_id(edge_prop.edge_name);
+            auto edge_var_id = get_var_id(edge_prop.edge);
             auto key_id      = relational_model.get_string_id(edge_prop.key);
             auto value_id    = get_value_id(edge_prop.value);
 
@@ -424,9 +421,9 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
         else if (relation.type() == typeid(manual_plan_ast::Connection)) {
             auto connection = boost::get<manual_plan_ast::Connection>(relation);
 
-            auto node_from_var_id = get_var_id(connection.node_from_name);
-            auto edge_var_id      = get_var_id(connection.edge_name);
-            auto node_to_var_id   = get_var_id(connection.node_to_name);
+            auto node_from_var_id = get_var_id(connection.node_from);
+            auto edge_var_id      = get_var_id(connection.edge);
+            auto node_to_var_id   = get_var_id(connection.node_to);
 
             current_plan = make_unique<ConnectionPlan>(graph_id, node_from_var_id, node_to_var_id, edge_var_id);
         }
@@ -435,9 +432,9 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
             auto labeled_connection = boost::get<manual_plan_ast::LabeledConnection>(relation);
 
             auto label_id = relational_model.get_string_id(labeled_connection.label);
-            auto node_from_var_id = get_var_id(labeled_connection.node_from_name);
-            auto node_to_var_id   = get_var_id(labeled_connection.node_to_name);
-            auto edge_var_id      = get_var_id(labeled_connection.edge_name);
+            auto node_from_var_id = get_var_id(labeled_connection.node_from);
+            auto node_to_var_id   = get_var_id(labeled_connection.node_to);
+            auto edge_var_id      = get_var_id(labeled_connection.edge);
 
             current_plan = make_unique<LabeledConnectionPlan>(graph_id, label_id, node_from_var_id, node_to_var_id, edge_var_id);
         }

@@ -11,9 +11,8 @@
 #include "base/ids/graph_id.h"
 #include "base/graph/graph_object.h"
 #include "base/parser/grammar/query/query_ast.h"
+#include "base/parser/grammar/manual_plan/manual_plan_ast.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
-
-#include "relational_model/manual_plan/grammar/manual_plan_ast.h"
 
 class BindingIter;
 class BindingIdIter;
@@ -28,7 +27,6 @@ private:
     std::map<std::string, VarId> id_map;
     std::map<std::string, GraphId> graph_ids; // graph_name to graph_id
     std::map<std::string, GraphId> var2graph_id;
-    // std::map<std::string, ObjectType> element_types;
     std::set<std::string> node_names;
     std::set<std::string> edge_names;
     std::vector<std::pair<std::string, std::string>> select_items;

@@ -7,7 +7,7 @@
 #include "base/parser/grammar/common/common_ast.h"
 #include "base/parser/grammar/common/common_ast_adapted.h"
 
-namespace parser {
+namespace common_parser {
     namespace x3 = boost::spirit::x3;
 
     using x3::attr;
@@ -20,7 +20,6 @@ namespace parser {
     using x3::lexeme;
     using x3::lit;
     using x3::no_case;
-    using x3::no_skip;
     using x3::space;
 
     x3::real_parser<float, x3::strict_real_policies<float>> const float_ = { };
@@ -69,7 +68,7 @@ namespace parser {
         );
 
     auto const string =
-        no_skip['"' >> *(escaped | ~char_('"')) >> '"'];
+        lexeme['"' >> *(escaped | ~char_('"')) >> '"'];
 
     auto const value_def =
         string | float_ | int64 | boolean;

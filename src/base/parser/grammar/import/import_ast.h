@@ -1,5 +1,5 @@
-#ifndef RELATIONAL_MODEL__BULK_IMPORT_AST_H_
-#define RELATIONAL_MODEL__BULK_IMPORT_AST_H_
+#ifndef BASE__IMPORT_AST_H_
+#define BASE__IMPORT_AST_H_
 
 #include <iostream>
 #include <string>
@@ -10,15 +10,11 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
-namespace bulk_import_ast {
+#include "base/parser/grammar/common/common_ast.h"
+
+namespace import_ast {
     namespace x3 = boost::spirit::x3;
-
-    typedef boost::variant<std::string, int64_t, float, bool> Value;
-
-    struct Property {
-        std::string key;
-        Value value;
-    };
+    using namespace ast;
 
     struct Node {
         uint64_t id;
@@ -26,7 +22,6 @@ namespace bulk_import_ast {
         std::vector<Property> properties;
     };
 
-    enum class EdgeDirection { right, left };
 
     struct Edge {
         uint64_t left_id;
@@ -37,4 +32,4 @@ namespace bulk_import_ast {
     };
 }
 
-#endif // RELATIONAL_MODEL__BULK_IMPORT_AST_H_
+#endif // BASE__IMPORT_AST_H_

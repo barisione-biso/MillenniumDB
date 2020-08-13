@@ -1,6 +1,7 @@
 #ifndef BASE__VALUE_ASSIGN_CONSTANT_H_
 #define BASE__VALUE_ASSIGN_CONSTANT_H_
 
+#include "base/graph/value/value.h"
 #include "base/graph/condition/value_assign.h"
 
 class ValueAssignConstant : public ValueAssign {

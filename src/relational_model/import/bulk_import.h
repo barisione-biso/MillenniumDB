@@ -1,15 +1,15 @@
 #ifndef RELATIONAL_MODEL__BULK_IMPORT_H_
 #define RELATIONAL_MODEL__BULK_IMPORT_H_
 
-#include "storage/index/ordered_file/ordered_file.h"
-#include "relational_model/graph/relational_graph.h"
-#include "relational_model/import/bulk_import_ast.h"
-
 #include <string>
 #include <fstream>
 #include <list>
 #include <map>
 #include <memory>
+
+#include "base/parser/grammar/import/import_ast.h"
+#include "storage/index/ordered_file/ordered_file.h"
+#include "relational_model/graph/relational_graph.h"
 
 class BulkImport {
 public:
@@ -34,8 +34,8 @@ private:
 
     std::map<uint64_t, uint64_t> node_dict;
 
-    void process_node(const bulk_import_ast::Node& node);
-    void process_edge(const bulk_import_ast::Edge& edge);
+    void process_node(const import_ast::Node& node);
+    void process_edge(const import_ast::Edge& edge);
 
     template <std::size_t N>
     void merge_tree_and_ordered_file(std::unique_ptr<BPlusTree<N>>&, OrderedFile<N>&);

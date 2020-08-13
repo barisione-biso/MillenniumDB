@@ -29,12 +29,11 @@
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/binding/binding.h"
 #include "base/binding/binding_iter.h"
-#include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/query_parser.h"
 #include "relational_model/graph/relational_graph.h"
 #include "relational_model/query_optimizer/query_optimizer.h"
 #include "relational_model/relational_model.h"
-#include "relational_model/manual_plan/grammar/manual_plan_grammar.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 #include "server/tcp_buffer.h"
@@ -92,12 +91,12 @@ void session(tcp::socket sock) {
 
         // start timer
         auto start = chrono::system_clock::now();
+        QueryOptimizer plan_generator { };
         try {
             // get logical plan
-            auto select_plan = Op::get_select_plan(query);
+            auto select_plan = QueryParser::get_query_plan(query);
 
             // get physical plan
-            QueryOptimizer plan_generator { };
             auto root = plan_generator.exec(*select_plan);
             auto end = chrono::system_clock::now();
             chrono::duration<float, std::milli> duration = end - start;
@@ -107,22 +106,12 @@ void session(tcp::socket sock) {
         catch (QueryParsingException& e) {
             // Try with manual plan
             try {
-                auto iter = query.begin();
-                auto end = query.end();
-
-                manual_plan_ast::Root ast;
-                bool r = phrase_parse(iter, end, manual_plan_parser::root, manual_plan_parser::skipper, ast);
-                if (r && iter == end) { // parsing succeeded
-                    QueryOptimizer plan_generator { };
-                    auto root = plan_generator.exec(ast);
-                    auto end = chrono::system_clock::now();
-                    chrono::duration<float, std::milli> duration = end - start;
-                    tcp_buffer << "Query Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
-                    execute_query(move(root), tcp_buffer);
-                }
-                else {
-                    throw QueryParsingException();
-                }
+                auto manual_plan = QueryParser::get_manual_plan(query);
+                auto root = plan_generator.exec(manual_plan);
+                auto end = chrono::system_clock::now();
+                chrono::duration<float, std::milli> duration = end - start;
+                tcp_buffer << "Query Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
+                execute_query(move(root), tcp_buffer);
             }
             catch (QueryException& e) {
                 tcp_buffer << "Query exception: " << e.what() << "\n";

@@ -1,5 +1,5 @@
-#ifndef RELATIONAL_MODEL__MANUAL_PLAN_AST_H_
-#define RELATIONAL_MODEL__MANUAL_PLAN_AST_H_
+#ifndef BASE__MANUAL_PLAN_AST_H_
+#define BASE__MANUAL_PLAN_AST_H_
 
 #include <string>
 
@@ -11,46 +11,45 @@
 
 #include "base/ids/graph_id.h"
 #include "base/ids/var_id.h"
+#include "base/parser/grammar/common/common_ast.h"
 
-namespace manual_plan_ast
-{
+namespace manual_plan_ast {
     namespace x3 = boost::spirit::x3;
-
-    using Value = boost::variant<std::string, int64_t, float, bool>;
+    using namespace ast;
 
     struct NodeLabel {
-        std::string node_name;
+        Var node;
         std::string label;
     };
 
     struct EdgeLabel {
-        std::string edge_name;
+        Var edge;
         std::string label;
     };
 
     struct NodeProperty {
-        std::string node_name;
+        Var node;
         std::string key;
-        Value value;
+        ast::Value value;
     };
 
     struct EdgeProperty {
-        std::string edge_name;
+        Var edge;
         std::string key;
-        Value value;
+        ast::Value value;
     };
 
     struct Connection {
-        std::string edge_name;
-        std::string node_from_name;
-        std::string node_to_name;
+        Var edge;
+        Var node_from;
+        Var node_to;
     };
 
     struct LabeledConnection {
         std::string label;
-        std::string edge_name;
-        std::string node_from_name;
-        std::string node_to_name;
+        Var edge;
+        Var node_from;
+        Var node_to;
     };
 
     using Relation = boost::variant<NodeLabel, EdgeLabel, NodeProperty, EdgeProperty, Connection, LabeledConnection>;
@@ -60,4 +59,4 @@ namespace manual_plan_ast
     };
 }
 
-#endif // RELATIONAL_MODEL__MANUAL_PLAN_AST_H_
+#endif // BASE__MANUAL_PLAN_AST_H_
