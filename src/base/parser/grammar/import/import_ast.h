@@ -17,18 +17,42 @@ namespace import_ast {
     using namespace ast;
 
     struct Node {
-        uint64_t id;
+        bool anonymous;
+        std::string name;
         std::vector<std::string> labels;
         std::vector<Property> properties;
     };
 
 
     struct Edge {
-        uint64_t left_id;
-        uint64_t right_id;
+        EdgeDirection direction;
+
+        bool left_anonymous;
+        std::string left_name;
+
+        bool right_anonymous;
+        std::string right_name;
+
         std::vector<std::string> labels;
         std::vector<Property> properties;
+
+    };
+
+
+    struct ImplicitEdge {
         EdgeDirection direction;
+
+        // nesting_level = 1: left is the implicit node
+        // nesting_level = 2: left is the edge
+        // nesting_level = 3: left is the edge of the edge
+        // and so on
+        int nesting_level;
+
+        bool right_anonymous;
+        std::string right_name;
+
+        std::vector<std::string> labels;
+        std::vector<Property> properties;
     };
 }
 

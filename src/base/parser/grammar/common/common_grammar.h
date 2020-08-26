@@ -36,9 +36,14 @@ namespace common_parser {
         property = "property";
     x3::rule<class var_name, std::string>
         var_name = "var_name";
+    x3::rule<class node_name, std::string>
+        node_name = "node_name";
 
 
     // Grammar
+    auto const node_name_def =
+        (alpha) >> *(alnum | char_('_'));
+
     auto const var_name_def =
         alpha >> *(alnum | char_('_'));
 

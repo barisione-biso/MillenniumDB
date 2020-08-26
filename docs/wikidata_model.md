@@ -1,6 +1,23 @@
 # Data Model
+
+### Objects
+- There are 3 subclasses of objects:
+  - An `Identificable Object` has a string as identifier.
+  - An `Anonymous Object` only has an internal id.
+  - An `Connection Object` that is asociated with two `Objects`, like an edge.
+
 ### Labels
-A `Label` is just a string to describe a `Node`. Its only purpose is to filter the nodes when querying.
+* Labels are `Identificable Objects`.
+* Each `Object` can have 0, 1 or many `labels`.
+
+### Alternative Label
+* Labels are from a set `L`
+* `Identificable Objects` and `Anonymous Objects` can have 0, 1 or many `labels`.
+
+### Alternative Label: Connection Type
+* `Connection Objects` can have 0, 1 or many `connection types`.
+  * For the wikidata case this is always 1.
+* The connection type is an `Identificable Object`
 
 ### Properties
 A `Property` is a key/value pair where:
@@ -8,23 +25,16 @@ A `Property` is a key/value pair where:
   - The value may be an int, float, string, bool or a list of one of those types.
   - The keys have an expected value type (schema).
 
-### Nodes
-- A `Node` may have 0, 1 or many `Labels`.
-- A `Node` may have 0, 1 or many `Properties`.
-- A `Node` may be identified or anonymous
-  - An `Identified Node` has a string as identifier.
-  - An `Anonymous Node` only has an internal id.
+Each `Object` can have 0, 1 or many `properties`.
+
+
 
 ### Connections
- A `Connection` is a relation between 4 objects (S,P,O,E)
-- S represents the subject and must a `Node`.
-- P represents the predicate and must be a `Node`.
-- O represents the object and can be a `Node` or a `Value`.
-  - maybe O should be only a `Node`
-- E is an unique identifier for the `Connection` and must be an `Anonymous Node`
+A `Connection Object` `c` has two asociated objects `c` -> (`from`, `to`)
+- `from` represents the subject and must an `Object`.
+- `to` represents the object and can be a `Object` or a `Value`.
+- to represent the predicate `P` we add it as a label of `c`.
 
-Sugerencia Domagoj:\
-A `Connection` between S and O of type P, and E is an `Anonymous Node` to identify the connection.
 
 # Indexes
 - We use **internal_ids** of **8 bytes** to represent everything.

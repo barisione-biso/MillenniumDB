@@ -1,25 +1,3 @@
-- Hacer documento explicando modelo de datos para wikidata en property graphs
-
-- Revisar RDF*
-    - al final es lo mismo que standard reification, solo cambia la sintaxis
-    - Al parecer en GraphDB hacen algo más (porque pesa bastante menos que standard reification)
-
-- Revisar GQL
-    - Nuestro modelo puede aplicarse cuando edge_label_flag indica
-      que todas los edges deben tener 1 Label.
-    - Podríamos tener distintos índixes y query optimizer dependiendo de los
-      flags del grafo
-    - La idea de que puedan salir conexiones desde un edge entra en confilcto
-      con la idea de tener tipos de edges/nodos. Aunque solo para el caso del
-      tipo de nodos conectados, el tipo podría adaptarse para soportar
-      properties y labels.
-
-- Filtros con Id, pasar hacia Join
-
-- Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
-    - Problema: no estan agrupados por grafo (si al hacer bulk import)
-        - Se podría crear un ordered file y que queden ordenados por Grafo > Key > Value.
-
 - Cambios si hacemos nuestra propuesta de nuevo modelo basado en quads:
     - Eliminar lo relacionado con edges EdgeLabel, EdgeProperty, etc
     - Crear nueva "tabla" (E)SPO
@@ -36,6 +14,11 @@
         - Cuando La conexión (SPOE) tiene asignado el E y algo más usar filtro en vez de
           index nested loop join
 
+- Filtros con Id, pasar hacia Join
+
+- Crear catálogo después que se importo el grafo (basta una pasada lineal por KVE y KVN)
+    - Problema: no estan agrupados por grafo (si al hacer bulk import)
+        - Se podría crear un ordered file y que queden ordenados por Grafo > Key > Value.
 
 - Proyeccion de properties en manual plan
 

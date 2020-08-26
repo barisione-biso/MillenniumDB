@@ -24,7 +24,8 @@ namespace import_parser {
 
     // Grammar
     auto const node_def =
-        '(' >> uint64 >> ')'
+        ('_' >> attr(true)) | attr(false) // optional '_' for anonymous
+        >> node_name
         >> *label
         >> *property
         >> (eol|eoi);
