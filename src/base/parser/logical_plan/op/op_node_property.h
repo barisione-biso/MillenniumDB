@@ -12,9 +12,9 @@ public:
     const std::string graph_name;
     const std::string node_name;
     const std::string key;
-    const ast::Value value;
+    const common::ast::Value value;
 
-    OpNodeProperty(std::string graph_name, std::string node_name, std::string key, ast::Value value) :
+    OpNodeProperty(std::string graph_name, std::string node_name, std::string key, common::ast::Value value) :
         graph_name(std::move(graph_name)),
         node_name (std::move(node_name) ),
         key       (std::move(key)       ),

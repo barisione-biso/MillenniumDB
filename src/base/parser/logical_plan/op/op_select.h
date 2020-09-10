@@ -18,7 +18,7 @@ public:
     // pair <var_name, key_name>
     std::vector< std::pair<std::string, std::string> > select_items;
 
-    OpSelect(std::vector<query_ast::Element> select_list, std::unique_ptr<Op> op, uint_fast32_t limit);
+    OpSelect(std::vector<query::ast::Element> select_list, std::unique_ptr<Op> op, uint_fast32_t limit);
 
     // constructor for select*
     OpSelect(std::unique_ptr<Op> op, uint_fast32_t limit);

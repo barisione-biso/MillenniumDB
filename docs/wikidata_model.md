@@ -6,15 +6,11 @@
   - An `Anonymous Object` only has an internal id.
   - An `Connection Object` that is asociated with two `Objects`, like an edge.
 
-### Labels
-* Labels are `Identificable Objects`.
-* Each `Object` can have 0, 1 or many `labels`.
-
-### Alternative Label
-* Labels are from a set `L`
+### Label
+* Labels are from a set `L` (subset of strings)
 * `Identificable Objects` and `Anonymous Objects` can have 0, 1 or many `labels`.
 
-### Alternative Label: Connection Type
+### Connection Type
 * `Connection Objects` can have 0, 1 or many `connection types`.
   * For the wikidata case this is always 1.
 * The connection type is an `Identificable Object`
@@ -27,13 +23,11 @@ A `Property` is a key/value pair where:
 
 Each `Object` can have 0, 1 or many `properties`.
 
-
-
 ### Connections
 A `Connection Object` `c` has two asociated objects `c` -> (`from`, `to`)
 - `from` represents the subject and must an `Object`.
-- `to` represents the object and can be a `Object` or a `Value`.
-- to represent the predicate `P` we add it as a label of `c`.
+- `to` represents the object and can be a `Object` (or a `Value`?).
+- the predicate we add it as a type of `c`.
 
 
 # Indexes
@@ -110,11 +104,11 @@ A `Connection Object` `c` has two asociated objects `c` -> (`from`, `to`)
     - if `type` == `time`
       - Object is a new `Anonymous Node` with label Time
       - New node has `time`, `timezone`, `calendarmodel` and `precision` as properties
-  - The anonymous node representing the new `Connection` has the Label `Statement`
+  - The anonymous node representing the new `Connection` has the property `"type":"Statement"`
 - `rank` is a property of the mainsnak connection
 - Each qualifier creates a new `Connection` where:
   - Subject is the anonymous node created for the mainsnak `Connection`
   - Predicate is the `property`
   - Object depends on the `datavalue.type` with the same rules used for the mainsnak
-  - The anonymous node representing the new connection has the Label `Qualifier`.
-- Each reference is treated as a qualifier, but the anonymous node representing the connection has the Label `Reference`.
+  - The anonymous node representing the new connection has the property `"type":"Qualifier"`.
+- Each reference is treated as a qualifier, but the anonymous node representing the connection has the property `"type":"Reference"`.

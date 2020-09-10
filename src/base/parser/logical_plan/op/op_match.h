@@ -34,7 +34,7 @@ public:
 
     int_fast32_t anonymous_var_count = 0;
 
-    OpMatch(const std::vector<query_ast::LinearPattern>& graph_pattern) {
+    OpMatch(const std::vector<query::ast::LinearPattern>& graph_pattern) {
         for (auto& linear_pattern : graph_pattern) {
             auto graph_name = linear_pattern.graph_name;
             auto last_node_name = process_node(graph_name, linear_pattern.root);
@@ -54,7 +54,7 @@ public:
                     node_loops.insert(
                         OpNodeLoop(graph_name, last_node_name, edge_name)
                     );
-                } else if (step_path.edge.direction == query_ast::EdgeDirection::right) {
+                } else if (step_path.edge.direction == query::ast::EdgeDirection::right) {
                     connections.insert(
                         OpConnection(graph_name, last_node_name, edge_name, current_node_name)
                     );
@@ -69,7 +69,7 @@ public:
     }
 
 
-    std::string process_node(const std::string& graph_name, const query_ast::Node& node) {
+    std::string process_node(const std::string& graph_name, const query::ast::Node& node) {
         std::string node_name;
         if (node.var.name.empty()) {
             node_name = "_n" + std::to_string(anonymous_var_count++);
@@ -114,7 +114,7 @@ public:
     }
 
 
-    std::string process_edge(const std::string& graph_name, const query_ast::Edge& edge) {
+    std::string process_edge(const std::string& graph_name, const query::ast::Edge& edge) {
         std::string edge_name;
         if (edge.var.name.empty()) {
             edge_name = "_e" + std::to_string(anonymous_var_count++);

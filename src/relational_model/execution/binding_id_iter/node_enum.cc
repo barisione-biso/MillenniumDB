@@ -1,27 +1,25 @@
 #include "node_enum.h"
 
-#include "relational_model/relational_model.h"
-#include "storage/catalog/catalog.h"
-
 using namespace std;
 
 NodeEnum::NodeEnum(GraphId graph_id, VarId var_id)
     : var_id(var_id)
 {
-    if (graph_id.is_default()) {
-        auto graph_count = catalog.get_graph_count();
-        for (uint64_t i = 1; i <= graph_count; i++) {
-            graph_counts.push_back(make_pair(
-                (i << RelationalModel::GRAPH_OFFSET) | RelationalModel::NODE_MASK,
-                catalog.get_node_count(GraphId(i))
-            ));
-        }
-    } else {
-        graph_counts.push_back(make_pair(
-            graph_id << RelationalModel::GRAPH_OFFSET,
-            catalog.get_node_count(graph_id)
-        ));
-    }
+    // TODO: make again
+    // if (graph_id.is_default()) {
+    //     auto graph_count = catalog.get_graph_count();
+    //     for (uint64_t i = 1; i <= graph_count; i++) {
+    //         graph_counts.push_back(make_pair(
+    //             (i << RelationalModel::GRAPH_OFFSET) | RelationalModel::NODE_MASK,
+    //             catalog.get_node_count(GraphId(i))
+    //         ));
+    //     }
+    // } else {
+    //     graph_counts.push_back(make_pair(
+    //         graph_id << RelationalModel::GRAPH_OFFSET,
+    //         catalog.get_node_count(graph_id)
+    //     ));
+    // }
 }
 
 

@@ -5,7 +5,8 @@
 #include <string>
 
 enum class ObjectType {
-    node,
+    identifiable_node,
+    anonymous_node,
     edge,
     value_bool,
     value_float,
@@ -15,7 +16,7 @@ enum class ObjectType {
 
 class GraphObject {
 public:
-    virtual ~GraphObject() { };
+    virtual ~GraphObject() = default;
     virtual std::string to_string() const = 0;
     virtual ObjectType type() const = 0;
 

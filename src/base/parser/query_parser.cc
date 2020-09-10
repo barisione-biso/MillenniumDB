@@ -13,7 +13,7 @@
 
 using namespace std;
 
-unique_ptr<OpSelect> QueryParser::get_query_plan(query_ast::Root& ast) {
+unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
     unique_ptr<Op> op_match = make_unique<OpMatch>(ast.graph_pattern);
     unique_ptr<Op> op_filter = make_unique<OpFilter>(ast.where, move(op_match));
     int_fast32_t limit = 0;
@@ -23,10 +23,10 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query_ast::Root& ast) {
             throw QuerySemanticException("LIMIT must be a positive number");
         }
     }
-    if (ast.selection.type() == typeid(query_ast::All)) {
+    if (ast.selection.type() == typeid(query::ast::All)) {
         return make_unique<OpSelect>(move(op_filter), limit);
     } else {
-        return make_unique<OpSelect>(boost::get<std::vector<query_ast::Element>>(ast.selection),
+        return make_unique<OpSelect>(boost::get<std::vector<query::ast::Element>>(ast.selection),
                                      move(op_filter), limit);
     }
 }
@@ -36,8 +36,8 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(string query) {
     auto iter = query.begin();
     auto end = query.end();
 
-    query_ast::Root ast;
-    bool r = phrase_parse(iter, end, query_parser::root, query_parser::skipper, ast);
+    query::ast::Root ast;
+    bool r = phrase_parse(iter, end, query::parser::root, query::parser::skipper, ast);
     if (r && iter == end) { // parsing succeeded
         if (ast.explain) {
             QueryAstPrinter printer(cout);
@@ -64,7 +64,7 @@ manual_plan_ast::Root QueryParser::get_manual_plan(std::string query) {
     auto end = query.end();
 
     manual_plan_ast::Root manual_plan;
-    bool r = phrase_parse(iter, end, manual_plan_parser::root, manual_plan_parser::skipper, manual_plan);
+    bool r = phrase_parse(iter, end, manual_plan::parser::root, manual_plan::parser::skipper, manual_plan);
     if (r && iter == end) { // parsing succeeded
         return manual_plan;
     } else {

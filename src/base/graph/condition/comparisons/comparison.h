@@ -19,32 +19,32 @@ public:
     std::unique_ptr<ValueAssign> rhs;
     std::unique_ptr<ValueAssign> lhs;
 
-    Comparison(query_ast::Statement const& statement) {
+    Comparison(query::ast::Statement const& statement) {
         // LHS
-        if (statement.lhs.type() == typeid(query_ast::Var)) {
-            auto casted_lhs = boost::get<query_ast::Var>(statement.lhs);
+        if (statement.lhs.type() == typeid(query::ast::Var)) {
+            auto casted_lhs = boost::get<query::ast::Var>(statement.lhs);
             lhs = std::make_unique<ValueAssignVariable>(casted_lhs.name);
-        } else if (statement.lhs.type() == typeid(query_ast::Element)) {
-            auto casted_lhs = boost::get<query_ast::Element>(statement.lhs);
+        } else if (statement.lhs.type() == typeid(query::ast::Element)) {
+            auto casted_lhs = boost::get<query::ast::Element>(statement.lhs);
             lhs = std::make_unique<ValueAssignProperty>(casted_lhs.var.name, casted_lhs.key);
         }
 
         // RHS
-        if (statement.rhs.type() == typeid(ast::Var)) {
-            auto casted_rhs = boost::get<ast::Var>(statement.rhs);
+        if (statement.rhs.type() == typeid(query::ast::Var)) {
+            auto casted_rhs = boost::get<query::ast::Var>(statement.rhs);
             rhs = std::make_unique<ValueAssignVariable>(casted_rhs.name);
-        } else if (statement.rhs.type() == typeid(query_ast::Element)) {
-            auto casted_rhs = boost::get<query_ast::Element>(statement.rhs);
+        } else if (statement.rhs.type() == typeid(query::ast::Element)) {
+            auto casted_rhs = boost::get<query::ast::Element>(statement.rhs);
             rhs = std::make_unique<ValueAssignProperty>(casted_rhs.var.name, casted_rhs.key);
         } else {
-            auto casted_rhs = boost::get<ast::Value>(statement.rhs);
+            auto casted_rhs = boost::get<query::ast::Value>(statement.rhs);
             auto visitor = ValueVisitor();
             auto value = visitor(casted_rhs);
             rhs = std::make_unique<ValueAssignConstant>(move(value));
         }
      }
 
-    virtual ~Comparison() { };
+    virtual ~Comparison() = default;
 
     virtual bool compare(GraphObject& lhs, GraphObject& rhs) = 0;
 

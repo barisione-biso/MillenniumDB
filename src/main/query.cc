@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
         po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
 
         if (vm.count("help")) {
-            cout << "Usage: query [OPTION]... [QUERY_FILE]\n";
+            cout << "Usage: query [OPTIONS]... ./path/to/query/file\n";
             cout << desc << "\n";
             return 0;
         }

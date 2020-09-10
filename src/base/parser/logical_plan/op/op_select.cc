@@ -9,7 +9,7 @@ OpSelect::OpSelect(unique_ptr<Op> op, uint_fast32_t limit) :
     limit(limit),
     op(move(op)) { }
 
-OpSelect::OpSelect(vector<query_ast::Element> select_list, unique_ptr<Op> op, uint_fast32_t limit) :
+OpSelect::OpSelect(vector<query::ast::Element> select_list, unique_ptr<Op> op, uint_fast32_t limit) :
     select_all(false),
     limit(limit),
     op(move(op))

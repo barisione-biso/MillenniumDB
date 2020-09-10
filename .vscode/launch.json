@@ -57,19 +57,15 @@
             ]
         },
         {
-            "name": "ImportGraph",
+            "name": "ImportDB",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/bin/import_graph",
+            "program": "${workspaceFolder}/build/Debug/bin/create_db",
             "args": [
-                "-n",
-                "${workspaceFolder}/test_files/graph_creation_example/nodes.txt",
-                "-e",
-                "${workspaceFolder}/test_files/graph_creation_example/edges.txt",
-                "-g",
-                "graph debug",
+                "-f",
+                "${workspaceFolder}/example-db.txt",
                 "-d",
-                "${workspaceFolder}/test_files/db_debug"
+                "${workspaceFolder}/test_files/db"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

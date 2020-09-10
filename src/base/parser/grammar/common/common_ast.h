@@ -12,7 +12,8 @@
 #include "base/ids/graph_id.h"
 #include "base/ids/var_id.h"
 
-namespace ast {
+namespace common { namespace ast {
+
     namespace x3 = boost::spirit::x3;
     using Value = boost::variant<std::string, int64_t, float, bool>;
 
@@ -30,6 +31,6 @@ namespace ast {
         right,
         left
     };
-}
+}} // namespace common::ast
 
 #endif // BASE__COMMON_AST_H_

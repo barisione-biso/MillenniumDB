@@ -14,7 +14,7 @@ class OpNodeLoop;
 
 class OpVisitor {
 public:
-    virtual ~OpVisitor() { };
+    virtual ~OpVisitor() = default;
     virtual void visit(OpSelect&) = 0;
     virtual void visit(OpMatch&) = 0;
     virtual void visit(OpFilter&) = 0;

@@ -103,9 +103,7 @@ If you use VSCode, a `Run Build Task` is already configured. Tipically the short
     - `cmake --build build/Debug/ --target clean`
 
 # Create a database
-- `build/Release/bin/import_graph -d ./path/to/db/ -n ./path/to/nodes_file -e ./path/to/edges_file -g "graph name"`
-
-You can import multiples graphs in a single database
+- `build/Release/bin/create_db ./path/to/import_file.txt ./path/to/new_db `
 
 # Delete a database
 To delete a database just manually delete the files created:

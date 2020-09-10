@@ -5,43 +5,43 @@
 
 #include "base/parser/grammar/query/query_ast.h"
 
-BOOST_FUSION_ADAPT_STRUCT(query_ast::Root,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::Root,
     explain, selection, graph_pattern, where, limit
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query_ast::LinearPattern,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::LinearPattern,
     root, path, graph_name
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query_ast::StepPath,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::StepPath,
     edge, node
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query_ast::Node,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::Node,
     var, labels, properties
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query_ast::Edge,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::Edge,
     var, labels, properties, direction
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query_ast::Element,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::Element,
     var, key
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query_ast::Statement,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::Statement,
     lhs, comparator, rhs
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query_ast::StepFormula,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::StepFormula,
     op, condition
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query_ast::Formula,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::Formula,
     root, path
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query_ast::Condition,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::Condition,
     negation, content
 )
 

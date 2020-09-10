@@ -9,7 +9,7 @@
 
 class Value : public GraphObject {
 public:
-    virtual ~Value() { };
+    virtual ~Value() = default;
 };
 
 #endif // BASE__VALUE_H_

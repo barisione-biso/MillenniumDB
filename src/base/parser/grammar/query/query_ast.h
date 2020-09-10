@@ -11,9 +11,9 @@
 
 #include "base/parser/grammar/common/common_ast.h"
 
-namespace query_ast {
+namespace query { namespace ast {
     namespace x3 = boost::spirit::x3;
-    using namespace ast;
+    using namespace common::ast;
 
     struct Element {
         Var var;
@@ -96,6 +96,6 @@ namespace query_ast {
         boost::optional<Formula> where;
         boost::optional<int> limit;
     };
-}
+}}
 
 #endif // BASE__QUERY_AST_H_

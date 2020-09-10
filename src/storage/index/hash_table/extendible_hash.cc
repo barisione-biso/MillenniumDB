@@ -11,7 +11,8 @@
 #include "storage/index/hash_table/bucket.h"
 
 
-ExtendibleHash::ExtendibleHash(const std::string& filename) :
+ExtendibleHash::ExtendibleHash(ObjectFile& object_file, const std::string& filename) :
+    object_file(object_file),
     dir_file_id(file_manager.get_file_id(filename + ".dir")),
     buckets_file_id(file_manager.get_file_id(filename + ".dat"))
 {
@@ -42,7 +43,7 @@ ExtendibleHash::ExtendibleHash(const std::string& filename) :
         uint_fast32_t dir_size = 1 << global_depth;
         dir = new uint64_t[dir_size];
         for (uint_fast32_t i = 0; i < dir_size; ++i) {
-            auto bucket = Bucket(buckets_file_id, i);
+            auto bucket = Bucket(buckets_file_id, i, object_file);
             bucket.key_count = 0;
             bucket.local_depth = DEFAULT_GLOBAL_DEPTH;
             dir[i] = i;
@@ -98,7 +99,7 @@ uint64_t ExtendibleHash::get_id(const std::string& str, bool insert_if_not_prese
         auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
         auto suffix = hash[0] & mask;
         auto bucket_number = dir[suffix];
-        auto bucket = Bucket(buckets_file_id, bucket_number);
+        auto bucket = Bucket(buckets_file_id, bucket_number, object_file);
 
         bool need_split = false;
         auto id = bucket.get_id(str, hash[0], hash[1], insert_if_not_present, &need_split);
@@ -113,7 +114,7 @@ uint64_t ExtendibleHash::get_id(const std::string& str, bool insert_if_not_prese
                 auto new_bucket_number = bucket_number | (1 << bucket.local_depth);
                 ++bucket.local_depth;
                 auto new_mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - bucket.local_depth);
-                auto new_bucket = Bucket(buckets_file_id, new_bucket_number);
+                auto new_bucket = Bucket(buckets_file_id, new_bucket_number, object_file);
                 new_bucket.key_count = 0;
                 new_bucket.local_depth = bucket.local_depth;
 
@@ -140,7 +141,7 @@ uint64_t ExtendibleHash::get_id(const std::string& str, bool insert_if_not_prese
                 ++bucket.local_depth;
 
                 auto new_bucket_number = bucket_number | (1 << global_depth);
-                auto new_bucket = Bucket(buckets_file_id, new_bucket_number);
+                auto new_bucket = Bucket(buckets_file_id, new_bucket_number, object_file);
                 new_bucket.key_count = 0;
                 new_bucket.local_depth = bucket.local_depth;
 

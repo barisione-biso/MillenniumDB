@@ -8,17 +8,11 @@
 #include "base/binding/binding_iter.h"
 #include "base/ids/var_id.h"
 #include "relational_model/binding/binding_id_iter.h"
-#include "relational_model/query_optimizer/join_plan/join_plan.h"
+#include "relational_model//models/graph_model.h"
 
 class Match : public BindingIter {
-
-private:
-    std::unique_ptr<BindingIdIter> root;
-    const std::map<std::string, VarId> var_pos;
-    std::unique_ptr<BindingId> binding_id;
-
 public:
-    Match(std::unique_ptr<BindingIdIter> root,
+    Match(GraphModel& model, std::unique_ptr<BindingIdIter> root,
           std::map<std::string, VarId> var_pos);
     ~Match() = default;
 
@@ -27,6 +21,12 @@ public:
 
     // prints execution statistics
     void analyze(int indent = 0) const override;
+
+private:
+    GraphModel& model;
+    std::unique_ptr<BindingIdIter> root;
+    const std::map<std::string, VarId> var_pos;
+    std::unique_ptr<BindingId> binding_id;
 };
 
 #endif // RELATIONAL_MODEL__MATCH_H_

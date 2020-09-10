@@ -5,7 +5,7 @@
 
 class BptLeafProvider {
 public:
-    virtual ~BptLeafProvider() { }
+    virtual ~BptLeafProvider() = default;
 
     virtual void begin() = 0;
     virtual bool has_more_tuples() = 0;

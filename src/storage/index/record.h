@@ -59,6 +59,10 @@ public:
 
 class RecordFactory {
 public:
+    static Record<1> get(uint64_t a1) {
+        return Record<1>(std::array<uint64_t, 1> { a1 });
+    }
+
     static Record<2> get(uint64_t a1, uint64_t a2) {
         return Record<2>(std::array<uint64_t, 2> { a1, a2 });
     }

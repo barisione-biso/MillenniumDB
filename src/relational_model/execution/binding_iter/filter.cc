@@ -1,10 +1,10 @@
 #include "filter.h"
 
+#include <iostream>
+
 #include "base/graph/condition/condition.h"
 #include "base/binding/binding.h"
 #include "relational_model/binding/binding_filter.h"
-
-#include <iostream>
 
 using namespace std;
 

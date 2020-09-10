@@ -5,11 +5,11 @@
 
 #include "base/parser/grammar/common/common_ast.h"
 
-BOOST_FUSION_ADAPT_STRUCT(ast::Var,
+BOOST_FUSION_ADAPT_STRUCT(common::ast::Var,
     name
 )
 
-BOOST_FUSION_ADAPT_STRUCT(ast::Property,
+BOOST_FUSION_ADAPT_STRUCT(common::ast::Property,
     key, value
 )
 

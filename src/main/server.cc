@@ -2,18 +2,21 @@
  * server is a executable that listens for tcp conections asking for queries,
  * and it send the results to the client.
  *
- * There are 3 methods:
+ * There are 4 methods:
  *
  * 1) main: parses the program options (e.g: buffer size, port, database folder).
- *    Then initialize the `file_manager`, `buffer_manager` and the `RelationalModel`
- *    calls the method `server` to start the server.
+ *    Creates the proper GraphModel and calls the method `server` to start the server.
  *
- * 2) server: infinite loop, waiting for a new TCP connection. When a connection
+ * 2) server: infinite loop, waiting for new TCP connections. When a connection
  *    is established, it calls the `session` method in a different thread, and the loop
  *    starts again in the main thread, waiting for another connection.
  *
- * 3) session: executes the query and send the result to the client via TcpBuffer,
- *    who might break the result into multiple tcp messages.
+ * 3) session: Creates a TcpBuffer to send the query, parses the query, getting a logical
+ *    plan and then a physical plan. The physical plan and the TcpBuffer are passed to
+ *    `execute_query`.
+ *
+ * 4) execute_query: receives a physical plan and a TcpBufer. Executes the physical plan
+ *    enumerating all results, writing them into the TcpBuffer.
  */
 
 #include <chrono>
@@ -31,9 +34,8 @@
 #include "base/binding/binding_iter.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/query_parser.h"
-#include "relational_model/graph/relational_graph.h"
-#include "relational_model/query_optimizer/query_optimizer.h"
-#include "relational_model/relational_model.h"
+#include "relational_model/models/graph_model.h"
+#include "relational_model/models/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 #include "server/tcp_buffer.h"
@@ -68,7 +70,7 @@ void execute_query(unique_ptr<BindingIter> root, TcpBuffer& tcp_buffer) {
 }
 
 
-void session(tcp::socket sock) {
+void session(tcp::socket sock, GraphModel* model) {
     try {
         unsigned char query_size_b[db_server::BYTES_FOR_QUERY_LENGTH];
         boost::asio::read(sock, boost::asio::buffer(query_size_b, db_server::BYTES_FOR_QUERY_LENGTH));
@@ -81,37 +83,33 @@ void session(tcp::socket sock) {
         query.resize(query_size);
         boost::asio::read(sock, boost::asio::buffer(query.data(), query_size));
         cout << "--------------------------\n";
-        cout << "Query received:\n";
+        cout << " Query received:\n";
         cout << query << "\n";
         cout << "--------------------------\n";
-        // cout << "Query length: " << query_size << "\n";
 
         TcpBuffer tcp_buffer = TcpBuffer(sock);
         tcp_buffer.begin(db_server::MessageType::plain_text);
 
         // start timer
         auto start = chrono::system_clock::now();
-        QueryOptimizer plan_generator { };
         try {
-            // get logical plan
-            auto select_plan = QueryParser::get_query_plan(query);
+            auto logical_plan = QueryParser::get_query_plan(query);
+            auto physical_plan = model->exec(*logical_plan);
 
-            // get physical plan
-            auto root = plan_generator.exec(*select_plan);
             auto end = chrono::system_clock::now();
             chrono::duration<float, std::milli> duration = end - start;
             tcp_buffer << "Query Parser/Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
-            execute_query(move(root), tcp_buffer);
+            execute_query(move(physical_plan), tcp_buffer);
         }
         catch (QueryParsingException& e) {
             // Try with manual plan
             try {
                 auto manual_plan = QueryParser::get_manual_plan(query);
-                auto root = plan_generator.exec(manual_plan);
+                auto physical_plan = model->exec(manual_plan);
                 auto end = chrono::system_clock::now();
                 chrono::duration<float, std::milli> duration = end - start;
                 tcp_buffer << "Query Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
-                execute_query(move(root), tcp_buffer);
+                execute_query(move(physical_plan), tcp_buffer);
             }
             catch (QueryException& e) {
                 tcp_buffer << "Query exception: " << e.what() << "\n";
@@ -130,12 +128,12 @@ void session(tcp::socket sock) {
 }
 
 
-void server(boost::asio::io_service& io_service, unsigned short port) {
+void server(boost::asio::io_service& io_service, unsigned short port, GraphModel* model) {
     tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), port));
     while (true) {
         tcp::socket sock(io_service);
         a.accept(sock);
-        std::thread(session, std::move(sock)).detach();
+        std::thread(session, std::move(sock), model).detach();
     }
 }
 
@@ -144,6 +142,7 @@ int main(int argc, char **argv) {
     int port;
     int buffer_size;
     string db_folder;
+
     try {
         // Parse arguments
         po::options_description desc("Allowed options");
@@ -168,23 +167,20 @@ int main(int argc, char **argv) {
         }
         po::notify(vm);
 
-        RelationalModel::init(db_folder, buffer_size);
+        unique_ptr<GraphModel> model = make_unique<QuadModel>(db_folder, buffer_size);
 
         boost::asio::io_service io_service;
         boost::asio::deadline_timer t(io_service, boost::posix_time::seconds(5));
 
-        server(io_service, port);
+        server(io_service, port, model.get());
     }
     catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";
-        RelationalModel::terminate();
         return 1;
     }
     catch (...) {
         cerr << "Exception of unknown type!\n";
-        RelationalModel::terminate();
         return 1;
     }
-    RelationalModel::terminate();
     return 0;
 }

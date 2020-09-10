@@ -2,7 +2,7 @@
 
 using namespace std;
 
-OpFilter::OpFilter(boost::optional<query_ast::Formula> const& optional_formula, unique_ptr<Op> op) :
+OpFilter::OpFilter(boost::optional<query::ast::Formula> const& optional_formula, unique_ptr<Op> op) :
     op(move(op))
 {
     FormulaVisitor visitor = FormulaVisitor();

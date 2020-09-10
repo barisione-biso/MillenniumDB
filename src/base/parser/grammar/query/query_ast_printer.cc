@@ -6,7 +6,7 @@
  * new line (if necesary) after the call.
  */
 
-using namespace query_ast;
+using namespace query::ast;
 
 QueryAstPrinter::QueryAstPrinter(std::ostream& out)
     : out(out), base_indent(0) {}

@@ -22,7 +22,7 @@ public:
     std::unique_ptr<Condition> condition;
     std::unique_ptr<Op> op;
 
-    OpFilter(boost::optional<query_ast::Formula> const& optional_formula, std::unique_ptr<Op> op);
+    OpFilter(boost::optional<query::ast::Formula> const& optional_formula, std::unique_ptr<Op> op);
     void accept_visitor(OpVisitor&);
 };
 
@@ -35,9 +35,9 @@ public:
     FormulaVisitor() { }
 
 
-    std::unique_ptr<Condition> operator()(boost::optional<query_ast::Formula> const& optional_formula) const {
+    std::unique_ptr<Condition> operator()(boost::optional<query::ast::Formula> const& optional_formula) const {
         if (optional_formula) {
-            query_ast::Formula formula = static_cast<query_ast::Formula>(optional_formula.get());
+            query::ast::Formula formula = static_cast<query::ast::Formula>(optional_formula.get());
             return (*this)(formula);
         }
         else {
@@ -46,13 +46,13 @@ public:
     }
 
 
-    std::unique_ptr<Condition> operator()(query_ast::Formula const& formula) const {
+    std::unique_ptr<Condition> operator()(query::ast::Formula const& formula) const {
         std::vector<std::unique_ptr<Condition>> tmp_disjunction;
         auto tmp = (*this)(formula.root);
 
         for (auto const& step_formula : formula.path) {
             auto step = (*this)(step_formula.condition);
-            if (step_formula.op.type() == typeid(query_ast::Or)) { // OR
+            if (step_formula.op.type() == typeid(query::ast::Or)) { // OR
                 tmp_disjunction.push_back(std::move(tmp));
                 tmp = std::move(step);
             }
@@ -79,7 +79,7 @@ public:
     }
 
 
-    std::unique_ptr<Condition> operator()(query_ast::Condition const& condition) const {
+    std::unique_ptr<Condition> operator()(query::ast::Condition const& condition) const {
         if (condition.negation) {
             std::unique_ptr<Condition> cont = boost::apply_visitor(*this, condition.content);
             return std::make_unique<Negation>(std::move(cont));
@@ -90,23 +90,23 @@ public:
     }
 
 
-    std::unique_ptr<Condition> operator()(query_ast::Statement const& statement) const {
-        if (statement.comparator.type() == typeid(query_ast::EQ))
+    std::unique_ptr<Condition> operator()(query::ast::Statement const& statement) const {
+        if (statement.comparator.type() == typeid(query::ast::EQ))
             return std::make_unique<Equals>(statement);
 
-        else if (statement.comparator.type() == typeid(query_ast::NE))
+        else if (statement.comparator.type() == typeid(query::ast::NE))
             return std::make_unique<NotEquals>(statement);
 
-        else if (statement.comparator.type() == typeid(query_ast::LE))
+        else if (statement.comparator.type() == typeid(query::ast::LE))
             return std::make_unique<LessOrEquals>(statement);
 
-        else if (statement.comparator.type() == typeid(query_ast::GE))
+        else if (statement.comparator.type() == typeid(query::ast::GE))
             return std::make_unique<GreaterOrEquals>(statement);
 
-        else if (statement.comparator.type() == typeid(query_ast::GT))
+        else if (statement.comparator.type() == typeid(query::ast::GT))
             return std::make_unique<GreaterThan>(statement);
 
-        else // if (statement.comparator.type() == typeid(query_ast::LT))
+        else // if (statement.comparator.type() == typeid(query::ast::LT))
             return std::make_unique<LessThan>(statement);
     }
 };

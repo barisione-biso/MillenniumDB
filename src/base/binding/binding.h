@@ -9,7 +9,7 @@
 // Abstract class
 class Binding {
 public:
-    virtual ~Binding() { };
+    virtual ~Binding() = default;
 
     virtual std::string to_string() const = 0;
 

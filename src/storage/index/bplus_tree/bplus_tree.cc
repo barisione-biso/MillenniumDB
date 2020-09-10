@@ -14,9 +14,9 @@
 using namespace std;
 
 template <std::size_t N>
-BPlusTree<N>::BPlusTree(const std::string& path) :
-    dir_file_id(file_manager.get_file_id(path + ".dir")),
-    leaf_file_id(file_manager.get_file_id(path + ".leaf"))
+BPlusTree<N>::BPlusTree(const std::string& name) :
+    dir_file_id(file_manager.get_file_id(name + ".dir")),
+    leaf_file_id(file_manager.get_file_id(name + ".leaf"))
 {
     root = make_unique<BPlusTreeDir<N>>(leaf_file_id, buffer_manager.get_page(dir_file_id, 0));
 

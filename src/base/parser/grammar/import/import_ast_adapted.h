@@ -5,12 +5,16 @@
 
 #include <boost/fusion/include/adapt_struct.hpp>
 
-BOOST_FUSION_ADAPT_STRUCT(import_ast::Node,
-    anonymous, name, labels, properties
+BOOST_FUSION_ADAPT_STRUCT(import::ast::Node,
+    name, labels, properties
 )
 
-BOOST_FUSION_ADAPT_STRUCT(import_ast::Edge,
-    left_anonymous, left_name, direction, right_anonymous, right_name, labels, properties
+BOOST_FUSION_ADAPT_STRUCT(import::ast::Edge,
+    left_name, direction, right_name, labels, properties
+)
+
+BOOST_FUSION_ADAPT_STRUCT(import::ast::ImplicitEdge,
+    nesting, direction, right_name, labels, properties, dummy
 )
 
 #endif // BASE__IMPORT_AST_ADAPTED_H_

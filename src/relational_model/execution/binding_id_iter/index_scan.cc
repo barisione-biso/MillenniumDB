@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "base/ids/var_id.h"
-#include "relational_model/relational_model.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"

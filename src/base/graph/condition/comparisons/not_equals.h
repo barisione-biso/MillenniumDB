@@ -5,7 +5,7 @@
 
 class NotEquals : public Comparison {
 public:
-    NotEquals(query_ast::Statement const& statement) :
+    NotEquals(query::ast::Statement const& statement) :
         Comparison(statement) { }
 
     bool compare(GraphObject& lhs, GraphObject& rhs) override {

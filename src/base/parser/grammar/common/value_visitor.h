@@ -10,7 +10,7 @@
 
 class ValueVisitor : public boost::static_visitor<std::unique_ptr<Value>> {
 public:
-    std::unique_ptr<Value> operator() (ast::Value value) const {
+    std::unique_ptr<Value> operator() (common::ast::Value value) const {
         return boost::apply_visitor(*this, value);
     }
 

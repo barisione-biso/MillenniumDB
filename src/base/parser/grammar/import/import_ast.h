@@ -12,48 +12,66 @@
 
 #include "base/parser/grammar/common/common_ast.h"
 
-namespace import_ast {
+namespace import { namespace ast {
+
     namespace x3 = boost::spirit::x3;
-    using namespace ast;
+    using namespace common::ast;
 
     struct Node {
-        bool anonymous;
         std::string name;
         std::vector<std::string> labels;
         std::vector<Property> properties;
+
+        bool anonymous() const {
+            return name[0] == '_';
+        }
     };
 
 
     struct Edge {
         EdgeDirection direction;
 
-        bool left_anonymous;
         std::string left_name;
-
-        bool right_anonymous;
         std::string right_name;
 
         std::vector<std::string> labels;
         std::vector<Property> properties;
 
+        bool left_anonymous() const {
+            return left_name[0] == '_';
+        }
+
+        bool right_anonymous() const {
+            return right_name[0] == '_';
+        }
     };
 
 
     struct ImplicitEdge {
+        bool dummy; // unused variable to avoid a weird bug with spirit x3
         EdgeDirection direction;
 
         // nesting_level = 1: left is the implicit node
         // nesting_level = 2: left is the edge
         // nesting_level = 3: left is the edge of the edge
         // and so on
-        int nesting_level;
+        std::string nesting;
 
-        bool right_anonymous;
+        std::size_t nesting_level() const {
+            return nesting.size();
+        }
+
+        bool right_anonymous() const {
+            return right_name[0] == '_';
+        }
+
         std::string right_name;
 
         std::vector<std::string> labels;
         std::vector<Property> properties;
     };
-}
+
+    using ImportLine = boost::variant<Node, Edge, ImplicitEdge>;
+}}
 
 #endif // BASE__IMPORT_AST_H_

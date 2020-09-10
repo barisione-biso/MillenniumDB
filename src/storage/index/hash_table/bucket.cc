@@ -3,15 +3,14 @@
 #include <bitset>
 #include <cstring>
 #include <memory>
-#include <iostream>
 
 #include "storage/buffer_manager.h"
-#include "relational_model/relational_model.h"
 
 using namespace std;
 
-Bucket::Bucket(FileId file_id, uint_fast32_t bucket_number) :
-    page( buffer_manager.get_page(file_id, bucket_number) )
+Bucket::Bucket(FileId file_id, uint_fast32_t bucket_number, ObjectFile& object_file) :
+    page( buffer_manager.get_page(file_id, bucket_number) ),
+    object_file(object_file)
 {
     auto bytes = page.get_bytes();
 
@@ -43,7 +42,7 @@ uint64_t Bucket::get_id(const string& str, uint64_t hash1, uint64_t hash2, bool 
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             // check if object is
             auto id = read_id(i);
-            auto bytes = relational_model.get_object_file().read(id);
+            auto bytes = object_file.read(id);
             string value_string(bytes->begin(), bytes->end());
             // TODO: try using string cache
             if (value_string == str) {
@@ -59,7 +58,7 @@ uint64_t Bucket::get_id(const string& str, uint64_t hash1, uint64_t hash2, bool 
 
         auto bytes = make_unique<vector<unsigned char>>(str.length());
         copy(str.begin(), str.end(), bytes->begin());
-        auto new_id = relational_model.get_object_file().write(*bytes);
+        auto new_id = object_file.write(*bytes);
 
         hashes[2 * key_count]     = hash1;
         hashes[2 * key_count + 1] = hash2;
@@ -99,19 +98,11 @@ uint64_t Bucket::read_id(int i) {
 
 
 void Bucket::redistribute(Bucket& other, uint64_t mask, uint64_t other_suffix) {
-    // std::cout << "mask:         " << std::bitset<8*sizeof(mask)>(mask) << "\n";
-    // std::cout << "other_suffix: " << std::bitset<8*sizeof(other_suffix)>(other_suffix) << "\n";
-
-    // for (int i = 0; i < key_count; ++i) {
-    //     std::cout << "hash[i][0]:   " << std::bitset<8*sizeof(hashes[2*i])>(hashes[2*i]) << "\n";
-    // }
-
     uint8_t current_pos = 0;
     uint8_t other_pos = 0;
 
     while (current_pos < key_count) {
         auto suffix = mask & hashes[2 * current_pos];
-        // std::cout << "suffix:       " << std::bitset<8*sizeof(suffix)>(suffix) << "\n";
 
         if (suffix == other_suffix) {
             std::memcpy(

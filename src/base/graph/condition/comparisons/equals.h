@@ -5,7 +5,7 @@
 
 class Equals : public Comparison {
 public:
-    Equals(query_ast::Statement const& statement) :
+    Equals(query::ast::Statement const& statement) :
         Comparison(statement) { }
 
     bool compare(GraphObject& lhs, GraphObject& rhs) override {

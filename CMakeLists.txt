@@ -25,7 +25,7 @@ list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/*)
 add_library(milleniumdb STATIC ${sources})
 
 set(BUILD_TARGETS
-    import_graph
+    create_db
     query
     server
 )

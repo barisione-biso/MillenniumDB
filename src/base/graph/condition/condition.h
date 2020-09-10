@@ -18,7 +18,7 @@ enum class ConditionType {
 // Abstract class
 class Condition {
 public:
-    virtual ~Condition() { };
+    virtual ~Condition() = default;
     virtual bool eval(Binding&) = 0;
     virtual ConditionType type() = 0;
     virtual void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) = 0;

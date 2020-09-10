@@ -12,9 +12,9 @@ public:
     const std::string graph_name;
     const std::string edge_name;
     const std::string key;
-    const ast::Value value;
+    const common::ast::Value value;
 
-    OpEdgeProperty(std::string graph_name, std::string edge_name, std::string key, ast::Value value) :
+    OpEdgeProperty(std::string graph_name, std::string edge_name, std::string key, common::ast::Value value) :
         graph_name(std::move(graph_name)),
         edge_name (std::move(edge_name) ),
         key       (std::move(key)       ),

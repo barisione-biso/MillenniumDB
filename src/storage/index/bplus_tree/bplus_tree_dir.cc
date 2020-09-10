@@ -389,10 +389,11 @@ search_child_index_begin:
 template <std::size_t N>
 bool BPlusTreeDir<N>::check() const {
     if (key_count < 0) {
-        std::cout << "  key_count shouldn't be less than 0\n";
+        std::cerr << "  ERROR: key_count shouldn't be less than 0\n";
+        return false;
     }
     if (key_count == 0 && page.get_page_number() != 0) {
-        std::cout << "  key_count shouldn't be 0, except for one node (at most)"
+        std::cout << "  WARNING: key_count shouldn't be 0, except for one node (at most)"
                   << " at the right-most branch if bulk import was used\n";
     }
 
@@ -412,9 +413,9 @@ bool BPlusTreeDir<N>::check() const {
                 y.ids[i] = keys[current_pos++];
             }
             if (y <= x) {
-                std::cout << "bad key order at BPlusTreeDir:\n";
-                std::cout << "  " << x << "\n";
-                std::cout << "  " << y << "\n";
+                std::cerr << "  bad key order at BPlusTreeDir:\n";
+                std::cerr << "    " << x << "\n";
+                std::cerr << "    " << y << "\n";
                 return false;
             }
             x = y;
@@ -474,15 +475,15 @@ bool BPlusTreeDir<N>::check() const {
         }
 
         if (!(greatest_left_key < key)) {
-            std::cout << "inconsistency between key and left-child key at BPlusTreeDir.\n";
-            std::cout << greatest_left_key << "\n";
-            std::cout << key << "\n";
+            std::cerr << "  ERROR: inconsistency between key and left-child key at BPlusTreeDir.\n";
+            std::cerr << greatest_left_key << "\n";
+            std::cerr << key << "\n";
             return false;
         }
         if (!right_empty && !(key <= smallest_right_key)) {
-            std::cout << "inconsistency between key and right-child key at BPlusTreeDir\n";
-            std::cout << key << "\n";
-            std::cout << smallest_right_key << "\n";
+            std::cerr << "  ERROR: inconsistency between key and right-child key at BPlusTreeDir\n";
+            std::cerr << key << "\n";
+            std::cerr << smallest_right_key << "\n";
             return false;
         }
     }

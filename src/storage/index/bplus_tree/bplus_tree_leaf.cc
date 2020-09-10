@@ -226,9 +226,8 @@ void BPlusTreeLeaf<N>::print() const {
 
 template <std::size_t N>
 bool BPlusTreeLeaf<N>::check() const {
-    if (value_count <= 0) {
-        cerr << "ERROR: value_count should be greater than 0. ";
-        cerr << "       got: " << value_count << "\n";
+    if (value_count == 0) {
+        cout << "  WARNING: empty leaf. Is B+tree is empty?\n";
     }
 
     if (value_count > 1) {
@@ -247,7 +246,7 @@ bool BPlusTreeLeaf<N>::check() const {
                 y[i] = records[current_pos++];
             }
             if (y <= x) {
-                cerr << "ERROR: bad record order at BPlusTreeLeaf\n";
+                cerr << "  ERROR: bad record order at BPlusTreeLeaf\n";
                 print();
                 return false;
             }

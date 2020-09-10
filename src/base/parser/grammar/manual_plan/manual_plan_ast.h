@@ -15,7 +15,7 @@
 
 namespace manual_plan_ast {
     namespace x3 = boost::spirit::x3;
-    using namespace ast;
+    using namespace common::ast;
 
     struct NodeLabel {
         Var node;
@@ -30,13 +30,13 @@ namespace manual_plan_ast {
     struct NodeProperty {
         Var node;
         std::string key;
-        ast::Value value;
+        common::ast::Value value;
     };
 
     struct EdgeProperty {
         Var edge;
         std::string key;
-        ast::Value value;
+        common::ast::Value value;
     };
 
     struct Connection {

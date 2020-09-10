@@ -8,7 +8,7 @@
 
 class Op {
 public:
-    virtual ~Op() { };
+    virtual ~Op() = default;
     virtual void accept_visitor(OpVisitor&) = 0;
 };
 
