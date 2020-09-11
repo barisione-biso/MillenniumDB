@@ -145,16 +145,17 @@ vector<VarId> ConnectionPlan::get_var_order() {
 
 /** FTE | TEF | EFT
  * ╔═╦══════════╦════════╦══════════╦══════════╗
- * ║ ║ NodeFrom ║  Edge  ║  NodeTo  ║  index   ║
+ * ║ ║ NodeFrom ║  Type  ║  NodeTo  ║  index   ║
  * ╠═╬══════════╬════════╬══════════╬══════════╣
- * ║1║     yes  ║   yes  ║    yes   ║    EFT   ║ => any index works for this case
+ * ║1║     yes  ║   yes  ║    yes   ║    EFT   ║
  * ║2║     yes  ║   yes  ║    no    ║    EFT   ║
  * ║3║     yes  ║   no   ║    yes   ║    FTE   ║
  * ║4║     yes  ║   no   ║    no    ║    FTE   ║
  * ║5║     no   ║   yes  ║    yes   ║    TEF   ║
  * ║6║     no   ║   yes  ║    no    ║    EFT   ║
  * ║7║     no   ║   no   ║    yes   ║    TEF   ║
- * ║8║     no   ║   no   ║    no    ║    EFT   ║ => any index works for this case
+ * ║8║     no   ║   no   ║    no    ║    EFT   ║
+ * ║8║     no   ║   no   ║    no    ║    EFT   ║
  * ╚═╩══════════╩════════╩══════════╩══════════╝
  */
 unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {

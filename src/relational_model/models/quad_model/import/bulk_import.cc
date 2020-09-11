@@ -233,7 +233,7 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
     for (auto& label : node.labels) {
         auto label_id = model.get_string_id(label, true).id;
         ++catalog.label_count;
-        ++catalog.label2total_count[label_id]; // TODO: funciona?
+        ++catalog.label2total_count[label_id];
 
         node_labels.append_record(RecordFactory::get(node_id, label_id));
     }
@@ -246,7 +246,7 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
         auto value_id = model.get_value_id(*value, true).id;
 
         ++catalog.properties_count;
-        ++catalog.key2total_count[key_id]; // TODO: funciona?
+        ++catalog.key2total_count[key_id];
 
         object_key_value.append_record(RecordFactory::get(node_id, key_id, value_id));
     }
@@ -292,11 +292,11 @@ uint64_t BulkImport::process_edge(const import::ast::Edge edge) {
         auto value_id = model.get_value_id(*value, true).id;
 
         ++catalog.properties_count;
-        ++catalog.key2total_count[key_id]; // TODO: funciona?
+        ++catalog.key2total_count[key_id];
 
         object_key_value.append_record(RecordFactory::get(edge_id, key_id, value_id));
     }
-    ++catalog.type2total_count[type_id];   // TODO: funciona?
+    ++catalog.type2total_count[type_id];
     return edge_id;
 }
 
@@ -335,11 +335,11 @@ uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge edge,
         auto value_id = model.get_value_id(*value, true).id;
 
         ++catalog.properties_count;
-        ++catalog.key2total_count[key_id]; // TODO: funciona?
+        ++catalog.key2total_count[key_id];
 
         object_key_value.append_record(RecordFactory::get(edge_id, key_id, value_id));
     }
-    ++catalog.type2total_count[type_id];   // TODO: funciona?
+    ++catalog.type2total_count[type_id];
     return edge_id;
 }
 

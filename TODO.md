@@ -1,3 +1,9 @@
+- Cosas para discutor prox reunion:
+    - Sintaxis del @
+    - Conexiones directas a valores
+    - Json como posible valores
+        - como hashear json?
+
 - Cambios si hacemos nuestra propuesta de nuevo modelo basado en quads:
     - Eliminar lo relacionado con edges EdgeLabel, EdgeProperty, etc
     - Crear nueva "tabla" (E)SPO
