@@ -198,7 +198,7 @@ uint64_t BulkImport::get_node_id(const string& node_name) {
     if (search != identificable_node_dict.end()) {
         return search->second;
     } else {
-        auto new_id = model.get_string_id(node_name, true).id;
+        auto new_id = model.get_identifiable_object_id(node_name, true).id;
         model.node_table->append_record(RecordFactory::get(new_id));
 
         identificable_node_dict.insert({ node_name, new_id });
@@ -345,14 +345,14 @@ uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge edge,
 
 
 uint64_t BulkImport::create_connection(const uint64_t from_id, const uint64_t to_id, const uint64_t type_id) {
-    uint64_t edge_id = ++catalog.connections_count;
+    uint64_t edge_id = ++catalog.connections_count | model.CONNECTION_MASK; // TODO: falta mask
 
     // TODO: special cases
     // bool node_loop = from_id == to_id;
     // if (node_loop) {
         // self_connected_nodes.append_record(RecordFactory::get(from_id, edge_id));
     // }
-    from_to_type_edge.append_record( RecordFactory::get(from_id, to_id, type_id, edge_id) );
+    from_to_type_edge.append_record(RecordFactory::get(from_id, to_id, type_id, edge_id) );
     model.edge_table->append_record(RecordFactory::get(from_id, to_id, type_id));
 
     return edge_id;

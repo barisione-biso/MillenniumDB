@@ -18,11 +18,10 @@ public:
     QuadCatalog(const std::string& filename);
     ~QuadCatalog() = default;
 
+    void print();
     void save_changes();
 
-    void print();
-
-private:
+// private:
     uint64_t identifiable_defined_count = 0;
     uint64_t anonymous_defined_count = 0;
 

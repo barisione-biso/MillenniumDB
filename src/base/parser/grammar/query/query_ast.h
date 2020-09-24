@@ -15,20 +15,26 @@ namespace query { namespace ast {
     namespace x3 = boost::spirit::x3;
     using namespace common::ast;
 
-    struct Element {
+    // TODO: get rid of this?
+    struct VarKey {
         Var var;
-        std::string key;
+        std::string key; // may be empty. ¿Use boost::optional?
+    };
+
+    struct SelectItem {
+        std::string var;
+        boost::optional<std::string> key;
     };
 
     struct Edge {
-        Var var;
-        std::vector<std::string> labels;
+        std::string var_or_id; // Can be the identifier, a variable or empty
+        std::vector<std::string> types;
         std::vector<Property> properties;
         EdgeDirection direction;
     };
 
     struct Node {
-        Var var;
+        std::string var_or_id; // Can be the identifier, a variable or empty
         std::vector<std::string> labels;
         std::vector<Property> properties;
     };
@@ -41,44 +47,40 @@ namespace query { namespace ast {
     struct LinearPattern {
         Node root;
         std::vector<StepPath> path;
-        std::string graph_name;
     };
 
-    struct EQ { };
+    enum class BinaryOp {
+        And,
+        Or
+    };
 
-    struct NE { };
-
-    struct GT { };
-
-    struct LT { };
-
-    struct GE { };
-
-    struct LE { };
-
-    typedef boost::variant<EQ, NE, GT, LT, GE, LE> Comparator;
+    enum class Comparator {
+        EQ, // ==
+        NE, // !=
+        GT, // >
+        LT, // <
+        GE, // >=
+        LE, // <=
+    };
 
     struct Statement {
-        boost::variant<Var, Element> lhs;
+        boost::variant<Var, VarKey> lhs;
         Comparator comparator;
-        boost::variant<Var, Element, ast::Value> rhs;
+        boost::variant<Var, VarKey, ast::Value> rhs;
     };
 
     struct Formula;
-
-    struct And { };
-    struct Or { };
 
     struct Condition {
         bool negation;
         boost::variant <Statement, boost::recursive_wrapper<Formula>> content;
 
-        Condition()
-            : negation(false) {}
+        Condition() :
+            negation(false) { }
     };
 
     struct StepFormula {
-        boost::variant<And, Or> op;
+        BinaryOp op;
         Condition condition;
     };
 
@@ -87,14 +89,12 @@ namespace query { namespace ast {
         std::vector<StepFormula> path;
     };
 
-    struct All { };
-
-    struct Root {
-        bool explain;
-        boost::variant<All, std::vector<Element>> selection;
-        std::vector<LinearPattern> graph_pattern;
-        boost::optional<Formula> where;
-        boost::optional<int> limit;
+    struct QueryRoot {
+        bool                           explain;
+        std::vector<SelectItem>        selection;
+        std::vector<LinearPattern>     graph_pattern;
+        boost::optional<Formula>       where;
+        boost::optional<uint_fast32_t> limit;
     };
 }}
 

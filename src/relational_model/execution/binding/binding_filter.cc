@@ -2,12 +2,8 @@
 
 using namespace std;
 
-BindingFilter::BindingFilter(Binding& binding, map<string, GraphId>& var2graph_id,
-                             set<string>& node_names, set<string>& edge_names) :
-    binding(binding),
-    var2graph_id(var2graph_id),
-    node_names(node_names),
-    edge_names(edge_names) { }
+BindingFilter::BindingFilter(Binding& binding) :
+    binding(binding) { }
 
 
 std::string BindingFilter::to_string() const {
@@ -22,7 +18,7 @@ std::shared_ptr<GraphObject> BindingFilter::operator[](const std::string& var_na
 
 std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var, const std::string& key) {
     return nullptr;
-    // TODO:
+    // TODO: remake
     // auto search_var = var + "." + key;
     // auto value = binding[search_var];
     // if (value != nullptr) {

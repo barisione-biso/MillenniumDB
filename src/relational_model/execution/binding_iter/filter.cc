@@ -4,17 +4,13 @@
 
 #include "base/graph/condition/condition.h"
 #include "base/binding/binding.h"
-#include "relational_model/binding/binding_filter.h"
+#include "relational_model/execution/binding/binding_filter.h"
 
 using namespace std;
 
-Filter::Filter(unique_ptr<BindingIter> iter, unique_ptr<Condition> condition, map<string, GraphId> var2graph_id,
-               set<string> node_names, set<string> edge_names) :
-    iter(move(iter)),
-    condition(move(condition)),
-    var2graph_id(move(var2graph_id)),
-    node_names(move(node_names)),
-    edge_names(move(edge_names)) { }
+Filter::Filter(unique_ptr<BindingIter> iter, unique_ptr<Condition> condition) :
+    iter      (move(iter)),
+    condition (move(condition)) { }
 
 
 void Filter::begin() {
@@ -25,7 +21,7 @@ void Filter::begin() {
 unique_ptr<Binding> Filter::next() {
     auto next_binding = iter->next();
     while (next_binding != nullptr) {
-        auto binding_filter = BindingFilter(*next_binding, var2graph_id, node_names, edge_names);
+        auto binding_filter = BindingFilter(*next_binding);
 
         if (condition->eval(binding_filter)) {
             return next_binding;

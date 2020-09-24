@@ -5,155 +5,122 @@
 #include <map>
 #include <memory>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op.h"
-#include "base/parser/logical_plan/op/op_node_label.h"
-#include "base/parser/logical_plan/op/op_node_property.h"
-#include "base/parser/logical_plan/op/op_edge_label.h"
-#include "base/parser/logical_plan/op/op_edge_property.h"
+#include "base/parser/logical_plan/op/op_label.h"
+#include "base/parser/logical_plan/op/op_property.h"
 #include "base/parser/logical_plan/op/op_connection.h"
-#include "base/parser/logical_plan/op/op_node_loop.h"
-#include "base/parser/logical_plan/op/op_lonely_node.h"
+#include "base/parser/logical_plan/op/op_connection_type.h"
+#include "base/parser/logical_plan/op/op_unjoint_object.h"
 
 class OpMatch : public Op {
 public:
-    std::set<OpNodeLabel>    node_labels;
-    std::set<OpNodeProperty> node_properties;
-    std::set<OpEdgeLabel>    edge_labels;
-    std::set<OpEdgeProperty> edge_properties;
-    std::set<OpConnection>   connections;
-    std::set<OpLonelyNode>   lonely_nodes;
-    std::set<OpNodeLoop>     node_loops;
+    std::set<OpLabel>          labels;
+    std::set<OpProperty>       properties;
+    std::set<OpConnection>     connections;
+    std::set<OpConnectionType> connection_types;
+    std::set<OpUnjointObject>  unjoint_objects;
 
-    std::set<std::string>    node_names;
-    std::set<std::string>    edge_names;
-    std::map<std::string, std::string> var_name2graph_name;
+    std::set<std::string> var_names; // only contains declared variables
 
     int_fast32_t anonymous_var_count = 0;
 
     OpMatch(const std::vector<query::ast::LinearPattern>& graph_pattern) {
         for (auto& linear_pattern : graph_pattern) {
-            auto graph_name = linear_pattern.graph_name;
-            auto last_node_name = process_node(graph_name, linear_pattern.root);
+            auto last_object_name = process_node(linear_pattern.root);
 
             if (linear_pattern.path.empty()
                 && linear_pattern.root.labels.empty()
                 && linear_pattern.root.properties.empty())
             {
-                lonely_nodes.insert(OpLonelyNode(graph_name, last_node_name));
+                unjoint_objects.insert(OpUnjointObject(last_object_name));
             }
 
             for (auto& step_path : linear_pattern.path) {
-                auto current_node_name = process_node(graph_name, step_path.node);
-                auto edge_name         = process_edge(graph_name, step_path.edge);
+                auto current_node_name = process_node(step_path.node);
+                auto edge_name         = process_edge(step_path.edge);
 
-                if (last_node_name == current_node_name) {
-                    node_loops.insert(
-                        OpNodeLoop(graph_name, last_node_name, edge_name)
-                    );
-                } else if (step_path.edge.direction == query::ast::EdgeDirection::right) {
+                if (step_path.edge.direction == query::ast::EdgeDirection::right) {
                     connections.insert(
-                        OpConnection(graph_name, last_node_name, edge_name, current_node_name)
+                        OpConnection(last_object_name, current_node_name, edge_name)
                     );
                 } else {
                     connections.insert(
-                        OpConnection(graph_name, current_node_name, edge_name, last_node_name)
+                        OpConnection(current_node_name, last_object_name, edge_name)
                     );
                 }
-                last_node_name = std::move(current_node_name);
+                last_object_name = std::move(current_node_name);
             }
         }
     }
 
 
-    std::string process_node(const std::string& graph_name, const query::ast::Node& node) {
+    std::string process_node(const query::ast::Node& node) {
         std::string node_name;
-        if (node.var.name.empty()) {
-            node_name = "_n" + std::to_string(anonymous_var_count++);
+        if (node.var_or_id.empty()) {
+            // anonymous variable
+            node_name = "?_" + std::to_string(anonymous_var_count++);
+        } else if (node.var_or_id[0] == '?') {
+            // explicit variable
+            node_name = node.var_or_id;
+            var_names.insert(node_name);
         } else {
-            node_name = node.var.name;
-            auto search = edge_names.find(node_name);
-
-            // check no edge has same name
-            if (search != edge_names.end()) {
-                throw QuerySemanticException("\"" + node_name
-                    + "\" has already been declared as an Edge and cannot be a Node");
-            }
-            // check graph name is the same
-            auto graph_search = var_name2graph_name.find(node_name);
-            if (graph_search != var_name2graph_name.end() && graph_search->second != graph_name) {
-                throw QuerySemanticException("\"" + node_name + "\" has already been declared in graph '"
-                    + var_name2graph_name[node_name]
-                    + "' and cannot be declared in another graph (" + graph_name + ")");
-            }
+            // identifier
+            node_name = node.var_or_id;
         }
-        node_names.insert(node_name);
-        var_name2graph_name.insert({ node_name, graph_name });
 
         for (auto& label : node.labels) {
-            node_labels.insert(OpNodeLabel(graph_name, node_name, label));
+            labels.insert(OpLabel(node_name, label));
         }
 
         for (auto& property : node.properties) {
-            auto new_property = OpNodeProperty(graph_name, node_name, property.key, property.value);
-            auto property_search = node_properties.find(new_property);
+            auto new_property = OpProperty(node_name, property.key, property.value);
+            auto property_search = properties.find(new_property);
 
-            if (property_search != node_properties.end()) {
+            if (property_search != properties.end()) {
                 auto old_property = *property_search;
                 if (old_property.value != property.value) {
                     throw QuerySemanticException(node_name + "." + property.key + " its declared with different values.");
                 }
             } else {
-                node_properties.insert(new_property);
+                properties.insert(new_property);
             }
         }
         return node_name;
     }
 
 
-    std::string process_edge(const std::string& graph_name, const query::ast::Edge& edge) {
+    std::string process_edge(const query::ast::Edge& edge) {
         std::string edge_name;
-        if (edge.var.name.empty()) {
-            edge_name = "_e" + std::to_string(anonymous_var_count++);
+        if (edge.var_or_id.empty()) {
+            // anonymous variable
+            edge_name = "?_e" + std::to_string(anonymous_var_count++);
+        } else if (edge.var_or_id[0] == '?') {
+            // explicit variable
+            edge_name = edge.var_or_id;
+            var_names.insert(edge_name);
         } else {
-            edge_name = edge.var.name;
-
-            auto search = node_names.find(edge_name);
-
-            // check no node has same name
-            if (search != node_names.end()) {
-                throw QuerySemanticException("\"" + edge_name
-                    + "\" has already been declared as an Node and cannot be a Edge");
-            }
-            // check graph name is the same
-            auto graph_search = var_name2graph_name.find(edge_name);
-            if (graph_search != var_name2graph_name.end() && graph_search->second != graph_name) {
-                throw QuerySemanticException("\"" + edge_name + "\" has already been declared in graph '"
-                    + var_name2graph_name[edge_name]
-                    + "' and cannot be declared in another graph (" + graph_name + ")");
-            }
+            // identifier
+            edge_name = edge.var_or_id;
         }
-        edge_names.insert(edge_name);
-        var_name2graph_name.insert({ edge_name, graph_name });
 
-        for (auto& label : edge.labels) {
-            edge_labels.insert(OpEdgeLabel(graph_name, edge_name, label));
+        for (auto& type : edge.types) {
+            connection_types.insert(OpConnectionType(edge_name, type));
         }
 
         for (auto& property : edge.properties) {
-            auto new_property = OpEdgeProperty(graph_name, edge_name, property.key, property.value);
-            auto property_search = edge_properties.find(new_property);
+            auto new_property = OpProperty(edge_name, property.key, property.value);
+            auto property_search = properties.find(new_property);
 
-            if (property_search != edge_properties.end()) {
+            if (property_search != properties.end()) {
                 auto old_property = *property_search;
                 if (old_property.value != property.value) {
                     throw QuerySemanticException(edge_name + "." + property.key + " its declared with different values in MATCH");
                 }
             } else {
-                edge_properties.insert(new_property);
+                properties.insert(new_property);
             }
         }
 

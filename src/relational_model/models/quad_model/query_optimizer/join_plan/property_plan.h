@@ -1,51 +1,41 @@
-#ifndef RELATIONAL_MODEL__EDGE_PROPERTY_PLAN_H_
-#define RELATIONAL_MODEL__EDGE_PROPERTY_PLAN_H_
+#ifndef RELATIONAL_MODEL__PROPERTY_PLAN_H_
+#define RELATIONAL_MODEL__PROPERTY_PLAN_H_
+
+#include <variant>
 
 #include "base/graph/graph_object.h"
-#include "base/ids/graph_id.h"
 #include "base/ids/object_id.h"
+#include "relational_model/models/quad_model/quad_model.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 
-class EdgePropertyPlan : public JoinPlan {
+class PropertyPlan : public JoinPlan {
 public:
-    EdgePropertyPlan(const EdgePropertyPlan& other);
+    PropertyPlan(const PropertyPlan& other);
+    PropertyPlan(QuadModel& model, Id object, Id key, Id value);
 
-    // constructor used when projecting the value of a key
-    EdgePropertyPlan(GraphId graph_id, VarId edge_var_id, ObjectId key_id, VarId value_var_id);
-
-    // constructor used when matching an edge with a property
-    EdgePropertyPlan(GraphId graph_id, VarId edge_var_id, ObjectId key_id, ObjectId value_id);
-
-    ~EdgePropertyPlan() = default;
+    ~PropertyPlan() = default;
 
     double estimate_cost() override;
     double estimate_output_size() override;
 
-    void set_input_vars(std::vector<VarId>& input_var_order) override;
-    std::vector<VarId> get_var_order() override;
+    void set_input_vars(const uint64_t input_vars) override;
+    uint64_t get_vars() override;
 
     std::unique_ptr<BindingIdIter> get_binding_id_iter() override;
     std::unique_ptr<JoinPlan> duplicate() override;
 
     void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) override;
 private:
-    GraphId graph_id;
+    QuadModel& model;
 
-    VarId edge_var_id;
-    VarId key_var_id;
-    VarId value_var_id;
+    Id object;
+    Id key;
+    Id value;
 
-    ObjectId key_id;
-    ObjectId value_id;
-
-    bool edge_assigned;
+    bool object_assigned;
     bool key_assigned;
     bool value_assigned;
-
-    std::unique_ptr<ScanRange> get_edge_range();
-    std::unique_ptr<ScanRange> get_key_range();
-    std::unique_ptr<ScanRange> get_value_range();
 };
 
-#endif // RELATIONAL_MODEL__EDGE_PROPERTY_PLAN_H_
+#endif // RELATIONAL_MODEL__PROPERTY_PLAN_H_

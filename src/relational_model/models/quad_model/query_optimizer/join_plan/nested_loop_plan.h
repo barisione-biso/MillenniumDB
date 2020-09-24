@@ -14,8 +14,8 @@ public:
     double estimate_cost() override;
     double estimate_output_size() override;
 
-    std::vector<VarId> get_var_order() override;
-    void set_input_vars(std::vector<VarId>& input_var_order) override;
+    uint64_t get_vars() override;
+    void set_input_vars(const uint64_t input_vars) override;
 
     std::unique_ptr<BindingIdIter> get_binding_id_iter() override;
     std::unique_ptr<JoinPlan> duplicate() override;

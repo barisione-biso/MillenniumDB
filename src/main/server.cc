@@ -102,22 +102,22 @@ void session(tcp::socket sock, GraphModel* model) {
             execute_query(move(physical_plan), tcp_buffer);
         }
         catch (QueryParsingException& e) {
-            // Try with manual plan
-            try {
-                auto manual_plan = QueryParser::get_manual_plan(query);
-                auto physical_plan = model->exec(manual_plan);
-                auto end = chrono::system_clock::now();
-                chrono::duration<float, std::milli> duration = end - start;
-                tcp_buffer << "Query Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
-                execute_query(move(physical_plan), tcp_buffer);
-            }
-            catch (QueryException& e) {
-                tcp_buffer << "Query exception: " << e.what() << "\n";
+            // // Try with manual plan
+            // try {
+            //     auto manual_plan = QueryParser::get_manual_plan(query);
+            //     auto physical_plan = model->exec(manual_plan);
+            //     auto end = chrono::system_clock::now();
+            //     chrono::duration<float, std::milli> duration = end - start;
+            //     tcp_buffer << "Query Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
+            //     execute_query(move(physical_plan), tcp_buffer);
+            // }
+            // catch (QueryException& e) {
+                tcp_buffer << "Query Parsing Exception: " << e.what() << "\n";
                 tcp_buffer.set_error();
-            }
+            // }
         }
         catch (QueryException& e) {
-            tcp_buffer << "Query exception: " << e.what() << "\n";
+            tcp_buffer << "Query Exception: " << e.what() << "\n";
             tcp_buffer.set_error();
         }
         tcp_buffer.end();

@@ -12,20 +12,17 @@
 
 class CheckVarNames : public OpVisitor {
 private:
-    std::set<std::string> node_names;
-    std::set<std::string> edge_names;
+    std::set<std::string> declared_object_names;
 
 public:
     void visit(OpSelect&) override;
     void visit(OpMatch&) override;
     void visit(OpFilter&) override;
-    void visit(OpNodeLabel&) override;
-    void visit(OpEdgeLabel&) override;
-    void visit(OpNodeProperty&) override;
-    void visit(OpEdgeProperty&) override;
     void visit(OpConnection&) override;
-    void visit(OpLonelyNode&) override;
-    void visit(OpNodeLoop&) override;
+    void visit(OpConnectionType&) override;
+    void visit(OpLabel&) override;
+    void visit(OpProperty&) override;
+    void visit(OpUnjointObject&) override;
 };
 
 #endif // BASE__CHECK_VAR_NAMES_EXISTS_H_

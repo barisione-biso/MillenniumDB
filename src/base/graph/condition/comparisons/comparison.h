@@ -24,8 +24,8 @@ public:
         if (statement.lhs.type() == typeid(query::ast::Var)) {
             auto casted_lhs = boost::get<query::ast::Var>(statement.lhs);
             lhs = std::make_unique<ValueAssignVariable>(casted_lhs.name);
-        } else if (statement.lhs.type() == typeid(query::ast::Element)) {
-            auto casted_lhs = boost::get<query::ast::Element>(statement.lhs);
+        } else if (statement.lhs.type() == typeid(query::ast::VarKey)) {
+            auto casted_lhs = boost::get<query::ast::VarKey>(statement.lhs);
             lhs = std::make_unique<ValueAssignProperty>(casted_lhs.var.name, casted_lhs.key);
         }
 
@@ -33,8 +33,8 @@ public:
         if (statement.rhs.type() == typeid(query::ast::Var)) {
             auto casted_rhs = boost::get<query::ast::Var>(statement.rhs);
             rhs = std::make_unique<ValueAssignVariable>(casted_rhs.name);
-        } else if (statement.rhs.type() == typeid(query::ast::Element)) {
-            auto casted_rhs = boost::get<query::ast::Element>(statement.rhs);
+        } else if (statement.rhs.type() == typeid(query::ast::VarKey)) {
+            auto casted_rhs = boost::get<query::ast::VarKey>(statement.rhs);
             rhs = std::make_unique<ValueAssignProperty>(casted_rhs.var.name, casted_rhs.key);
         } else {
             auto casted_rhs = boost::get<query::ast::Value>(statement.rhs);
@@ -63,9 +63,9 @@ public:
         return ConditionType::comparison;
     }
 
-    void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) {
-        lhs->check_names(node_names, edge_names);
-        rhs->check_names(node_names, edge_names);
+    void check_names(std::set<std::string>& var_names) {
+        lhs->check_names(var_names);
+        rhs->check_names(var_names);
     }
 };
 

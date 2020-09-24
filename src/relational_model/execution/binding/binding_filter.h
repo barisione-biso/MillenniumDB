@@ -14,13 +14,9 @@ class BindingFilter : public Binding {
 private:
     Binding& binding;
     std::map<std::string, std::shared_ptr<GraphObject>> cache;
-    std::map<std::string, GraphId>& var2graph_id;
-    std::set<std::string>& node_names;
-    std::set<std::string>& edge_names;
 
 public:
-    BindingFilter(Binding& binding, std::map<std::string, GraphId>& var2graph_id,
-                  std::set<std::string>& node_names, std::set<std::string>& edge_names);
+    BindingFilter(Binding& binding);
     ~BindingFilter() = default;
 
     std::string to_string() const override;

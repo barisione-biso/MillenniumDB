@@ -12,21 +12,18 @@
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/logical_plan/op/op_lonely_node.h"
+#include "base/parser/logical_plan/op/op_unjoint_object.h"
 
 #include "relational_model/execution/binding_iter/filter.h"
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/projection.h"
 
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/connection_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/edge_label_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/edge_property_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/node_label_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/node_property_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/lonely_node_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/node_loop_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/connection_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/property_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
 
 using namespace std;
@@ -42,15 +39,19 @@ unique_ptr<BindingIter> QueryOptimizer::exec(OpSelect& op_select) {
 
 
 void QueryOptimizer::visit(OpSelect& op_select) {
-    if (op_select.select_all) {
+    if (op_select.select_items.size() == 0) {
         op_select.op->accept_visitor(*this);
         tmp = make_unique<Projection>(move(tmp), op_select.limit);
     }
     else {
         set<std::string> projection_vars;
         select_items = move(op_select.select_items);
-        for (auto&& [key, value] : select_items) {
-            projection_vars.insert(key + '.' + value);
+        for (const auto& select_item : select_items) {
+            if (select_item.key) {
+                projection_vars.insert(select_item.var + '.' + select_item.key.get());
+            } else {
+                projection_vars.insert(select_item.var);
+            }
         }
         op_select.op->accept_visitor(*this);
         tmp = make_unique<Projection>(move(tmp), move(projection_vars), op_select.limit);
@@ -59,168 +60,127 @@ void QueryOptimizer::visit(OpSelect& op_select) {
 
 
 void QueryOptimizer::visit(OpMatch& op_match) {
-    // TODO: remake
-    // vector<unique_ptr<JoinPlan>> base_plans;
+    vector<unique_ptr<JoinPlan>> base_plans;
 
-    // for (auto&& [var_name, graph_name] : op_match.var_name2graph_name) {
-    //     auto graph_id = catalog.get_graph(graph_name);
-    //     graph_ids.insert({ graph_name, graph_id }); // may try to insert a repeated pair, this is OK, it won't be duplicated
-    //     var2graph_id.insert({ var_name, graph_id });
-    // }
-    // // element_types = op_match.var_name2type;
-    // node_names = op_match.node_names;
-    // edge_names = op_match.edge_names;
+    // Process Labels
+    for (auto& op_label : op_match.labels) {
+        // auto graph_id = search_graph_id(op_node_label.graph_name);
+        auto label_id = model.get_string_id(op_label.label);
 
-    // // Process Labels
-    // for (auto& op_node_label : op_match.node_labels) {
-    //     auto graph_id = search_graph_id(op_node_label.graph_name);
-    //     auto node_var_id = get_var_id(op_node_label.node_name);
-    //     auto label_id = relational_model.get_string_id(op_node_label.label);
+        if (op_label.node_name[0] == '?') {
+            auto node_var_id = get_var_id(op_label.node_name);
+            base_plans.push_back(
+                make_unique<LabelPlan>(model, node_var_id, label_id)
+            );
+        } else {
+            auto node_id = model.get_identifiable_object_id(op_label.node_name);
+            base_plans.push_back(
+                make_unique<LabelPlan>(model, node_id, label_id)
+            );
+        }
+    }
 
-    //     base_plans.push_back(
-    //         make_unique<NodeLabelPlan>(graph_id, node_var_id, label_id)
-    //     );
-    // }
+    // Process properties from Match
+    for (auto& op_property : op_match.properties) {
+        auto key_id     = model.get_string_id(op_property.key);
+        auto value_id   = get_value_id(op_property.value);
 
-    // // order labels by cost using catalog
-    // vector<OpEdgeLabel> edge_labels(op_match.edge_labels.begin(), op_match.edge_labels.end());
-    // std::sort(edge_labels.begin(), edge_labels.end(), [this](const auto& lhs, const auto& rhs) {
-    //     auto lhs_cost = catalog.get_edge_label_count(search_graph_id(lhs.graph_name),
-    //                                                      relational_model.get_string_id(lhs.label));
+        if (op_property.obj_name[0] == '?') {
+            auto obj_var_id = get_var_id(op_property.obj_name);
 
-    //     auto rhs_cost = catalog.get_edge_label_count(search_graph_id(rhs.graph_name),
-    //                                                      relational_model.get_string_id(rhs.label));
-    //     return lhs_cost < rhs_cost;
-    // });
+            base_plans.push_back(
+                make_unique<PropertyPlan>(model, obj_var_id, key_id, value_id)
+            );
+        } else {
+            auto obj_id = model.get_identifiable_object_id(op_property.obj_name);
+            base_plans.push_back(
+                make_unique<PropertyPlan>(model, obj_id, key_id, value_id)
+            );
+        }
+    }
 
-    // for (auto& op_edge_label : edge_labels) {
-    //     auto graph_id    = search_graph_id(op_edge_label.graph_name);
-    //     auto edge_var_id = get_var_id(op_edge_label.edge_name);
-    //     auto label_id    = relational_model.get_string_id(op_edge_label.label);
+    // Push properties from SELECT into MATCH
+    for (const auto& select_item : select_items) {
+        if (select_item.key) {
+            auto obj_var_id = get_var_id(select_item.var);
+            auto value_var  = get_var_id(select_item.var + '.' + select_item.key.get());
+            auto key_id     = model.get_string_id(select_item.key.get());
 
-    //     bool labeled_edge_added = false;
+            base_plans.push_back(
+                make_unique<PropertyPlan>(model, obj_var_id, key_id, value_var)
+            );
+        }
+    }
 
-    //     for (auto it = op_match.connections.begin(); it != op_match.connections.end(); ++it) {
-    //         if (it->edge == op_edge_label.edge_name) {
-    //             auto graph_id         = search_graph_id(it->graph_name);
-    //             auto node_from_var_id = get_var_id(it->node_from);
-    //             auto node_to_var_id   = get_var_id(it->node_to);
+    // Process UnjointObjects not present in select
+    for (auto& unjoint_object : op_match.unjoint_objects) {
+        bool unjoint_object_mentioned_in_select = false;
+        for (const auto& select_item : select_items) {
+            if (select_item.var == unjoint_object.obj_name) {
+                unjoint_object_mentioned_in_select = true;
+                break;
+            }
+        }
+        if (!unjoint_object_mentioned_in_select) {
+            auto obj_var_id = get_var_id(unjoint_object.obj_name);
+            base_plans.push_back(
+                make_unique<UnjointObjectPlan>(model, obj_var_id)
+            );
+        }
+    }
 
-    //             base_plans.push_back(
-    //                 make_unique<LabeledConnectionPlan>(graph_id, label_id, node_from_var_id, node_to_var_id, edge_var_id)
-    //             );
-    //             labeled_edge_added = true;
-    //             op_match.connections.erase(it);
-    //             break;
-    //         }
-    //     }
+    // Process connections
+    for (auto& op_connection : op_match.connections) {
+        auto from_id = op_connection.from[0] == '?'
+                        ? (JoinPlan::Id) get_var_id(op_connection.from)
+                        : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.from);
 
-    //     if (!labeled_edge_added) {
-    //         base_plans.push_back(
-    //             make_unique<EdgeLabelPlan>(graph_id, edge_var_id, label_id)
-    //         );
-    //     }
-    // }
+        auto to_id   = op_connection.to[0] == '?'
+                        ? (JoinPlan::Id) get_var_id(op_connection.to)
+                        : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.to);
 
-    // // Process properties from Match
-    // for (auto& op_node_property : op_match.node_properties) {
-    //     auto node_var_id = get_var_id(op_node_property.node_name);
-    //     auto key_id      = relational_model.get_string_id(op_node_property.key);
-    //     auto value_id    = get_value_id(op_node_property.value);
+        auto edge_id = op_connection.edge[0] == '?'
+                        ? (JoinPlan::Id) get_var_id(op_connection.edge)
+                        : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.edge);
 
-    //     auto graph_id = search_graph_id(op_node_property.graph_name);
-    //     base_plans.push_back(
-    //         make_unique<NodePropertyPlan>(graph_id, node_var_id, key_id, value_id)
-    //     );
-    // }
+        // connections must have exactly 1 type in this model
+        auto connection_labels_found = 0;
+        for (auto& op_connection_type : op_match.connection_types) {
+            if (op_connection_type.edge == op_connection.edge) {
+                auto type_id = model.get_identifiable_object_id(op_connection_type.type);
+                ++connection_labels_found;
+                if (connection_labels_found > 1) {
+                    throw logic_error("Connections must have exactly 1 type when using QuadModel");
+                } else {
+                    base_plans.push_back(
+                        make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
+                    );
+                }
+            }
+        }
+        if (connection_labels_found == 0) {
+            auto type_id = get_var_id(op_connection.edge + "_type");
+            base_plans.push_back(
+                make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
+            );
+        }
+    }
 
-    // for (auto& op_edge_property : op_match.edge_properties) {
-    //     auto graph_id    = search_graph_id(op_edge_property.graph_name);
-    //     auto edge_var_id = get_var_id(op_edge_property.edge_name);
-    //     auto key_id      = relational_model.get_string_id(op_edge_property.key);
-    //     auto value_id    = get_value_id(op_edge_property.value);
-
-    //     base_plans.push_back(
-    //         make_unique<EdgePropertyPlan>(graph_id, edge_var_id, key_id, value_id)
-    //     );
-    // }
-
-    // // Process properties from select
-    // for (auto&& [var, key] : select_items) {
-    //     auto graph_id       = var2graph_id[var];
-    //     auto element_var_id = get_var_id(var);
-    //     auto value_var      = get_var_id(var + '.' + key);
-    //     auto key_id         = relational_model.get_string_id(key);
-
-    //     // check if var is a node or an edge
-    //     auto node_search = node_names.find(var);
-    //     if (node_search != node_names.end()) {
-    //         base_plans.push_back(
-    //             make_unique<NodePropertyPlan>(graph_id, element_var_id, key_id, value_var)
-    //         );
-    //     } else {
-    //         base_plans.push_back(
-    //             make_unique<EdgePropertyPlan>(graph_id, element_var_id, key_id, value_var)
-    //         );
-    //     }
-    // }
-
-    // // Process Lonely Nodes not present in select
-    // for (auto& lonely_node : op_match.lonely_nodes) {
-    //     bool lonely_node_mentioned_int_select = false;
-    //     for (auto& pair : select_items) {
-    //         if (pair.first == lonely_node.node_name) {
-    //             lonely_node_mentioned_int_select = true;
-    //             break;
-    //         }
-    //     }
-    //     if (!lonely_node_mentioned_int_select) {
-    //         auto graph_id = search_graph_id(lonely_node.graph_name);
-    //         auto node_var_id = get_var_id(lonely_node.node_name);
-    //         base_plans.push_back(
-    //             make_unique<LonelyNodePlan>(graph_id, node_var_id)
-    //         );
-    //     }
-    // }
-
-    // // Process connections
-    // for (auto& op_connection : op_match.connections) {
-    //     auto graph_id = search_graph_id(op_connection.graph_name);
-
-    //     auto node_from_var_id = get_var_id(op_connection.node_from);
-    //     auto node_to_var_id   = get_var_id(op_connection.node_to);
-    //     auto edge_var_id      = get_var_id(op_connection.edge);
-
-    //     base_plans.push_back(
-    //         make_unique<ConnectionPlan>(graph_id, node_from_var_id, node_to_var_id, edge_var_id)
-    //     );
-    // }
-    // for (auto& op_node_loop : op_match.node_loops) {
-    //     auto graph_id = search_graph_id(op_node_loop.graph_name);
-
-    //     auto node_id     = get_var_id(op_node_loop.node);
-    //     auto edge_var_id = get_var_id(op_node_loop.edge);
-
-    //     base_plans.push_back(
-    //         make_unique<NodeLoopPlan>(graph_id, node_id, edge_var_id)
-    //     );
-    // }
-
-    // vector<string> var_names;
-    // var_names.resize(id_map.size());
-    // for (auto&& [var_name, var_id] : id_map) {
-    //     var_names[var_id.id] = var_name;
-    // }
-    // auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
-    // tmp = make_unique<Match>(selinger_optimizer.get_binding_id_iter(), move(id_map));
-    // // tmp = make_unique<Match>(get_greedy_join_plan(move(base_plans)), move(id_map));
+    vector<string> var_names;
+    var_names.resize(id_map.size());
+    for (auto&& [var_name, var_id] : id_map) {
+        var_names[var_id.id] = var_name;
+    }
+    auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
+    tmp = make_unique<Match>(model, selinger_optimizer.get_binding_id_iter(), move(id_map));
+    // tmp = make_unique<Match>(get_greedy_join_plan(move(base_plans)), move(id_map));
 }
 
 
 void QueryOptimizer::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
     if (op_filter.condition != nullptr) {
-        tmp = make_unique<Filter>(move(tmp), move(op_filter.condition), var2graph_id, node_names, edge_names);
+        tmp = make_unique<Filter>(move(tmp), move(op_filter.condition));
     }
     // else tmp stays the same
 }
@@ -258,17 +218,6 @@ ObjectId QueryOptimizer::get_value_id(const common::ast::Value& value) {
     }
     else {
         throw logic_error("Unknown value type.");
-    }
-}
-
-
-GraphId QueryOptimizer::search_graph_id(const std::string& graph_name) {
-    auto search = graph_ids.find(graph_name);
-    if (search != graph_ids.end()) {
-        return search->second;
-    } else {
-        throw logic_error("graph_ids does not contain graph \"" + graph_name
-            + "\", graph_ids should contain all graph names, non-existing graphs should be checked before.");
     }
 }
 
@@ -371,6 +320,7 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
 
 
 unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
+    // TODO: remake
     // vector<unique_ptr<JoinPlan>> base_plans;
     unique_ptr<JoinPlan> root_plan = nullptr;
     GraphId graph_id; // default graph
@@ -384,7 +334,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
             auto node_var_id = get_var_id(node_label.node);
             auto label_id = model.get_string_id(node_label.label);
 
-            current_plan = make_unique<NodeLabelPlan>(graph_id, node_var_id, label_id);
+            current_plan = make_unique<LabelPlan>(model, node_var_id, label_id);
         }
 
         else if (relation.type() == typeid(manual_plan_ast::EdgeLabel)) {
@@ -393,7 +343,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
             auto edge_var_id = get_var_id(edge_label.edge);
             auto label_id = model.get_string_id(edge_label.label);
 
-            current_plan = make_unique<NodeLabelPlan>(graph_id, edge_var_id, label_id);
+            current_plan = make_unique<LabelPlan>(model, edge_var_id, label_id);
         }
 
         else if (relation.type() == typeid(manual_plan_ast::NodeProperty)) {
@@ -403,7 +353,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
             auto key_id      = model.get_string_id(node_prop.key);
             auto value_id    = get_value_id(node_prop.value);
 
-            current_plan = make_unique<NodePropertyPlan>(graph_id, node_var_id, key_id, value_id);
+            current_plan = make_unique<PropertyPlan>(model, node_var_id, key_id, value_id);
         }
 
         if (relation.type() == typeid(manual_plan_ast::EdgeProperty)) {
@@ -413,7 +363,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
             auto key_id      = model.get_string_id(edge_prop.key);
             auto value_id    = get_value_id(edge_prop.value);
 
-            current_plan = make_unique<EdgePropertyPlan>(graph_id, edge_var_id, key_id, value_id);
+            current_plan = make_unique<PropertyPlan>(model, edge_var_id, key_id, value_id);
         }
 
         else if (relation.type() == typeid(manual_plan_ast::Connection)) {
@@ -423,7 +373,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
             auto edge_var_id      = get_var_id(connection.edge);
             auto node_to_var_id   = get_var_id(connection.node_to);
 
-            current_plan = make_unique<ConnectionPlan>(graph_id, node_from_var_id, node_to_var_id, edge_var_id);
+            current_plan = make_unique<ConnectionPlan>(model, node_from_var_id, node_to_var_id, edge_var_id, edge_var_id);
         }
 
         // else if (relation.type() == typeid(manual_plan_ast::LabeledConnection)) {
@@ -434,7 +384,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
         //     auto node_to_var_id   = get_var_id(labeled_connection.node_to);
         //     auto edge_var_id      = get_var_id(labeled_connection.edge);
 
-        //     current_plan = make_unique<LabeledConnectionPlan>(graph_id, label_id, node_from_var_id, node_to_var_id, edge_var_id);
+        //     current_plan = make_unique<LabeledConnectionPlan>(model, label_id, node_from_var_id, node_to_var_id, edge_var_id);
         // }
 
         if (root_plan == nullptr) {
@@ -448,10 +398,8 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
 }
 
 
-void QueryOptimizer::visit (OpNodeLabel&) { }
-void QueryOptimizer::visit (OpEdgeLabel&) { }
-void QueryOptimizer::visit (OpNodeProperty&) { }
-void QueryOptimizer::visit (OpEdgeProperty&) { }
+void QueryOptimizer::visit (OpLabel&) { }
+void QueryOptimizer::visit (OpProperty&) { }
 void QueryOptimizer::visit (OpConnection&) { }
-void QueryOptimizer::visit (OpLonelyNode&) { }
-void QueryOptimizer::visit (OpNodeLoop&) { }
+void QueryOptimizer::visit (OpConnectionType&) { }
+void QueryOptimizer::visit (OpUnjointObject&) { }

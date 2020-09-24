@@ -3,7 +3,7 @@
 ## TODO:
 - Cases when Label, Key or Value are assigned but unknown until query runtime ?
 
-## Node Labels & Edge Labels
+## Labels
 
 |Label|Node | Interpretation                                | Estimation
 |:---:|:---:|:----------------------------------------------|:-----------
@@ -12,18 +12,18 @@
 |  ✕  |  ✓  |*All labels of a certain node                  | total node labels ÷ total nodes
 |  ✕  |  ✕  |*All pairs of (node, label)                    | total node labels
 
-## Node Properties & Edge Properties
+## Properties
 
-|Key  |Value|Node | Interpretation                                     | Estimation
+|Key  |Value| Obj | Interpretation                                     | Estimation
 |:---:|:---:|:---:|:---------------------------------------------------|:-----------
-|  ✓  |  ✓  |  ✓  |Probability that a node has a certain key and value |nodes with key K ÷ (total nodes * `unique(K)`)
-|  ✓  |  ✓  |  ✕  |All nodes with certain key/value                    |nodes with key K ÷ `unique(K)`
-|  ✓  |  ✕  |  ✓  |**Probability that a node has a certain key K       |nodes with key K ÷ total nodes
-|  ✓  |  ✕  |  ✕  |All nodes with certain key                          |nodes with key K
+|  ✓  |  ✓  |  ✓  |Probability that a object has a certain key/value   |objects with key K ÷ (total objects * `unique(K)`)
+|  ✓  |  ✓  |  ✕  |All objects with certain key/value                  |objects with key K ÷ `unique(K)`
+|  ✓  |  ✕  |  ✓  |**Probability that a object has a certain key K     |objects with key K ÷ total objects
+|  ✓  |  ✕  |  ✕  |All objects with certain key                        |objects with key K
 |  ✕  |  ✓  |  ✓  |--**not allowed**--                                 |
 |  ✕  |  ✓  |  ✕  |--**not allowed**--                                 |
-|  ✕  |  ✕  |  ✓  |*All propreties of a certain node                   |total node  properties / total nodes
-|  ✕  |  ✕  |  ✕  |*All pairs of (node, key, value)                    |total node properties
+|  ✕  |  ✕  |  ✓  |*All propreties of a certain objects                |total object properties / total objects
+|  ✕  |  ✕  |  ✕  |*All pairs of (object, key, value)                  |total object properties
 
 - Unique values: `unique(K)`
     - how many different values a key K has.

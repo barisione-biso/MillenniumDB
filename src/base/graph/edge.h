@@ -12,7 +12,7 @@ public:
     ~Edge() = default;
 
     std::string to_string() const override {
-        return "Edge(" + std::to_string(id) + ")";
+        return "_e" + std::to_string(id);
     }
 
     ObjectType type() const override {

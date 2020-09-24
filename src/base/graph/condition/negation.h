@@ -20,8 +20,8 @@ public:
         return ConditionType::negation;
     }
 
-    void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) {
-        condition->check_names(node_names, edge_names);
+    void check_names(std::set<std::string>& var_names) {
+        condition->check_names(var_names);
     }
 };
 

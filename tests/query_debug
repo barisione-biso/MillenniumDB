@@ -1,4 +1,6 @@
-SELECT *
-MATCH (?x { key: 1 })->(?x {key2: 2, key:1})
-// MATCH  (?x :Label1 :Label1 :Label2), (?x :Label2)
-LIMIT 100
+EXPLAIN
+//MATCH (Q79936)<-(?x)
+//MATCH (?x {Agassi:true})
+SELECT ?x.asd
+MATCH (?x)->(?y)
+LIMIT 500

@@ -41,11 +41,11 @@ void QueryAstPrinter::indent(std::string str, int_fast32_t extra_indent) const {
 }
 
 
-void QueryAstPrinter::operator()(Root const& r) const {
+void QueryAstPrinter::operator()(QueryRoot const& r) const {
     indent("{\n");
     auto printer = QueryAstPrinter(out, base_indent+1);
     printer.indent();
-    boost::apply_visitor(printer, r.selection);
+    printer(r.selection);
     out << ",\n";
     printer.indent();
     printer(r.graph_pattern);
@@ -63,15 +63,41 @@ void QueryAstPrinter::operator()(Root const& r) const {
 }
 
 
-void QueryAstPrinter::operator()(std::vector<Element> const& select) const {
+// void QueryAstPrinter::operator()(std::vector<VarKey> const& select) const {
+//     out << "\"SELECT\": [\n";
+//     auto printer = QueryAstPrinter(out, base_indent+1);
+//     auto it = select.begin();
+//     while (it != select.end()) {
+//         printer.indent();
+//         printer(*it);
+//         ++it;
+//         if (it != select.end()) {
+//             out << ",\n";
+//         }
+//         else {
+//             out << "\n";
+//         }
+//     }
+//     indent("]");
+// }
+void QueryAstPrinter::operator()(SelectItem const& select_item) const {
+    if (select_item.key) {
+        out << "property: " << select_item.var << ";" << select_item.key.get();
+    } else {
+        out << "var: " << select_item.var;
+    }
+}
+
+
+void QueryAstPrinter::operator()(std::vector<SelectItem> const& select_items) const {
     out << "\"SELECT\": [\n";
     auto printer = QueryAstPrinter(out, base_indent+1);
-    auto it = select.begin();
-    while (it != select.end()) {
+    auto it = select_items.begin();
+    while (it != select_items.end()) {
         printer.indent();
         printer(*it);
         ++it;
-        if (it != select.end()) {
+        if (it != select_items.end()) {
             out << ",\n";
         }
         else {
@@ -79,11 +105,6 @@ void QueryAstPrinter::operator()(std::vector<Element> const& select) const {
         }
     }
     indent("]");
-}
-
-
-void QueryAstPrinter::operator() (All const&) const {
-    out << "\"SELECT\": \"<ALL>\"";
 }
 
 
@@ -109,8 +130,6 @@ void QueryAstPrinter::operator() (std::vector<LinearPattern> const& graph_patter
 void QueryAstPrinter::operator() (LinearPattern const& linear_pattern) const {
     out << "{\n";
     auto printer = QueryAstPrinter(out, base_indent+1);
-    printer.indent("\"GRAPH\": ");
-    out << '"' << linear_pattern.graph_name << '"'<< ",\n";
     printer.indent();
     printer(linear_pattern.root);
     for (auto const& step_path : linear_pattern.path) {
@@ -133,8 +152,8 @@ void QueryAstPrinter::operator() (StepPath step_path) const {
 
 void QueryAstPrinter::operator() (Node node) const {
     out << "\"NODE\": {\n";
-    indent("\"VAR\": ", 1);
-    out << "\"" << node.var.name << "\",\n";
+    indent("\"VAR_OR_ID\": ", 1);
+    out << "\"" << node.var_or_id << "\",\n";
     indent("\"LABELS\": [", 1);
     auto label_iter = node.labels.begin();
     while (label_iter != node.labels.end()) {
@@ -179,14 +198,14 @@ void QueryAstPrinter::operator() (Edge edge) const {
     else {
         out << "\"LEFT\",\n";
     }
-    indent("\"VAR\": ", 1);
-    out << "\"" << edge.var.name << "\",\n";
-    indent("\"LABELS\": [", 1);
-    auto label_iter = edge.labels.begin();
-    while (label_iter != edge.labels.end()) {
+    indent("\"VAR_OR_ID\": ", 1);
+    out << "\"" << edge.var_or_id << "\",\n";
+    indent("\"TYPES\": [", 1);
+    auto label_iter = edge.types.begin();
+    while (label_iter != edge.types.end()) {
         out << "\"" << *label_iter << "\"";
         ++label_iter;
-        if (label_iter != edge.labels.end()) {
+        if (label_iter != edge.types.end()) {
             out << ", ";
         }
     }
@@ -216,16 +235,16 @@ void QueryAstPrinter::operator() (Edge edge) const {
 }
 
 
-void QueryAstPrinter::operator()(Element const& element) const {
+void QueryAstPrinter::operator()(VarKey const& element) const {
     out << "{\n";
     // if (!element.function.empty()) {
     //     indent("\"FUNCTION\": \"", 1);
     //     out << element.function << "\",\n";
     // }
-    indent("\"KEY\": \"", 1);
-    out << element.key << "\",\n";
     indent("\"VAR\": \"", 1);
-    out << element.var.name << "\"\n";
+    out << element.var.name << "\",\n";
+    indent("\"KEY\": \"", 1);
+    out << element.key << "\"\n";
     indent("}");
 }
 
@@ -269,7 +288,8 @@ void QueryAstPrinter::operator()(Statement const& statement) const {
     boost::apply_visitor(*this, statement.lhs);
     out << ",\n";
     indent("\"COMPARATOR\": ");
-    boost::apply_visitor(*this, statement.comparator);
+    // TODO:
+    // boost::apply_visitor(*this, statement.comparator);
     out << ",\n";
     indent("\"RIGHT\": ");
     boost::apply_visitor(*this, statement.rhs);
@@ -278,7 +298,8 @@ void QueryAstPrinter::operator()(Statement const& statement) const {
 
 void QueryAstPrinter::operator()(StepFormula const& step_formula) const {
     out << "\"CONNECTOR\": ";
-    boost::apply_visitor(*this, step_formula.op);
+    // TODO:
+    // boost::apply_visitor(*this, step_formula.op);
     out << ",\n";
     indent();
     (*this)(step_formula.condition);
@@ -299,19 +320,45 @@ void QueryAstPrinter::operator()(Var const& var) const {
     out << "\"" << var.name << "\"";
 }
 
+void QueryAstPrinter::operator() (Comparator const& c) const {
+    switch(c) {
+        case Comparator::EQ :
+            out << "\"==\"";
+            break;
+        case Comparator::NE :
+            out << "\"!=\"";
+            break;
+        case Comparator::GT :
+            out << "\">\"";
+            break;
+        case Comparator::GE :
+            out << "\">=\"";
+            break;
+        case Comparator::LT :
+            out << "\"<\"";
+            break;
+        case Comparator::LE :
+            out << "\"<=\"";
+            break;
+    };
+}
+
+
+void QueryAstPrinter::operator() (BinaryOp const& b) const {
+    switch(b) {
+        case BinaryOp::And :
+            out << "AND";
+            break;
+        case BinaryOp::Or :
+            out << "OR";
+            break;
+    };
+}
+
 
 void QueryAstPrinter::operator() (VarId const& var_id) const {out << "VarId(" << var_id.id << ")"; }
 void QueryAstPrinter::operator() (int64_t const& n)    const {out << "(int)" << n; }
 void QueryAstPrinter::operator() (float const& n)      const {out << "(float)" << n; }
-void QueryAstPrinter::operator() (And const&)          const {out << "\"AND\""; }
-void QueryAstPrinter::operator() (Or const&)           const {out << "\"OR\""; }
-void QueryAstPrinter::operator() (EQ const&)           const {out << "\"==\""; }
-void QueryAstPrinter::operator() (NE const&)           const {out << "\"!=\""; }
-void QueryAstPrinter::operator() (GT const&)           const {out << "\">\""; }
-void QueryAstPrinter::operator() (LT const&)           const {out << "\"<\""; }
-void QueryAstPrinter::operator() (GE const&)           const {out << "\">=\""; }
-void QueryAstPrinter::operator() (LE const&)           const {out << "\"<=\""; }
-
 
 void QueryAstPrinter::operator() (bool const& b) const {
     if (b)

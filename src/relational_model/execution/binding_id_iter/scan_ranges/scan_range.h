@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include "base/ids/object_id.h"
-#include "relational_model/binding/binding_id.h"
+#include "relational_model/execution/binding/binding_id.h"
 
 class ScanRange {
 public:

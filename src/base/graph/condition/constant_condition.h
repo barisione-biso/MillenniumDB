@@ -17,7 +17,7 @@ public:
         return ConditionType::constant;
     }
 
-    void check_names(std::set<std::string>& , std::set<std::string>& ) { }
+    void check_names(std::set<std::string>&) { }
 };
 
 #endif // BASE__CONSTANT_CONDITION_H_

@@ -11,17 +11,15 @@
 
 class OpSelect : public Op {
 public:
-    bool select_all;
-    uint_fast32_t limit;
-    std::unique_ptr<Op> op;
+    const uint_fast32_t limit;
+    const std::unique_ptr<Op> op;
 
     // pair <var_name, key_name>
-    std::vector< std::pair<std::string, std::string> > select_items;
+    // or   <var_name, ""> (empty string when selecting)
+    // empty vector means SELECT *
+    std::vector<query::ast::SelectItem> select_items;
 
-    OpSelect(std::vector<query::ast::Element> select_list, std::unique_ptr<Op> op, uint_fast32_t limit);
-
-    // constructor for select*
-    OpSelect(std::unique_ptr<Op> op, uint_fast32_t limit);
+    OpSelect(std::vector<query::ast::SelectItem> select_items, std::unique_ptr<Op> op, uint_fast32_t limit);
 
     ~OpSelect() = default;
     void accept_visitor(OpVisitor&);

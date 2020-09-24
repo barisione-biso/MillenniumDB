@@ -22,7 +22,7 @@ class OpFilter;
 class OpSelect;
 class JoinPlan;
 
-class QueryOptimizer : OpVisitor {
+class QueryOptimizer : public OpVisitor {
 public:
     QueryOptimizer(QuadModel& model);
     ~QueryOptimizer() = default;
@@ -30,31 +30,24 @@ public:
     std::unique_ptr<BindingIter> exec(OpSelect&);
     std::unique_ptr<BindingIter> exec(manual_plan_ast::Root&);
 
-    void visit(OpSelect&);
-    void visit(OpMatch&);
-    void visit(OpFilter&);
-    void visit(OpNodeLabel&);
-    void visit(OpEdgeLabel&);
-    void visit(OpNodeProperty&);
-    void visit(OpEdgeProperty&);
-    void visit(OpConnection&);
-    void visit(OpLonelyNode&);
-    void visit(OpNodeLoop&);
+    void visit(OpSelect&) override;
+    void visit(OpMatch&) override;
+    void visit(OpFilter&) override;
+    void visit(OpConnection&) override;
+    void visit(OpConnectionType&) override;
+    void visit(OpLabel&) override;
+    void visit(OpProperty&) override;
+    void visit(OpUnjointObject&) override;
 
 private:
     QuadModel& model;
     std::unique_ptr<BindingIter> tmp;
     std::map<std::string, VarId> id_map;
-    std::map<std::string, GraphId> graph_ids; // graph_name to graph_id
-    std::map<std::string, GraphId> var2graph_id;
-    std::set<std::string> node_names;
-    std::set<std::string> edge_names;
-    std::vector<std::pair<std::string, std::string>> select_items;
+    std::vector<query::ast::SelectItem> select_items;
     int_fast32_t id_count = 0;
 
     VarId get_var_id(const std::string& var_name);
     ObjectId get_value_id(const common::ast::Value& value);
-    GraphId search_graph_id(const std::string& graph_name);
 
     std::unique_ptr<BindingIdIter> get_greedy_join_plan(std::vector<std::unique_ptr<JoinPlan>> base_plans);
 

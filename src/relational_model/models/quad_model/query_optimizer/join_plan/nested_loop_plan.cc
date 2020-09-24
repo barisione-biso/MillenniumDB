@@ -7,7 +7,7 @@ using namespace std;
 NestedLoopPlan::NestedLoopPlan(unique_ptr<JoinPlan> _lhs, unique_ptr<JoinPlan> _rhs) :
     lhs(move(_lhs)), rhs(move(_rhs))
 {
-    auto var_order = lhs->get_var_order();
+    auto var_order = lhs->get_vars();
     rhs->set_input_vars(var_order);
 
     auto lhs_output_size = lhs->estimate_output_size();
@@ -71,26 +71,12 @@ double NestedLoopPlan::estimate_output_size() {
 }
 
 
-vector<VarId> NestedLoopPlan::get_var_order() {
-    auto result = lhs->get_var_order();
-
-    for (auto& right_var : rhs->get_var_order()) {
-        bool already_present = false;
-        for (auto res_var : result) {
-            if (res_var == right_var) {
-                already_present = true;
-                break;
-            }
-        }
-        if (!already_present) {
-            result.push_back(right_var);
-        }
-    }
-    return result;
+uint64_t NestedLoopPlan::get_vars() {
+    return lhs->get_vars() | rhs->get_vars() ;
 }
 
 
-void NestedLoopPlan::set_input_vars(std::vector<VarId>& /*input_var_order*/) {
+void NestedLoopPlan::set_input_vars(uint64_t /*input_var_order*/) {
     // lhs->set_input_vars(input_var_order);
     // auto left_var_order = lhs->get_var_order();
     // rhs->set_input_vars(left_var_order);

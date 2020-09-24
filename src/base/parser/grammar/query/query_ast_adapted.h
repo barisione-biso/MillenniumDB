@@ -5,12 +5,12 @@
 
 #include "base/parser/grammar/query/query_ast.h"
 
-BOOST_FUSION_ADAPT_STRUCT(query::ast::Root,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::QueryRoot,
     explain, selection, graph_pattern, where, limit
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::LinearPattern,
-    root, path, graph_name
+    root, path
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::StepPath,
@@ -18,14 +18,18 @@ BOOST_FUSION_ADAPT_STRUCT(query::ast::StepPath,
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Node,
-    var, labels, properties
+    var_or_id, labels, properties
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Edge,
-    var, labels, properties, direction
+    var_or_id, types, properties, direction
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query::ast::Element,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::VarKey,
+    var, key
+)
+
+BOOST_FUSION_ADAPT_STRUCT(query::ast::SelectItem,
     var, key
 )
 

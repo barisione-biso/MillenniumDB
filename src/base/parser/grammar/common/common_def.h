@@ -46,10 +46,11 @@ namespace common {
             (alpha | char_('_')) >> *(alnum | char_('_'));
 
         auto const var_name_def =
-            alpha >> *(alnum | char_('_'));
+            char_('?') >> alpha >> *(alnum | char_('_'));
 
         auto const var_def =
-            lexeme['?' >> var_name];
+            lexeme[var_name];
+            // lexeme['?' >> var_name];
 
         auto const key =
             lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];

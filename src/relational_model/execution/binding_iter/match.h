@@ -7,13 +7,12 @@
 
 #include "base/binding/binding_iter.h"
 #include "base/ids/var_id.h"
-#include "relational_model/binding/binding_id_iter.h"
+#include "relational_model/execution/binding/binding_id_iter.h"
 #include "relational_model//models/graph_model.h"
 
 class Match : public BindingIter {
 public:
-    Match(GraphModel& model, std::unique_ptr<BindingIdIter> root,
-          std::map<std::string, VarId> var_pos);
+    Match(GraphModel& model, std::unique_ptr<BindingIdIter> root, std::map<std::string, VarId> var_pos);
     ~Match() = default;
 
     void begin();

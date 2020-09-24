@@ -3,7 +3,14 @@
     - Conexiones directas a valores
     - Json como posible valores
         - como hashear json?
+    - Esquema de tipos para los properties (values)
+    - Estadisticas de out e in degree por Nodos más conectados
+        - usar promedio para el restante
+        - usar sampling?
 
+- Estadisticas de out e in degree por Nodos más conectados
+    - usar promedio para el restante
+    - usar sampling?
 - Cambios si hacemos nuestra propuesta de nuevo modelo basado en quads:
     - Eliminar lo relacionado con edges EdgeLabel, EdgeProperty, etc
     - Crear nueva "tabla" (E)SPO

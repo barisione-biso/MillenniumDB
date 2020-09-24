@@ -9,6 +9,7 @@
 #include "base/graph/value/value_bool.h"
 #include "base/graph/value/value_float.h"
 #include "base/graph/value/value_string.h"
+#include "relational_model/models/quad_model/query_optimizer/query_optimizer.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 
@@ -53,7 +54,6 @@ QuadModel::~QuadModel() {
     object_file().~ObjectFile();
     catalog().~QuadCatalog();
 
-    // TODO: don't use pointers to b+trees?
     label_node.reset();
     node_label.reset();
 
@@ -70,12 +70,12 @@ QuadModel::~QuadModel() {
 
 
 std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select) {
-    // TODO:
-    return nullptr;
+    auto query_optimizer = QueryOptimizer(*this);
+    return query_optimizer.exec(op_select);
 }
 
 
-std::unique_ptr<BindingIter> QuadModel::exec(manual_plan_ast::Root& manual_plan) {
+std::unique_ptr<BindingIter> QuadModel::exec(manual_plan_ast::Root&) {
     // TODO:
     return nullptr;
 }
@@ -107,6 +107,27 @@ ObjectId QuadModel::get_string_id(const string& str, bool create_if_not_exists) 
     }
 }
 
+
+ObjectId QuadModel::get_identifiable_object_id(const string& str, bool create_if_not_exists) {
+    int string_len = str.length();
+
+    if (string_len > MAX_INLINED_BYTES) {
+        auto external_id =  get_external_id(str, create_if_not_exists);
+        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
+            return ObjectId(external_id);
+        } else {
+            return ObjectId(external_id | IDENTIFIABLE_NODE_MASK);
+        }
+    } else {
+        uint64_t res = 0;
+        int shift_size = 0;
+        for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            res |= byte << shift_size;
+            shift_size += 8;
+        }
+        return ObjectId(res | INLINED_ID_NODE_MASK);
+    }
+}
 
 ObjectId QuadModel::get_value_id(const Value& value, bool create_if_not_exists) {
     switch (value.type()) {
@@ -230,13 +251,31 @@ shared_ptr<GraphObject> QuadModel::get_graph_object(ObjectId object_id) {
         }
 
         case IDENTIFIABLE_NODE_MASK : {
-            // TODO: get string
-            return make_shared<IdentifiableNode>(std::to_string(unmasked_id));
+            // TODO: measure performance of using strings cache
+            // auto cached_string = strings_cache->get(unmasked_id);
+            // if (cached_string != nullptr) {
+                // return cached_string;
+            // } else {
+                auto bytes = object_file().read(unmasked_id);
+                string value_string(bytes->begin(), bytes->end());
+                // string value_string = std::to_string(unmasked_id);
+                // strings_cache->insert(unmasked_id, value_string);
+                return make_shared<IdentifiableNode>(move(value_string));
+            // }
         }
 
         case INLINED_ID_NODE_MASK : {
-            // TODO: get string
-            return make_shared<IdentifiableNode>(std::to_string(unmasked_id));
+            string value_string = "";
+            int shift_size = 0;
+            for (int i = 0; i < MAX_INLINED_BYTES; i++) {
+                uint8_t byte = (object_id.id >> shift_size) & 0xFF;
+                if (byte == 0x00) {
+                    break;
+                }
+                value_string.push_back(byte);
+                shift_size += 8;
+            }
+            return make_shared<IdentifiableNode>(move(value_string));
         }
 
         case ANONYMOUS_NODE_MASK : {

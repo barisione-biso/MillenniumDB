@@ -5,7 +5,7 @@
 #include "base/ids/graph_id.h"
 #include "base/ids/var_id.h"
 #include "base/graph/graph_object.h"
-#include "relational_model/binding/binding_id_iter.h"
+#include "relational_model/execution/binding/binding_id_iter.h"
 
 #include <set>
 #include <map>
@@ -18,16 +18,9 @@ class Filter : public BindingIter {
 private:
     std::unique_ptr<BindingIter> iter;
     std::unique_ptr<Condition> condition;
-    std::map<std::string, GraphId> var2graph_id;
-    std::set<std::string> node_names;
-    std::set<std::string> edge_names;
 
 public:
-    Filter(std::unique_ptr<BindingIter> iter,
-           std::unique_ptr<Condition> condition,
-           std::map<std::string, GraphId> var2graph_id,
-           std::set<std::string> node_names,
-           std::set<std::string> edge_names);
+    Filter(std::unique_ptr<BindingIter> iter, std::unique_ptr<Condition> condition);
     ~Filter() = default;
 
     void begin();

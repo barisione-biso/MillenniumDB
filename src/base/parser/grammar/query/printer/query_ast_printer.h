@@ -21,12 +21,12 @@ public:
     void indent(std::string str) const;
     void indent(std::string str, int_fast32_t extra_indent) const;
 
-    void operator() (query::ast::Root const&) const;
-    void operator() (std::vector<query::ast::Element> const&) const;
-    void operator() (query::ast::All const&) const;
+    void operator() (query::ast::QueryRoot const&) const;
+    // void operator() (std::vector<query::ast::VarKey> const&) const;
+    void operator() (std::vector<query::ast::SelectItem> const&) const;
     void operator() (std::vector<query::ast::LinearPattern> const&) const;
     void operator() (query::ast::LinearPattern const&) const;
-    void operator() (query::ast::Element const&) const;
+    void operator() (query::ast::VarKey const&) const;
     void operator() (query::ast::Node) const;
     void operator() (query::ast::Edge) const;
     void operator() (query::ast::StepPath) const;
@@ -35,6 +35,7 @@ public:
     void operator() (query::ast::Statement const&) const;
     void operator() (query::ast::StepFormula const&) const;
     void operator() (query::ast::Value const&) const;
+    void operator() (query::ast::SelectItem const&) const;
 
     void operator() (int64_t         const&) const;
     void operator() (float           const&) const;
@@ -42,14 +43,10 @@ public:
     void operator() (std::string     const&) const;
     void operator() (VarId           const&) const;
     void operator() (query::ast::Var const&) const;
-    void operator() (query::ast::And const&) const;
-    void operator() (query::ast::Or  const&) const;
-    void operator() (query::ast::EQ  const&) const;
-    void operator() (query::ast::NE  const&) const;
-    void operator() (query::ast::GT  const&) const;
-    void operator() (query::ast::LT  const&) const;
-    void operator() (query::ast::GE  const&) const;
-    void operator() (query::ast::LE  const&) const;
+
+    void operator() (query::ast::BinaryOp   const&) const;
+    void operator() (query::ast::Comparator const&) const;
+
 };
 
 #endif  // BASE__QUERY_AST_PRINTER_H_

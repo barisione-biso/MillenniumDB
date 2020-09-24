@@ -52,7 +52,7 @@ public:
 
         for (auto const& step_formula : formula.path) {
             auto step = (*this)(step_formula.condition);
-            if (step_formula.op.type() == typeid(query::ast::Or)) { // OR
+            if (step_formula.op == query::ast::BinaryOp::Or) { // OR
                 tmp_disjunction.push_back(std::move(tmp));
                 tmp = std::move(step);
             }
@@ -91,22 +91,22 @@ public:
 
 
     std::unique_ptr<Condition> operator()(query::ast::Statement const& statement) const {
-        if (statement.comparator.type() == typeid(query::ast::EQ))
+        if (statement.comparator == query::ast::Comparator::EQ)
             return std::make_unique<Equals>(statement);
 
-        else if (statement.comparator.type() == typeid(query::ast::NE))
+        else if (statement.comparator == query::ast::Comparator::NE)
             return std::make_unique<NotEquals>(statement);
 
-        else if (statement.comparator.type() == typeid(query::ast::LE))
+        else if (statement.comparator == query::ast::Comparator::LE)
             return std::make_unique<LessOrEquals>(statement);
 
-        else if (statement.comparator.type() == typeid(query::ast::GE))
+        else if (statement.comparator == query::ast::Comparator::GE)
             return std::make_unique<GreaterOrEquals>(statement);
 
-        else if (statement.comparator.type() == typeid(query::ast::GT))
+        else if (statement.comparator == query::ast::Comparator::GT)
             return std::make_unique<GreaterThan>(statement);
 
-        else // if (statement.comparator.type() == typeid(query::ast::LT))
+        else // if (statement.comparator == query::ast::LT)
             return std::make_unique<LessThan>(statement);
     }
 };

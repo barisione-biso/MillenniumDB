@@ -17,13 +17,9 @@ public:
         return binding[var];
     }
 
-    void check_names(std::set<std::string>& node_names, std::set<std::string>& edge_names) {
-        auto node_search = node_names.find(var);
-        if (node_search == node_names.end()) {
-            auto edge_search = edge_names.find(var);
-            if (edge_search == edge_names.end()) {
-                throw QuerySemanticException("Variable \"" + var + "\" used in WHERE is not declared in MATCH");
-            }
+    void check_names(std::set<std::string>& var_names) {
+        if (var_names.find(var) == var_names.end()) {
+            throw QuerySemanticException("Variable \"" + var + "\" used in WHERE is not declared in MATCH");
         }
     }
 };

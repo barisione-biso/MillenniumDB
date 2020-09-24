@@ -1,15 +1,15 @@
-#ifndef RELATIONAL_MODEL__DEFAULT_GRAPH_VAR_H_
-#define RELATIONAL_MODEL__DEFAULT_GRAPH_VAR_H_
+#ifndef RELATIONAL_MODEL__UNASSIGNED_VAR_H_
+#define RELATIONAL_MODEL__UNASSIGNED_VAR_H_
 
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 
-class DefaultGraphVar : public ScanRange {
+class UnassignedVar : public ScanRange {
 private:
     VarId var_id;
 
 public:
-    DefaultGraphVar(VarId var_id)
-        : var_id(var_id) { }
+    UnassignedVar(VarId var_id) :
+        var_id(var_id) { }
 
     uint64_t get_min(BindingId&) override {
         return 0;
@@ -24,4 +24,4 @@ public:
     }
 };
 
-#endif // RELATIONAL_MODEL__DEFAULT_GRAPH_VAR_H_
+#endif // RELATIONAL_MODEL__UNASSIGNED_VAR_H_
