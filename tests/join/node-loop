@@ -1,2 +1,0 @@
-SELECT *
-MATCH (?n)->(?n) ON "join_test"
