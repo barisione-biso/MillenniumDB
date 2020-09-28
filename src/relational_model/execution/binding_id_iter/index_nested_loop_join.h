@@ -11,12 +11,12 @@ class IndexNestedLoopJoin : public BindingIdIter {
 public:
     IndexNestedLoopJoin(std::unique_ptr<BindingIdIter> lhs, std::unique_ptr<BindingIdIter> rhs);
     ~IndexNestedLoopJoin() = default;
-    void begin(BindingId& input);
-    void reset(BindingId& input);
-    BindingId* next();
 
-    // prints execution statistics
     void analyze(int indent = 0) const override;
+    void begin(BindingId& input) override;
+    void reset(BindingId& input) override;
+    BindingId* next() override;
+
 
 private:
     std::unique_ptr<BindingIdIter> lhs;

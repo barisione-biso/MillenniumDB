@@ -1,10 +1,12 @@
 #include "unjoint_object_plan.h"
 
-#include "relational_model/execution/binding_id_iter/node_enum.h"
+#include "relational_model/execution/binding_id_iter/node_table_enum.h"
+#include "relational_model/execution/binding_id_iter/object_enum.h"
+#include "relational_model/execution/binding_id_iter/union.h"
 
 using namespace std;
 
-UnjointObjectPlan::UnjointObjectPlan(QuadModel& model, VarId object_var_id) :
+UnjointObjectPlan::UnjointObjectPlan(QuadModel& model, const VarId object_var_id) :
     model         (model),
     object_var_id (object_var_id) { }
 
@@ -27,8 +29,7 @@ void UnjointObjectPlan::print(int indent, bool estimated_cost, std::vector<std::
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "LonelyNode(";// << var_names[node_var_id.id]
-    cout << ")";
+    cout << "UnjointObject("  << var_names[object_var_id.id] << ")";
 
     if (estimated_cost) {
         cout << ",\n";
@@ -40,9 +41,9 @@ void UnjointObjectPlan::print(int indent, bool estimated_cost, std::vector<std::
 }
 
 double UnjointObjectPlan::estimate_output_size() {
-    // TODO: remake
-    return 1;
-    // return catalog.get_node_count(graph_id);
+    return model.catalog().connections_count
+           + model.catalog().identifiable_nodes_count
+           + model.catalog().anonymous_nodes_count;
 }
 
 
@@ -57,7 +58,15 @@ void UnjointObjectPlan::set_input_vars(uint64_t) {
 
 
 unique_ptr<BindingIdIter> UnjointObjectPlan::get_binding_id_iter() {
-    // return make_unique<NodeEnum>(graph_id, node_var_id);
-    // TODO: make sequence using catalog
-    return nullptr;
+    vector<unique_ptr<BindingIdIter>> iters;
+    iters.push_back(
+        make_unique<NodeTableEnum>(object_var_id, *model.node_table)
+    );
+    iters.push_back(
+        make_unique<ObjectEnum>(object_var_id, QuadModel::ANONYMOUS_NODE_MASK, model.catalog().anonymous_nodes_count)
+    );
+    iters.push_back(
+        make_unique<ObjectEnum>(object_var_id, QuadModel::CONNECTION_MASK, model.catalog().connections_count)
+    );
+    return make_unique<Union>(move(iters));
 }

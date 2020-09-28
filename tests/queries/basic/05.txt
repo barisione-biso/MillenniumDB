@@ -1,0 +1,3 @@
+SELECT ?x, ?x.Agassi
+MATCH (?x)
+WHERE ?x.Agassi < 100 OR ?x.Agassi > 9950

@@ -21,7 +21,12 @@ public:
     }
 
     bool operator<(const OpLabel& other) const {
-        return node_name < other.node_name && label < other.label;
+        if (node_name < other.node_name) {
+            return true;
+        } else if (label < other.label) {
+            return true;
+        }
+        return false;
     }
 };
 

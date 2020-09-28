@@ -54,6 +54,9 @@ QuadModel::~QuadModel() {
     object_file().~ObjectFile();
     catalog().~QuadCatalog();
 
+    node_table.reset();
+    edge_table.reset();
+
     label_node.reset();
     node_label.reset();
 
@@ -75,10 +78,10 @@ std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select) {
 }
 
 
-std::unique_ptr<BindingIter> QuadModel::exec(manual_plan_ast::Root&) {
-    // TODO:
-    return nullptr;
-}
+// std::unique_ptr<BindingIter> QuadModel::exec(manual_plan_ast::Root&) {
+//     // TODO:
+//     return nullptr;
+// }
 
 
 uint64_t QuadModel::get_external_id(const string& str, bool create_if_not_exists) {
@@ -99,10 +102,17 @@ ObjectId QuadModel::get_string_id(const string& str, bool create_if_not_exists) 
     } else {
         uint64_t res = 0;
         int shift_size = 0;
-        for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+        for (int i = 0; i < string_len; i++) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            uint64_t byte = static_cast<uint8_t>(str[i]); // IMPORTANT static_cast, str[i] can be negative
             res |= byte << shift_size;
             shift_size += 8;
         }
+        // assert this?
+        // if (res > VALUE_INLINE_STR_MASK) {
+        //     cout << "ERROR: bad encoding\n";
+        //     cout << "  string: " << str << "\n";
+        //     cout << "  len: " << string_len << "\n";
+        // }
         return ObjectId(res | VALUE_INLINE_STR_MASK);
     }
 }
@@ -186,11 +196,10 @@ ObjectId QuadModel::get_value_id(const Value& value, bool create_if_not_exists) 
 
 
 shared_ptr<GraphObject> QuadModel::get_graph_object(ObjectId object_id) {
-    // TODO:
     if (object_id.not_found()) {
         return make_shared<ValueString>("");
     }
-    auto mask = object_id.id & TYPE_MASK;
+    auto mask        = object_id.id & TYPE_MASK;
     auto unmasked_id = object_id.id & VALUE_MASK;
     switch (mask) {
         case VALUE_EXTERNAL_STR_MASK : {
@@ -211,6 +220,7 @@ shared_ptr<GraphObject> QuadModel::get_graph_object(ObjectId object_id) {
             int shift_size = 0;
             for (int i = 0; i < MAX_INLINED_BYTES; i++) {
                 uint8_t byte = (object_id.id >> shift_size) & 0xFF;
+                // cout << "char: " << ((char) byte) << "\n";
                 if (byte == 0x00) {
                     break;
                 }
@@ -260,7 +270,7 @@ shared_ptr<GraphObject> QuadModel::get_graph_object(ObjectId object_id) {
                 string value_string(bytes->begin(), bytes->end());
                 // string value_string = std::to_string(unmasked_id);
                 // strings_cache->insert(unmasked_id, value_string);
-                return make_shared<IdentifiableNode>(move(value_string));
+                return make_shared<IdentifiableNode>(move(value_string), unmasked_id);
             // }
         }
 
@@ -275,7 +285,7 @@ shared_ptr<GraphObject> QuadModel::get_graph_object(ObjectId object_id) {
                 value_string.push_back(byte);
                 shift_size += 8;
             }
-            return make_shared<IdentifiableNode>(move(value_string));
+            return make_shared<IdentifiableNode>(move(value_string), unmasked_id);
         }
 
         case ANONYMOUS_NODE_MASK : {
@@ -289,9 +299,54 @@ shared_ptr<GraphObject> QuadModel::get_graph_object(ObjectId object_id) {
         default : {
             cout << "wrong value prefix:\n";
             printf("  obj_id: %lX\n", object_id.id);
-            printf("  mask: %lX\n", mask);
-            string value_string = "";
+            printf("  mask:   %lX\n", mask);
+            string value_string = "<CORRUPTED DATA>";
             return make_shared<ValueString>(move(value_string));
+        }
+    }
+}
+
+
+shared_ptr<GraphObject> QuadModel::get_property_value(GraphObject& var, const string& key) {
+    auto obj_id = get_object_id(var);
+    auto key_id = get_string_id(key);
+
+    auto it = object_key_value->get_range(
+        RecordFactory::get(obj_id.id, key_id.id, 0),
+        RecordFactory::get(obj_id.id, key_id.id, UINT64_MAX)
+    );
+
+    auto res = it->next();
+    if (res != nullptr) {
+        auto value_id = ObjectId(res->ids[2]);
+        return get_graph_object(value_id);
+    } else {
+        return nullptr;
+    }
+}
+
+
+ObjectId QuadModel::get_object_id(const GraphObject& obj) const {
+    switch (obj.type()) {
+        case ObjectType::identifiable_node: {
+            const auto identifiable_node = dynamic_cast<const IdentifiableNode&>(obj);
+            if (identifiable_node.id.size() > MAX_INLINED_BYTES) {
+                return ObjectId(IDENTIFIABLE_NODE_MASK | identifiable_node.obj_id);
+            } else {
+                return ObjectId(INLINED_ID_NODE_MASK | identifiable_node.obj_id);
+            }
+        }
+        case ObjectType::anonymous_node: {
+            const auto anon_node = dynamic_cast<const AnonymousNode&>(obj);
+            return ObjectId(ANONYMOUS_NODE_MASK | anon_node.id);
+        }
+        case ObjectType::edge: {
+            const auto edge = dynamic_cast<const Edge&>(obj);
+            return ObjectId(CONNECTION_MASK | edge.id);
+        }
+        default: {
+            cout << "QuadModel::get_object_id NOT IMPLEMENTED for values yet\n";
+            return ObjectId();
         }
     }
 }

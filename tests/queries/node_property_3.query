@@ -1,6 +1,0 @@
-// Busqueda de nodo por property
-// largo key string = 7 (inline)
-// tipo valor = int
-
-SELECT *
-MATCH (?n {rotundas:5275})

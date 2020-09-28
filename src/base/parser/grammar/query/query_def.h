@@ -18,10 +18,6 @@ namespace query {
         // Declare rules
         x3::rule<class query_root, ast::QueryRoot>
             query_root = "query_root";
-        x3::rule<class var_key, ast::VarKey>
-            var_key = "var_key";
-        x3::rule<class optional_property, std::string>
-            optional_property = "optional_property";
         x3::rule<class select_item, ast::SelectItem>
             select_item = "select_item";
         x3::rule<class selection, std::vector<ast::SelectItem>>
@@ -55,12 +51,13 @@ namespace query {
             lexeme[no_case["and"]] >> attr(ast::BinaryOp::And);
 
         auto const node_inside =
-            -(var_name | node_name) >> *label >> -("{" >> -(property % ',') >> "}");
-            // -(var|node_name) >> *label >> -("{" >> -(property % ',') >> "}");
+            -(var | node_name) >> *label >> -("{" >> -(property % ',') >> "}");
+
+        auto const type =
+            lexeme[no_case["type"]] >> '(' >> (var | node_name) >> ')';
 
         auto const edge_inside =
-            -(var_name | node_name) >> *label >> -("{" >> -(property % ',') >> "}");
-            // -(var|node_name) >> *label >> -("{" >> -(property % ',') >> "}");
+            -(var | node_name) >> *(type | label) >> -("{" >> -(property % ',') >> "}");
 
         auto const node_def =
             '(' >> node_inside >> ")";
@@ -73,7 +70,7 @@ namespace query {
             node >> *(edge >> node);
 
         auto const statement_def =
-            (var_key | var) >> comparator >> (var_key | var | value);
+            select_item >> comparator >> (select_item | value);
 
         auto const condition_def =
             -(no_case["NOT"] >> attr(true)) >>
@@ -88,19 +85,11 @@ namespace query {
         auto const formula_def =
             condition >> *step_formula;
 
-        auto const optional_property_def =
-            "." >> key;
-
-        auto const select_item_def = // TODO: fix
-            // var_name >> ( (lit('.') >> key) | attr(std::string()));
-            // var_name >> attr(std::string());
-            var_name >> -optional_property;
+        auto const select_item_def =
+            var >> -("." >> key);
 
         auto const selection_def =
             select_item % ',';
-
-        auto const var_key_def =
-            var >> lit('.') >> key;  // TODO: get rid of this
 
         auto explain_statement =
             no_case["explain"] >> attr(true) |
@@ -128,17 +117,15 @@ namespace query {
 
         BOOST_SPIRIT_DEFINE(
             query_root,
-            var_key,
-            optional_property,
+            selection,
             select_item,
-            linear_pattern,
             node,
             edge,
-            condition,
+            linear_pattern,
             statement,
             formula,
             step_formula,
-            selection
+            condition
         );
     }
 

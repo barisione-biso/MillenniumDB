@@ -21,7 +21,15 @@ public:
     }
 
     bool operator<(const OpConnection& other) const {
-        return from < other.from && to < other.to && edge < other.edge;
+        // return from < other.from && to < other.to && edge < other.edge;
+        if (from < other.from) {
+            return true;
+        } else if (to < other.to) {
+            return true;
+        } else if (edge < other.edge) {
+            return true;
+        }
+        return false;
     }
 };
 

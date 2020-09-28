@@ -5,17 +5,17 @@
 #include "base/binding/binding_iter.h"
 
 #include <memory>
-#include <set>
 #include <string>
+#include <vector>
 
 class BindingProject : public Binding {
 
 private:
-    std::set<std::string>& projection_vars;
+    std::vector<std::string>& projection_vars;
     std::unique_ptr<Binding> current_binding;
 
 public:
-    BindingProject(std::set<std::string>& projection_vars, std::unique_ptr<Binding> current_binding);
+    BindingProject(std::vector<std::string>& projection_vars, std::unique_ptr<Binding> current_binding);
     ~BindingProject() = default;
 
     std::string to_string() const override;

@@ -1,3 +1,0 @@
-SELECT ?e.Benjamin, ?n.antiquary
-MATCH (?n)-[?e :clasped]->()
-WHERE ?e.Benjamin != "bla" OR ?n.antiquary == 2987

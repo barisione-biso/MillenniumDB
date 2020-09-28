@@ -21,7 +21,12 @@ public:
     }
 
     bool operator<(const OpConnectionType& other) const {
-        return edge < other.edge && type < other.type;
+        if (edge < other.edge) {
+            return true;
+        } else if (type < other.type) {
+            return true;
+        }
+        return false;
     }
 };
 

@@ -44,13 +44,13 @@ void QueryOptimizer::visit(OpSelect& op_select) {
         tmp = make_unique<Projection>(move(tmp), op_select.limit);
     }
     else {
-        set<std::string> projection_vars;
+        vector<std::string> projection_vars;
         select_items = move(op_select.select_items);
         for (const auto& select_item : select_items) {
             if (select_item.key) {
-                projection_vars.insert(select_item.var + '.' + select_item.key.get());
+                projection_vars.push_back(select_item.var + '.' + select_item.key.get());
             } else {
-                projection_vars.insert(select_item.var);
+                projection_vars.push_back(select_item.var);
             }
         }
         op_select.op->accept_visitor(*this);
@@ -64,7 +64,6 @@ void QueryOptimizer::visit(OpMatch& op_match) {
 
     // Process Labels
     for (auto& op_label : op_match.labels) {
-        // auto graph_id = search_graph_id(op_node_label.graph_name);
         auto label_id = model.get_string_id(op_label.label);
 
         if (op_label.node_name[0] == '?') {
@@ -112,11 +111,14 @@ void QueryOptimizer::visit(OpMatch& op_match) {
         }
     }
 
-    // Process UnjointObjects not present in select
+    // Process UnjointObjects when select doesn't project a property of them.
+    // We need to discard UnjointObjects like ?x in:
+    // SELECT ?x.name
+    // MATCH (?x)
     for (auto& unjoint_object : op_match.unjoint_objects) {
         bool unjoint_object_mentioned_in_select = false;
         for (const auto& select_item : select_items) {
-            if (select_item.var == unjoint_object.obj_name) {
+            if (select_item.key && select_item.var == unjoint_object.obj_name) {
                 unjoint_object_mentioned_in_select = true;
                 break;
             }
@@ -145,13 +147,19 @@ void QueryOptimizer::visit(OpMatch& op_match) {
 
         // connections must have exactly 1 type in this model
         auto connection_labels_found = 0;
+
         for (auto& op_connection_type : op_match.connection_types) {
             if (op_connection_type.edge == op_connection.edge) {
-                auto type_id = model.get_identifiable_object_id(op_connection_type.type);
                 ++connection_labels_found;
                 if (connection_labels_found > 1) {
-                    throw logic_error("Connections must have exactly 1 type when using QuadModel");
+                    throw logic_error("Connections must have exactly 1 type when using QuadModel"); // TODO: throw other class
+                } else if (op_connection_type.type[0] == '?') {
+                    auto type_id = get_var_id(op_connection_type.type);
+                    base_plans.push_back(
+                        make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
+                    );
                 } else {
+                    auto type_id = model.get_identifiable_object_id(op_connection_type.type);
                     base_plans.push_back(
                         make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
                     );
@@ -159,7 +167,8 @@ void QueryOptimizer::visit(OpMatch& op_match) {
             }
         }
         if (connection_labels_found == 0) {
-            auto type_id = get_var_id(op_connection.edge + "_type");
+            // TODO: maybe is better to not project the type, having an special var_id
+            auto type_id = get_var_id(op_connection.edge + ".type");
             base_plans.push_back(
                 make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
             );
@@ -180,7 +189,7 @@ void QueryOptimizer::visit(OpMatch& op_match) {
 void QueryOptimizer::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
     if (op_filter.condition != nullptr) {
-        tmp = make_unique<Filter>(move(tmp), move(op_filter.condition));
+        tmp = make_unique<Filter>(model, move(tmp), move(op_filter.condition));
     }
     // else tmp stays the same
 }
@@ -258,25 +267,16 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
             if (base_plans[j] != nullptr
                 && !base_plans[j]->cartesian_product_needed(*root_plan) )
             {
-                // auto merge_plan       =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
                 auto nested_loop_plan =  make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
 
                 // auto merge_cost       = merge_plan->estimate_cost();
                 auto nested_loop_cost = nested_loop_plan->estimate_cost();
 
-                // if (nested_loop_cost <= merge_cost) {
-                    if (nested_loop_cost < best_cost) {
-                        best_cost = nested_loop_cost;
-                        best_index = j;
-                        best_step_plan = move(nested_loop_plan);
-                    }
-                // } else { // merge_cost < nested_loop_cost
-                //     if (merge_cost < best_cost) {
-                //         best_cost = merge_cost;
-                //         best_index = j;
-                //         best_step_plan = move(merge_plan);
-                //     }
-                // }
+                if (nested_loop_cost < best_cost) {
+                    best_cost = nested_loop_cost;
+                    best_index = j;
+                    best_step_plan = move(nested_loop_plan);
+                }
             }
         }
 
@@ -288,25 +288,15 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
                 if (base_plans[j] == nullptr) {
                     continue;
                 }
-                // auto merge_plan       =  make_unique<MergePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
                 auto nested_loop_plan =  make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
 
-                // auto merge_cost       = merge_plan->estimate_cost();
                 auto nested_loop_cost = nested_loop_plan->estimate_cost();
 
-                // if (nested_loop_cost <= merge_cost) {
-                    if (nested_loop_cost < best_cost) {
-                        best_cost = nested_loop_cost;
-                        best_index = j;
-                        best_step_plan = move(nested_loop_plan);
-                    }
-                // } else { // merge_cost < nested_loop_cost
-                //     if (merge_cost < best_cost) {
-                //         best_cost = merge_cost;
-                //         best_index = j;
-                //         best_step_plan = move(merge_plan);
-                //     }
-                // }
+                if (nested_loop_cost < best_cost) {
+                    best_cost = nested_loop_cost;
+                    best_index = j;
+                    best_step_plan = move(nested_loop_plan);
+                }
             }
         }
         base_plans[best_index] = nullptr;
@@ -319,83 +309,83 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
 }
 
 
-unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
-    // TODO: remake
-    // vector<unique_ptr<JoinPlan>> base_plans;
-    unique_ptr<JoinPlan> root_plan = nullptr;
-    GraphId graph_id; // default graph
+// unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
+//     // TODO: remake
+//     // vector<unique_ptr<JoinPlan>> base_plans;
+//     unique_ptr<JoinPlan> root_plan = nullptr;
+//     GraphId graph_id; // default graph
 
-    // boost::variant<NodeLabel, EdgeLabel, NodeProperty, EdgeProperty, Connection, LabeledConnection>
-    for (auto& relation : root.relations) {
-        unique_ptr<JoinPlan> current_plan = nullptr;
-        if (relation.type() == typeid(manual_plan_ast::NodeLabel)) {
-            auto node_label = boost::get<manual_plan_ast::NodeLabel>(relation);
+//     // boost::variant<NodeLabel, EdgeLabel, NodeProperty, EdgeProperty, Connection, LabeledConnection>
+//     for (auto& relation : root.relations) {
+//         unique_ptr<JoinPlan> current_plan = nullptr;
+//         if (relation.type() == typeid(manual_plan_ast::NodeLabel)) {
+//             auto node_label = boost::get<manual_plan_ast::NodeLabel>(relation);
 
-            auto node_var_id = get_var_id(node_label.node);
-            auto label_id = model.get_string_id(node_label.label);
+//             auto node_var_id = get_var_id(node_label.node);
+//             auto label_id = model.get_string_id(node_label.label);
 
-            current_plan = make_unique<LabelPlan>(model, node_var_id, label_id);
-        }
+//             current_plan = make_unique<LabelPlan>(model, node_var_id, label_id);
+//         }
 
-        else if (relation.type() == typeid(manual_plan_ast::EdgeLabel)) {
-            auto edge_label = boost::get<manual_plan_ast::EdgeLabel>(relation);
+//         else if (relation.type() == typeid(manual_plan_ast::EdgeLabel)) {
+//             auto edge_label = boost::get<manual_plan_ast::EdgeLabel>(relation);
 
-            auto edge_var_id = get_var_id(edge_label.edge);
-            auto label_id = model.get_string_id(edge_label.label);
+//             auto edge_var_id = get_var_id(edge_label.edge);
+//             auto label_id = model.get_string_id(edge_label.label);
 
-            current_plan = make_unique<LabelPlan>(model, edge_var_id, label_id);
-        }
+//             current_plan = make_unique<LabelPlan>(model, edge_var_id, label_id);
+//         }
 
-        else if (relation.type() == typeid(manual_plan_ast::NodeProperty)) {
-            auto node_prop = boost::get<manual_plan_ast::NodeProperty>(relation);
+//         else if (relation.type() == typeid(manual_plan_ast::NodeProperty)) {
+//             auto node_prop = boost::get<manual_plan_ast::NodeProperty>(relation);
 
-            auto node_var_id = get_var_id(node_prop.node);
-            auto key_id      = model.get_string_id(node_prop.key);
-            auto value_id    = get_value_id(node_prop.value);
+//             auto node_var_id = get_var_id(node_prop.node);
+//             auto key_id      = model.get_string_id(node_prop.key);
+//             auto value_id    = get_value_id(node_prop.value);
 
-            current_plan = make_unique<PropertyPlan>(model, node_var_id, key_id, value_id);
-        }
+//             current_plan = make_unique<PropertyPlan>(model, node_var_id, key_id, value_id);
+//         }
 
-        if (relation.type() == typeid(manual_plan_ast::EdgeProperty)) {
-            auto edge_prop = boost::get<manual_plan_ast::EdgeProperty>(relation);
+//         if (relation.type() == typeid(manual_plan_ast::EdgeProperty)) {
+//             auto edge_prop = boost::get<manual_plan_ast::EdgeProperty>(relation);
 
-            auto edge_var_id = get_var_id(edge_prop.edge);
-            auto key_id      = model.get_string_id(edge_prop.key);
-            auto value_id    = get_value_id(edge_prop.value);
+//             auto edge_var_id = get_var_id(edge_prop.edge);
+//             auto key_id      = model.get_string_id(edge_prop.key);
+//             auto value_id    = get_value_id(edge_prop.value);
 
-            current_plan = make_unique<PropertyPlan>(model, edge_var_id, key_id, value_id);
-        }
+//             current_plan = make_unique<PropertyPlan>(model, edge_var_id, key_id, value_id);
+//         }
 
-        else if (relation.type() == typeid(manual_plan_ast::Connection)) {
-            auto connection = boost::get<manual_plan_ast::Connection>(relation);
+//         else if (relation.type() == typeid(manual_plan_ast::Connection)) {
+//             auto connection = boost::get<manual_plan_ast::Connection>(relation);
 
-            auto node_from_var_id = get_var_id(connection.node_from);
-            auto edge_var_id      = get_var_id(connection.edge);
-            auto node_to_var_id   = get_var_id(connection.node_to);
+//             auto node_from_var_id = get_var_id(connection.node_from);
+//             auto edge_var_id      = get_var_id(connection.edge);
+//             auto node_to_var_id   = get_var_id(connection.node_to);
 
-            current_plan = make_unique<ConnectionPlan>(model, node_from_var_id, node_to_var_id, edge_var_id, edge_var_id);
-        }
+//             current_plan = make_unique<ConnectionPlan>(model, node_from_var_id, node_to_var_id, edge_var_id, edge_var_id);
+//         }
 
-        // else if (relation.type() == typeid(manual_plan_ast::LabeledConnection)) {
-        //     auto labeled_connection = boost::get<manual_plan_ast::LabeledConnection>(relation);
+//         // else if (relation.type() == typeid(manual_plan_ast::LabeledConnection)) {
+//         //     auto labeled_connection = boost::get<manual_plan_ast::LabeledConnection>(relation);
 
-        //     auto label_id = relational_model.get_string_id(labeled_connection.label);
-        //     auto node_from_var_id = get_var_id(labeled_connection.node_from);
-        //     auto node_to_var_id   = get_var_id(labeled_connection.node_to);
-        //     auto edge_var_id      = get_var_id(labeled_connection.edge);
+//         //     auto label_id = relational_model.get_string_id(labeled_connection.label);
+//         //     auto node_from_var_id = get_var_id(labeled_connection.node_from);
+//         //     auto node_to_var_id   = get_var_id(labeled_connection.node_to);
+//         //     auto edge_var_id      = get_var_id(labeled_connection.edge);
 
-        //     current_plan = make_unique<LabeledConnectionPlan>(model, label_id, node_from_var_id, node_to_var_id, edge_var_id);
-        // }
+//         //     current_plan = make_unique<LabeledConnectionPlan>(model, label_id, node_from_var_id, node_to_var_id, edge_var_id);
+//         // }
 
-        if (root_plan == nullptr) {
-            root_plan = move(current_plan);
-        } else {
-            root_plan = make_unique<NestedLoopPlan>(move(root_plan), move(current_plan));
-        }
-    }
-    auto match = make_unique<Match>(model, root_plan->get_binding_id_iter(), move(id_map));
-    return make_unique<Projection>(move(match), 0);
-}
+//         if (root_plan == nullptr) {
+//             root_plan = move(current_plan);
+//         } else {
+//             root_plan = make_unique<NestedLoopPlan>(move(root_plan), move(current_plan));
+//         }
+//     }
+//     auto match = make_unique<Match>(model, root_plan->get_binding_id_iter(), move(id_map));
+//     return make_unique<Projection>(move(match), 0);
+// }
 
 
 void QueryOptimizer::visit (OpLabel&) { }

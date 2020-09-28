@@ -1,5 +1,0 @@
-// Busqueda de nodo por label
-// largo string = 8 (external)
-// varios resultados
-SELECT *
-MATCH (?n :unjustly)

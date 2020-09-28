@@ -106,7 +106,10 @@ public:
             edge_name = edge.var_or_id;
         }
 
-        for (auto& type : edge.types) {
+        for (const auto& type : edge.types) {
+            if (type[0] == '?') {
+                var_names.insert(type);
+            }
             connection_types.insert(OpConnectionType(edge_name, type));
         }
 

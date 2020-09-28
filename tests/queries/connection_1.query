@@ -1,3 +1,0 @@
-// Busqueda de todas las conecciones
-SELECT *
-MATCH ()->() ON "random"

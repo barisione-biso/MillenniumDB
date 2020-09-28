@@ -1,14 +1,13 @@
 #ifndef RELATIONAL_MODEL__LONELY_NODE_PLAN_H_
 #define RELATIONAL_MODEL__LONELY_NODE_PLAN_H_
 
-#include "base/ids/graph_id.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 
 class UnjointObjectPlan : public JoinPlan {
 public:
     UnjointObjectPlan(const UnjointObjectPlan& other);
-    UnjointObjectPlan(QuadModel& model, VarId object_var_id);
+    UnjointObjectPlan(QuadModel& model, const VarId object_var_id);
     ~UnjointObjectPlan() = default;
 
     double estimate_cost() override;
@@ -24,7 +23,7 @@ public:
 
 private:
     QuadModel& model;
-    VarId object_var_id;
+    const VarId object_var_id;
 };
 
 #endif // RELATIONAL_MODEL__LONELY_NODE_PLAN_H_

@@ -48,6 +48,11 @@ void ConnectionPlan::print(int indent, bool estimated_cost, std::vector<std::str
     } else {
         cout << ", to: " <<  var_names[std::get<VarId>(to).id] << "";
     }
+    if (std::holds_alternative<ObjectId>(type)) {
+        cout << ", type: " << model.get_graph_object(std::get<ObjectId>(type))->to_string() << "";
+    } else {
+        cout << ", type: " <<  var_names[std::get<VarId>(type).id] << "";
+    }
     // cout << "?" << var_names[edge_var_id.id]
     //  << ", ?" << var_names[node_from_var_id.id]
     //  << ", ?" << var_names[node_to_var_id.id]
@@ -120,29 +125,29 @@ void ConnectionPlan::set_input_vars(const uint64_t input_vars) {
     if (std::holds_alternative<VarId>(from)) {
         auto from_var_id = std::get<VarId>(from);
         assert(from_var_id.id >= 0 && "Inconsistent VarId");
-        if ((input_vars & (1UL >> from_var_id.id)) != 0) {
+        if ((input_vars & (1UL << from_var_id.id)) != 0) {
             from_assigned = true;
         }
     }
     if (std::holds_alternative<VarId>(to)) {
         auto to_var_id = std::get<VarId>(to);
         assert(to_var_id.id >= 0 && "Inconsistent VarId");
-        if ((input_vars & (1UL >> to_var_id.id)) != 0) {
+        if ((input_vars & (1UL << to_var_id.id)) != 0) {
             to_assigned = true;
         }
     }
-    if (std::holds_alternative<VarId>(to)) {
+    if (std::holds_alternative<VarId>(type)) {
         auto type_var_id = std::get<VarId>(type);
         assert(type_var_id.id >= 0 && "Inconsistent VarId");
-        if ((input_vars & (1UL >> type_var_id.id)) != 0) {
+        if ((input_vars & (1UL << type_var_id.id)) != 0) {
             type_assigned = true;
         }
     }
-    if (std::holds_alternative<VarId>(to)) {
-        auto type_var_id = std::get<VarId>(type);
-        assert(type_var_id.id >= 0 && "Inconsistent VarId");
-        if ((input_vars & (1UL >> type_var_id.id)) != 0) {
-            type_assigned = true;
+    if (std::holds_alternative<VarId>(edge)) {
+        auto edge_var_id = std::get<VarId>(edge);
+        assert(edge_var_id.id >= 0 && "Inconsistent VarId");
+        if ((input_vars & (1UL << edge_var_id.id)) != 0) {
+            edge_assigned = true;
         }
     }
 }
@@ -152,19 +157,19 @@ uint64_t ConnectionPlan::get_vars() {
     uint64_t result = 0;
     if ( std::holds_alternative<VarId>(from) ) {
         assert(std::get<VarId>(from).id >= 0 && "Inconsistent VarId");
-        result |= 1UL >> std::get<VarId>(from).id;
+        result |= 1UL << std::get<VarId>(from).id;
     }
     if ( std::holds_alternative<VarId>(to) ) {
         assert(std::get<VarId>(to).id >= 0 && "Inconsistent VarId");
-        result |= 1UL >> std::get<VarId>(to).id;
+        result |= 1UL << std::get<VarId>(to).id;
     }
     if ( std::holds_alternative<VarId>(type) ) {
         assert(std::get<VarId>(type).id >= 0 && "Inconsistent VarId");
-        result |= 1UL >> std::get<VarId>(type).id;
+        result |= 1UL << std::get<VarId>(type).id;
     }
     if ( std::holds_alternative<VarId>(edge) ) {
         assert(std::get<VarId>(edge).id >= 0 && "Inconsistent VarId");
-        result |= 1UL >> std::get<VarId>(edge).id;
+        result |= 1UL << std::get<VarId>(edge).id;
     }
     return result;
 }
@@ -193,35 +198,44 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
     }
 
     ranges[3] = get_scan_range(edge, edge_assigned);
+    // if (from_assigned)
+    //     cout << "from assigned\n";
+    // if (to_assigned)
+    //     cout << "to assigned\n";
+    // if (type_assigned)
+    //     cout << "type assigned\n";
+    // if (edge_assigned)
+    //     cout << "edge assigned\n";
+
     if (from_assigned) {
         if (type_assigned) { // CASES 1 and 3 => YFTE
-            cout << "using type from to edge\n";
+            // cout << "using type from to edge\n";
             ranges[0] = get_scan_range(type, type_assigned);
             ranges[1] = get_scan_range(from, from_assigned);
-            ranges[2] = get_scan_range(to, to_assigned);
+            ranges[2] = get_scan_range(to,   to_assigned);
 
             return make_unique<IndexScan<4>>(*model.type_from_to_edge, move(ranges));
         } else { // CASES 2 and 4 => FTYE
-            cout << "using from to type edge\n";
+            // cout << "using from to type edge\n";
             ranges[0] = get_scan_range(from, from_assigned);
-            ranges[1] = get_scan_range(to, to_assigned);
+            ranges[1] = get_scan_range(to,   to_assigned);
             ranges[2] = get_scan_range(type, type_assigned);
 
             return make_unique<IndexScan<4>>(*model.from_to_type_edge, move(ranges));
         }
     } else {
         if (to_assigned) { // CASES 5 and 6 => TYFE
-            cout << "using to type from edge\n";
-            ranges[0] = get_scan_range(to, to_assigned);
+            // cout << "using to type from edge\n";
+            ranges[0] = get_scan_range(to,   to_assigned);
             ranges[1] = get_scan_range(type, type_assigned);
             ranges[2] = get_scan_range(from, from_assigned);
 
             return make_unique<IndexScan<4>>(*model.to_type_from_edge, move(ranges));
         } else { // CASES 7 and 8 => YFTE
-            cout << "using type from to edge\n";
+            // cout << "using type from to edge\n";
             ranges[0] = get_scan_range(type, type_assigned);
             ranges[1] = get_scan_range(from, from_assigned);
-            ranges[2] = get_scan_range(to, to_assigned);
+            ranges[2] = get_scan_range(to,   to_assigned);
 
             return make_unique<IndexScan<4>>(*model.type_from_to_edge, move(ranges));
         }

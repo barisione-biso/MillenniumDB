@@ -8,7 +8,8 @@
 
 using namespace std;
 
-Filter::Filter(unique_ptr<BindingIter> iter, unique_ptr<Condition> condition) :
+Filter::Filter(GraphModel& model, unique_ptr<BindingIter> iter, unique_ptr<Condition> condition) :
+    model     (model),
     iter      (move(iter)),
     condition (move(condition)) { }
 
@@ -21,7 +22,7 @@ void Filter::begin() {
 unique_ptr<Binding> Filter::next() {
     auto next_binding = iter->next();
     while (next_binding != nullptr) {
-        auto binding_filter = BindingFilter(*next_binding);
+        auto binding_filter = BindingFilter(model, *next_binding);
 
         if (condition->eval(binding_filter)) {
             return next_binding;

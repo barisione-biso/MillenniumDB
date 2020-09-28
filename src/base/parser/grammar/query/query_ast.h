@@ -15,12 +15,6 @@ namespace query { namespace ast {
     namespace x3 = boost::spirit::x3;
     using namespace common::ast;
 
-    // TODO: get rid of this?
-    struct VarKey {
-        Var var;
-        std::string key; // may be empty. ¿Use boost::optional?
-    };
-
     struct SelectItem {
         std::string var;
         boost::optional<std::string> key;
@@ -64,9 +58,9 @@ namespace query { namespace ast {
     };
 
     struct Statement {
-        boost::variant<Var, VarKey> lhs;
+        SelectItem lhs;
         Comparator comparator;
-        boost::variant<Var, VarKey, ast::Value> rhs;
+        boost::variant<SelectItem, ast::Value> rhs;
     };
 
     struct Formula;

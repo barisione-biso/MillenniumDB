@@ -2,7 +2,6 @@
 #define RELATIONAL_MODEL__NESTED_LOOP_PLAN_H_
 
 #include "base/graph/graph_object.h"
-#include "base/ids/graph_id.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 
 class NestedLoopPlan : public JoinPlan {

@@ -29,8 +29,10 @@ namespace common {
         auto const skipper = space | line_skipper;
 
         // Rules
-        x3::rule<class var, ast::Var>
+        x3::rule<class var, std::string>
             var = "var";
+        x3::rule<class key, std::string>
+            key = "key";
         x3::rule<class value, ast::Value>
             value = "value";
         x3::rule<class property, ast::Property>
@@ -43,16 +45,15 @@ namespace common {
 
         // Grammar
         auto const node_name_def =
-            (alpha | char_('_')) >> *(alnum | char_('_'));
+            lexeme[(alpha | char_('_')) >> *(alnum | char_('_'))];
 
         auto const var_name_def =
             char_('?') >> alpha >> *(alnum | char_('_'));
 
         auto const var_def =
             lexeme[var_name];
-            // lexeme['?' >> var_name];
 
-        auto const key =
+        auto const key_def =
             lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];
 
         auto const label =
@@ -85,6 +86,7 @@ namespace common {
 
         BOOST_SPIRIT_DEFINE(
             var,
+            key,
             value,
             property,
             var_name,

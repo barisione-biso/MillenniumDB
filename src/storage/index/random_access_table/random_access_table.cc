@@ -1,5 +1,7 @@
 #include "random_access_table.h"
 
+#include <iostream>
+
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 
@@ -23,13 +25,17 @@ unique_ptr<Record<N>> RandomAccessTable<N>::operator[](uint_fast32_t pos) {
     if (current_block->page.get_page_number() != block) {
         current_block = make_unique<RandomAccessTableBlock<N>>(buffer_manager.get_page(file_id, block));
     }
-    return (*current_block)[pos_in_block];
+    if (pos_in_block < *(current_block->record_count)) {
+        return (*current_block)[pos_in_block];
+    } else {
+        return nullptr;
+    }
 }
 
 
 template <size_t N>
 void RandomAccessTable<N>::append_record(Record<N> record) {
-    if (!last_block->try_append_record(record)) {
+    while (!last_block->try_append_record(record)) {
         last_block = make_unique<RandomAccessTableBlock<N>>(buffer_manager.append_page(file_id));
     }
 }

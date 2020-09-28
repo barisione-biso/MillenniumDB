@@ -3,7 +3,6 @@
 
 #include <string>
 
-#include "base/ids/graph_id.h"
 #include "base/graph/graph_object.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"

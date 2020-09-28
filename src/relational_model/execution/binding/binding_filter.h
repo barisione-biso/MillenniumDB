@@ -3,8 +3,8 @@
 
 #include "base/binding/binding.h"
 #include "base/graph/graph_object.h"
-#include "base/ids/graph_id.h"
 #include "base/ids/var_id.h"
+#include "relational_model/models/graph_model.h"
 
 #include <set>
 #include <map>
@@ -12,11 +12,12 @@
 class BindingFilter : public Binding {
 
 private:
+    GraphModel& model;
     Binding& binding;
     std::map<std::string, std::shared_ptr<GraphObject>> cache;
 
 public:
-    BindingFilter(Binding& binding);
+    BindingFilter(GraphModel& model, Binding& binding);
     ~BindingFilter() = default;
 
     std::string to_string() const override;

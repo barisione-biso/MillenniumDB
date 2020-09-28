@@ -25,10 +25,6 @@ BOOST_FUSION_ADAPT_STRUCT(query::ast::Edge,
     var_or_id, types, properties, direction
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query::ast::VarKey,
-    var, key
-)
-
 BOOST_FUSION_ADAPT_STRUCT(query::ast::SelectItem,
     var, key
 )

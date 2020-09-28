@@ -6,9 +6,11 @@
 class IdentifiableNode : public GraphObject {
 public:
     const std::string id;
+    const uint64_t obj_id;
 
-    IdentifiableNode(const std::string id)
-        : id(id) { }
+    IdentifiableNode(const std::string id, const uint64_t obj_id) :
+        id     (id),
+        obj_id (obj_id) { }
     ~IdentifiableNode() = default;
 
     std::string to_string() const override {

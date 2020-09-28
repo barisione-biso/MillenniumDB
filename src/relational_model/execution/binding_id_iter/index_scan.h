@@ -28,12 +28,10 @@ public:
     IndexScan(BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges);
     ~IndexScan() = default;
 
-    void begin(BindingId& input);
-    void reset(BindingId& input);
-    BindingId* next();
-
-    // prints execution statistics
     void analyze(int indent = 0) const override;
+    void begin(BindingId& input) override;
+    void reset(BindingId& input) override;
+    BindingId* next() override;
 };
 
 template class IndexScan<2>;

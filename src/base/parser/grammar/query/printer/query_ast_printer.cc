@@ -235,18 +235,18 @@ void QueryAstPrinter::operator() (Edge edge) const {
 }
 
 
-void QueryAstPrinter::operator()(VarKey const& element) const {
-    out << "{\n";
-    // if (!element.function.empty()) {
-    //     indent("\"FUNCTION\": \"", 1);
-    //     out << element.function << "\",\n";
-    // }
-    indent("\"VAR\": \"", 1);
-    out << element.var.name << "\",\n";
-    indent("\"KEY\": \"", 1);
-    out << element.key << "\"\n";
-    indent("}");
-}
+// void QueryAstPrinter::operator()(VarKey const& element) const {
+//     out << "{\n";
+//     // if (!element.function.empty()) {
+//     //     indent("\"FUNCTION\": \"", 1);
+//     //     out << element.function << "\",\n";
+//     // }
+//     indent("\"VAR\": \"", 1);
+//     out << element.var << "\",\n";
+//     indent("\"KEY\": \"", 1);
+//     out << element.key << "\"\n";
+//     indent("}");
+// }
 
 
 void QueryAstPrinter::operator()(boost::optional<Formula> const& where) const {
@@ -285,7 +285,7 @@ void QueryAstPrinter::operator()(Condition const& condition) const {
 
 void QueryAstPrinter::operator()(Statement const& statement) const {
     out << "\"LEFT\": ";
-    boost::apply_visitor(*this, statement.lhs);
+    (*this)(statement.lhs);
     out << ",\n";
     indent("\"COMPARATOR\": ");
     // TODO:
@@ -313,11 +313,6 @@ void QueryAstPrinter::operator()(Value const& v) const {
 
 void QueryAstPrinter::operator()(std::string const& text) const {
     out << "\"" << text << "\"";
-}
-
-
-void QueryAstPrinter::operator()(Var const& var) const {
-    out << "\"" << var.name << "\"";
 }
 
 void QueryAstPrinter::operator() (Comparator const& c) const {

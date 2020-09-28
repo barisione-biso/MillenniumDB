@@ -18,12 +18,14 @@ public:
     ~QuadModel();
 
     std::unique_ptr<BindingIter> exec(OpSelect&) override;
-    std::unique_ptr<BindingIter> exec(manual_plan_ast::Root&) override;
+    // std::unique_ptr<BindingIter> exec(manual_plan_ast::Root&) override;
     std::shared_ptr<GraphObject> get_graph_object(ObjectId) override;
+    std::shared_ptr<GraphObject> get_property_value(GraphObject& var, const std::string& key) override;
 
     // returns an ID with mask
     ObjectId get_string_id(const std::string& str, bool create_if_not_exists = false);
 
+    ObjectId get_object_id(const GraphObject& obj) const;
     ObjectId get_identifiable_object_id(const std::string& str, bool create_if_not_exists = false);
 
 

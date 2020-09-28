@@ -6,13 +6,12 @@
 
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/grammar/query/query_ast.h"
-#include "base/parser/grammar/manual_plan/manual_plan_ast.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 
 class QueryParser {
 public:
     static std::unique_ptr<OpSelect> get_query_plan(std::string& query);
-    static manual_plan_ast::Root     get_manual_plan(std::string& query);
+    // static manual_plan_ast::Root     get_manual_plan(std::string& query);
 
 private:
     static std::unique_ptr<OpSelect> get_query_plan(query::ast::QueryRoot& ast);

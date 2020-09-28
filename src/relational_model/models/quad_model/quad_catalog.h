@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "base/ids/graph_id.h"
 #include "base/ids/object_id.h"
 #include "storage/catalog/catalog.h"
 

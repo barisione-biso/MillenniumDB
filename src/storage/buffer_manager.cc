@@ -50,7 +50,12 @@ void BufferManager::flush() {
 
 
 Page& BufferManager::get_last_page(FileId file_id) {
-    return get_page(file_id, file_manager.count_pages(file_id)-1); // TODO: manejar caso que no existe
+    auto page_count = file_manager.count_pages(file_id);
+    if (page_count == 0) {
+        return get_page(file_id, 0);
+    } else {
+        return get_page(file_id, page_count-1);
+    }
 }
 
 

@@ -1,0 +1,3 @@
+SELECT ?x, ?y, ?e.departmentalizing
+MATCH (?x)-[?e]->(?y)->(?x)
+WHERE ?x != ?y
