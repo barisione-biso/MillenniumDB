@@ -41,8 +41,12 @@ build/
 
 # End of https://www.gitignore.io/api/c++
 makefile_out
-test_files/*.*
-test_files/*
+
+# Testing
+tests/dbs/*.*
+tests/dbs/*
+tests/query_debug
+tests/manual_query_debug
 
 ### CMake ###
 CMakeLists.txt.user
