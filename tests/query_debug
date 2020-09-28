@@ -1,6 +1,0 @@
-EXPLAIN
-//MATCH (Q79936)<-(?x)
-//MATCH (?x {Agassi:true})
-SELECT ?x.asd
-MATCH (?x)->(?y)
-LIMIT 500
