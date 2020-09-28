@@ -1,0 +1,388 @@
+## Single node selections:
+
+# Variable nodes with a fixed type:
+
+SELECT *
+MATCH (?x)
+
+SELECT *
+MATCH (?x :Person)
+
+SELECT *
+MATCH (?x :Person {name:"John"})
+
+SELECT *
+MATCH (?x :Person {name:"John", age: 32})
+
+SELECT *
+MATCH (?x :Person)
+WHERE ?x.name == "John"
+
+SELECT *
+MATCH (?x :Person)
+WHERE ?x.name == "John" AND ?x.age == 32
+
+SELECT *
+MATCH (?x :Person)
+WHERE ?x.name == "John" OR ?x.age == 32
+
+SELECT *
+MATCH (?x :Person {name: "John"})
+WHERE ?x.name == "John" --> Allowed?
+
+SELECT *
+MATCH (?x :Person {name: "John"})
+WHERE ?x.name == "Not John" --> Allowed
+
+SELECT *
+MATCH (?x :Person {name: "John"})
+WHERE ?x.age == 32
+
+SELECT *
+MATCH (?x :Person {name: "John"})
+WHERE ?x.age == 32 AND ?x.salary == 32000
+
+SELECT *
+MATCH (?x :Person {name: "John"})
+WHERE ?x.age == 32 OR ?x.salary == 32000
+
+
+
+
+
+# Variable nodes with a variable type:
+
+SELECT *
+MATCH (?x TYPE(?t))
+
+SELECT *
+MATCH (?x TYPE(?t) {name:"John"})
+
+SELECT *
+MATCH (?x TYPE(?t) {name:"John", age: 32})
+
+SELECT *
+MATCH (?x TYPE(?t))
+WHERE ?x.name == "John"
+
+SELECT *
+MATCH (?x TYPE(?t) {name:"John"})
+WHERE ?x.name == "John"
+
+SELECT *
+MATCH (?x TYPE(?t) {name:"John", age: 32})
+WHERE ?x.name == "John"
+
+SELECT *
+MATCH (?x TYPE(?t))
+WHERE ?x.name == "John" AND ?x.age == 32
+
+SELECT *
+MATCH (?x TYPE(?t))
+WHERE ?x.name == "John" OR ?x.age == 32
+
+
+
+# Variable nodes with a fixed and variable type; maybe disallow:
+
+SELECT *
+MATCH (?x :Person TYPE(?t)) --> Allowed?
+
+SELECT *
+MATCH (?x :Person TYPE(?t) {name:"John"}) --> Allowed?
+
+SELECT *
+MATCH (?x :Person TYPE(?t) {name:"John", age: 32}) --> Allowed?
+
+REPEAT THE WHERE PATTERNS FROM ABOVE
+
+
+# Constant nodes with a fixed type:
+
+SELECT *
+MATCH (Q123)
+
+SELECT *
+MATCH (Q123 :Person)
+
+SELECT *
+MATCH (Q123 :Person {name:"John"})
+
+SELECT *
+MATCH (Q123 :Person {name:"John", age: 32})
+
+SELECT *
+MATCH (Q123 :Person)
+WHERE Q123.name == "John"
+
+SELECT *
+MATCH (Q123 :Person)
+WHERE ?x.name == "John" AND Q123.age == 32
+
+SELECT *
+MATCH (Q123 :Person)
+WHERE Q123.name == "John" OR Q123.age == 32
+
+SELECT *
+MATCH (Q123 :Person {name: "John"})
+WHERE Q123.name == "John" --> Allowed?
+
+SELECT *
+MATCH (Q123 :Person {name: "John"})
+WHERE Q123.name == "Not John" --> Allowed
+
+SELECT *
+MATCH (?x :Person {name: "John"})
+WHERE ?x.age == 32
+
+SELECT *
+MATCH (Q123 :Person {name: "John"})
+WHERE Q123.age == 32 AND Q123.salary == 32000
+
+SELECT *
+MATCH (Q123 :Person {name: "John"})
+WHERE Q123.age == 32 OR Q123.salary == 32000
+
+# Constant nodes with a variable type:
+
+SELECT *
+MATCH (Q123 TYPE(?t))
+
+SELECT *
+MATCH (Q123 TYPE(?t) {name:"John"})
+
+SELECT *
+MATCH (Q123 TYPE(?t) {name:"John", age: 32})
+
+SELECT *
+MATCH (Q123 TYPE(?t))
+WHERE Q123.name == "John"
+
+SELECT *
+MATCH (Q123 TYPE(?t) {name:"John"})
+WHERE Q123.name == "John"
+
+SELECT *
+MATCH (Q123 TYPE(?t) {name:"John", age: 32})
+WHERE Q123.name == "John"
+
+SELECT *
+MATCH (Q123 TYPE(?t))
+WHERE Q123.name == "John" AND Q123.age == 32
+
+SELECT *
+MATCH (Q123 TYPE(?t))
+WHERE Q123.name == "John" OR Q123.age == 32
+
+
+
+# Above, but with a selection of attributes that exists and do not exist
+
+SELECT ?x.name
+MATCH (?x)
+
+SELECT *?x.nonexistingattribute
+MATCH (?x)
+
+All combinations from before
+
+
+
+
+
+
+
+
+## Connections basic
+
+SELECT *
+MATCH (?x)->(?y)
+
+SELECT *
+MATCH (?x)<-(?y)
+
+SELECT *
+MATCH (?x)->(?x)
+
+SELECT *
+MATCH (?x)<-(?x)
+
+## Edge characteristinc left to right
+
+SELECT *
+MATCH (?x)-[?e]->(?y)
+
+SELECT *
+MATCH (?x)-[?e :Knows]->(?y)
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t)]->(?y)
+
+SELECT *
+MATCH (?x)-[?e {since:2013}]->(?y)
+
+SELECT *
+MATCH (?x)-[?e :Knows {since:2013}]->(?y)
+
+SELECT *
+MATCH (?x)-[?e :Knows {since:2013, role:"Friend"}]->(?y)
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t) {since:2013}]->(?y)
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t) {since:2013}]->(?y)
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t) {since:2013, role:"Friend"}]->(?y)
+
+
+## Edge characteristics right to left
+
+SELECT *
+MATCH (?x)<-[?e]-(?y)
+
+SELECT *
+MATCH (?x)<-[?e :Knows]-(?y)
+
+SELECT *
+MATCH (?x)<-[?e TYPE(?t)]-(?y)
+
+SELECT *
+MATCH (?x)<-[?e {since:2013}]-(?y)
+
+SELECT *
+MATCH (?x)<-[?e :Knows {since:2013}]-(?y)
+
+SELECT *
+MATCH (?x)<-[?e :Knows {since:2013, role:"Friend"}]-(?y)
+
+SELECT *
+MATCH (?x)<-[?e TYPE(?t) {since:2013}]-(?y)
+
+SELECT *
+MATCH (?x)<-[?e TYPE(?t) {since:2013}]-(?y)
+
+SELECT *
+MATCH (?x)<-[?e TYPE(?t) {since:2013, role:"Friend"}]-(?y)
+
+## Edge characteristics self loop
+
+SELECT *
+MATCH (?x)<-[?e]-(?x)
+
+SELECT *
+MATCH (?x)<-[?e :Knows]-(?x)
+
+SELECT *
+MATCH (?x)<-[?e TYPE(?t)]-(?x)
+
+SELECT *
+MATCH (?x)<-[?e {since:2013}]-(?x)
+
+SELECT *
+MATCH (?x)<-[?e :Knows {since:2013}]-(?x)
+
+SELECT *
+MATCH (?x)<-[?e :Knows {since:2013, role:"Friend"}]-(?x)
+
+SELECT *
+MATCH (?x)<-[?e TYPE(?t) {since:2013}]-(?x)
+
+SELECT *
+MATCH (?x)<-[?e TYPE(?t) {since:2013}]-(?x)
+
+SELECT *
+MATCH (?x)<-[?e TYPE(?t) {since:2013, role:"Friend"}]-(?x)
+
+## Edge characteristinc with WHERE
+
+SELECT *
+MATCH (?x)-[?e]->(?y)
+WHERE ?e.TYPE == :Knows ---> Should this be allowed?
+
+SELECT *
+MATCH (?x)-[?e]->(?y)
+WHERE ?e.since == 2013
+
+SELECT *
+MATCH (?x)-[?e {since:2013}]->(?y)
+WHERE ?e.since == 2013
+
+SELECT *
+MATCH (?x)-[?e :Knows]->(?y)
+WHERE ?e.since == 2013
+
+SELECT *
+MATCH (?x)-[?e :Knows {since:2013}]->(?y)
+WHERE ?e.since == 2013
+
+SELECT *
+MATCH (?x)-[?e :Knows {role:"Friend"}]->(?y)
+WHERE ?e.since == 2013
+
+SELECT *
+MATCH (?x)-[?e :Knows {since:2013, role:"Friend"}]->(?y)
+WHERE ?e.since == 2013
+
+SELECT *
+MATCH (?x)-[?e :Knows]->(?y)
+WHERE ?e.since == 2013 AND ?e.role == "Friend"
+
+SELECT *
+MATCH (?x)-[?e :Knows]->(?y)
+WHERE ?e.since == 2013 OR ?e.role == "Friend"
+
+SELECT *
+MATCH (?x)-[?e :Knows {role:"Friend"}]->(?y)
+WHERE ?e.since == 2013 OR ?e.role == "Friend" --> seems tricky of allowed
+
+SELECT *
+MATCH (?x)-[?e :Knows {role:"Friend"}]->(?y)
+WHERE ?e.since == 2013 AND ?e.role == "Friend"
+
+SELECT *
+MATCH (?x)-[?e :Knows TYPE(?t)]->(?y)
+WHERE ?e.since == 2013
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t) {since:2013}]->(?y)
+WHERE ?e.since == 2013
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t) {role:"Friend"}]->(?y)
+WHERE ?e.since == 2013
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t) {since:2013, role:"Friend"}]->(?y)
+WHERE ?e.since == 2013
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t)]->(?y)
+WHERE ?e.since == 2013 AND ?e.role == "Friend"
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t)]->(?y)
+WHERE ?e.since == 2013 OR ?e.role == "Friend"
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t) {role:"Friend"}]->(?y)
+WHERE ?e.since == 2013 AND ?e.role == "Friend"
+
+SELECT *
+MATCH (?x)-[?e TYPE(?t) {role:"Friend"}]->(?y)
+WHERE ?e.since == 2013 OR ?e.role == "Friend"
+
+
+# Do all of the above projecting : (i) left node with existing attribute; (ii) left node with non existing attribute; (iii) right node with existing attribute; (iv) right node with non existing; (v) combination of both (4 options)...
+
+
+### Connection multi skip
+
+SELECT *
+MATCH (?x)-[?e]->(?y), (?y)-[?f]->(?z)
+
+
+
+SELECT *
+MATCH (?x :Knows)-[?x :Knows]->(?y)
