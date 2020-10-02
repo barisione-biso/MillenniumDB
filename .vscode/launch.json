@@ -63,9 +63,9 @@
             "program": "${workspaceFolder}/build/Debug/bin/create_db",
             "args": [
                 "-f",
-                "${workspaceFolder}/example-db.txt",
+                "${workspaceFolder}/tests/dbs/example-db.txt",
                 "-d",
-                "${workspaceFolder}/test_files/db"
+                "${workspaceFolder}/tests/dbs/debug"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

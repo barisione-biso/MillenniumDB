@@ -1,0 +1,2 @@
+SELECT *
+MATCH (?x :pikers)

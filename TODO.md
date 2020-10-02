@@ -8,6 +8,10 @@
         - usar promedio para el restante
         - usar sampling?
 
+ACORDARSE:
+    - El problema de la semantica con neo4j al hacer MATCH (?x) con el type de los edges
+      se soluciona simplemente si al hacer el import no se guarda en la tabla el tipo del edge
+
 - Estadisticas de out e in degree por Nodos más conectados
     - usar promedio para el restante
     - usar sampling?

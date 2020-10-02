@@ -1,0 +1,2 @@
+SELECT ?x
+MATCH (?x)->(?x)

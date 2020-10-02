@@ -2,6 +2,8 @@
 import random
 from random import randint
 
+# TODO: add qualifiers
+
 # PARAMETERS
 DISTINCT_LABELS = 100
 DISTINCT_KEYS = 500

@@ -2,17 +2,17 @@
 
 # Variable nodes with a fixed type:
 
-SELECT *
-MATCH (?x)
+    SELECT *
+    MATCH (?x)
 
-SELECT *
-MATCH (?x :Person)
+    SELECT *
+    MATCH (?x :Person)
 
-SELECT *
-MATCH (?x :Person {name:"John"})
+    SELECT *
+    MATCH (?x :Person {name:"John"})
 
-SELECT *
-MATCH (?x :Person {name:"John", age: 32})
+    SELECT *
+    MATCH (?x :Person {name:"John", age: 32})
 
 SELECT *
 MATCH (?x :Person)
