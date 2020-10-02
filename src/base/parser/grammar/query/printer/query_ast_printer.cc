@@ -288,8 +288,7 @@ void QueryAstPrinter::operator()(Statement const& statement) const {
     (*this)(statement.lhs);
     out << ",\n";
     indent("\"COMPARATOR\": ");
-    // TODO:
-    // boost::apply_visitor(*this, statement.comparator);
+    (*this)(statement.comparator);
     out << ",\n";
     indent("\"RIGHT\": ");
     boost::apply_visitor(*this, statement.rhs);
@@ -298,8 +297,7 @@ void QueryAstPrinter::operator()(Statement const& statement) const {
 
 void QueryAstPrinter::operator()(StepFormula const& step_formula) const {
     out << "\"CONNECTOR\": ";
-    // TODO:
-    // boost::apply_visitor(*this, step_formula.op);
+    (*this)(step_formula.op);
     out << ",\n";
     indent();
     (*this)(step_formula.condition);
@@ -357,7 +355,7 @@ void QueryAstPrinter::operator() (float const& n)      const {out << "(float)" <
 
 void QueryAstPrinter::operator() (bool const& b) const {
     if (b)
-        out << "TRUE";
+        out << "true";
     else
-        out << "FALSE";
+        out << "false";
 }

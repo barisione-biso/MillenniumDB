@@ -19,6 +19,7 @@ private:
     GraphModel& model;
     std::unique_ptr<BindingIter> iter;
     std::unique_ptr<Condition> condition;
+    uint64_t results = 0;
 
 public:
     Filter(GraphModel& model, std::unique_ptr<BindingIter> iter, std::unique_ptr<Condition> condition);

@@ -35,22 +35,25 @@ void PropertyPlan::print(int indent, bool estimated_cost, std::vector<std::strin
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "Property(";//?" << var_names[object_var_id.id];
-    // if (key_var_id.is_null()) {
-    //     // TODO:
-    //     // cout << ", " << model.get_graph_object(key_id)->to_string();
-    //     cout << ", ?" << var_names[key_var_id.id];
-    // } else {
-    //     cout << ", ?" << var_names[key_var_id.id];
-    // }
+    cout << "Property(";
+    if (std::holds_alternative<ObjectId>(object)) {
+        cout << "object: " << model.get_graph_object(std::get<ObjectId>(object))->to_string() << "";
+    } else {
+        cout << "object: " <<  var_names[std::get<VarId>(object).id] << "";
+    }
 
-    // if (value_var_id.is_null()) {
-    //     // TODO:
-    //     // cout << ", " << model.get_graph_object(value_id)->to_string();
-    //     cout << ", ?" << var_names[value_var_id.id];
-    // } else {
-    //     cout << ", ?" << var_names[value_var_id.id];
-    // }
+    if (std::holds_alternative<ObjectId>(key)) {
+        cout << ", key: " << model.get_graph_object(std::get<ObjectId>(key))->to_string() << "";
+    } else {
+        cout << ", key: " <<  var_names[std::get<VarId>(key).id] << "";
+    }
+
+    if (std::holds_alternative<ObjectId>(value)) {
+        cout << ", value: " << model.get_graph_object(std::get<ObjectId>(value))->to_string() << "";
+    } else {
+        cout << ", value: " <<  var_names[std::get<VarId>(value).id] << "";
+    }
+
     cout << ")";
 
     if (estimated_cost) {
@@ -75,9 +78,12 @@ double PropertyPlan::estimate_output_size() {
 
     const auto total_properties = static_cast<double>(model.catalog().properties_count);
 
-    assert(value_assigned && !key_assigned
-        && "fixed values with open key is not supported");
+    // cout << "\ntotal_objects: " << total_objects << "\n";
 
+    assert((key_assigned || !value_assigned) && "fixed values with open key is not supported");
+
+    // TODO: delete
+    return 0.1;
     if (total_objects == 0) { // To avoid division by 0
         return 0;
     }
@@ -92,6 +98,8 @@ double PropertyPlan::estimate_output_size() {
             // TODO: this case is not possible yet, but we need to cover it for the future
             return 0;
         }
+        // cout << "distict_values: " << distict_values << "\n";
+        // cout << "key_count: " << key_count << "\n";
 
         if (distict_values == 0) { // To avoid division by 0
             return 0;
@@ -181,8 +189,7 @@ uint64_t PropertyPlan::get_vars() {
 unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter() {
     array<unique_ptr<ScanRange>, 3> ranges;
 
-    assert(value_assigned && !key_assigned
-        && "fixed values with open key is not supported");
+    assert((key_assigned || !value_assigned) && "fixed values with open key is not supported");
 
     if (object_assigned) {
         ranges[0] = get_scan_range(object, object_assigned);

@@ -98,8 +98,8 @@ void session(tcp::socket sock, GraphModel* model) {
 
             auto end = chrono::system_clock::now();
             chrono::duration<float, std::milli> duration = end - start;
-            tcp_buffer << "Query Parser/Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
             execute_query(move(physical_plan), tcp_buffer);
+            tcp_buffer << "Query Parser/Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
         }
         catch (QueryParsingException& e) {
             // // Try with manual plan

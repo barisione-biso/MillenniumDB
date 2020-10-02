@@ -24,16 +24,15 @@ private:
     QuadModel& model;
     QuadCatalog& catalog;
 
-
     OrderedFile<2> node_labels;             // node_id, label_id
     OrderedFile<3> object_key_value;        // object_id, key_id, value_id
     OrderedFile<4> from_to_type_edge;       // from_id, to_id, type_id, edge_id
 
     // To create indexes for special cases
-    // OrderedFile<3> equal_from_to;           // from/to, type, edge
-    // OrderedFile<3> equal_from_type;         // from/type, to, edge
-    // OrderedFile<3> equal_to_type;           // to/type, from, edge
-    // OrderedFile<2> equal_from_to_type;      // from/to/type,  edge
+    OrderedFile<3> equal_from_to;           // from/to, type, edge
+    OrderedFile<3> equal_from_type;         // from/type, to, edge
+    OrderedFile<3> equal_to_type;           // to/type, from, edge
+    OrderedFile<2> equal_from_to_type;      // from/to/type,  edge
 
     // TODO: maybe I should use disk in case this is too big?
     std::map<std::string, uint64_t> identificable_node_dict;

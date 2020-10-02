@@ -141,9 +141,7 @@ void QueryOptimizer::visit(OpMatch& op_match) {
                         ? (JoinPlan::Id) get_var_id(op_connection.to)
                         : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.to);
 
-        auto edge_id = op_connection.edge[0] == '?'
-                        ? (JoinPlan::Id) get_var_id(op_connection.edge)
-                        : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.edge);
+        auto edge_id = get_var_id(op_connection.edge);
 
         // connections must have exactly 1 type in this model
         auto connection_labels_found = 0;
@@ -152,7 +150,7 @@ void QueryOptimizer::visit(OpMatch& op_match) {
             if (op_connection_type.edge == op_connection.edge) {
                 ++connection_labels_found;
                 if (connection_labels_found > 1) {
-                    throw logic_error("Connections must have exactly 1 type when using QuadModel"); // TODO: throw other class
+                    throw QuerySemanticException("Connections must have exactly 1 type when using QuadModel");
                 } else if (op_connection_type.type[0] == '?') {
                     auto type_id = get_var_id(op_connection_type.type);
                     base_plans.push_back(
@@ -167,7 +165,6 @@ void QueryOptimizer::visit(OpMatch& op_match) {
             }
         }
         if (connection_labels_found == 0) {
-            // TODO: maybe is better to not project the type, having an special var_id
             auto type_id = get_var_id(op_connection.edge + ".type");
             base_plans.push_back(
                 make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)

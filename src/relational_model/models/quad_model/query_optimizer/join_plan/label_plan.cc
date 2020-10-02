@@ -31,13 +31,18 @@ void LabelPlan::print(int indent, bool estimated_cost, std::vector<std::string>&
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "NodeLabel(";//?" << var_names[node_var_id.id];
-    // if (label_var_id.is_null()) {
-    //     // TODO:
-    //     // cout << ", " << relational_model.get_graph_object(label_id)->to_string();
-    // } else {
-    //     cout << ", ?" << var_names[label_var_id.id];
-    // }
+    cout << "Label(";
+    if (std::holds_alternative<ObjectId>(node)) {
+        cout << "node: " << model.get_graph_object(std::get<ObjectId>(node))->to_string() << "";
+    } else {
+        cout << "node: " <<  var_names[std::get<VarId>(node).id] << "";
+    }
+
+    if (std::holds_alternative<ObjectId>(label)) {
+        cout << ", label: " << model.get_graph_object(std::get<ObjectId>(label))->to_string() << "";
+    } else {
+        cout << ", label: " <<  var_names[std::get<VarId>(label).id] << "";
+    }
     cout << ")";
 
     if (estimated_cost) {

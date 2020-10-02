@@ -9,8 +9,7 @@ void NodeTableEnum::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         std::cout << ' ';
     }
-    // TODO: add info
-    std::cout << "NodeTableEnum()";
+    std::cout << "NodeTableEnum(found: " << results << ")\n";
 }
 
 
@@ -33,6 +32,7 @@ BindingId* NodeTableEnum::next() {
     if (record != nullptr) {
         my_binding->add_all(*my_input);
         my_binding->add(var_id, ObjectId(record->ids[0]));
+        ++results;
         return my_binding.get();
     } else {
         return nullptr;

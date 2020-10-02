@@ -21,11 +21,11 @@ BulkImport::BulkImport(const string& filename, QuadModel& model) :
     catalog              (model.catalog()),
     node_labels          (OrderedFile<2>("node_labels.dat")),
     object_key_value     (OrderedFile<3>("object_key_value.dat")),
-    from_to_type_edge    (OrderedFile<4>("from_to_type_edge.dat"))
-    // equal_from_to        (OrderedFile<3>("equal_from_to.dat")),
-    // equal_from_type      (OrderedFile<3>("equal_from_type.dat")),
-    // equal_to_type        (OrderedFile<3>("equal_to_type.dat")),
-    // equal_from_to_type   (OrderedFile<2>("equal_from_to_type.dat")),
+    from_to_type_edge    (OrderedFile<4>("from_to_type_edge.dat")),
+    equal_from_to        (OrderedFile<3>("equal_from_to.dat")),
+    equal_from_type      (OrderedFile<3>("equal_from_type.dat")),
+    equal_to_type        (OrderedFile<3>("equal_to_type.dat")),
+    equal_from_to_type   (OrderedFile<2>("equal_from_to_type.dat"))
 {
     import_file = ifstream(filename);
     import_file.unsetf(std::ios::skipws);
@@ -87,11 +87,6 @@ void BulkImport::start_import() {
             line_number++;
         } else {
             cerr << "ERROR: line " << line_number << " has wrong format in import file.\n";
-            // TODO: print line (text)?
-            // string context(file_iter, file_iter.);
-            // cerr << "----------------------------\n";
-            // cerr << " Parsing failed, stopped at:\n" << context << "\n";
-            // cerr << "----------------------------\n";
             return;
         }
     } while(file_iter != file_iter_end);
@@ -118,6 +113,48 @@ void BulkImport::start_import() {
     object_key_value.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });
     model.key_value_object->bulk_import(object_key_value);
 
+    // count total properties and distinct values
+    map<uint64_t, uint64_t> map_key_count;
+    map<uint64_t, uint64_t> map_distinct_values;
+    uint64_t current_key     = 0;
+    uint64_t current_value   = 0;
+    uint64_t key_count       = 0;
+    uint64_t distinct_values = 0;
+
+    object_key_value.begin();
+    auto record = object_key_value.next_record();
+    while (record != nullptr) {
+        // check same key
+        if (record->ids[0] == current_key) {
+            ++key_count;
+            // check if value changed
+            if (record->ids[1] != current_value) {
+                ++distinct_values;
+                current_value = record->ids[1];
+            }
+        } else {
+            // save stats from last key
+            if (current_key != 0) {
+                map_key_count.insert({ current_key, key_count });
+                map_distinct_values.insert({ current_key, distinct_values });
+            }
+            current_key   = record->ids[0];
+            current_value = record->ids[1];
+
+            key_count       = 1;
+            distinct_values = 1;
+        }
+        record = object_key_value.next_record();
+    }
+    // save stats from last key
+    if (current_key != 0) {
+        map_key_count.insert({ current_key, key_count });
+        map_distinct_values.insert({ current_key, distinct_values });
+    }
+
+    catalog.key2distinct    = move(map_distinct_values);
+    catalog.key2total_count = move(map_key_count);
+
     // CONNECTIONS
     from_to_type_edge.order(std::array<uint_fast8_t, 4> { 0, 1, 2, 3 });
     model.from_to_type_edge->bulk_import(from_to_type_edge);
@@ -129,23 +166,30 @@ void BulkImport::start_import() {
     model.type_from_to_edge->bulk_import(from_to_type_edge);
 
     // SPECIAL CASES
-    // TODO:
-    // equal_from_to.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
-    // model.equal_from_to->bulk_import(equal_from_to);
+    equal_from_to.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
+    model.equal_from_to->bulk_import(equal_from_to);
 
-    // equal_from_type.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
-    // model.equal_from_type->bulk_import(equal_from_type);
+    equal_from_to.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
+    model.equal_from_to_inverted->bulk_import(equal_from_to);
 
-    // equal_to_type.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
-    // model.equal_to_type->bulk_import(equal_to_type);
+    equal_from_type.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
+    model.equal_from_type->bulk_import(equal_from_type);
 
-    // equal_from_to_type.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
-    // model.equal_from_to_type->bulk_import(equal_from_to_type);
+    equal_from_type.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
+    model.equal_from_type_inverted->bulk_import(equal_from_type);
+
+    equal_to_type.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
+    model.equal_to_type->bulk_import(equal_to_type);
+
+    equal_to_type.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
+    model.equal_to_type_inverted->bulk_import(equal_to_type);
+
+    equal_from_to_type.order(std::array<uint_fast8_t, 2> { 0, 1 });
+    model.equal_from_to_type->bulk_import(equal_from_to_type);
 
     catalog.distinct_labels = catalog.label2total_count.size();
     catalog.distinct_types  = catalog.type2total_count.size();
     catalog.distinct_keys   = catalog.key2total_count.size();
-    // TODO: set catalog.key2distinct
 
     auto finish_creating_index = chrono::system_clock::now();
     chrono::duration<float, milli> phase2_duration = finish_creating_index - finish_reading_files;
@@ -246,7 +290,7 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
         auto value_id = model.get_value_id(*value, true).id;
 
         ++catalog.properties_count;
-        ++catalog.key2total_count[key_id];
+        // ++catalog.key2total_count[key_id];
 
         object_key_value.append_record(RecordFactory::get(node_id, key_id, value_id));
     }
@@ -292,7 +336,7 @@ uint64_t BulkImport::process_edge(const import::ast::Edge edge) {
         auto value_id = model.get_value_id(*value, true).id;
 
         ++catalog.properties_count;
-        ++catalog.key2total_count[key_id];
+        // ++catalog.key2total_count[key_id];
 
         object_key_value.append_record(RecordFactory::get(edge_id, key_id, value_id));
     }
@@ -335,7 +379,7 @@ uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge edge,
         auto value_id = model.get_value_id(*value, true).id;
 
         ++catalog.properties_count;
-        ++catalog.key2total_count[key_id];
+        // ++catalog.key2total_count[key_id];
 
         object_key_value.append_record(RecordFactory::get(edge_id, key_id, value_id));
     }
@@ -345,13 +389,23 @@ uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge edge,
 
 
 uint64_t BulkImport::create_connection(const uint64_t from_id, const uint64_t to_id, const uint64_t type_id) {
-    uint64_t edge_id = ++catalog.connections_count | model.CONNECTION_MASK; // TODO: falta mask
+    uint64_t edge_id = ++catalog.connections_count | model.CONNECTION_MASK;
 
-    // TODO: special cases
-    // bool node_loop = from_id == to_id;
-    // if (node_loop) {
-        // self_connected_nodes.append_record(RecordFactory::get(from_id, edge_id));
-    // }
+    // special cases
+    if (from_id == to_id) {
+        equal_from_to.append_record(RecordFactory::get(from_id, type_id, edge_id));
+
+        if (from_id == type_id) {
+            equal_from_to_type.append_record(RecordFactory::get(from_id, edge_id));
+        }
+    }
+    if (from_id == type_id) {
+        equal_from_type.append_record(RecordFactory::get(from_id, type_id, edge_id));
+    }
+    if (to_id == type_id) {
+        equal_to_type.append_record(RecordFactory::get(type_id, from_id, edge_id));
+    }
+
     from_to_type_edge.append_record(RecordFactory::get(from_id, to_id, type_id, edge_id) );
     model.edge_table->append_record(RecordFactory::get(from_id, to_id, type_id));
 

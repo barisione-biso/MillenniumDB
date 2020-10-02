@@ -11,7 +11,7 @@
 class ConnectionPlan : public JoinPlan {
 public:
     ConnectionPlan(const ConnectionPlan& other);
-    ConnectionPlan(QuadModel& model, Id from, Id to, Id type, Id edge);
+    ConnectionPlan(QuadModel& model, Id from, Id to, Id type, VarId edge);
     ~ConnectionPlan() = default;
 
     double estimate_cost() override;
@@ -30,7 +30,7 @@ private:
     Id from;
     Id to;
     Id type;
-    Id edge;
+    VarId edge;
 
     bool from_assigned;
     bool to_assigned;

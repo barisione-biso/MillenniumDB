@@ -11,6 +11,10 @@
 
 using namespace std;
 
+template class std::unique_ptr<IndexScan<2>>;
+template class std::unique_ptr<IndexScan<3>>;
+template class std::unique_ptr<IndexScan<4>>;
+
 template <std::size_t N>
 IndexScan<N>::IndexScan(BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges) :
     bpt(bpt),
@@ -29,6 +33,8 @@ void IndexScan<N>::begin(BindingId& input) {
     std::array<uint64_t, N> max_ids;
 
     for (uint_fast32_t i = 0; i < N; ++i) {
+        assert(ranges[i] != nullptr);
+
         min_ids[i] = ranges[i]->get_min(input);
         max_ids[i] = ranges[i]->get_max(input);
     }

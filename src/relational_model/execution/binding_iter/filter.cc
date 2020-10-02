@@ -25,6 +25,7 @@ unique_ptr<Binding> Filter::next() {
         auto binding_filter = BindingFilter(model, *next_binding);
 
         if (condition->eval(binding_filter)) {
+            ++results;
             return next_binding;
         } else {
             next_binding = iter->next();
@@ -35,6 +36,6 @@ unique_ptr<Binding> Filter::next() {
 
 
 void Filter::analyze(int indent) const {
-    // TODO:
-    iter->analyze(indent);
+    std::cout << "Filter(found: " << results << ")\n";
+    iter->analyze(indent+2);
 }

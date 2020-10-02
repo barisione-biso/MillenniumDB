@@ -34,22 +34,22 @@ unique_ptr<JoinPlan> NestedLoopPlan::duplicate() {
 
 
 void NestedLoopPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
-    // for (int i = 0; i < indent; ++i) {
-    //     cout << ' ';
-    // }
-    // cout << "IndexNestedLoopJoin(\n";
-    // lhs->print(indent + 2, var_names);
-    // cout << ",\n";
-    // rhs->print(indent + 2, var_names);
-    // cout << "\n";
-    // for (int i = 0; i < indent; ++i) {
-    //     cout << ' ';
-    // }
-    // cout << ")";
-
-    lhs->print(indent, estimated_cost, var_names);
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "IndexNestedLoopJoin(\n";
+    lhs->print(indent + 2, estimated_cost, var_names);
     cout << ",\n";
-    rhs->print(indent, estimated_cost, var_names);
+    rhs->print(indent + 2, estimated_cost, var_names);
+    cout << "\n";
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << ")";
+
+    // lhs->print(indent, estimated_cost, var_names);
+    // cout << ",\n";
+    // rhs->print(indent, estimated_cost, var_names);
 }
 
 

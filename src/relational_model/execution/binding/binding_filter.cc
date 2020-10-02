@@ -1,5 +1,7 @@
 #include "binding_filter.h"
 
+#include <cassert>
+
 #include "storage/index/bplus_tree/bplus_tree.h"
 
 using namespace std;
@@ -30,7 +32,7 @@ std::shared_ptr<GraphObject> BindingFilter::get(const std::string& var_name, con
         return (*search).second;
     } else { // not present in the cache nor the original binding
         const auto var = binding[var_name];
-        // TODO: assert var is not nullptr
+        assert(var != nullptr && ("var not in binding"));
         auto value = model.get_property_value(*var, key);
         cache.insert({ search_var, value });
         return value;

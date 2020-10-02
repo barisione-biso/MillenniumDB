@@ -16,28 +16,28 @@ std::string BindingProject::to_string() const {
     result += '{';
     auto it = projection_vars.begin();
 
-iter_begin:
-    auto& var = *it;
-    result += var;
-    result += ':';
-    result += (*current_binding)[var]->to_string();
-    ++it;
-    if (it != projection_vars.end()) {
-        result += ',';
-        goto iter_begin;
+    while (true) {
+        auto& var = *it;
+        result += var;
+        result += ':';
+        result += (*current_binding)[var]->to_string();
+        ++it;
+        if (it != projection_vars.end()) {
+            result += ',';
+        } else {
+            result +=  "}\n";
+            return result;
+        }
     }
-
-    result +=  "}\n";
-    return result;
 }
 
 
 shared_ptr<GraphObject> BindingProject::operator[](const string& var) {
-    // if (projection_vars.find(var) != projection_vars.end()) {
-    //     return (*current_binding)[var];
-    // }
-    // else return nullptr;
-    // TODO: should never be called
+    for (auto& projected_var : projection_vars) {
+        if (projected_var == var) {
+            return (*current_binding)[var];
+        }
+    }
     return nullptr;
 }
 

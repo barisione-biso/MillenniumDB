@@ -17,12 +17,12 @@ private:
 public:
     QueryAstPrinter(std::ostream& out, int_fast32_t base_indent);
     QueryAstPrinter(std::ostream& out);
+
     void indent() const;
     void indent(std::string str) const;
     void indent(std::string str, int_fast32_t extra_indent) const;
 
     void operator() (query::ast::QueryRoot const&) const;
-    // void operator() (std::vector<query::ast::VarKey> const&) const;
     void operator() (std::vector<query::ast::SelectItem> const&) const;
     void operator() (std::vector<query::ast::LinearPattern> const&) const;
     void operator() (query::ast::LinearPattern const&) const;

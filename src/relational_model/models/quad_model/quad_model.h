@@ -53,10 +53,14 @@ public:
     std::unique_ptr<BPlusTree<4>>   type_from_to_edge;
 
     // special cases
-    // std::unique_ptr<BPlusTree<3>>   equal_from_to;      // from=to - type - edge
-    // std::unique_ptr<BPlusTree<3>>   equal_from_type;    // from=type - to - edge
-    // std::unique_ptr<BPlusTree<3>>   equal_to_type;      // to=type - from - edge
-    // std::unique_ptr<BPlusTree<2>>   equal_from_to_type; // from=to=type  -  edge
+    std::unique_ptr<BPlusTree<3>>   equal_from_to;      // from=to - type - edge
+    std::unique_ptr<BPlusTree<3>>   equal_from_type;    // from=type - to - edge
+    std::unique_ptr<BPlusTree<3>>   equal_to_type;      // to=type - from - edge
+    std::unique_ptr<BPlusTree<2>>   equal_from_to_type; // from=to=type  -  edge
+
+    std::unique_ptr<BPlusTree<3>>   equal_from_to_inverted;
+    std::unique_ptr<BPlusTree<3>>   equal_from_type_inverted;
+    std::unique_ptr<BPlusTree<3>>   equal_to_type_inverted;
 
 private:
     uint64_t get_external_id(const std::string& str, bool create_if_not_exists = false);

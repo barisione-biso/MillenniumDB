@@ -45,11 +45,21 @@ QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size)
     to_type_from_edge = make_unique<BPlusTree<4>>("to_type_from_edge");
     type_from_to_edge = make_unique<BPlusTree<4>>("type_from_to_edge");
 
+    equal_from_to      = make_unique<BPlusTree<3>>("equal_from_to");
+    equal_from_type    = make_unique<BPlusTree<3>>("equal_from_type");
+    equal_to_type      = make_unique<BPlusTree<3>>("equal_to_type");
+    equal_from_to_type = make_unique<BPlusTree<2>>("equal_from_to_type");
+
+    equal_from_to_inverted   = make_unique<BPlusTree<3>>("equal_from_to_inverted");
+    equal_from_type_inverted = make_unique<BPlusTree<3>>("equal_from_type_inverted");
+    equal_to_type_inverted   = make_unique<BPlusTree<3>>("equal_to_type_inverted");
+
     catalog().print();
 }
 
 
 QuadModel::~QuadModel() {
+    // Must destroy everything before buffer and file manager
     strings_hash().~ExtendibleHash();
     object_file().~ObjectFile();
     catalog().~QuadCatalog();
@@ -66,6 +76,15 @@ QuadModel::~QuadModel() {
     from_to_type_edge.reset();
     to_type_from_edge.reset();
     type_from_to_edge.reset();
+
+    equal_from_to.reset();
+    equal_from_type.reset();
+    equal_to_type.reset();
+    equal_from_to_type.reset();
+
+    equal_from_to_inverted.reset();
+    equal_from_type_inverted.reset();
+    equal_to_type_inverted.reset();
 
     buffer_manager.~BufferManager();
     file_manager.~FileManager();
