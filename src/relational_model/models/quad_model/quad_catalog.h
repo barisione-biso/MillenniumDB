@@ -36,10 +36,10 @@ public:
     uint64_t distinct_types;
     uint64_t distinct_keys;
 
-    // uint64_t equal_from_to_count;
-    // uint64_t equal_from_type_count;
-    // uint64_t equal_to_type_count;
-    // uint64_t equal_from_to_type_count;
+    uint64_t equal_from_to_count;
+    uint64_t equal_from_type_count;
+    uint64_t equal_to_type_count;
+    uint64_t equal_from_to_type_count;
 
     std::map<uint64_t, uint64_t> label2total_count;
     std::map<uint64_t, uint64_t> type2total_count;

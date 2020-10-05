@@ -40,23 +40,21 @@ void ConnectionPlan::print(int indent, bool estimated_cost, std::vector<std::str
     }
     cout << "Connection(";
     if (std::holds_alternative<ObjectId>(from)) {
-        cout << "from: " << model.get_graph_object(std::get<ObjectId>(from))->to_string() << "";
+        cout << "from: " << model.get_graph_object(std::get<ObjectId>(from))->to_string();
     } else {
-        cout << "from: " <<  var_names[std::get<VarId>(from).id] << "";
+        cout << "from: " << var_names[std::get<VarId>(from).id];
     }
     if (std::holds_alternative<ObjectId>(to)) {
-        cout << ", to: " << model.get_graph_object(std::get<ObjectId>(to))->to_string() << "";
+        cout << ", to: " << model.get_graph_object(std::get<ObjectId>(to))->to_string();
     } else {
-        cout << ", to: " <<  var_names[std::get<VarId>(to).id] << "";
+        cout << ", to: " << var_names[std::get<VarId>(to).id];
     }
     if (std::holds_alternative<ObjectId>(type)) {
-        cout << ", type: " << model.get_graph_object(std::get<ObjectId>(type))->to_string() << "";
+        cout << ", type: " << model.get_graph_object(std::get<ObjectId>(type))->to_string();
     } else {
-        cout << ", type: " <<  var_names[std::get<VarId>(type).id] << "";
+        cout << ", type: " << var_names[std::get<VarId>(type).id];
     }
-    // cout << "?" << var_names[edge_var_id.id]
-    //  << ", ?" << var_names[node_from_var_id.id]
-    //  << ", ?" << var_names[node_to_var_id.id]
+    cout << ", edge: " << var_names[edge.id];
     cout << ")";
 
     if (estimated_cost) {
@@ -82,24 +80,60 @@ double ConnectionPlan::estimate_cost() {
 double ConnectionPlan::estimate_output_size() {
     const auto total_connections = static_cast<double>(model.catalog().connections_count);
 
-    const auto total_objects     = static_cast<double>(model.catalog().identifiable_nodes_count
-                                                     + model.catalog().anonymous_nodes_count
-                                                     + model.catalog().connections_count);
+    const auto total_objects = static_cast<double>(model.catalog().identifiable_nodes_count
+                                                   + model.catalog().anonymous_nodes_count
+                                                   + model.catalog().connections_count);
 
     if (total_connections == 0 || total_objects == 0) { // to avoid division by 0
         return 0;
+    } else if (edge_assigned) {
+        return 1 / (total_objects * total_objects * total_objects);
     }
-    // TODO: think again
-    if (from_assigned) {
+    // check for special cases
+    if (from == to) {
+        if (from == type) {
+            // from == to == type
+            auto special_connections = static_cast<double>(model.catalog().equal_from_to_type_count);
+            if (from_assigned) {
+                return special_connections / total_objects;
+            } else {
+                return special_connections;
+            }
+        } else {
+        // from == to
+            auto special_connections = static_cast<double>(model.catalog().equal_from_to_count);
+            if (from_assigned) {
+                return special_connections / total_objects;
+            } else {
+                return special_connections;
+            }
+        }
+    } else if (from == type) {
+        auto special_connections = static_cast<double>(model.catalog().equal_from_type_count);
+        if (from_assigned) {
+            return special_connections / total_objects;
+        } else {
+            return special_connections;
+        }
+    }
+    else if (to == type) {
+        auto special_connections = static_cast<double>(model.catalog().equal_to_type_count);
+        if (to_assigned) {
+            return special_connections / total_objects;
+        } else {
+            return special_connections;
+        }
+    } // end special cases
+    else if (from_assigned) {
         if (to_assigned) {
             if (type_assigned) {
-                return 1.0 / (total_connections * total_objects * total_objects);
+                return total_connections / (total_objects * total_objects * total_objects);
             } else {
                 return total_connections / (total_objects * total_objects);
             }
         } else {
             if (type_assigned) {
-                return 1.0 / (total_connections * total_objects);
+                return total_connections / (total_objects * total_objects);
             } else {
                 return total_connections / total_objects;
             }
@@ -107,13 +141,13 @@ double ConnectionPlan::estimate_output_size() {
     } else {
         if (to_assigned) {
             if (type_assigned) {
-                return 1.0 / (total_connections * total_objects);
+                return total_connections / (total_objects * total_objects);
             } else {
                 return total_connections / total_objects;
             }
         } else {
             if (type_assigned) {
-                return 1;
+                return total_connections / total_objects;
             } else {
                 return total_connections;
             }

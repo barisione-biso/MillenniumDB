@@ -306,8 +306,8 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
 }
 
 
+// TODO: remake
 // unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan_ast::Root& root) {
-//     // TODO: remake
 //     // vector<unique_ptr<JoinPlan>> base_plans;
 //     unique_ptr<JoinPlan> root_plan = nullptr;
 //     GraphId graph_id; // default graph

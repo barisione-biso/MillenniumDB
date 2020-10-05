@@ -19,6 +19,11 @@ QuadCatalog::QuadCatalog(const std::string& filename) :
         distinct_labels          = 0;
         distinct_keys            = 0;
         distinct_types           = 0;
+
+        equal_from_to_count      = 0;
+        equal_from_type_count    = 0;
+        equal_to_type_count      = 0;
+        equal_from_to_type_count = 0;
     }
     else {
         start_io();
@@ -32,6 +37,11 @@ QuadCatalog::QuadCatalog(const std::string& filename) :
         distinct_labels          = read_uint64();
         distinct_types           = read_uint64();
         distinct_keys            = read_uint64();
+
+        equal_from_to_count      = read_uint64();
+        equal_from_type_count    = read_uint64();
+        equal_to_type_count      = read_uint64();
+        equal_from_to_type_count = read_uint64();
 
         for (uint_fast32_t i = 0; i < distinct_labels; i++) {
             auto label_id          = read_uint64();
@@ -56,26 +66,6 @@ QuadCatalog::QuadCatalog(const std::string& filename) :
             auto key_distinct_count = read_uint64();
             key2distinct.insert({ key_id, key_distinct_count });
         }
-
-        // if (!check_no_error_flags()) {
-        //     cout << "Error reading catalog. Initializing empty catalog.\n";
-
-        //     identifiable_nodes_count = 0;
-        //     anonymous_nodes_count    = 0;
-        //     connections_count        = 0;
-
-        //     label_count              = 0;
-        //     properties_count         = 0;
-
-        //     distinct_labels          = 0;
-        //     distinct_keys            = 0;
-        //     distinct_types           = 0;
-
-        //     label2total_count.clear();
-        //     type2total_count.clear();
-        //     key2total_count.clear();
-        //     key2distinct.clear();
-        // }
     }
 
 }
@@ -95,6 +85,11 @@ void QuadCatalog::save_changes() {
     write_uint64(distinct_labels);
     write_uint64(distinct_types);
     write_uint64(distinct_keys);
+
+    write_uint64(equal_from_to_count);
+    write_uint64(equal_from_type_count);
+    write_uint64(equal_to_type_count);
+    write_uint64(equal_from_to_type_count);
 
     for (auto&&[k, v] : label2total_count) {
         write_uint64(k);

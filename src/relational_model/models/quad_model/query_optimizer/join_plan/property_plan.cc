@@ -78,12 +78,8 @@ double PropertyPlan::estimate_output_size() {
 
     const auto total_properties = static_cast<double>(model.catalog().properties_count);
 
-    // cout << "\ntotal_objects: " << total_objects << "\n";
-
     assert((key_assigned || !value_assigned) && "fixed values with open key is not supported");
 
-    // TODO: delete
-    return 0.1;
     if (total_objects == 0) { // To avoid division by 0
         return 0;
     }
@@ -98,8 +94,6 @@ double PropertyPlan::estimate_output_size() {
             // TODO: this case is not possible yet, but we need to cover it for the future
             return 0;
         }
-        // cout << "distict_values: " << distict_values << "\n";
-        // cout << "key_count: " << key_count << "\n";
 
         if (distict_values == 0) { // To avoid division by 0
             return 0;

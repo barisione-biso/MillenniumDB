@@ -97,8 +97,8 @@ std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select) {
 }
 
 
+// TODO: remake
 // std::unique_ptr<BindingIter> QuadModel::exec(manual_plan_ast::Root&) {
-//     // TODO:
 //     return nullptr;
 // }
 

@@ -393,16 +393,20 @@ uint64_t BulkImport::create_connection(const uint64_t from_id, const uint64_t to
 
     // special cases
     if (from_id == to_id) {
+        ++catalog.equal_from_to_count;
         equal_from_to.append_record(RecordFactory::get(from_id, type_id, edge_id));
 
         if (from_id == type_id) {
+            ++catalog.equal_from_to_type_count;
             equal_from_to_type.append_record(RecordFactory::get(from_id, edge_id));
         }
     }
     if (from_id == type_id) {
+        ++catalog.equal_from_type_count;
         equal_from_type.append_record(RecordFactory::get(from_id, type_id, edge_id));
     }
     if (to_id == type_id) {
+        ++catalog.equal_to_type_count;
         equal_to_type.append_record(RecordFactory::get(type_id, from_id, edge_id));
     }
 

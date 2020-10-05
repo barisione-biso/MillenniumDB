@@ -33,9 +33,9 @@ public:
     ObjectId get_value_id(const Value& value, bool create_if_not_exists = false);
 
 
-    inline QuadCatalog&    catalog()      { return reinterpret_cast<QuadCatalog&>(catalog_buf); }
-    inline ObjectFile&     object_file()  { return reinterpret_cast<ObjectFile&>(object_file_buf); }
-    inline ExtendibleHash& strings_hash() { return reinterpret_cast<ExtendibleHash&>(strings_cache_buf); }
+    inline QuadCatalog&    catalog()      noexcept { return reinterpret_cast<QuadCatalog&>(catalog_buf); }
+    inline ObjectFile&     object_file()  noexcept { return reinterpret_cast<ObjectFile&>(object_file_buf); }
+    inline ExtendibleHash& strings_hash() noexcept { return reinterpret_cast<ExtendibleHash&>(strings_cache_buf); }
     // TODO: measure if using strins cache improves times
     // std::unique_ptr<StringsCache>   strings_cache;
 
