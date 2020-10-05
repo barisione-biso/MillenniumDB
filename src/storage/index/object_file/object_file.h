@@ -19,8 +19,15 @@
 
 #include <fstream>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
+
+
+struct ObjectFileEOF : public std::runtime_error {
+	ObjectFileEOF(std::string msg)
+		: std::runtime_error(msg) { }
+};
 
 class ObjectFile
 {
