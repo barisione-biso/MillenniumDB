@@ -1,8 +1,7 @@
 # PYTHON 3
+import sys
 import random
 from random import randint
-
-# TODO: add qualifiers
 
 # PARAMETERS
 DISTINCT_LABELS = 100
@@ -16,6 +15,9 @@ MAX_LABELS_NODES = 3
 
 MIN_LABELS_EDGES = 1
 MAX_LABELS_EDGES = 1
+
+MIN_QUALIFIERS = 0
+MAX_QUALIFIERS = 5
 
 MIN_PROPERTIES_NODES = 2
 MAX_PROPERTIES_NODES = 6
@@ -31,6 +33,11 @@ random.seed(1)
 
 # READ WORDS
 words = []
+
+if len(sys.argv) != 2:
+    print("usage: python3 generate_graph output_filename")
+    exit(1)
+
 with open("/usr/share/dict/words", mode="r") as words_file:
     for line in words_file:
         words.append(line.strip())
@@ -65,7 +72,7 @@ for i in range(DISTINCT_KEYS):
         random_key = select_random(words)
     keys.append(random_key)
 
-with open("example-db.txt", mode="w") as graph_file:
+with open(sys.argv[1], mode="w") as graph_file:
     for i in range(NODES_GENERATED):
         graph_file.write("Q{}".format(i+1))
 
@@ -97,7 +104,7 @@ with open("example-db.txt", mode="w") as graph_file:
         # generate random labels
         edge_label_count = randint(MIN_LABELS_EDGES, MAX_LABELS_EDGES)
         labels_already_added = []
-        for l in range(edge_label_count):
+        for j in range(edge_label_count):
             label = select_random(labels)
             while label in labels_already_added:
                 label = select_random(labels)
@@ -107,7 +114,7 @@ with open("example-db.txt", mode="w") as graph_file:
         # generate random properties
         edge_property_count = randint(MIN_PROPERTIES_EDGES, MAX_PROPERTIES_EDGES)
         keys_already_added = []
-        for l in range(edge_property_count):
+        for j in range(edge_property_count):
             key = select_random(keys)
             while key in keys_already_added:
                 key = select_random(keys)
@@ -115,3 +122,30 @@ with open("example-db.txt", mode="w") as graph_file:
             value = select_random_value()
             graph_file.write(" {}:{}".format(key, value))
         graph_file.write("\n")
+
+        # generate random qualifiers
+        qualifiers_count = randint(MIN_QUALIFIERS, MAX_QUALIFIERS)
+        for j in range(qualifiers_count):
+            graph_file.write("@->Q{}".format(randint(1, NODES_GENERATED)))
+
+            # generate random labels
+            qualifier_label_count = randint(MIN_LABELS_EDGES, MAX_LABELS_EDGES)
+            labels_already_added = []
+            for k in range(qualifier_label_count):
+                label = select_random(labels)
+                while label in labels_already_added:
+                    label = select_random(labels)
+                labels_already_added.append(label)
+                graph_file.write(" :{}".format(label))
+
+            # generate random properties
+            qualifier_property_count = randint(MIN_PROPERTIES_EDGES, MAX_PROPERTIES_EDGES)
+            keys_already_added = []
+            for k in range(qualifier_property_count):
+                key = select_random(keys)
+                while key in keys_already_added:
+                    key = select_random(keys)
+                keys_already_added.append(key)
+                value = select_random_value()
+                graph_file.write(" {}:{}".format(key, value))
+            graph_file.write("\n")

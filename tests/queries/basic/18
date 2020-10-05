@@ -1,0 +1,2 @@
+SELECT ?x, ?y
+MATCH (?x)-[=TYPE(?x)]->(?y)
