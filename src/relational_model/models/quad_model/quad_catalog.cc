@@ -126,5 +126,10 @@ void QuadCatalog::print() {
     cout << "  disinct labels:           " << distinct_labels          << "\n";
     cout << "  disinct types:            " << distinct_types           << "\n";
     cout << "  disinct keys:             " << distinct_keys            << "\n";
+
+    cout << "  equal_from_to_count:      " << equal_from_to_count      << "\n";
+    cout << "  equal_from_type_count:    " << equal_from_type_count    << "\n";
+    cout << "  equal_to_type_count:      " << equal_to_type_count      << "\n";
+    cout << "  equal_from_to_type_count: " << equal_from_to_type_count << "\n";
     cout << "-------------------------------------\n";
 }
