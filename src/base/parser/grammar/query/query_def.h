@@ -54,7 +54,7 @@ namespace query {
             -(var | node_name) >> *label >> -("{" >> -(property % ',') >> "}");
 
         auto const type =
-            lexeme[no_case["type"]] >> '(' >> (var | node_name) >> ')';
+            lexeme[no_case["=TYPE"]] >> '(' >> (var | node_name) >> ')';
 
         auto const edge_inside =
             -(var | node_name) >> *(type | label) >> -("{" >> -(property % ',') >> "}");

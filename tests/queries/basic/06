@@ -1,2 +1,2 @@
 SELECT ?x, ?e, ?t
-MATCH (?x)-[?e TYPE(?t)]->(Q96463)
+MATCH (?x)-[?e =TYPE(?t)]->(Q96463)
