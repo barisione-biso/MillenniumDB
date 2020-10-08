@@ -403,7 +403,7 @@ uint64_t BulkImport::create_connection(const uint64_t from_id, const uint64_t to
     }
     if (from_id == type_id) {
         ++catalog.equal_from_type_count;
-        equal_from_type.append_record(RecordFactory::get(from_id, type_id, edge_id));
+        equal_from_type.append_record(RecordFactory::get(from_id, to_id, edge_id));
     }
     if (to_id == type_id) {
         ++catalog.equal_to_type_count;
