@@ -6,6 +6,10 @@
 #include "storage/buffer_manager.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
+template class BPlusTreeLeaf<2>;
+template class BPlusTreeLeaf<3>;
+template class BPlusTreeLeaf<4>;
+
 using namespace std;
 
 template <std::size_t N>
@@ -36,7 +40,7 @@ BPlusTreeLeaf<N>::~BPlusTreeLeaf() {
 
 
 template <std::size_t N>
-unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(int pos) {
+unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(int pos) const {
     std::array<uint64_t, N> ids;
     for (uint_fast32_t i = 0; i < N; i++) {
         ids[i] = records[pos*N + i];
@@ -46,7 +50,7 @@ unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(int pos) {
 
 
 template <std::size_t N>
-unique_ptr<BPlusTreeLeaf<N>> BPlusTreeLeaf<N>::get_next_leaf() {
+unique_ptr<BPlusTreeLeaf<N>> BPlusTreeLeaf<N>::get_next_leaf() const {
     Page& new_page = buffer_manager.get_page(leaf_file_id, next_leaf);
     return make_unique<BPlusTreeLeaf<N>>(new_page);
 }
@@ -150,7 +154,7 @@ void BPlusTreeLeaf<N>::create_new(const Record<N>& record) {
 
 
 template <std::size_t N>
-SearchLeafResult BPlusTreeLeaf<N>::search_leaf(const Record<N>& min) {
+SearchLeafResult BPlusTreeLeaf<N>::search_leaf(const Record<N>& min) const {
     auto index = search_index(0, value_count-1, min);
     return SearchLeafResult(page.get_page_number(), index);
 }
@@ -158,7 +162,7 @@ SearchLeafResult BPlusTreeLeaf<N>::search_leaf(const Record<N>& min) {
 
 // returns the position of the minimum key greater (or equal) than the record given.
 template <std::size_t N>
-uint_fast32_t BPlusTreeLeaf<N>::search_index(int from, int to, const Record<N>& record) {
+uint_fast32_t BPlusTreeLeaf<N>::search_index(int from, int to, const Record<N>& record) const {
 search_index_begin:
     if (from < to) {
         auto middle = (from + to) / 2;

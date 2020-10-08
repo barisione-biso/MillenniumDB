@@ -19,7 +19,7 @@ public:
 
     ObjectId operator[](VarId);
 
-    int_fast32_t var_count();
+    int_fast32_t var_count() const noexcept;
     void add_all(BindingId&);
     void add(VarId, ObjectId);
 

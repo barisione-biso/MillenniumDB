@@ -16,8 +16,8 @@ public:
 
     ObjectId(const ObjectId&); // copy constructor
     static ObjectId get_null();
-    bool is_null();
-    bool not_found();
+    bool is_null() const;
+    bool not_found() const;
 
     void operator = (const ObjectId& other);
     bool operator ==(const ObjectId& rhs) const;

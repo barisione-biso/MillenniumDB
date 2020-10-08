@@ -17,7 +17,6 @@ public:
     void reset(BindingId& input) override;
     BindingId* next() override;
 
-
 private:
     std::unique_ptr<BindingIdIter> lhs;
     std::unique_ptr<BindingIdIter> rhs;

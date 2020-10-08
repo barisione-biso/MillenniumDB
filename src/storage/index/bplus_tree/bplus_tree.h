@@ -16,18 +16,15 @@
 #ifndef STORAGE__B_PLUS_TREE_H_
 #define STORAGE__B_PLUS_TREE_H_
 
+#include <string>
+#include <memory>
+
 #include "storage/file_id.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree_dir.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 
-#include <string>
-#include <memory>
-
-
-template <std::size_t N> class BPlusTreeDir;
 class BptLeafProvider;
-
 
 template <std::size_t N> class BptIter {
 public:
@@ -37,8 +34,8 @@ public:
 
 private:
     const FileId leaf_file_id;
-    uint32_t current_pos;
     const Record<N> max;
+    uint32_t current_pos;
     std::unique_ptr<BPlusTreeLeaf<N>> current_leaf;
 };
 
@@ -60,20 +57,12 @@ public:
     // std::unique_ptr<Record<N>> get(const Record<N>& record);
     bool check() const;
 
-    std::unique_ptr<BptIter<N>> get_range(const Record<N>& min, const Record<N>& max);
+    std::unique_ptr<BptIter<N>> get_range(const Record<N>& min, const Record<N>& max) const;
 
 private:
     bool is_empty;
-    std::unique_ptr<BPlusTreeDir<N>> root;
+    BPlusTreeDir<N> root;
     void create_new(const Record<N>& record);
 };
-
-template class BPlusTree<2>;
-template class BPlusTree<3>;
-template class BPlusTree<4>;
-
-template class BptIter<2>;
-template class BptIter<3>;
-template class BptIter<4>;
 
 #endif // STORAGE__B_PLUS_TREE_H_

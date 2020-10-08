@@ -31,21 +31,21 @@ class BPlusTreeLeaf {
         ~BPlusTreeLeaf();
 
         std::unique_ptr<BPlusTreeSplit<N>> insert(const Record<N>& record);
-        SearchLeafResult search_leaf(const Record<N>& min);
+        SearchLeafResult search_leaf(const Record<N>& min) const;
 
         // std::unique_ptr<Record> get(const Record& key);
 
         void create_new(const Record<N>& record);
 
-        bool is_leaf()  { return true; }
-        uint32_t get_value_count() { return value_count; }
-        int has_next()  { return next_leaf != 0; }
+        bool is_leaf()             const { return true; }
+        uint32_t get_value_count() const { return value_count; }
+        int has_next()             const { return next_leaf != 0; }
 
         bool check() const;
         void print() const;
 
-        std::unique_ptr<BPlusTreeLeaf> get_next_leaf();
-        std::unique_ptr<Record<N>> get_record(int pos);
+        std::unique_ptr<BPlusTreeLeaf> get_next_leaf() const;
+        std::unique_ptr<Record<N>> get_record(int pos) const;
 
     private:
         Page& page;
@@ -54,13 +54,9 @@ class BPlusTreeLeaf {
         uint32_t next_leaf;
         uint64_t* records;
 
-        uint_fast32_t search_index(int from, int to, const Record<N>& record);
+        uint_fast32_t search_index(int from, int to, const Record<N>& record) const;
         bool equal_record(const Record<N>& record, uint_fast32_t index);
         void shift_right_records(uint_fast32_t from, uint_fast32_t to);
 };
-
-template class BPlusTreeLeaf<2>;
-template class BPlusTreeLeaf<3>;
-template class BPlusTreeLeaf<4>;
 
 #endif // STORAGE__B_PLUS_TREE_LEAF_H_

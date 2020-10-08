@@ -9,7 +9,7 @@ BindingId::BindingId(int_fast32_t var_count) {
 }
 
 
-int_fast32_t BindingId::var_count() {
+int_fast32_t BindingId::var_count() const noexcept {
     return object_ids.size();
 }
 

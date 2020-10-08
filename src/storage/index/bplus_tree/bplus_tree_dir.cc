@@ -10,6 +10,10 @@
 #include <utility>
 #include <cstring>
 
+template class BPlusTreeDir<2>;
+template class BPlusTreeDir<3>;
+template class BPlusTreeDir<4>;
+
 using namespace std;
 
 template <std::size_t N>
@@ -344,7 +348,7 @@ void BPlusTreeDir<N>::shift_right_children(int from, int to) {
 
 
 template <std::size_t N>
-SearchLeafResult BPlusTreeDir<N>::search_leaf(const Record<N>& min) {
+SearchLeafResult BPlusTreeDir<N>::search_leaf(const Record<N>& min) const {
     int dir_index = search_child_index(0, key_count, min);
     int page_pointer = children[dir_index];
 
@@ -362,7 +366,7 @@ SearchLeafResult BPlusTreeDir<N>::search_leaf(const Record<N>& min) {
 
 
 template <std::size_t N>
-int BPlusTreeDir<N>::search_child_index(int dir_from, int dir_to, const Record<N>& record) {
+int BPlusTreeDir<N>::search_child_index(int dir_from, int dir_to, const Record<N>& record) const {
 search_child_index_begin:
     if (dir_from == dir_to) {
         return dir_from;

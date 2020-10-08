@@ -19,12 +19,12 @@ ObjectId ObjectId::get_null() {
     return ObjectId(NULL_OBJECT_ID);
 }
 
-bool ObjectId::is_null() {
+bool ObjectId::is_null() const {
     return id == NULL_OBJECT_ID;
 }
 
 
-bool ObjectId::not_found() {
+bool ObjectId::not_found() const {
     return id == OBJECT_ID_NOT_FOUND;
 }
 

@@ -1,24 +1,31 @@
 #include "storage/index/bplus_tree/bplus_tree.h"
 
+#include <iostream>
+
 #include "storage/file_manager.h"
 #include "storage/buffer_manager.h"
 #include "storage/index/record.h"
 #include "storage/index/ordered_file/ordered_file.h"
 #include "storage/index/ordered_file/bpt_leaf_provider.h"
-#include "storage/index/bplus_tree/bplus_tree_dir.h"
-#include "storage/index/bplus_tree/bplus_tree_leaf.h"
 
-#include <iostream>
-#include <memory>
+template class BPlusTree<2>;
+template class BPlusTree<3>;
+template class BPlusTree<4>;
+
+template class BptIter<2>;
+template class BptIter<3>;
+template class BptIter<4>;
 
 using namespace std;
 
 template <std::size_t N>
 BPlusTree<N>::BPlusTree(const std::string& name) :
-    dir_file_id(file_manager.get_file_id(name + ".dir")),
-    leaf_file_id(file_manager.get_file_id(name + ".leaf"))
+    dir_file_id  (file_manager.get_file_id(name + ".dir")),
+    leaf_file_id (file_manager.get_file_id(name + ".leaf")),
+    root         (BPlusTreeDir<N>(leaf_file_id, buffer_manager.get_page(dir_file_id, 0)))
 {
-    root = make_unique<BPlusTreeDir<N>>(leaf_file_id, buffer_manager.get_page(dir_file_id, 0));
+    // root = BPlusTreeDir<N>(leaf_file_id, buffer_manager.get_page(dir_file_id, 0));
+    // root = make_unique<BPlusTreeDir<N>>(leaf_file_id, buffer_manager.get_page(dir_file_id, 0));
 
     // first leaf is readed just to see if BPT is empty
     auto first_leaf = BPlusTreeLeaf<N>(buffer_manager.get_page(leaf_file_id, 0));
@@ -65,15 +72,15 @@ void BPlusTree<N>::bulk_import(BptLeafProvider& leaf_provider) {
         if (leaf_provider.has_more_tuples()) {
             new_leaf.next_leaf = new_leaf.page.get_page_number() + 1;
         }
-        root->bulk_insert(new_leaf);
+        root.bulk_insert(new_leaf);
         new_leaf.page.make_dirty();
     }
 }
 
 
 template <std::size_t N>
-unique_ptr<BptIter<N>> BPlusTree<N>::get_range(const Record<N>& min, const Record<N>& max) {
-    auto page_number_and_pos = root->search_leaf(min);
+unique_ptr<BptIter<N>> BPlusTree<N>::get_range(const Record<N>& min, const Record<N>& max) const {
+    auto page_number_and_pos = root.search_leaf(min);
     return make_unique<BptIter<N>>(leaf_file_id, page_number_and_pos.page_number, page_number_and_pos.result_index, max);
 }
 
@@ -85,7 +92,7 @@ void BPlusTree<N>::insert(const Record<N>& record) {
         is_empty = false;
         return;
     }
-    root->insert(record);
+    root.insert(record);
 }
 
 
@@ -100,25 +107,24 @@ void BPlusTree<N>::create_new(const Record<N>& record) {
 
 // template <std::size_t N>
 // unique_ptr<Record<N>> BPlusTree<N>::get(const Record<N>& key) {
-//     return root->get(key);
+//     return root.get(key);
 // }
 
 
 template <std::size_t N>
 bool BPlusTree<N>::check() const {
-    return root->check();
+    return root.check();
 }
 
 
 /******************************* BptIter ********************************/
 template <std::size_t N>
 BptIter<N>::BptIter(FileId leaf_file_id, int leaf_page_number, int current_pos, const Record<N>& max) :
-    leaf_file_id(leaf_file_id),
-    max(max)
-{
-    current_leaf = make_unique<BPlusTreeLeaf<N>>(buffer_manager.get_page(leaf_file_id, leaf_page_number));
-    this->current_pos = current_pos;
-}
+    leaf_file_id (leaf_file_id),
+    max          (max),
+    current_pos  (current_pos),
+    current_leaf (make_unique<BPlusTreeLeaf<N>>(buffer_manager.get_page(leaf_file_id, leaf_page_number)))
+{ }
 
 
 template <std::size_t N>
