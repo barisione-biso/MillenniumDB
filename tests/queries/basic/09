@@ -1,3 +1,4 @@
 SELECT ?x, ?y
 MATCH (?x)->(?y)->(?x)
 WHERE ?x != ?y
+LIMIT 1
