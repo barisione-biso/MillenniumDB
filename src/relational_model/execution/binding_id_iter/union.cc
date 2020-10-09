@@ -6,32 +6,33 @@ Union::Union(std::vector<std::unique_ptr<BindingIdIter>> iters) :
     iters(move(iters)) { }
 
 
-void Union::begin(BindingId& input) {
+BindingId* Union::begin(BindingId& input) {
     current_iter = 0;
     for (auto& iter : iters) {
-        iter->begin(input);
+        my_inputs.push_back( iter->begin(input) );
+    }
+    return my_binding.get();
+}
+
+
+void Union::reset() {
+    current_iter = 0;
+    for (auto& iter : iters) {
+        iter->reset();
     }
 }
 
 
-void Union::reset(BindingId& input) {
-    current_iter = 0;
-    for (auto& iter : iters) {
-        iter->reset(input);
-    }
-}
-
-
-BindingId* Union::next() {
+bool Union::next() {
     while (current_iter < iters.size()) {
-        auto res = iters[current_iter]->next();
-        if (res != nullptr) {
-            return res;
+        if (iters[current_iter]->next()) {
+            my_binding->add_all(*my_inputs[current_iter]);
+            return true;
         } else {
             ++current_iter;
         }
     }
-    return nullptr;
+    return false;
 }
 
 

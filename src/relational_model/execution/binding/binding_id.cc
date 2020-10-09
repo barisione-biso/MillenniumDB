@@ -2,20 +2,17 @@
 
 using namespace std;
 
+static_assert(ObjectId::NULL_OBJECT_ID == 0,
+        "If NULL_OBJECT_ID != 0, need to explicitally set values to NULL_OBJECT_ID");
+
 BindingId::BindingId(int_fast32_t var_count) {
     object_ids = vector<ObjectId>(var_count);
-    static_assert(ObjectId::NULL_OBJECT_ID == 0,
-        "If NULL_OBJECT_ID != 0, need to explicitally set values to NULL_OBJECT_ID");
-}
-
-
-int_fast32_t BindingId::var_count() const noexcept {
-    return object_ids.size();
 }
 
 
 void BindingId::add_all(BindingId& other) {
     for (size_t i = 0; i < other.object_ids.size(); ++i) {
+        // TODO: pensar si se puede sacar el checkeo de null
         if (!other.object_ids[i].is_null()) {
             this->object_ids[i] = other.object_ids[i];
         }
@@ -25,11 +22,6 @@ void BindingId::add_all(BindingId& other) {
 
 void BindingId::add(VarId var_id, ObjectId id) {
     object_ids[var_id.id] = id;
-}
-
-
-ObjectId BindingId::operator[](VarId var_id) {
-    return object_ids[var_id.id];
 }
 
 

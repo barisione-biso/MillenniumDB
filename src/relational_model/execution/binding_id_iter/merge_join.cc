@@ -7,43 +7,43 @@ MergeJoin::MergeJoin(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rh
     lhs(move(lhs)), rhs(move(rhs)), join_var(join_var) { }
 
 
-void MergeJoin::begin(BindingId& input) {
+BindingId* MergeJoin::begin(BindingId& input) {
     my_binding = make_unique<BindingId>(input.var_count());
 
-    lhs->begin(input);
-    current_left = lhs->next();
+    current_left = lhs->begin(input);
+    lhs->next();
 
-    rhs->begin(input);
-    current_right = rhs->next();
+    current_right = rhs->begin(input);
+    rhs->next();
+
+    return my_binding.get();
 }
 
 
-void MergeJoin::reset(BindingId& input) {
-    lhs->reset(input);
-    current_left = lhs->next();
-
-    rhs->reset(input);
-    current_right = rhs->next();
+void MergeJoin::reset() {
+    lhs->reset();
+    rhs->reset();
 }
 
 
-BindingId* MergeJoin::next() {
-    while (current_left != nullptr && current_right != nullptr) {
-        if ( (*current_left)[join_var].id == (*current_right)[join_var].id ) {
-            construct_binding();
-            current_left = lhs->next();
-            current_right = rhs->next();
-            ++results_found;
-            return my_binding.get();
-        } else {
-            if ( (*current_left)[join_var].id < (*current_right)[join_var].id ) {
-                current_left = lhs->next();
-            } else {
-                current_right = rhs->next();
-            }
-        }
-    }
-    return nullptr;
+bool MergeJoin::next() {
+    // TODO: remake
+    // while (current_left != nullptr && current_right != nullptr) {
+    //     if ( (*current_left)[join_var].id == (*current_right)[join_var].id ) {
+    //         construct_binding();
+    //         lhs->next();
+    //         rhs->next();
+    //         ++results_found;
+    //         return true;
+    //     } else {
+    //         if ( (*current_left)[join_var].id < (*current_right)[join_var].id ) {
+    //             current_left = lhs->next();
+    //         } else {
+    //             current_right = rhs->next();
+    //         }
+    //     }
+    // }
+    return false;
 }
 
 

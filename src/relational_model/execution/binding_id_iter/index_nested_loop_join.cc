@@ -8,40 +8,39 @@
 using namespace std;
 
 IndexNestedLoopJoin::IndexNestedLoopJoin(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs) :
-    lhs(move(lhs)), rhs(move(rhs)) { }
+    lhs (move(lhs)),
+    rhs (move(rhs)) { }
 
 
-void IndexNestedLoopJoin::begin(BindingId& input) {
+BindingId* IndexNestedLoopJoin::begin(BindingId& input) {
     my_binding = make_unique<BindingId>(input.var_count());
-    lhs->begin(input);
-    current_left = lhs->next();
-    if (current_left != nullptr)
-        rhs->begin(*current_left);
+    current_left = lhs->begin(input);
+    if (lhs->next()) {
+        current_right = rhs->begin(*current_left);
+    }
+    return my_binding.get();
 }
 
 
-void IndexNestedLoopJoin::reset(BindingId& input) {
-    lhs->reset(input);
-    if (current_left != nullptr)
-        rhs->reset(*current_left);
+void IndexNestedLoopJoin::reset() {
+    lhs->reset();
+    if (lhs->next())
+        rhs->reset();
 }
 
 
-BindingId* IndexNestedLoopJoin::next() {
-    while (current_left != nullptr) {
-        current_right = rhs->next();
-
-        if (current_right != nullptr) {
+bool IndexNestedLoopJoin::next() {
+    while (true) {
+        if (rhs->next()) {
             construct_binding();
-            return my_binding.get();
-        }
-        else {
-            current_left = lhs->next();
-            if (current_left != nullptr)
-                rhs->reset(*current_left);
+            return true;
+        } else {
+            if (lhs->next())
+                rhs->reset();
+            else
+                return false;
         }
     }
-    return nullptr;
 }
 
 

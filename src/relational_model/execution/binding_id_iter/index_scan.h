@@ -29,13 +29,9 @@ public:
     ~IndexScan() = default;
 
     void analyze(int indent = 0) const override;
-    void begin(BindingId& input) override;
-    void reset(BindingId& input) override;
-    BindingId* next() override;
+    BindingId* begin(BindingId& input) override;
+    void reset() override;
+    bool next() override;
 };
-
-template class IndexScan<2>;
-template class IndexScan<3>;
-template class IndexScan<4>;
 
 #endif // RELATIONAL_MODEL__GRAPH_SCAN_H_

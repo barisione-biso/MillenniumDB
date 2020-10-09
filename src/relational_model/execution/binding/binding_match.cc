@@ -4,14 +4,13 @@
 
 using namespace std;
 
-BindingMatch::BindingMatch(GraphModel& model, const map<string, VarId>& var_pos,
-                           unique_ptr<BindingId> binding_id) :
-    model(model),
-    var_pos(var_pos),
-    binding_id(move(binding_id)) { }
+BindingMatch::BindingMatch(GraphModel& model, const map<string, VarId>& var_pos, BindingId* binding_id) :
+    model      (model),
+    var_pos    (var_pos),
+    binding_id (binding_id) { }
 
 
-BindingMatch::~BindingMatch() { }
+BindingMatch::~BindingMatch() = default;
 
 
 std::string BindingMatch::to_string() const {

@@ -5,11 +5,10 @@
 
 using namespace std;
 
-Projection::Projection(unique_ptr<BindingIter> iter, vector<string> projection_vars, uint_fast32_t limit)
-    : limit(limit), select_all(false), iter(move(iter)), projection_vars(move(projection_vars)) { }
-
-Projection::Projection(unique_ptr<BindingIter> iter, uint_fast32_t limit)
-    : limit(limit), select_all(true), iter(move(iter)) { }
+Projection::Projection(unique_ptr<BindingIter> iter, vector<string> projection_vars, uint_fast32_t limit) :
+    projection_vars (move(projection_vars)),
+    iter            (move(iter)),
+    limit           (limit) { }
 
 Projection::~Projection() = default;
 
@@ -29,7 +28,7 @@ std::unique_ptr<Binding> Projection::next() {
         return nullptr;
     } else {
         count++;
-        if (select_all) {
+        if (projection_vars.size() == 0) {
             return next_binding;
         } else {
             return make_unique<BindingProject>(projection_vars, move(next_binding));

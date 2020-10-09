@@ -13,9 +13,9 @@ public:
     ~IndexNestedLoopJoin() = default;
 
     void analyze(int indent = 0) const override;
-    void begin(BindingId& input) override;
-    void reset(BindingId& input) override;
-    BindingId* next() override;
+    BindingId* begin(BindingId& input) override;
+    void reset() override;
+    bool next() override;
 
 private:
     std::unique_ptr<BindingIdIter> lhs;
@@ -27,7 +27,7 @@ private:
     std::vector<VarId> vars;
     std::unique_ptr<BindingId> my_binding;
 
-    void construct_binding();
+    inline void construct_binding();
 };
 
 template class std::unique_ptr<IndexNestedLoopJoin>;

@@ -39,23 +39,17 @@ unique_ptr<BindingIter> QueryOptimizer::exec(OpSelect& op_select) {
 
 
 void QueryOptimizer::visit(OpSelect& op_select) {
-    if (op_select.select_items.size() == 0) {
-        op_select.op->accept_visitor(*this);
-        tmp = make_unique<Projection>(move(tmp), op_select.limit);
-    }
-    else {
-        vector<std::string> projection_vars;
-        select_items = move(op_select.select_items);
-        for (const auto& select_item : select_items) {
-            if (select_item.key) {
-                projection_vars.push_back(select_item.var + '.' + select_item.key.get());
-            } else {
-                projection_vars.push_back(select_item.var);
-            }
+    vector<std::string> projection_vars;
+    select_items = move(op_select.select_items);
+    for (const auto& select_item : select_items) {
+        if (select_item.key) {
+            projection_vars.push_back(select_item.var + '.' + select_item.key.get());
+        } else {
+            projection_vars.push_back(select_item.var);
         }
-        op_select.op->accept_visitor(*this);
-        tmp = make_unique<Projection>(move(tmp), move(projection_vars), op_select.limit);
     }
+    op_select.op->accept_visitor(*this);
+    tmp = make_unique<Projection>(move(tmp), move(projection_vars), op_select.limit);
 }
 
 

@@ -22,9 +22,9 @@ public:
     ~ObjectEnum() = default;
 
     void analyze(int indent = 0) const override;
-    void begin(BindingId& input) override;
-    void reset(BindingId& input) override;
-    BindingId* next() override;
+    BindingId* begin(BindingId& input) override;
+    void reset() override;
+    bool next() override;
 };
 
 #endif // RELATIONAL_MODEL__OBJECT_ENUM_H_

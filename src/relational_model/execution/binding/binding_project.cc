@@ -1,9 +1,9 @@
 #include "binding_project.h"
 
+#include <iostream>
+
 #include "base/binding/binding.h"
 #include "base/graph/value/value.h"
-
-#include <iostream>
 
 using namespace std;
 
@@ -14,7 +14,7 @@ BindingProject::BindingProject(vector<string>& projection_vars, unique_ptr<Bindi
 std::string BindingProject::to_string() const {
     std::string result;
     result += '{';
-    auto it = projection_vars.begin();
+    auto it = projection_vars.cbegin();
 
     while (true) {
         auto& var = *it;
@@ -22,7 +22,7 @@ std::string BindingProject::to_string() const {
         result += ':';
         result += (*current_binding)[var]->to_string();
         ++it;
-        if (it != projection_vars.end()) {
+        if (it != projection_vars.cend()) {
             result += ',';
         } else {
             result +=  "}\n";

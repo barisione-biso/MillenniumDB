@@ -8,27 +8,28 @@ ObjectEnum::ObjectEnum(VarId var_id, const uint64_t mask, const uint64_t max_cou
     max_count (max_count) { }
 
 
-void ObjectEnum::begin(BindingId& input) {
+BindingId* ObjectEnum::begin(BindingId& input) {
     my_binding = make_unique<BindingId>(input.var_count());
     my_input = &input;
     current_node = 0;
+    return my_binding.get();
 }
 
 
-BindingId* ObjectEnum::next() {
+bool ObjectEnum::next() {
     ++current_node;
     if (current_node <= max_count) {
         my_binding->add_all(*my_input);
         my_binding->add(var_id, ObjectId(mask | current_node));
-        return my_binding.get();
+        return true;
     } else {
-        return nullptr;
+        return false;
     }
 }
 
 
-void ObjectEnum::reset(BindingId& input) {
-    begin(input);
+void ObjectEnum::reset() {
+    current_node = 0;
 }
 
 

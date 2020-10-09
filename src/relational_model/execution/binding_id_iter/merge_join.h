@@ -18,12 +18,10 @@ public:
               VarId join_var);
     ~MergeJoin() = default;
 
-    void begin(BindingId& input);
-    void reset(BindingId& input);
-    BindingId* next();
-
-    // prints execution statistics
     void analyze(int indent = 0) const override;
+    BindingId* begin(BindingId& input) override;
+    void reset() override;
+    bool next() override;
 
 private:
     std::unique_ptr<BindingIdIter> lhs;

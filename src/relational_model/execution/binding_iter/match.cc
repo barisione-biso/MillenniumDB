@@ -7,24 +7,22 @@
 
 using namespace std;
 
-Match::Match(GraphModel& model, unique_ptr<BindingIdIter> root,
-             map<string, VarId> var_pos) :
-    model(model),
-    root(move(root)),
-    var_pos(move(var_pos)) { }
+Match::Match(GraphModel& model, unique_ptr<BindingIdIter> root, map<string, VarId> var_pos) :
+    model   (model),
+    root    (move(root)),
+    var_pos (move(var_pos)) { }
 
 
+// TODO: devolver Binding*?
 void Match::begin() {
-    binding_id = make_unique<BindingId>(var_pos.size());
-    root->begin(*binding_id);
+    input = make_unique<BindingId>(var_pos.size());
+    binding_id_root = root->begin(*input);
 }
 
 
 unique_ptr<Binding> Match::next() {
-    auto binding_id_ptr = root->next();
-    if (binding_id_ptr != nullptr) {
-        auto binding_id_copy = make_unique<BindingId>(*binding_id_ptr);
-        return make_unique<BindingMatch>(model, var_pos, move(binding_id_copy));
+    if (root->next()) {
+        return make_unique<BindingMatch>(model, var_pos, binding_id_root);
     } else {
         return nullptr;
     }
