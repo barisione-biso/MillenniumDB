@@ -7,6 +7,7 @@ Union::Union(std::vector<std::unique_ptr<BindingIdIter>> iters) :
 
 
 BindingId* Union::begin(BindingId& input) {
+    my_binding = make_unique<BindingId>(input.var_count());
     current_iter = 0;
     for (auto& iter : iters) {
         my_inputs.push_back( iter->begin(input) );
