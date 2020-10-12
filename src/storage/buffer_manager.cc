@@ -21,7 +21,7 @@ BufferManager::BufferManager(int _buffer_pool_size) :
 {
     buffer_pool = new Page[buffer_pool_size];
     clock_pos = 0;
-    bytes = new char[buffer_pool_size*PAGE_SIZE];
+    bytes = new char[buffer_pool_size*Page::PAGE_SIZE];
 }
 
 
@@ -92,7 +92,7 @@ Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) {
             auto old_page_id = buffer_pool[buffer_available].page_id;
             pages.erase(old_page_id);
         }
-        buffer_pool[buffer_available] = Page(page_id, &bytes[buffer_available*PAGE_SIZE]);
+        buffer_pool[buffer_available] = Page(page_id, &bytes[buffer_available*Page::PAGE_SIZE]);
 
         file_manager.read_page(page_id, buffer_pool[buffer_available].get_bytes());
         pages.insert(pair<PageId, int>(page_id, buffer_available));

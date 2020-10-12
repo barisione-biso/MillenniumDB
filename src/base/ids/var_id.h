@@ -5,29 +5,22 @@
 
 class VarId {
 public:
-    const int_fast32_t id;
+    const uint_fast32_t id;
 
-    explicit VarId(int_fast32_t id)
+    explicit VarId(uint_fast32_t id)
         : id(id) { }
+
     ~VarId() = default;
 
-    bool is_null() const {
-        return id == -1;
-    }
-
-    static VarId get_null() {
-        return VarId(-1);
-    }
-
-    bool operator <(const VarId& rhs) const {
+    inline bool operator<(const VarId& rhs) const noexcept {
         return id < rhs.id;
     }
 
-    bool operator ==(const VarId& rhs) const {
+    inline bool operator==(const VarId& rhs) const noexcept {
         return id == rhs.id;
     }
 
-    bool operator !=(const VarId& rhs) const {
+    inline bool operator!=(const VarId& rhs) const noexcept {
         return id != rhs.id;
     }
 };

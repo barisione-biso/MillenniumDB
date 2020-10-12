@@ -10,8 +10,8 @@ class Record {
 public:
     std::array<uint64_t, N> ids;
 
-    Record(std::array<uint64_t, N> ids) :
-        ids(ids) { }
+    Record(std::array<uint64_t, N> ids) noexcept :
+        ids(move(ids)) { }
 
     Record(const Record<N>& copy) :
         ids(copy.ids) { }
@@ -22,7 +22,7 @@ public:
         ids = other.ids;
     }
 
-    bool operator<(const Record<N>& other) {
+    bool operator<(const Record<N>& other) const {
         for (size_t i = 0; i < N; i++) {
             if (ids[i] < other.ids[i]) {
                 return true;
@@ -33,7 +33,7 @@ public:
         return false;
     }
 
-    bool operator<=(const Record<N>& other) {
+    bool operator<=(const Record<N>& other) const {
         for (size_t i = 0; i < N; i++) {
             if (ids[i] < other.ids[i]) {
                 return true;

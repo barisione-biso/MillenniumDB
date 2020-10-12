@@ -12,16 +12,15 @@ public:
     ValueInt(int64_t value);
     ~ValueInt();
 
-    std::string to_string() const override;
+    std::string to_string() const noexcept override;
+    ObjectType type()       const noexcept override;
 
-    ObjectType type() const override;
-
-    bool operator==(const GraphObject& rhs) const override;
-    bool operator!=(const GraphObject& rhs) const override;
-    bool operator<=(const GraphObject& rhs) const override;
-    bool operator>=(const GraphObject& rhs) const override;
-    bool operator<(const GraphObject& rhs) const override;
-    bool operator>(const GraphObject& rhs) const override;
+    bool operator==(const GraphObject& rhs) const noexcept override;
+    bool operator!=(const GraphObject& rhs) const noexcept override;
+    bool operator<=(const GraphObject& rhs) const noexcept override;
+    bool operator>=(const GraphObject& rhs) const noexcept override;
+    bool operator<(const GraphObject& rhs)  const noexcept override;
+    bool operator>(const GraphObject& rhs)  const noexcept override;
 };
 
 #endif // BASE__VALUE_INT_H_

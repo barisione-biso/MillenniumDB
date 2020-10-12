@@ -18,11 +18,11 @@ void EdgeTableLookup::analyze(int indent) const {
 }
 
 
-BindingId* EdgeTableLookup::begin(BindingId& input) {
+BindingId& EdgeTableLookup::begin(BindingId& input) {
     already_looked = false;
-    my_binding = std::make_unique<BindingId>(input.var_count());
+    my_binding.init(input.var_count());
     my_input = &input;
-    return my_binding.get();
+    return my_binding;
 }
 
 
@@ -51,14 +51,14 @@ bool EdgeTableLookup::next() {
                 if (!from_value.is_null() && from_value.id != record->ids[0]) {
                     return false;
                 } else {
-                    my_binding->add(std::get<VarId>(from), ObjectId(record->ids[0]));
+                    my_binding.add(std::get<VarId>(from), ObjectId(record->ids[0]));
                 }
             } else { // std::holds_alternative<ObjectId>(from)
                 auto from_value = std::get<ObjectId>(from);
                 if (!from_value.is_null() && from_value.id != record->ids[0]) {
                     return false;
                 } else {
-                    my_binding->add(std::get<VarId>(from), ObjectId(record->ids[0]));
+                    my_binding.add(std::get<VarId>(from), ObjectId(record->ids[0]));
                 }
             }
             if (std::holds_alternative<VarId>(to)) {
@@ -66,14 +66,14 @@ bool EdgeTableLookup::next() {
                 if (!to_value.is_null() && to_value.id != record->ids[1]) {
                     return false;
                 } else {
-                    my_binding->add(std::get<VarId>(to), ObjectId(record->ids[1]));
+                    my_binding.add(std::get<VarId>(to), ObjectId(record->ids[1]));
                 }
             } else { // std::holds_alternative<ObjectId>(to)
                 auto to_value = std::get<ObjectId>(to);
                 if (!to_value.is_null() && to_value.id != record->ids[1]) {
                     return false;
                 } else {
-                    my_binding->add(std::get<VarId>(to), ObjectId(record->ids[1]));
+                    my_binding.add(std::get<VarId>(to), ObjectId(record->ids[1]));
                 }
             }
             if (std::holds_alternative<VarId>(type)) {
@@ -81,17 +81,17 @@ bool EdgeTableLookup::next() {
                 if (!type_value.is_null() && type_value.id != record->ids[2]) {
                     return false;
                 } else {
-                    my_binding->add(std::get<VarId>(type), ObjectId(record->ids[2]));
+                    my_binding.add(std::get<VarId>(type), ObjectId(record->ids[2]));
                 }
             } else { // std::holds_alternative<ObjectId>(type)
                 auto type_value = std::get<ObjectId>(type);
                 if (!type_value.is_null() && type_value.id != record->ids[2]) {
                     return false;
                 } else {
-                    my_binding->add(std::get<VarId>(type), ObjectId(record->ids[2]));
+                    my_binding.add(std::get<VarId>(type), ObjectId(record->ids[2]));
                 }
             }
-            my_binding->add_all(*my_input);
+            my_binding.add_all(*my_input);
             ++results;
             return true;
         }

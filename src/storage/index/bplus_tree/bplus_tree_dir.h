@@ -22,7 +22,7 @@ class BPlusTreeDir {
         std::unique_ptr<BPlusTreeSplit<N>> insert(const Record<N>& record);
 
         // std::unique_ptr<Record<N>> get(const Record<N>& key);
-        SearchLeafResult search_leaf(const Record<N>& min) const;
+        SearchLeafResult search_leaf(const Record<N>& min) const noexcept;
 
         bool check() const;
 

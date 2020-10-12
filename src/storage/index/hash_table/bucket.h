@@ -13,7 +13,7 @@ class Bucket {
 friend class ExtendibleHash;
 
 // 2 bytes needed for key_count and local_depth, 16 bytes from hash and 6 bytes from id
-static constexpr auto MAX_KEYS = (PAGE_SIZE - 2) / (16+6);
+static constexpr auto MAX_KEYS = (Page::PAGE_SIZE - 2) / (16+6);
 static_assert(MAX_KEYS <= UINT8_MAX, "BUCKET KEY_COUNT(UINT8) CAN'T REACH MAX_KEYS");
 
 public:

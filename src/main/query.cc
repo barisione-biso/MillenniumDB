@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
         // Read query-file
         ifstream in(query_file, ios_base::in);
         if (!in) {
-            cerr << "Error: Could not open input file: " << query_file << endl;
+            cerr << "Error: Could not open input file: " << query_file << "\n";
             return 1;
         }
         stringstream str_stream;
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
         }
     }
     catch (boost::system::system_error const& e) {
-        std::cout << "Error connecting to server: " << e.what() << std::endl;
+        std::cout << "Error connecting to server: " << e.what() << "\n";
         return -1;
     }
     catch(exception& e) {

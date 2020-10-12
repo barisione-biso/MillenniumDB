@@ -36,22 +36,22 @@ std::string BindingMatch::to_string() const {
 
 shared_ptr<GraphObject> BindingMatch::operator[](const string& var) {
     // search in the cache map
-    auto cache_search = cache.find(var);
-    if (cache_search != cache.end()) { // Found in the cache
-        return (*cache_search).second;
-    }
-    else {                             // Not found in the cache
+    // auto cache_search = cache.find(var);
+    // if (cache_search != cache.end()) { // Found in the cache
+    //     return (*cache_search).second;
+    // }
+    // else {                             // Not found in the cache
         // search in the binding_id
         auto var_pos_search = var_pos.find(var);
         if (var_pos_search != var_pos.end()) {
             auto var_id = (*var_pos_search).second;
             auto object_id = (*binding_id)[var_id];
             auto value = model.get_graph_object(object_id);
-            cache.insert({ var, value });
+            // cache.insert({ var, value });
             return value;
         }
         else return nullptr;
-    }
+    // }
 }
 
 

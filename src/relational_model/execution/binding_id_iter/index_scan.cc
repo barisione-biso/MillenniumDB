@@ -25,12 +25,12 @@ IndexScan<N>::IndexScan(BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>
 
 
 template <std::size_t N>
-BindingId* IndexScan<N>::begin(BindingId& input) {
+BindingId& IndexScan<N>::begin(BindingId& input) {
     assert(ranges.size() == N && "Inconsistent size of ranges and bpt");
 
     my_input = &input;
-    my_binding = make_unique<BindingId>(my_input->var_count());
-    my_binding->add_all(*my_input);
+    my_binding.init(my_input->var_count());
+    my_binding.add_all(*my_input);
 
     std::array<uint64_t, N> min_ids;
     std::array<uint64_t, N> max_ids;
@@ -47,7 +47,7 @@ BindingId* IndexScan<N>::begin(BindingId& input) {
         Record(max_ids)
     );
     ++bpt_searches;
-    return my_binding.get();
+    return my_binding;
 }
 
 
@@ -59,7 +59,7 @@ bool IndexScan<N>::next() {
     auto next = it->next();
     if (next != nullptr) {
         for (uint_fast32_t i = 0; i < N; ++i) {
-            ranges[i]->try_assign(*my_binding, ObjectId(next->ids[i]));
+            ranges[i]->try_assign(my_binding, ObjectId(next->ids[i]));
         }
         ++results_found;
         return true;
@@ -72,7 +72,7 @@ bool IndexScan<N>::next() {
 template <std::size_t N>
 void IndexScan<N>::reset() {
     // TODO: if nulls were supported a my_binding->clean should be performed to set NULL_OBJECT_ID
-    my_binding->add_all(*my_input);
+    my_binding.add_all(*my_input);
 
     std::array<uint64_t, N> min_ids;
     std::array<uint64_t, N> max_ids;

@@ -128,7 +128,7 @@ void OrderedFile<N>::order(std::array<uint_fast8_t, N> column_order) {
 
     // auto end_phase0 = std::chrono::system_clock::now();
     // std::chrono::duration<float,std::milli> duration = end_phase0 - start;
-    // std::cout << duration.count() << "ms " << std::endl;
+    // std::cout << duration.count() << "ms " << "\n";
 
     uint_fast32_t buffer_size[MAX_RUNS];
     uint_fast32_t buffer_current_pos[MAX_RUNS];
@@ -233,7 +233,7 @@ void OrderedFile<N>::order(std::array<uint_fast8_t, N> column_order) {
 
     // auto end = std::chrono::system_clock::now();
     // duration = end - end_phase0;
-    // std::cout << duration.count() << "ms " << std::endl;
+    // std::cout << duration.count() << "ms " << "\n";
 }
 
 

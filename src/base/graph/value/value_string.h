@@ -18,15 +18,15 @@ public:
     //     return res;
     // }
 
-    std::string to_string() const override {
+    std::string to_string() const noexcept override {
         return '"' + value + '"';
     }
 
-    ObjectType type() const override {
+    ObjectType type() const noexcept override {
         return ObjectType::value_string;
     }
 
-    bool operator==(const GraphObject& rhs) const override {
+    bool operator==(const GraphObject& rhs) const noexcept override {
         if (rhs.type() == ObjectType::value_string) {
             const auto& casted_rhs = static_cast<const ValueString&>(rhs);
             return this->value == casted_rhs.value;
@@ -34,7 +34,7 @@ public:
         return false;
     }
 
-    bool operator!=(const GraphObject& rhs) const override {
+    bool operator!=(const GraphObject& rhs) const noexcept override {
         if (rhs.type() == ObjectType::value_string) {
             const auto& casted_rhs = static_cast<const ValueString&>(rhs);
             return this->value != casted_rhs.value;
@@ -42,7 +42,7 @@ public:
         return true;
     }
 
-    bool operator<=(const GraphObject& rhs) const override {
+    bool operator<=(const GraphObject& rhs) const noexcept override {
         if (rhs.type() == ObjectType::value_string) {
             const auto& casted_rhs = static_cast<const ValueString&>(rhs);
             return this->value <= casted_rhs.value;
@@ -50,7 +50,7 @@ public:
         return false;
     }
 
-    bool operator>=(const GraphObject& rhs) const override {
+    bool operator>=(const GraphObject& rhs) const noexcept override {
         if (rhs.type() == ObjectType::value_string) {
             const auto& casted_rhs = static_cast<const ValueString&>(rhs);
             return this->value >= casted_rhs.value;
@@ -58,7 +58,7 @@ public:
         return false;
     }
 
-    bool operator<(const GraphObject& rhs) const override {
+    bool operator<(const GraphObject& rhs) const noexcept override {
         if (rhs.type() == ObjectType::value_string) {
             const auto& casted_rhs = static_cast<const ValueString&>(rhs);
             return this->value < casted_rhs.value;
@@ -66,7 +66,7 @@ public:
         return false;
     }
 
-    bool operator>(const GraphObject& rhs) const override {
+    bool operator>(const GraphObject& rhs) const noexcept override {
         if (rhs.type() == ObjectType::value_string) {
             const auto& casted_rhs = static_cast<const ValueString&>(rhs);
             return this->value > casted_rhs.value;

@@ -17,15 +17,15 @@ enum class ObjectType {
 class GraphObject {
 public:
     virtual ~GraphObject() = default;
-    virtual std::string to_string() const = 0;
-    virtual ObjectType type() const = 0;
+    virtual std::string to_string() const noexcept = 0;
+    virtual ObjectType type()       const noexcept = 0;
 
-    virtual bool operator==(const GraphObject& rhs) const = 0;
-    virtual bool operator!=(const GraphObject& rhs) const = 0;
-    virtual bool operator<=(const GraphObject& rhs) const = 0;
-    virtual bool operator>=(const GraphObject& rhs) const = 0;
-    virtual bool operator<(const GraphObject& rhs) const = 0;
-    virtual bool operator>(const GraphObject& rhs) const = 0;
+    virtual bool operator==(const GraphObject& rhs) const noexcept = 0;
+    virtual bool operator!=(const GraphObject& rhs) const noexcept = 0;
+    virtual bool operator<=(const GraphObject& rhs) const noexcept = 0;
+    virtual bool operator>=(const GraphObject& rhs) const noexcept = 0;
+    virtual bool operator<(const GraphObject& rhs)  const noexcept = 0;
+    virtual bool operator>(const GraphObject& rhs)  const noexcept = 0;
 };
 
 #endif // BASE__OBJECT_TYPE_H_

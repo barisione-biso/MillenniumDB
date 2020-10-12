@@ -10,17 +10,17 @@ ValueInt::ValueInt(int64_t value)
 ValueInt::~ValueInt() = default;
 
 
-string ValueInt::to_string() const {
+string ValueInt::to_string() const noexcept {
     return std::to_string(value);
 }
 
 
-ObjectType ValueInt::type() const {
+ObjectType ValueInt::type() const noexcept {
     return ObjectType::value_int;
 }
 
 
-bool ValueInt::operator==(const GraphObject& rhs) const {
+bool ValueInt::operator==(const GraphObject& rhs) const noexcept {
     if (rhs.type() == ObjectType::value_int) {
         const auto& casted_rhs = static_cast<const ValueInt&>(rhs);
         return this->value == casted_rhs.value;
@@ -33,7 +33,7 @@ bool ValueInt::operator==(const GraphObject& rhs) const {
 }
 
 
-bool ValueInt::operator!=(const GraphObject& rhs) const {
+bool ValueInt::operator!=(const GraphObject& rhs) const noexcept {
     if (rhs.type() == ObjectType::value_int) {
         const auto& casted_rhs = static_cast<const ValueInt&>(rhs);
         return this->value != casted_rhs.value;
@@ -46,7 +46,7 @@ bool ValueInt::operator!=(const GraphObject& rhs) const {
 }
 
 
-bool ValueInt::operator<=(const GraphObject& rhs) const {
+bool ValueInt::operator<=(const GraphObject& rhs) const noexcept {
     if (rhs.type() == ObjectType::value_int) {
         const auto& casted_rhs = static_cast<const ValueInt&>(rhs);
         return this->value <= casted_rhs.value;
@@ -59,7 +59,7 @@ bool ValueInt::operator<=(const GraphObject& rhs) const {
 }
 
 
-bool ValueInt::operator>=(const GraphObject& rhs) const {
+bool ValueInt::operator>=(const GraphObject& rhs) const noexcept {
     if (rhs.type() == ObjectType::value_int) {
         const auto& casted_rhs = static_cast<const ValueInt&>(rhs);
         return this->value >= casted_rhs.value;
@@ -72,7 +72,7 @@ bool ValueInt::operator>=(const GraphObject& rhs) const {
 }
 
 
-bool ValueInt::operator<(const GraphObject& rhs) const {
+bool ValueInt::operator<(const GraphObject& rhs) const noexcept {
     if (rhs.type() == ObjectType::value_int) {
         const auto& casted_rhs = static_cast<const ValueInt&>(rhs);
         return this->value < casted_rhs.value;
@@ -85,7 +85,7 @@ bool ValueInt::operator<(const GraphObject& rhs) const {
 }
 
 
-bool ValueInt::operator>(const GraphObject& rhs) const {
+bool ValueInt::operator>(const GraphObject& rhs) const noexcept {
     if (rhs.type() == ObjectType::value_int) {
         const auto& casted_rhs = static_cast<const ValueInt&>(rhs);
         return this->value > casted_rhs.value;

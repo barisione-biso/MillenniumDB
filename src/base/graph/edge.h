@@ -11,15 +11,15 @@ public:
         : id(id) { }
     ~Edge() = default;
 
-    std::string to_string() const override {
+    inline std::string to_string() const noexcept override {
         return "_e" + std::to_string(id);
     }
 
-    ObjectType type() const override {
+    ObjectType type() const noexcept override {
         return ObjectType::edge;
     }
 
-    bool operator==(const GraphObject& rhs) const override {
+    bool operator==(const GraphObject& rhs) const noexcept override {
         if (rhs.type() == ObjectType::edge) {
             const auto& casted_rhs = static_cast<const Edge&>(rhs);
             return this->id == casted_rhs.id;
@@ -27,7 +27,7 @@ public:
         else return false;
     }
 
-    bool operator!=(const GraphObject& rhs) const override {
+    bool operator!=(const GraphObject& rhs) const noexcept override {
         if (rhs.type() == ObjectType::edge) {
             const auto& casted_rhs = static_cast<const Edge&>(rhs);
             return this->id != casted_rhs.id;
@@ -35,19 +35,19 @@ public:
         else return true;
     }
 
-    bool operator<=(const GraphObject&) const override {
+    bool operator<=(const GraphObject&) const noexcept override {
         return false;
     }
 
-    bool operator>=(const GraphObject&) const override {
+    bool operator>=(const GraphObject&) const noexcept override {
         return false;
     }
 
-    bool operator<(const GraphObject&) const override {
+    bool operator<(const GraphObject&) const noexcept override {
         return false;
     }
 
-    bool operator>(const GraphObject&) const override {
+    bool operator>(const GraphObject&) const noexcept override {
         return false;
     }
 };

@@ -11,18 +11,18 @@ public:
         : value(value) { }
     ~ValueBool() = default;
 
-    std::string to_string() const override {
+    std::string to_string() const noexcept override {
         if (value)
             return "true";
         else
             return "false";
     }
 
-    ObjectType type() const override {
+    ObjectType type() const noexcept override {
         return ObjectType::value_bool;
     }
 
-    bool operator==(const GraphObject& rhs) const override {
+    bool operator==(const GraphObject& rhs) const noexcept override {
         if (rhs.type() == ObjectType::value_bool) {
             const auto& casted_rhs = static_cast<const ValueBool&>(rhs);
             return this->value == casted_rhs.value;
@@ -30,7 +30,7 @@ public:
         return false;
     }
 
-    bool operator!=(const GraphObject& rhs) const override {
+    bool operator!=(const GraphObject& rhs) const noexcept override {
         if (rhs.type() == ObjectType::value_bool) {
             const auto& casted_rhs = static_cast<const ValueBool&>(rhs);
             return this->value != casted_rhs.value;
@@ -38,19 +38,19 @@ public:
         return true;
     }
 
-    bool operator<=(const GraphObject&) const override {
+    bool operator<=(const GraphObject&) const noexcept override {
         return false;
     }
 
-    bool operator>=(const GraphObject&) const override {
+    bool operator>=(const GraphObject&) const noexcept override {
         return false;
     }
 
-    bool operator<(const GraphObject&) const override {
+    bool operator<(const GraphObject&) const noexcept override {
         return false;
     }
 
-    bool operator>(const GraphObject&) const override {
+    bool operator>(const GraphObject&) const noexcept override {
         return false;
     }
 };

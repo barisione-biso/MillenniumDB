@@ -1,11 +1,11 @@
 #ifndef RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_
 #define RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_
 
-#include "base/ids/var_id.h"
-#include "relational_model/execution/binding/binding_id_iter.h"
-
 #include <memory>
 #include <vector>
+
+#include "base/ids/var_id.h"
+#include "relational_model/execution/binding/binding_id_iter.h"
 
 class IndexNestedLoopJoin : public BindingIdIter {
 public:
@@ -13,7 +13,7 @@ public:
     ~IndexNestedLoopJoin() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId* begin(BindingId& input) override;
+    BindingId& begin(BindingId& input) override;
     void reset() override;
     bool next() override;
 
@@ -23,9 +23,6 @@ private:
 
     BindingId* current_left;
     BindingId* current_right;
-
-    std::vector<VarId> vars;
-    std::unique_ptr<BindingId> my_binding;
 
     inline void construct_binding();
 };

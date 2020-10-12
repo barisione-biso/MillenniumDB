@@ -12,11 +12,11 @@
 
 #include "storage/page_id.h"
 
-const int PAGE_SIZE = 4096;
-
 class Page {
 friend class BufferManager; // needed to access private constructor
 public:
+    static constexpr uint_fast32_t PAGE_SIZE = 4096;
+
     // contains file_id and page_number of this page
     PageId page_id;
 
@@ -27,10 +27,10 @@ public:
     void reset();
 
     // get the start memory position of `PAGE_SIZE` allocated bytes
-    char* get_bytes() const { return bytes; };
+    inline char* get_bytes() const { return bytes; };
 
     // get page number
-    uint_fast32_t get_page_number() const { return page_id.page_number; };
+    inline uint_fast32_t get_page_number() const { return page_id.page_number; };
 
 private:
     uint_fast32_t pins;             // count of objects using this page, modified only by buffer_manager

@@ -24,14 +24,13 @@ private:
     bool already_looked;
 
     BindingId* my_input;
-    std::unique_ptr<BindingId> my_binding;
 
 public:
     EdgeTableLookup(RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type);
     ~EdgeTableLookup() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId* begin(BindingId& input) override;
+    BindingId& begin(BindingId& input) override;
     void reset() override;
     bool next() override;
 };

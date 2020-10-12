@@ -79,7 +79,7 @@ void BPlusTree<N>::bulk_import(BptLeafProvider& leaf_provider) {
 
 
 template <std::size_t N>
-unique_ptr<BptIter<N>> BPlusTree<N>::get_range(const Record<N>& min, const Record<N>& max) const {
+unique_ptr<BptIter<N>> BPlusTree<N>::get_range(const Record<N>& min, const Record<N>& max) const noexcept {
     auto page_number_and_pos = root.search_leaf(min);
     return make_unique<BptIter<N>>(leaf_file_id, page_number_and_pos.page_number, page_number_and_pos.result_index, max);
 }

@@ -348,7 +348,7 @@ void BPlusTreeDir<N>::shift_right_children(int from, int to) {
 
 
 template <std::size_t N>
-SearchLeafResult BPlusTreeDir<N>::search_leaf(const Record<N>& min) const {
+SearchLeafResult BPlusTreeDir<N>::search_leaf(const Record<N>& min) const noexcept {
     int dir_index = search_child_index(0, key_count, min);
     int page_pointer = children[dir_index];
 

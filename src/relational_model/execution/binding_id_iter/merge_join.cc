@@ -7,16 +7,16 @@ MergeJoin::MergeJoin(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rh
     lhs(move(lhs)), rhs(move(rhs)), join_var(join_var) { }
 
 
-BindingId* MergeJoin::begin(BindingId& input) {
-    my_binding = make_unique<BindingId>(input.var_count());
+BindingId& MergeJoin::begin(BindingId& input) {
+    my_binding.init(input.var_count());
 
-    current_left = lhs->begin(input);
+    current_left = &lhs->begin(input);
     lhs->next();
 
-    current_right = rhs->begin(input);
+    current_right = &rhs->begin(input);
     rhs->next();
 
-    return my_binding.get();
+    return my_binding;
 }
 
 
@@ -48,8 +48,8 @@ bool MergeJoin::next() {
 
 
 void MergeJoin::construct_binding() {
-    my_binding->add_all(*current_left);
-    my_binding->add_all(*current_right);
+    my_binding.add_all(*current_left);
+    my_binding.add_all(*current_right);
 }
 
 

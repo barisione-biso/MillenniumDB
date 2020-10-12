@@ -12,13 +12,13 @@ IndexNestedLoopJoin::IndexNestedLoopJoin(unique_ptr<BindingIdIter> lhs, unique_p
     rhs (move(rhs)) { }
 
 
-BindingId* IndexNestedLoopJoin::begin(BindingId& input) {
-    my_binding = make_unique<BindingId>(input.var_count());
-    current_left = lhs->begin(input);
+BindingId& IndexNestedLoopJoin::begin(BindingId& input) {
+    my_binding.init(input.var_count());
+    current_left = &lhs->begin(input);
     if (lhs->next()) {
-        current_right = rhs->begin(*current_left);
+        current_right = &rhs->begin(*current_left);
     }
-    return my_binding.get();
+    return my_binding;
 }
 
 
@@ -45,8 +45,8 @@ bool IndexNestedLoopJoin::next() {
 
 
 void IndexNestedLoopJoin::construct_binding() {
-    my_binding->add_all(*current_left);
-    my_binding->add_all(*current_right);
+    my_binding.add_all(*current_left);
+    my_binding.add_all(*current_right);
 }
 
 

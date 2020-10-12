@@ -13,11 +13,11 @@ void NodeTableEnum::analyze(int indent) const {
 }
 
 
-BindingId* NodeTableEnum::begin(BindingId& input) {
-    my_binding = std::make_unique<BindingId>(input.var_count());
+BindingId& NodeTableEnum::begin(BindingId& input) {
+    my_binding.init(input.var_count());
     my_input = &input;
     current_pos = 0;
-    return my_binding.get();
+    return my_binding;
 }
 
 
@@ -29,8 +29,8 @@ void NodeTableEnum::reset() {
 bool NodeTableEnum::next() {
     auto record = table[current_pos++];
     if (record != nullptr) {
-        my_binding->add_all(*my_input);
-        my_binding->add(var_id, ObjectId(record->ids[0]));
+        my_binding.add_all(*my_input);
+        my_binding.add(var_id, ObjectId(record->ids[0]));
         ++results;
         return true;
     } else {

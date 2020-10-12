@@ -65,7 +65,7 @@ public:
 private:
     uint64_t get_external_id(const std::string& str, bool create_if_not_exists = false);
 
-    typename std::aligned_storage<sizeof(QuadCatalog), alignof(QuadCatalog)>::type               catalog_buf;
+    typename std::aligned_storage<sizeof(QuadCatalog), alignof(QuadCatalog)>::type       catalog_buf;
     typename std::aligned_storage<sizeof(ObjectFile), alignof(ObjectFile)>::type         object_file_buf;
     typename std::aligned_storage<sizeof(ExtendibleHash), alignof(ExtendibleHash)>::type strings_cache_buf;
 };

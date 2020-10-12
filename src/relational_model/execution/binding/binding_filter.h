@@ -1,13 +1,13 @@
 #ifndef RELATIONAL_MODEL__BINDING_FILTER_H_
 #define RELATIONAL_MODEL__BINDING_FILTER_H_
 
+#include <set>
+#include <map>
+
 #include "base/binding/binding.h"
 #include "base/graph/graph_object.h"
 #include "base/ids/var_id.h"
 #include "relational_model/models/graph_model.h"
-
-#include <set>
-#include <map>
 
 class BindingFilter : public Binding {
 

@@ -15,14 +15,13 @@ private:
     uint64_t current_node = 0;
 
     BindingId* my_input;
-    std::unique_ptr<BindingId> my_binding;
 
 public:
     ObjectEnum(VarId var_id, const uint64_t mask, const uint64_t max_count);
     ~ObjectEnum() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId* begin(BindingId& input) override;
+    BindingId& begin(BindingId& input) override;
     void reset() override;
     bool next() override;
 };

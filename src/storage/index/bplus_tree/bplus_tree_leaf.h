@@ -31,7 +31,7 @@ class BPlusTreeLeaf {
         ~BPlusTreeLeaf();
 
         std::unique_ptr<BPlusTreeSplit<N>> insert(const Record<N>& record);
-        SearchLeafResult search_leaf(const Record<N>& min) const;
+        SearchLeafResult search_leaf(const Record<N>& min) const noexcept;
 
         // std::unique_ptr<Record> get(const Record& key);
 

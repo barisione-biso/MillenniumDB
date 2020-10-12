@@ -15,8 +15,8 @@ Match::Match(GraphModel& model, unique_ptr<BindingIdIter> root, map<string, VarI
 
 // TODO: devolver Binding*?
 void Match::begin() {
-    input = make_unique<BindingId>(var_pos.size());
-    binding_id_root = root->begin(*input);
+    input.init(var_pos.size());
+    binding_id_root = &root->begin(input);
 }
 
 

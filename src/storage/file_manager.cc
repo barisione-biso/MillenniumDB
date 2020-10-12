@@ -84,7 +84,7 @@ void FileManager::rename(FileId file_id, std::string new_name) {
 
 
 uint_fast32_t FileManager::count_pages(FileId file_id) {
-    return experimental::filesystem::file_size(absolute_file_paths[file_id.id])/PAGE_SIZE;
+    return experimental::filesystem::file_size(absolute_file_paths[file_id.id])/Page::PAGE_SIZE;
 }
 
 
@@ -101,8 +101,8 @@ string FileManager::get_absolute_path(FileId file_id) {
 
 void FileManager::flush(PageId page_id, char* bytes) {
     fstream& file = get_file(page_id.file_id);
-    file.seekg(page_id.page_number*PAGE_SIZE);
-    file.write(bytes, PAGE_SIZE);
+    file.seekg(page_id.page_number*Page::PAGE_SIZE);
+    file.write(bytes, Page::PAGE_SIZE);
 }
 
 
@@ -110,17 +110,17 @@ void FileManager::read_page(PageId page_id, char* bytes) {
     fstream& file = get_file(page_id.file_id);
     file.seekg(0, file.end);
     uint_fast32_t file_pos = file.tellg();
-    if (file_pos/PAGE_SIZE <= page_id.page_number) {
+    if (file_pos/Page::PAGE_SIZE <= page_id.page_number) {
         // reading new file block
         // TODO: use memset?
-        for (int i = 0; i < PAGE_SIZE; i++) {
+        for (int i = 0; i < Page::PAGE_SIZE; i++) {
             bytes[i] = 0;
         }
-        file.write(bytes, PAGE_SIZE); // TODO: could be avoided?
+        file.write(bytes, Page::PAGE_SIZE); // TODO: could be avoided?
     } else {
         // reading existing file block
-        file.seekg(page_id.page_number*PAGE_SIZE);
-        file.read(bytes, PAGE_SIZE);
+        file.seekg(page_id.page_number*Page::PAGE_SIZE);
+        file.read(bytes, Page::PAGE_SIZE);
     }
 }
 

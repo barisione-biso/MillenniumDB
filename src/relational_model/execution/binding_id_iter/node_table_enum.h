@@ -16,14 +16,13 @@ private:
     uint64_t results = 0;
 
     BindingId* my_input;
-    std::unique_ptr<BindingId> my_binding;
 
 public:
     NodeTableEnum(const VarId var_id, RandomAccessTable<1>& table);
     ~NodeTableEnum() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId* begin(BindingId& input) override;
+    BindingId& begin(BindingId& input) override;
     void reset() override;
     bool next() override;
 };

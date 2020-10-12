@@ -1,10 +1,10 @@
 #ifndef RELATIONAL_MODEL__MERGE_JOIN_H_
 #define RELATIONAL_MODEL__MERGE_JOIN_H_
 
+#include <memory>
+
 #include "base/ids/var_id.h"
 #include "relational_model/execution/binding/binding_id_iter.h"
-
-#include <memory>
 
 // This merge is valid only under these conditions:
 // - lhs and rhs have one variable in common: `join_var`
@@ -19,7 +19,7 @@ public:
     ~MergeJoin() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId* begin(BindingId& input) override;
+    BindingId& begin(BindingId& input) override;
     void reset() override;
     bool next() override;
 
@@ -30,8 +30,6 @@ private:
 
     BindingId* current_left = nullptr;
     BindingId* current_right = nullptr;
-
-    std::unique_ptr<BindingId> my_binding;
 
     // statistics
     uint_fast32_t results_found = 0;

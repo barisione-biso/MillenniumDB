@@ -64,11 +64,11 @@ public:
     void rename(FileId file_id, std::string new_name);
 
     // write the data pointed by `bytes` page represented by `page_id` to disk.
-    // `bytes` must point to the start memory position of `PAGE_SIZE` allocated bytes
+    // `bytes` must point to the start memory position of `Page::PAGE_SIZE` allocated bytes
     void flush(PageId page_id, char* bytes);
 
     // read a page from disk into memory pointed by `bytes`.
-    // `bytes` must point to the start memory position of `PAGE_SIZE` allocated bytes
+    // `bytes` must point to the start memory position of `Page::PAGE_SIZE` allocated bytes
     void read_page(PageId page_id, char* bytes);
 
 private:

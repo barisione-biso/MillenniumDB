@@ -154,7 +154,7 @@ void BPlusTreeLeaf<N>::create_new(const Record<N>& record) {
 
 
 template <std::size_t N>
-SearchLeafResult BPlusTreeLeaf<N>::search_leaf(const Record<N>& min) const {
+SearchLeafResult BPlusTreeLeaf<N>::search_leaf(const Record<N>& min) const noexcept {
     auto index = search_index(0, value_count-1, min);
     return SearchLeafResult(page.get_page_number(), index);
 }

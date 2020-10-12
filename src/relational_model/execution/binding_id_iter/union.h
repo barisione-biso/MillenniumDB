@@ -13,14 +13,13 @@ public:
     ~Union() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId* begin(BindingId& input) override;
+    BindingId& begin(BindingId& input) override;
     void reset() override;
     bool next() override;
 
 private:
     std::vector<std::unique_ptr<BindingIdIter>> iters;
     std::vector<BindingId*> my_inputs;
-    std::unique_ptr<BindingId> my_binding;
     uint_fast32_t current_iter;
 };
 

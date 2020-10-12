@@ -23,7 +23,7 @@ private:
     GraphModel& model;
     const std::map<std::string, VarId> var_pos;
     BindingId* binding_id;
-    std::map<std::string, std::shared_ptr<GraphObject>> cache;
+    // std::map<std::string, std::shared_ptr<GraphObject>> cache;
 };
 
 #endif // RELATIONAL_MODEL__BINDING_MATCH_H_
