@@ -1,0 +1,119 @@
+SELECT *
+MATCH (?x)-[?e :PERSON]->(?y)<-[?f :PERSON]-(?z)
+WHERE ?x.name == ?z.name
+
+SELECT *
+MATCH (?x)-[?e :PERSON]->(Q123)<-[?f :PERSON]-(?z)
+WHERE ?x.name == ?z.name
+
+SELECT *
+MATCH (Q123)-[?e :PERSON]->(?y)<-[?f :PERSON]-(?z)
+WHERE ?e.label == ?z.name
+
+SELECT *
+MATCH (?x)-[?e :PERSON]->(?y)<-[?f :PERSON]-(Q123)
+WHERE ?e.name == ?z.name
+
+SELECT *
+MATCH (?x)-[?e :PERSON]->(?y)<-[?f :PERSON]-(?z), (?x)-[?g :knows]->(?z)
+WHERE ?x.name == ?z.name
+
+SELECT *
+MATCH (Q123)-[?e :PERSON]->(?y)<-[?f :PERSON]-(?z), (?x)-[?g :knows]->(?z)
+WHERE ?y.name == ?z.name
+
+
+SELECT *
+MATCH (?x1)->(?x2)->(?x3)->(?x4)->(?x5)->(?x6)
+WHERE ?x1.name == ?x6.name
+
+SELECT *
+MATCH (?x1)->(?x2)->(?x3)->(?x4)->(?x5)->(?x1)
+WHERE ?x1.name == ?x6.name
+
+SELECT *
+MATCH (?x1)-[:knows]->(?x2)-[:likes]->(?x3)-[:knows]->(?x4)
+WHERE ?x1.name == ?x4.name
+
+SELECT *
+MATCH (?x1)-[:knows]->(?x2)-[:likes]->(?x1)-[:knows]->(?x4)
+WHERE ?x1.name == ?x4.name
+
+SELECT *
+MATCH (?x1)-[:knows]->(?x2)-[:likes]->(?x1)
+WHERE ?x1.name == ?x2.name
+
+SELECT *
+MATCH (?x1)-[:knows]->(?x2)-[:likes]->(?x1)->(?x1)
+WHERE ?x1.name == ?x2.name
+
+SELECT *
+MATCH (?x1)-[:knows]->(?x2)-[:likes]->(?x3), (?x2)-[:hasType]->(?x4)
+WHERE ?x1.name == ?x2.name
+
+SELECT *
+MATCH (?x1)-[:knows]->(?x2)-[:likes]->(?x3), (?x2)-[:hasType]->(?x4)
+WHERE ?x1.name == ?x4.name
+
+SELECT *
+MATCH (?x1)-[:knows]->(?x2)-[:likes]->(?x3), (?x2)-[:hasType]->(?x4)
+WHERE ?x1.name == ?x4.name AND ?x1.name == "John"
+
+
+
+
+
+
+
+## Too simple:
+
+SELECT *
+MATCH (?x) -[:PERSON]->(?y)
+
+
+SELECT *
+MATCH (?x) -[:PERSON]->(Q123)
+
+
+SELECT *
+MATCH (Q123) -[:PERSON]->(?y)
+
+
+
+SELECT *
+MATCH (?x) -[?e :PERSON]->(?y)
+
+
+SELECT *
+MATCH (?x) -[?e :PERSON]->(Q123)
+
+
+SELECT *
+MATCH (Q123) -[?e :PERSON]->(?y)
+
+
+SELECT *
+MATCH (Q123) -[?e :PERSON]-> (Q122)
+
+
+
+SELECT *
+MATCH (?x) -[?e :PERSON]->(?y)
+WHERE ?x.name == ?y.name
+
+SELECT *
+MATCH (?x) -[?e :PERSON]->(Q123)
+WHERE ?x.name == "John"
+
+
+SELECT *
+MATCH (Q123) -[?e :PERSON]->(?y)
+WHERE ?y.name == "John"
+
+
+SELECT *
+MATCH (Q123) -[?e :PERSON]-> (Q122)
+WHERE ?e.name == "bla"
+
+
+
