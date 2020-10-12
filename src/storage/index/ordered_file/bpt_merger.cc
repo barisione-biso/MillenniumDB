@@ -24,7 +24,7 @@ void BptMerger<N>::begin() {
     std::array<uint64_t, N> max_range;
     max_range.fill(UINT64_MAX);
 
-    bpt_iter = bpt.get_range(Record<N>(min_range), Record<N>(max_range));
+    bpt_iter = bpt.get_range(move(min_range), move(max_range));
 
     ordered_file_record = ordered_file.next_record();
     bpt_record = bpt_iter->next();

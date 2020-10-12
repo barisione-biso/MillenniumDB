@@ -30,7 +30,7 @@ template <std::size_t N> class BptIter {
 public:
     BptIter(FileId leaf_file_id, int leaf_page_number, int current_pos, const Record<N>& max);
     ~BptIter() = default;
-    std::unique_ptr<Record<N>> next();
+    std::unique_ptr<Record<N>> next() noexcept;
 
 private:
     const FileId leaf_file_id;

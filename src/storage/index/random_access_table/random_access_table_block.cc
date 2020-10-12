@@ -46,7 +46,7 @@ unique_ptr<Record<N>> RandomAccessTableBlock<N>::operator[](uint_fast32_t pos) {
         for (uint_fast32_t i = 0; i < N; i++) {
             ids[i] = records[pos*N + i];
         }
-        return make_unique<Record<N>>(ids);
+        return make_unique<Record<N>>(move(ids));
     } else {
         return nullptr;
     }

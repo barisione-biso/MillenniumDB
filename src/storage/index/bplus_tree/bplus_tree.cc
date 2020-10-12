@@ -128,29 +128,31 @@ BptIter<N>::BptIter(FileId leaf_file_id, int leaf_page_number, int current_pos, 
 
 
 template <std::size_t N>
-unique_ptr<Record<N>> BptIter<N>::next() {
-    if (current_pos < current_leaf->get_value_count()) {
-        unique_ptr<Record<N>> res = current_leaf->get_record(current_pos);
-        // check if res is less than max
-        for (unsigned int i = 0; i < N; ++i) {
-            if (res->ids[i] < max.ids[i]) {
-                ++current_pos;
-                return res;
+unique_ptr<Record<N>> BptIter<N>::next() noexcept {
+    do {
+        if (current_pos < current_leaf->get_value_count()) {
+            unique_ptr<Record<N>> res = current_leaf->get_record(current_pos);
+            // check if res is less than max
+            for (unsigned int i = 0; i < N; ++i) {
+                if (res->ids[i] < max.ids[i]) {
+                    ++current_pos;
+                    return res;
+                }
+                else if (res->ids[i] > max.ids[i]) {
+                    return nullptr;
+                }
+                // continue iterating if res->ids[i] == max.ids[i]
             }
-            else if (res->ids[i] > max.ids[i]) {
-                return nullptr;
-            }
-            // continue if they were equal
+            ++current_pos;
+            return res; // res == max
         }
-        ++current_pos;
-        return res; // res == max
-    }
-    else if (current_leaf->has_next()) {
-        current_leaf = current_leaf->get_next_leaf();
-        current_pos = 0;
-        return next();
-    }
-    else {
-        return nullptr;
-    }
+        else if (current_leaf->has_next()) {
+            current_leaf = current_leaf->get_next_leaf();
+            current_pos = 0;
+            // continue while
+        }
+        else {
+            return nullptr;
+        }
+    } while (true);
 }

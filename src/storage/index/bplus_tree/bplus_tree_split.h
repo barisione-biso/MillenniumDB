@@ -5,7 +5,7 @@
 
 template <std::size_t N>
 struct BPlusTreeSplit {
-    BPlusTreeSplit(Record<N> record, int encoded_page_number) :
+    BPlusTreeSplit(const Record<N>& record, int encoded_page_number) :
         record(record),
         encoded_page_number(encoded_page_number) { }
 

@@ -78,7 +78,7 @@ std::unique_ptr<Record<N>> OrderedFile<N>::next_record() {
     if (readed == 0) {
         return nullptr;
     } else {
-        return make_unique<Record<N>>(arr);
+        return make_unique<Record<N>>(move(arr));
     }
 }
 
@@ -353,7 +353,7 @@ void OrderedFile<N>::check_order() {
         arrA[i] = buffer[i];
     }
 
-    auto recordA = Record<N>(arrA);
+    auto recordA = Record<N>(move(arrA));
 
     file.read((char*)buffer, bytes_per_tuple);
     auto a = file.gcount();
@@ -362,7 +362,7 @@ void OrderedFile<N>::check_order() {
         arrB[i] = buffer[i];
     }
 
-    Record recordB = Record(arrB);
+    Record recordB = Record(move(arrB));
 
     int count = 2;
     while (a) {
@@ -386,7 +386,7 @@ void OrderedFile<N>::check_order() {
         for (uint_fast32_t i = 0; i < N; ++i) {
             arr[i] = buffer[i];
         }
-        recordB = Record(arr);
+        recordB = Record(move(arr));
         count++;
     }
     file.clear(); // clear badbit?

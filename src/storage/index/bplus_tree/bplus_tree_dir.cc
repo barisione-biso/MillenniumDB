@@ -306,7 +306,7 @@ std::unique_ptr<BPlusTreeSplit<N>> BPlusTreeDir<N>::insert(const Record<N>& reco
             );
             new_page.make_dirty();
             this->page.make_dirty();
-            return std::make_unique<BPlusTreeSplit<N>>(Record<N>(split_key), new_page.get_page_number()*-1);
+            return std::make_unique<BPlusTreeSplit<N>>(move(split_key), new_page.get_page_number()*-1);
         }
     }
     return nullptr;

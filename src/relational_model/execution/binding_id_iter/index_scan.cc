@@ -43,8 +43,8 @@ BindingId& IndexScan<N>::begin(BindingId& input) {
     }
 
     it = bpt.get_range(
-        Record(min_ids),
-        Record(max_ids)
+        Record<N>(std::move(min_ids)),
+        Record<N>(std::move(max_ids))
     );
     ++bpt_searches;
     return my_binding;
@@ -83,8 +83,8 @@ void IndexScan<N>::reset() {
     }
 
     it = bpt.get_range(
-        Record<N>(min_ids),
-        Record<N>(max_ids)
+        Record<N>(std::move(min_ids)),
+        Record<N>(std::move(max_ids))
     );
     ++bpt_searches;
 }

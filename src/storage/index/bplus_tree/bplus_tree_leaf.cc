@@ -45,7 +45,7 @@ unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(int pos) const {
     for (uint_fast32_t i = 0; i < N; i++) {
         ids[i] = records[pos*N + i];
     }
-    return make_unique<Record<N>>(ids);
+    return make_unique<Record<N>>(move(ids));
 }
 
 
@@ -134,7 +134,7 @@ unique_ptr<BPlusTreeSplit<N>> BPlusTreeLeaf<N>::insert(const Record<N>& record) 
         for (uint_fast32_t i = 0; i < N; i++) {
             split_key[i] = new_leaf.records[i];
         }
-        auto split_record = Record<N>(split_key);
+        auto split_record = Record<N>(move(split_key));
         this->page.make_dirty();
         new_page.make_dirty();
 
