@@ -45,7 +45,8 @@ namespace common {
 
         // Grammar
         auto const node_name_def =
-            lexeme[(alpha | char_('_')) >> *(alnum | char_('_'))];
+            // lexeme[(alpha | char_('_')) >> *(alnum | char_('_'))];
+            lexeme[+(alnum | char_('_'))];
 
         auto const var_name_def =
             char_('?') >> alpha >> *(alnum | char_('_'));

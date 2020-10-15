@@ -86,7 +86,20 @@ void BulkImport::start_import() {
 
             line_number++;
         } else {
-            cerr << "ERROR: line " << line_number << " has wrong format in import file.\n";
+            cerr << "ERROR: line " << line_number << " has wrong format in import file:\n";
+            auto character_count = 0;
+            // TODO: check eof?
+            while (*file_iter != '\n' && file_iter != file_iter_end) {
+                ++character_count;
+                if (character_count > 256) {
+                    cerr << "...(line exceeded 256 characters)\n";
+                    return;
+                } else {
+                    cerr << *file_iter;
+                    ++file_iter;
+                }
+            }
+            cerr << "\n";
             return;
         }
     } while(file_iter != file_iter_end);
