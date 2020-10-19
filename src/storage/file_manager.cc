@@ -113,7 +113,7 @@ void FileManager::read_page(PageId page_id, char* bytes) {
     if (file_pos/Page::PAGE_SIZE <= page_id.page_number) {
         // reading new file block
         // TODO: use memset?
-        for (int i = 0; i < Page::PAGE_SIZE; i++) {
+        for (unsigned int i = 0; i < Page::PAGE_SIZE; i++) {
             bytes[i] = 0;
         }
         file.write(bytes, Page::PAGE_SIZE); // TODO: could be avoided?

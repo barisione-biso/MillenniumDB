@@ -4,6 +4,7 @@
 
 #include "base/parser/grammar/query/query_def.h"
 #include "base/parser/grammar/query/printer/query_ast_printer.h"
+#include "base/parser/grammar/manual_plan/manual_plan_def.h"
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_match.h"
@@ -12,7 +13,7 @@
 
 using namespace std;
 
-unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::QueryRoot& ast) {
+unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
     unique_ptr<Op> op_match = make_unique<OpMatch>(ast.graph_pattern);
     unique_ptr<Op> op_filter = make_unique<OpFilter>(ast.where, move(op_match));
     uint_fast32_t limit = 0;
@@ -27,8 +28,8 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(string& query) {
     auto iter = query.begin();
     auto end = query.end();
 
-    query::ast::QueryRoot ast;
-    bool r = phrase_parse(iter, end, query::parser::query_root, query::parser::skipper, ast);
+    query::ast::Root ast;
+    bool r = phrase_parse(iter, end, query::parser::root, query::parser::skipper, ast);
     if (r && iter == end) { // parsing succeeded
         if (ast.explain) {
             QueryAstPrinter printer(cout);
@@ -50,17 +51,16 @@ void QueryParser::check_query_plan(OpSelect& op_select) {
 }
 
 
-// manual_plan_ast::Root QueryParser::get_manual_plan(string& query) {
-//     cout << "ManualPlan:\n" << query << "\n";
-//     auto iter = query.begin();
-//     auto end = query.end();
+manual_plan::ast::Root QueryParser::get_manual_plan(string& query) {
+    auto iter = query.begin();
+    auto end = query.end();
 
-//     manual_plan_ast::Root manual_plan;
-//     bool r = phrase_parse(iter, end, manual_plan::parser::root, manual_plan::parser::skipper, manual_plan);
-//     if (r && iter == end) { // parsing succeeded
-//         return manual_plan;
-//     } else {
-//         cout << "ManualPlan failed\n";
-//         throw QueryParsingException();
-//     }
-// }
+    manual_plan::ast::Root manual_plan;
+    bool r = phrase_parse(iter, end, manual_plan::parser::root, manual_plan::parser::skipper, manual_plan);
+    if (r && iter == end) { // parsing succeeded
+        return manual_plan;
+    } else {
+        cout << "ManualPlan failed\n";
+        throw QueryParsingException();
+    }
+}

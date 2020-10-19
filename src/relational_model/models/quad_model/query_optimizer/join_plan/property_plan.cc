@@ -124,14 +124,12 @@ double PropertyPlan::estimate_output_size() {
 void PropertyPlan::set_input_vars(const uint64_t input_vars) {
     if (std::holds_alternative<VarId>(object)) {
         auto object_var_id = std::get<VarId>(object);
-        assert(object_var_id.id >= 0 && "Inconsistent VarId");
         if ((input_vars & (1UL << object_var_id.id)) != 0) {
             object_assigned = true;
         }
     }
     if (std::holds_alternative<VarId>(key)) {
         auto key_var_id = std::get<VarId>(key);
-        assert(key_var_id.id >= 0 && "Inconsistent VarId");
         if ((input_vars & (1UL << key_var_id.id)) != 0) {
             key_assigned = true;
         }
@@ -139,7 +137,6 @@ void PropertyPlan::set_input_vars(const uint64_t input_vars) {
 
     if (std::holds_alternative<VarId>(value)) {
         auto value_var_id = std::get<VarId>(value);
-        assert(value_var_id.id >= 0 && "Inconsistent VarId");
         if ((input_vars & (1UL << value_var_id.id)) != 0) {
             value_assigned = true;
         }
@@ -150,15 +147,12 @@ uint64_t PropertyPlan::get_vars() {
     uint64_t result = 0;
 
     if ( std::holds_alternative<VarId>(object) ) {
-        assert(std::get<VarId>(object).id >= 0 && "Inconsistent VarId");
         result |= 1UL << std::get<VarId>(object).id;
     }
     if ( std::holds_alternative<VarId>(key) ) {
-        assert(std::get<VarId>(key).id >= 0 && "Inconsistent VarId");
         result |= 1UL << std::get<VarId>(key).id;
     }
     if ( std::holds_alternative<VarId>(value) ) {
-        assert(std::get<VarId>(value).id >= 0 && "Inconsistent VarId");
         result |= 1UL << std::get<VarId>(value).id;
     }
     return result;

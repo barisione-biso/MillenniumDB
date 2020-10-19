@@ -53,8 +53,8 @@ void execute_query(unique_ptr<BindingIter> root, TcpBuffer& tcp_buffer) {
     auto binding = root->next();
     int count = 0;
     while (binding != nullptr) {
-        // TODO:
-        // tcp_buffer << binding->to_string();
+        // TODO: uncomment/comment to enable/disable printing results
+        tcp_buffer << binding->to_string();
         binding = root->next();
         count++;
     }
@@ -103,19 +103,19 @@ void session(tcp::socket sock, GraphModel* model) {
             tcp_buffer << "Query Parser/Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
         }
         catch (QueryParsingException& e) {
-            // // Try with manual plan
-            // try {
-            //     auto manual_plan = QueryParser::get_manual_plan(query);
-            //     auto physical_plan = model->exec(manual_plan);
-            //     auto end = chrono::system_clock::now();
-            //     chrono::duration<float, std::milli> duration = end - start;
-            //     tcp_buffer << "Query Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
-            //     execute_query(move(physical_plan), tcp_buffer);
-            // }
-            // catch (QueryException& e) {
-                tcp_buffer << "Query Parsing Exception: " << e.what() << "\n";
+            // Try with manual plan
+            try {
+                auto manual_plan = QueryParser::get_manual_plan(query);
+                auto physical_plan = model->exec(manual_plan);
+                auto end = chrono::system_clock::now();
+                chrono::duration<float, std::milli> duration = end - start;
+                tcp_buffer << "Manual Plan Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
+                execute_query(move(physical_plan), tcp_buffer);
+            }
+            catch (QueryException& e) {
+                tcp_buffer << "(Manual Plan) Query Parsing Exception: " << e.what() << "\n";
                 tcp_buffer.set_error();
-            // }
+            }
         }
         catch (QueryException& e) {
             tcp_buffer << "Query Exception: " << e.what() << "\n";

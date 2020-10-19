@@ -41,7 +41,7 @@ void QueryAstPrinter::indent(std::string str, int_fast32_t extra_indent) const {
 }
 
 
-void QueryAstPrinter::operator()(QueryRoot const& r) const {
+void QueryAstPrinter::operator()(Root const& r) const {
     indent("{\n");
     auto printer = QueryAstPrinter(out, base_indent+1);
     printer.indent();

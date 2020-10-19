@@ -97,10 +97,10 @@ std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select) {
 }
 
 
-// TODO: remake
-// std::unique_ptr<BindingIter> QuadModel::exec(manual_plan_ast::Root&) {
-//     return nullptr;
-// }
+std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::Root& manual_plan) {
+    auto query_optimizer = QueryOptimizer(*this);
+    return query_optimizer.exec(manual_plan);
+}
 
 
 uint64_t QuadModel::get_external_id(const string& str, bool create_if_not_exists) {

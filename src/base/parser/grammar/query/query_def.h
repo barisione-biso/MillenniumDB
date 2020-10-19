@@ -16,8 +16,8 @@ namespace query {
         using x3::uint32;
 
         // Declare rules
-        x3::rule<class query_root, ast::QueryRoot>
-            query_root = "query_root";
+        x3::rule<class root, ast::Root>
+            root = "root";
         x3::rule<class select_item, ast::SelectItem>
             select_item = "select_item";
         x3::rule<class selection, std::vector<ast::SelectItem>>
@@ -108,7 +108,7 @@ namespace query {
         auto const limit_statement =
             no_case["limit"] >> uint32;
 
-        auto const query_root_def =
+        auto const root_def =
             explain_statement
             >> select_statement
             >> match_statement
@@ -116,7 +116,7 @@ namespace query {
             >> -(limit_statement);
 
         BOOST_SPIRIT_DEFINE(
-            query_root,
+            root,
             selection,
             select_item,
             node,
@@ -130,7 +130,7 @@ namespace query {
     }
 
     parser::query_type query() {
-        return parser::query_root;
+        return parser::root;
     }
 }
 

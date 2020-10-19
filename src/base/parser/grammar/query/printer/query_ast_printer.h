@@ -22,7 +22,7 @@ public:
     void indent(std::string str) const;
     void indent(std::string str, int_fast32_t extra_indent) const;
 
-    void operator() (query::ast::QueryRoot const&) const;
+    void operator() (query::ast::Root const&) const;
     void operator() (std::vector<query::ast::SelectItem> const&) const;
     void operator() (std::vector<query::ast::LinearPattern> const&) const;
     void operator() (query::ast::LinearPattern const&) const;

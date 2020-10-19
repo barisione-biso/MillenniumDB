@@ -83,7 +83,7 @@ namespace query { namespace ast {
         std::vector<StepFormula> path;
     };
 
-    struct QueryRoot {
+    struct Root {
         bool                           explain;
         std::vector<SelectItem>        selection;
         std::vector<LinearPattern>     graph_pattern;

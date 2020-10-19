@@ -5,7 +5,7 @@
 
 #include "base/parser/grammar/query/query_ast.h"
 
-BOOST_FUSION_ADAPT_STRUCT(query::ast::QueryRoot,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::Root,
     explain, selection, graph_pattern, where, limit
 )
 
