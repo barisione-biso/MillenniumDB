@@ -1,0 +1,4 @@
+SELECT *
+MATCH (?x1)-[=TYPE(Q255)]->(?x2)-[=TYPE(?t)]->(?x3), (?x2)-[=TYPE(Q838)]->(?x4)
+//WHERE ?x1.name == ?x4.name AND ?x1.name == "John"
+LIMIT 100

@@ -1,4 +1,0 @@
-MATCH (m:Comment {id:"824634675534"})
-RETURN
-  m.creationDate,
-  m.content;

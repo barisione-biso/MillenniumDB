@@ -1,0 +1,15 @@
+PREFIX snvoc: <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/>
+
+SELECT
+    ?p1Id
+    ?p2Id
+WHERE {
+    ?p1 a snvoc:Person .
+    ?p2 a snvoc:Person .
+    ?p1 snvoc:workAt ?s1 .
+    ?p2 snvoc:workAt ?s2 .
+    ?s1 snvoc:hasOrganisation ?c .
+    ?s2 snvoc:hasOrganisation ?c .
+    ?p1 snvoc:id ?p1Id .
+    ?p2 snvoc:id ?p2Id .
+}

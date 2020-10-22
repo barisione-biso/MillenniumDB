@@ -1,4 +1,0 @@
-SELECT
-  ?m.creationDate,
-  ?m.content
-MATCH (?m :Comment {id:824634675534})

@@ -1,2 +1,0 @@
-MATCH (n:Comment)
-RETURN n.id

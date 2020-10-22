@@ -1,0 +1,13 @@
+PREFIX snvoc: <http://www.ldbc.eu/ldbc_socialnet/1.0/vocabulary/>
+
+SELECT
+    ?personId
+    ?firstName
+    ?lastName
+WHERE {
+    ?message snvoc:id "1924146729081"^^<http://www.w3.org/2001/XMLSchema#long> .
+    ?message snvoc:hasCreator ?creator .
+    ?creator snvoc:id ?personId .
+    ?creator snvoc:firstName ?firstName .
+    ?creator snvoc:lastName ?lastName .
+}

@@ -1,2 +1,0 @@
-SELECT ?n.id
-MATCH (?n :Comment)

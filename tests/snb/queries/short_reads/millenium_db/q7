@@ -1,0 +1,9 @@
+SELECT
+  ?c.id,
+  ?c.content,
+  ?c.creationDate,
+  ?p.id,
+  ?p.firstName,
+  ?p.lastName
+MATCH (?m :Message {id:1374390846534})<-[:REPLY_OF]-(?c :Comment)-[:HAS_CREATOR]->(?p :Person),
+      (?m)-[:HAS_CREATOR]->(?a :Person)-[?r :KNOWS]->(?p)
