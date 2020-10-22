@@ -47,6 +47,9 @@ private:
     uint64_t get_node_id(const std::string& node_name);
     uint64_t get_anonymous_node_id(const std::string& tmp_name);
 
+    template <std::size_t N>
+    void set_distinct_type_stats(OrderedFile<N>& ordered_file, std::map<uint64_t, uint64_t>& m);
+
     // template <std::size_t N>
     // void merge_tree_and_ordered_file(std::unique_ptr<BPlusTree<N>>&, OrderedFile<N>&);
 

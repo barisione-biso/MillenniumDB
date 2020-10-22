@@ -7,10 +7,9 @@ using namespace std;
 NestedLoopPlan::NestedLoopPlan(unique_ptr<JoinPlan> _lhs, unique_ptr<JoinPlan> _rhs) :
     lhs(move(_lhs)), rhs(move(_rhs))
 {
-    auto var_order = lhs->get_vars();
-    rhs->set_input_vars(var_order);
+    rhs->set_input_vars(lhs->get_vars());
 
-    auto lhs_output_size = lhs->estimate_output_size();
+    const auto lhs_output_size = lhs->estimate_output_size();
     output_size = lhs_output_size * rhs->estimate_output_size();
 
     if (lhs_output_size > 1) {

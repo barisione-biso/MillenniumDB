@@ -48,7 +48,7 @@ double UnjointObjectPlan::estimate_output_size() {
 
 
 uint64_t UnjointObjectPlan::get_vars() {
-    return 1UL >> object_var_id.id;
+    return 1UL << object_var_id.id;
 }
 
 

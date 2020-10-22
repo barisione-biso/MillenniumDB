@@ -1,5 +1,7 @@
 #include "connection_plan.h"
 
+#include <algorithm>
+
 #include "relational_model/execution/binding_id_iter/index_scan.h"
 #include "relational_model/execution/binding_id_iter/edge_table_lookup.h"
 
@@ -79,75 +81,137 @@ double ConnectionPlan::estimate_cost() {
 
 double ConnectionPlan::estimate_output_size() {
     const auto total_connections = static_cast<double>(model.catalog().connections_count);
+    const auto distinct_from     = static_cast<double>(model.catalog().distinct_from);
+    const auto distinct_to       = static_cast<double>(model.catalog().distinct_to);
+    const auto distinct_type     = static_cast<double>(model.catalog().distinct_type);
 
-    const auto total_objects = static_cast<double>(model.catalog().identifiable_nodes_count
-                                                   + model.catalog().anonymous_nodes_count
-                                                   + model.catalog().connections_count);
-
-    if (total_connections == 0 || total_objects == 0) { // to avoid division by 0
+    if (distinct_from == 0 || distinct_to == 0) { // to avoid division by 0
         return 0;
     } else if (edge_assigned) {
-        return 1 / (total_objects * total_objects * total_objects);
+        return 1 / (distinct_from * distinct_to * distinct_type);
     }
     // check for special cases
     if (from == to) {
         if (from == type) {
             // from == to == type
-            auto special_connections = static_cast<double>(model.catalog().equal_from_to_type_count);
-            if (from_assigned) {
-                return special_connections / total_objects;
+            if (std::holds_alternative<ObjectId>(type)) {
+                const auto special_connections_with_type = static_cast<double>(
+                    model.catalog().equal_from_to_type_with_type(std::get<ObjectId>(type).id)
+                );
+                return special_connections_with_type;
             } else {
-                return special_connections;
+                const auto special_connections = static_cast<double>(model.catalog().equal_from_to_type_count);
+                if (from_assigned) {
+                    return special_connections /
+                           std::max<double>(distinct_from, std::max<double>(distinct_to, distinct_type));
+                } else {
+                    return special_connections;
+                }
             }
         } else {
-        // from == to
-            auto special_connections = static_cast<double>(model.catalog().equal_from_to_count);
-            if (from_assigned) {
-                return special_connections / total_objects;
+            // from == to
+            if (std::holds_alternative<ObjectId>(type)) {
+                const auto special_connections_with_type = static_cast<double>(
+                    model.catalog().equal_from_to_with_type(std::get<ObjectId>(type).id)
+                );
+                if (from_assigned) {
+                    return special_connections_with_type / distinct_from;
+                } else if (to_assigned) {
+                    return special_connections_with_type / distinct_to;
+                } else {
+                    return special_connections_with_type;
+                }
             } else {
-                return special_connections;
+                const auto special_connections = static_cast<double>(model.catalog().equal_from_to_count);
+                if (from_assigned) {
+                    return special_connections / std::max<double>(distinct_from, distinct_to);
+                } else {
+                    return special_connections;
+                }
             }
         }
     } else if (from == type) {
-        auto special_connections = static_cast<double>(model.catalog().equal_from_type_count);
-        if (from_assigned) {
-            return special_connections / total_objects;
+        if (std::holds_alternative<ObjectId>(type)) {
+            const auto special_connections_with_type = static_cast<double>(
+                model.catalog().equal_from_type_with_type(std::get<ObjectId>(type).id)
+            );
+            if (to_assigned) {
+                return special_connections_with_type / distinct_to;
+            } else {
+                return special_connections_with_type;
+            }
         } else {
-            return special_connections;
+            const auto special_connections = static_cast<double>(model.catalog().equal_from_type_count);
+            if (from_assigned) {
+                return special_connections /  std::max<double>(distinct_from, distinct_type);
+            } else {
+                return special_connections;
+            }
         }
     }
     else if (to == type) {
-        auto special_connections = static_cast<double>(model.catalog().equal_to_type_count);
-        if (to_assigned) {
-            return special_connections / total_objects;
+        if (std::holds_alternative<ObjectId>(type)) {
+            const auto special_connections_with_type = static_cast<double>(
+                model.catalog().equal_to_type_with_type(std::get<ObjectId>(type).id)
+            );
+            if (from_assigned) {
+                return special_connections_with_type / distinct_from;
+            } else {
+                return special_connections_with_type;
+            }
+
         } else {
-            return special_connections;
+            const auto special_connections = static_cast<double>(model.catalog().equal_to_type_count);
+            if (to_assigned) {
+                return special_connections /  std::max<double>(distinct_to, distinct_type);
+            } else {
+                return special_connections;
+            }
         }
     } // end special cases
-    else if (from_assigned) {
-        if (to_assigned) {
-            if (type_assigned) {
-                return total_connections / (total_objects * total_objects * total_objects);
+    else if (type_assigned) {
+        if (std::holds_alternative<ObjectId>(type)) {
+            const auto connections_with_type = static_cast<double>(
+                model.catalog().connections_with_type(std::get<ObjectId>(type).id)
+            );
+            if (from_assigned) {
+                if (to_assigned) {
+                    return connections_with_type / (distinct_from * distinct_to);
+                } else {
+                    return connections_with_type / (distinct_from);
+                }
             } else {
-                return total_connections / (total_objects * total_objects);
+                if (to_assigned) {
+                    return connections_with_type / (distinct_to);
+                } else {
+                    return connections_with_type;
+                }
             }
         } else {
-            if (type_assigned) {
-                return total_connections / (total_objects * total_objects);
+            if (from_assigned) {
+                if (to_assigned) {
+                    return total_connections / (distinct_from * distinct_to * distinct_type);
+                } else {
+                    return total_connections / (distinct_from * distinct_type);
+                }
             } else {
-                return total_connections / total_objects;
+                if (to_assigned) {
+                    return total_connections / (distinct_to * distinct_type);
+                } else {
+                    return total_connections / distinct_type;
+                }
             }
         }
     } else {
-        if (to_assigned) {
-            if (type_assigned) {
-                return total_connections / (total_objects * total_objects);
+        if (from_assigned) {
+            if (to_assigned) {
+                return total_connections / (distinct_from * distinct_to);
             } else {
-                return total_connections / total_objects;
+                return total_connections / distinct_from;
             }
         } else {
-            if (type_assigned) {
-                return total_connections / total_objects;
+            if (to_assigned) {
+                return total_connections / distinct_to;
             } else {
                 return total_connections;
             }

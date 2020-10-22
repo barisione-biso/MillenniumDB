@@ -26,6 +26,8 @@
 #include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
 
+constexpr auto MAX_SELINGER_PLANS = 1;
+
 using namespace std;
 
 QueryOptimizer::QueryOptimizer(QuadModel& model) :
@@ -171,9 +173,13 @@ void QueryOptimizer::visit(OpMatch& op_match) {
     for (auto&& [var_name, var_id] : id_map) {
         var_names[var_id.id] = var_name;
     }
-    auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
-    tmp = make_unique<Match>(model, selinger_optimizer.get_binding_id_iter(), move(id_map));
-    // tmp = make_unique<Match>(get_greedy_join_plan(move(base_plans)), move(id_map));
+
+    if (base_plans.size() <= MAX_SELINGER_PLANS) {
+        auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
+        tmp = make_unique<Match>(model, selinger_optimizer.get_binding_id_iter(), move(id_map));
+    } else {
+        tmp = make_unique<Match>(model, get_greedy_join_plan(move(base_plans)), move(id_map));
+    }
 }
 
 

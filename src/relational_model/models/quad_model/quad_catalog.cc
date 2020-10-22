@@ -18,7 +18,9 @@ QuadCatalog::QuadCatalog(const std::string& filename) :
 
         distinct_labels          = 0;
         distinct_keys            = 0;
-        distinct_types           = 0;
+        distinct_from            = 0;
+        distinct_to              = 0;
+        distinct_type            = 0;
 
         equal_from_to_count      = 0;
         equal_from_type_count    = 0;
@@ -35,7 +37,9 @@ QuadCatalog::QuadCatalog(const std::string& filename) :
         properties_count         = read_uint64();
 
         distinct_labels          = read_uint64();
-        distinct_types           = read_uint64();
+        distinct_from            = read_uint64();
+        distinct_to              = read_uint64();
+        distinct_type            = read_uint64();
         distinct_keys            = read_uint64();
 
         equal_from_to_count      = read_uint64();
@@ -49,7 +53,7 @@ QuadCatalog::QuadCatalog(const std::string& filename) :
             label2total_count.insert({ label_id, label_total_count });
         }
 
-        for (uint_fast32_t i = 0; i < distinct_types; i++) {
+        for (uint_fast32_t i = 0; i < distinct_type; i++) {
             auto type_id          = read_uint64();
             auto type_total_count = read_uint64();
             type2total_count.insert({ type_id, type_total_count });
@@ -65,6 +69,34 @@ QuadCatalog::QuadCatalog(const std::string& filename) :
             auto key_id             = read_uint64();
             auto key_distinct_count = read_uint64();
             key2distinct.insert({ key_id, key_distinct_count });
+        }
+
+        const auto type2equal_from_to_type_count_size = read_uint64();
+        for (uint_fast32_t i = 0; i < type2equal_from_to_type_count_size; i++) {
+            auto type  = read_uint64();
+            auto count = read_uint64();
+            type2equal_from_to_type_count.insert({ type, count });
+        }
+
+        const auto type2equal_from_to_count_size = read_uint64();
+        for (uint_fast32_t i = 0; i < type2equal_from_to_count_size; i++) {
+            auto type  = read_uint64();
+            auto count = read_uint64();
+            type2equal_from_to_count.insert({ type, count });
+        }
+
+        const auto type2equal_from_type_count_size = read_uint64();
+        for (uint_fast32_t i = 0; i < type2equal_from_type_count_size; i++) {
+            auto type  = read_uint64();
+            auto count = read_uint64();
+            type2equal_from_type_count.insert({ type, count });
+        }
+
+        const auto type2equal_to_type_count_size = read_uint64();
+        for (uint_fast32_t i = 0; i < type2equal_to_type_count_size; i++) {
+            auto type  = read_uint64();
+            auto count = read_uint64();
+            type2equal_to_type_count.insert({ type, count });
         }
     }
 
@@ -83,7 +115,9 @@ void QuadCatalog::save_changes() {
     write_uint64(properties_count);
 
     write_uint64(distinct_labels);
-    write_uint64(distinct_types);
+    write_uint64(distinct_from);
+    write_uint64(distinct_to);
+    write_uint64(distinct_type);
     write_uint64(distinct_keys);
 
     write_uint64(equal_from_to_count);
@@ -110,6 +144,30 @@ void QuadCatalog::save_changes() {
         write_uint64(k);
         write_uint64(v);
     }
+
+    write_uint64(type2equal_from_to_type_count.size());
+    for (auto&&[k, v] : type2equal_from_to_type_count) {
+        write_uint64(k);
+        write_uint64(v);
+    }
+
+    write_uint64(type2equal_from_to_count.size());
+    for (auto&&[k, v] : type2equal_from_to_count) {
+        write_uint64(k);
+        write_uint64(v);
+    }
+
+    write_uint64(type2equal_from_type_count.size());
+    for (auto&&[k, v] : type2equal_from_type_count) {
+        write_uint64(k);
+        write_uint64(v);
+    }
+
+    write_uint64(type2equal_to_type_count.size());
+    for (auto&&[k, v] : type2equal_to_type_count) {
+        write_uint64(k);
+        write_uint64(v);
+    }
 }
 
 
@@ -124,7 +182,9 @@ void QuadCatalog::print() {
     cout << "  properties count:         " << properties_count         << "\n";
 
     cout << "  disinct labels:           " << distinct_labels          << "\n";
-    cout << "  disinct types:            " << distinct_types           << "\n";
+    cout << "  disinct from's:           " << distinct_from            << "\n";
+    cout << "  disinct to's:             " << distinct_to              << "\n";
+    cout << "  disinct type's:           " << distinct_type            << "\n";
     cout << "  disinct keys:             " << distinct_keys            << "\n";
 
     cout << "  equal_from_to_count:      " << equal_from_to_count      << "\n";
@@ -133,3 +193,56 @@ void QuadCatalog::print() {
     cout << "  equal_from_to_type_count: " << equal_from_to_type_count << "\n";
     cout << "-------------------------------------\n";
 }
+
+
+uint64_t QuadCatalog::connections_with_type(uint64_t type_id) {
+    // NOT using type2total_count[type_id] because it would insert a 0 in the map qhe key is no found
+    auto search = type2total_count.find(type_id);
+    if (search == type2total_count.end()) {
+        return 0;
+    } else {
+        return search->second;
+    }
+}
+
+
+uint64_t QuadCatalog::equal_from_to_type_with_type(uint64_t type_id) {
+    auto search = type2equal_from_to_type_count.find(type_id);
+    if (search == type2equal_from_to_type_count.end()) {
+        return 0;
+    } else {
+        return search->second;
+    }
+}
+
+
+uint64_t QuadCatalog::equal_from_to_with_type(uint64_t type_id) {
+    auto search = type2equal_from_to_count.find(type_id);
+    if (search == type2equal_from_to_count.end()) {
+        return 0;
+    } else {
+        return search->second;
+    }
+}
+
+
+uint64_t QuadCatalog::equal_from_type_with_type(uint64_t type_id) {
+    auto search = type2equal_from_type_count.find(type_id);
+    if (search == type2equal_from_type_count.end()) {
+        return 0;
+    } else {
+        return search->second;
+    }
+}
+
+
+uint64_t QuadCatalog::equal_to_type_with_type(uint64_t type_id) {
+    auto search = type2equal_to_type_count.find(type_id);
+    if (search == type2equal_to_type_count.end()) {
+        return 0;
+    } else {
+        return search->second;
+    }
+}
+
+

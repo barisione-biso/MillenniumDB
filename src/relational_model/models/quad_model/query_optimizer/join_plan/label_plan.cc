@@ -100,14 +100,14 @@ void LabelPlan::set_input_vars(const uint64_t input_vars) {
     if (std::holds_alternative<VarId>(node)) {
         auto node_var_id = std::get<VarId>(node);
         assert(node_var_id.id >= 0 && "Inconsistent VarId");
-        if ((input_vars & (1UL >> node_var_id.id)) != 0) {
+        if ((input_vars & (1UL << node_var_id.id)) != 0) {
             node_assigned = true;
         }
     }
     if (std::holds_alternative<VarId>(label)) {
         auto label_var_id = std::get<VarId>(label);
         assert(label_var_id.id >= 0 && "Inconsistent VarId");
-        if ((input_vars & (1UL >> label_var_id.id)) != 0) {
+        if ((input_vars & (1UL << label_var_id.id)) != 0) {
             label_assigned = true;
         }
     }
@@ -119,11 +119,11 @@ uint64_t LabelPlan::get_vars() {
 
     if ( std::holds_alternative<VarId>(node) ) {
         assert(std::get<VarId>(node).id >= 0 && "Inconsistent VarId");
-        result |= 1UL >> std::get<VarId>(node).id;
+        result |= 1UL << std::get<VarId>(node).id;
     }
     if ( std::holds_alternative<VarId>(label) ) {
         assert(std::get<VarId>(label).id >= 0 && "Inconsistent VarId");
-        result |= 1UL >> std::get<VarId>(label).id;
+        result |= 1UL << std::get<VarId>(label).id;
     }
     return result;
 }

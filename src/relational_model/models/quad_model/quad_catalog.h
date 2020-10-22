@@ -20,6 +20,12 @@ public:
     void print();
     void save_changes();
 
+    uint64_t connections_with_type        (uint64_t type_id);
+    uint64_t equal_from_to_type_with_type (uint64_t type_id);
+    uint64_t equal_from_to_with_type      (uint64_t type_id);
+    uint64_t equal_from_type_with_type    (uint64_t type_id);
+    uint64_t equal_to_type_with_type      (uint64_t type_id);
+
 // private:
     uint64_t identifiable_defined_count = 0;
     uint64_t anonymous_defined_count = 0;
@@ -33,8 +39,11 @@ public:
     uint64_t properties_count;
 
     uint64_t distinct_labels;
-    uint64_t distinct_types;
     uint64_t distinct_keys;
+
+    uint64_t distinct_from;
+    uint64_t distinct_to;
+    uint64_t distinct_type;
 
     uint64_t equal_from_to_count;
     uint64_t equal_from_type_count;
@@ -42,10 +51,14 @@ public:
     uint64_t equal_from_to_type_count;
 
     std::map<uint64_t, uint64_t> label2total_count;
-    std::map<uint64_t, uint64_t> type2total_count;
     std::map<uint64_t, uint64_t> key2total_count;
-
     std::map<uint64_t, uint64_t> key2distinct;
+    std::map<uint64_t, uint64_t> type2total_count;
+
+    std::map<uint64_t, uint64_t> type2equal_from_to_type_count;
+    std::map<uint64_t, uint64_t> type2equal_from_to_count;
+    std::map<uint64_t, uint64_t> type2equal_from_type_count;
+    std::map<uint64_t, uint64_t> type2equal_to_type_count;
 };
 
 #endif // RELATIONAL_MODEL__QUAD_CATALOG_H_
