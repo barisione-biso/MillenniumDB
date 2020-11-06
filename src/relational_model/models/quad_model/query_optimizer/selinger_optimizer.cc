@@ -79,7 +79,7 @@ SelingerOptimizer::~SelingerOptimizer() {
 }
 
 
-unique_ptr<BindingIdIter> SelingerOptimizer::get_binding_id_iter() {
+unique_ptr<BindingIdIter> SelingerOptimizer::get_binding_id_iter(std::size_t binding_size) {
     for (size_t i = 2; i <= plans_size; ++i) {
         auto combination_enumerator = CombinationEnumerator(plans_size, i);
 
@@ -139,7 +139,7 @@ unique_ptr<BindingIdIter> SelingerOptimizer::get_binding_id_iter() {
 
     optimal_plans[plans_size-1][0]->print(2, true, var_names);
     cout << "\nestimated cost: " << optimal_plans[plans_size-1][0]->estimate_cost() << "\n";
-    return optimal_plans[plans_size-1][0]->get_binding_id_iter();
+    return optimal_plans[plans_size-1][0]->get_binding_id_iter(binding_size);
 }
 
 

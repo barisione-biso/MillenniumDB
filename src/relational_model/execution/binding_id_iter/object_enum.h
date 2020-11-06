@@ -17,7 +17,7 @@ private:
     BindingId* my_input;
 
 public:
-    ObjectEnum(VarId var_id, const uint64_t mask, const uint64_t max_count);
+    ObjectEnum(std::size_t binding_size, VarId var_id, const uint64_t mask, const uint64_t max_count);
     ~ObjectEnum() = default;
 
     void analyze(int indent = 0) const override;

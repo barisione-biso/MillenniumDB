@@ -99,14 +99,12 @@ double LabelPlan::estimate_output_size() {
 void LabelPlan::set_input_vars(const uint64_t input_vars) {
     if (std::holds_alternative<VarId>(node)) {
         auto node_var_id = std::get<VarId>(node);
-        assert(node_var_id.id >= 0 && "Inconsistent VarId");
         if ((input_vars & (1UL << node_var_id.id)) != 0) {
             node_assigned = true;
         }
     }
     if (std::holds_alternative<VarId>(label)) {
         auto label_var_id = std::get<VarId>(label);
-        assert(label_var_id.id >= 0 && "Inconsistent VarId");
         if ((input_vars & (1UL << label_var_id.id)) != 0) {
             label_assigned = true;
         }
@@ -118,11 +116,9 @@ uint64_t LabelPlan::get_vars() {
     uint64_t result = 0;
 
     if ( std::holds_alternative<VarId>(node) ) {
-        assert(std::get<VarId>(node).id >= 0 && "Inconsistent VarId");
         result |= 1UL << std::get<VarId>(node).id;
     }
     if ( std::holds_alternative<VarId>(label) ) {
-        assert(std::get<VarId>(label).id >= 0 && "Inconsistent VarId");
         result |= 1UL << std::get<VarId>(label).id;
     }
     return result;
@@ -139,15 +135,15 @@ uint64_t LabelPlan::get_vars() {
  * ║4║       no      ║       no        ║    LN   ║
  * ╚═╩═══════════════╩═════════════════╩═════════╝
  */
-unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter() {
+unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter(std::size_t binding_size) {
     array<unique_ptr<ScanRange>, 2> ranges;
     if (node_assigned) {
         ranges[0] = get_scan_range(node, node_assigned);
         ranges[1] = get_scan_range(label, label_assigned);
-        return make_unique<IndexScan<2>>(*model.node_label, move(ranges));
+        return make_unique<IndexScan<2>>(binding_size, *model.node_label, move(ranges));
     } else {
         ranges[0] = get_scan_range(label, label_assigned);
         ranges[1] = get_scan_range(node, node_assigned);
-        return make_unique<IndexScan<2>>(*model.label_node, move(ranges));
+        return make_unique<IndexScan<2>>(binding_size, *model.label_node, move(ranges));
     }
 }

@@ -24,8 +24,8 @@ public:
 private:
     GraphModel& model;
     std::unique_ptr<BindingIdIter> root;
-    const std::map<std::string, VarId> var_pos;
     BindingId input;
+    const std::map<std::string, VarId> var_pos;
     BindingId* binding_id_root;
 };
 

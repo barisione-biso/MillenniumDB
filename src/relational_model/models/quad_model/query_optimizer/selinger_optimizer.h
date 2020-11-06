@@ -12,7 +12,7 @@ public:
     SelingerOptimizer(std::vector<std::unique_ptr<JoinPlan>>&& base_plans, std::vector<std::string> var_names);
     ~SelingerOptimizer();
 
-    std::unique_ptr<BindingIdIter> get_binding_id_iter();
+    std::unique_ptr<BindingIdIter> get_binding_id_iter(std::size_t binding_size);
 
 private:
     std::size_t plans_size;

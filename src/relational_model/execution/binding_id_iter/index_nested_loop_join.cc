@@ -7,15 +7,15 @@
 
 using namespace std;
 
-IndexNestedLoopJoin::IndexNestedLoopJoin(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs) :
+IndexNestedLoopJoin::IndexNestedLoopJoin(std::size_t binding_size, unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs) :
+    BindingIdIter(binding_size),
     lhs (move(lhs)),
     rhs (move(rhs)) { }
 
 
 BindingId& IndexNestedLoopJoin::begin(BindingId& input) {
-    my_binding.init(input.var_count());
     current_left = &lhs->begin(input);
-    if (lhs->next()) {
+    if (lhs->next()) { // TODO: no se llama begin al rhs (it sera nullptr)
         current_right = &rhs->begin(*current_left);
     }
     return my_binding;

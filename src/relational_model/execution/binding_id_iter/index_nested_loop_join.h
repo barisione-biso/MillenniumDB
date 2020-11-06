@@ -9,7 +9,9 @@
 
 class IndexNestedLoopJoin : public BindingIdIter {
 public:
-    IndexNestedLoopJoin(std::unique_ptr<BindingIdIter> lhs, std::unique_ptr<BindingIdIter> rhs);
+    IndexNestedLoopJoin(std::size_t binding_size,
+                        std::unique_ptr<BindingIdIter> lhs,
+                        std::unique_ptr<BindingIdIter> rhs);
     ~IndexNestedLoopJoin() = default;
 
     void analyze(int indent = 0) const override;

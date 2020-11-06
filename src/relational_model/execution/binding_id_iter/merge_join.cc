@@ -2,19 +2,21 @@
 
 using namespace std;
 
-MergeJoin::MergeJoin(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs,
+MergeJoin::MergeJoin(std::size_t binding_size, unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs,
                      VarId join_var) :
-    lhs(move(lhs)), rhs(move(rhs)), join_var(join_var) { }
+    BindingIdIter(binding_size),
+    lhs(move(lhs)),
+    rhs(move(rhs)),
+    join_var(join_var) { }
 
 
-BindingId& MergeJoin::begin(BindingId& input) {
-    my_binding.init(input.var_count());
+BindingId& MergeJoin::begin(BindingId&) {
+    // TODO: remake
+    // current_left = &lhs->begin(input);
+    // lhs->next();
 
-    current_left = &lhs->begin(input);
-    lhs->next();
-
-    current_right = &rhs->begin(input);
-    rhs->next();
+    // current_right = &rhs->begin(input);
+    // rhs->next();
 
     return my_binding;
 }

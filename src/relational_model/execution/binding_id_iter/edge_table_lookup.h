@@ -26,7 +26,7 @@ private:
     BindingId* my_input;
 
 public:
-    EdgeTableLookup(RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type);
+    EdgeTableLookup(std::size_t binding_size, RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type);
     ~EdgeTableLookup() = default;
 
     void analyze(int indent = 0) const override;

@@ -10,12 +10,12 @@ using namespace std;
 Match::Match(GraphModel& model, unique_ptr<BindingIdIter> root, map<string, VarId> var_pos) :
     model   (model),
     root    (move(root)),
+    input   (BindingId(var_pos.size())),
     var_pos (move(var_pos)) { }
 
 
 // TODO: devolver Binding*?
 void Match::begin() {
-    input.init(var_pos.size());
     binding_id_root = &root->begin(input);
 }
 

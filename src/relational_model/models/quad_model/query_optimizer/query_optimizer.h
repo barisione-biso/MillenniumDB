@@ -48,7 +48,9 @@ private:
     VarId get_var_id(const std::string& var_name);
     ObjectId get_value_id(const common::ast::Value& value);
 
-    std::unique_ptr<BindingIdIter> get_greedy_join_plan(std::vector<std::unique_ptr<JoinPlan>> base_plans);
+    std::unique_ptr<BindingIdIter> get_greedy_join_plan(
+        std::vector<std::unique_ptr<JoinPlan>> base_plans,
+        std::size_t binding_size);
 
 };
 

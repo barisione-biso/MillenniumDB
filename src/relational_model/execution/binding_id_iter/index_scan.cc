@@ -19,7 +19,8 @@ template class std::unique_ptr<IndexScan<3>>;
 template class std::unique_ptr<IndexScan<4>>;
 
 template <std::size_t N>
-IndexScan<N>::IndexScan(BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges) :
+IndexScan<N>::IndexScan(std::size_t binding_size, BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges) :
+    BindingIdIter(binding_size),
     bpt    (bpt),
     ranges (move(ranges)) { }
 
@@ -29,8 +30,6 @@ BindingId& IndexScan<N>::begin(BindingId& input) {
     assert(ranges.size() == N && "Inconsistent size of ranges and bpt");
 
     my_input = &input;
-    my_binding.init(my_input->var_count());
-    my_binding.add_all(*my_input);
 
     std::array<uint64_t, N> min_ids;
     std::array<uint64_t, N> max_ids;
@@ -53,11 +52,14 @@ BindingId& IndexScan<N>::begin(BindingId& input) {
 
 template <std::size_t N>
 bool IndexScan<N>::next() {
-    if (it == nullptr)
+    if (it == nullptr) // TODO: pensar cambios en el flujo para que it no pueda ser nulo?
+                       // => begin siempre se debe llamar (ojo con rhs en indexnestedloop
+                       // => tener algo como bpt.get_null_range() ?
         return false;
 
     auto next = it->next();
     if (next != nullptr) {
+        my_binding.add_all(*my_input);
         for (uint_fast32_t i = 0; i < N; ++i) {
             ranges[i]->try_assign(my_binding, ObjectId(next->ids[i]));
         }
@@ -72,8 +74,6 @@ bool IndexScan<N>::next() {
 template <std::size_t N>
 void IndexScan<N>::reset() {
     // TODO: if nulls were supported a my_binding->clean should be performed to set NULL_OBJECT_ID
-    my_binding.add_all(*my_input);
-
     std::array<uint64_t, N> min_ids;
     std::array<uint64_t, N> max_ids;
 

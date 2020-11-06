@@ -83,6 +83,10 @@ void NestedLoopPlan::set_input_vars(uint64_t /*input_var_order*/) {
 }
 
 
-unique_ptr<BindingIdIter> NestedLoopPlan::get_binding_id_iter() {
-    return make_unique<IndexNestedLoopJoin>(lhs->get_binding_id_iter(), rhs->get_binding_id_iter());
+unique_ptr<BindingIdIter> NestedLoopPlan::get_binding_id_iter(std::size_t binding_size) {
+    return make_unique<IndexNestedLoopJoin>(
+        binding_size,
+        lhs->get_binding_id_iter(binding_size),
+        rhs->get_binding_id_iter(binding_size)
+    );
 }

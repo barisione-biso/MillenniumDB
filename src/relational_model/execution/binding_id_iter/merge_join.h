@@ -13,7 +13,8 @@
 
 class MergeJoin : public BindingIdIter {
 public:
-    MergeJoin(std::unique_ptr<BindingIdIter> lhs,
+    MergeJoin(std::size_t binding_size,
+              std::unique_ptr<BindingIdIter> lhs,
               std::unique_ptr<BindingIdIter> rhs,
               VarId join_var);
     ~MergeJoin() = default;

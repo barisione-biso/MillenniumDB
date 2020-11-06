@@ -9,7 +9,7 @@
 
 class Union : public BindingIdIter {
 public:
-    Union(std::vector<std::unique_ptr<BindingIdIter>> iters);
+    Union(std::size_t binding_size, std::vector<std::unique_ptr<BindingIdIter>> iters);
     ~Union() = default;
 
     void analyze(int indent = 0) const override;

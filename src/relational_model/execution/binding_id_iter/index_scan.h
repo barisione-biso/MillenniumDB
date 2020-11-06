@@ -22,7 +22,7 @@ private:
     uint_fast32_t bpt_searches = 0;
 
 public:
-    IndexScan(BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges);
+    IndexScan(std::size_t binding_size, BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges);
     ~IndexScan() = default;
 
     void analyze(int indent = 0) const override;

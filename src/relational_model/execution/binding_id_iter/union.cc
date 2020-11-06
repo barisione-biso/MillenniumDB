@@ -2,12 +2,12 @@
 
 using namespace std;
 
-Union::Union(std::vector<std::unique_ptr<BindingIdIter>> iters) :
+Union::Union(std::size_t binding_size, std::vector<std::unique_ptr<BindingIdIter>> iters) :
+    BindingIdIter(binding_size),
     iters(move(iters)) { }
 
 
 BindingId& Union::begin(BindingId& input) {
-    my_binding.init(input.var_count());
     current_iter = 0;
     for (auto& iter : iters) {
         my_inputs.push_back( &iter->begin(input) );

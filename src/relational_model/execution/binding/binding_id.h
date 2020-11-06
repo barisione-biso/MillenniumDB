@@ -15,14 +15,14 @@ private:
     std::size_t size;
 
 public:
-    BindingId() = default;
-    ~BindingId() {
-        delete[] object_ids;
+    BindingId(std::size_t size) :
+        size(size)
+    {
+        object_ids = new ObjectId[size];
     }
 
-    inline void init(std::size_t size) noexcept {
-        this->size = size;
-        object_ids = new ObjectId[size];
+    ~BindingId() {
+        delete[] object_ids;
     }
 
     inline void add_all(BindingId& other) noexcept {

@@ -174,11 +174,12 @@ void QueryOptimizer::visit(OpMatch& op_match) {
         var_names[var_id.id] = var_name;
     }
 
+    auto binding_size= id_map.size();
     if (base_plans.size() <= MAX_SELINGER_PLANS) {
         auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
-        tmp = make_unique<Match>(model, selinger_optimizer.get_binding_id_iter(), move(id_map));
+        tmp = make_unique<Match>(model, selinger_optimizer.get_binding_id_iter(binding_size), move(id_map));
     } else {
-        tmp = make_unique<Match>(model, get_greedy_join_plan(move(base_plans)), move(id_map));
+        tmp = make_unique<Match>(model, get_greedy_join_plan(move(base_plans), binding_size), move(id_map));
     }
 }
 
@@ -228,7 +229,10 @@ ObjectId QueryOptimizer::get_value_id(const common::ast::Value& value) {
 }
 
 
-unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr<JoinPlan>> base_plans) {
+unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(
+    vector<unique_ptr<JoinPlan>> base_plans,
+    std::size_t binding_size)
+{
     auto base_plans_size = base_plans.size();
 
     assert(base_plans_size > 0 && "base_plans size in Match must be greater than 0");
@@ -302,7 +306,7 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(vector<unique_ptr
     cout << "\nPlan Generated:\n";
     root_plan->print(2, true, var_names);
     cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
-    return root_plan->get_binding_id_iter();
+    return root_plan->get_binding_id_iter(binding_size);
 }
 
 
@@ -370,7 +374,8 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan::ast::Root& root) {
             root_plan = make_unique<NestedLoopPlan>(move(root_plan), move(current_plan));
         }
     }
-    auto match = make_unique<Match>(model, root_plan->get_binding_id_iter(), move(id_map));
+    auto binding_size = id_map.size();
+    auto match = make_unique<Match>(model, root_plan->get_binding_id_iter(binding_size), move(id_map));
     vector<std::string> projection_vars; // empty list will select *
     return make_unique<Projection>(move(match), move(projection_vars), 0); // TODO: limit?
 }

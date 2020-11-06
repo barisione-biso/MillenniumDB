@@ -18,7 +18,7 @@ private:
     BindingId* my_input;
 
 public:
-    NodeTableEnum(const VarId var_id, RandomAccessTable<1>& table);
+    NodeTableEnum(std::size_t binding_size, const VarId var_id, RandomAccessTable<1>& table);
     ~NodeTableEnum() = default;
 
     void analyze(int indent = 0) const override;

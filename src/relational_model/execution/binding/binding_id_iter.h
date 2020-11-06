@@ -6,6 +6,8 @@
 // Abstract class
 class BindingIdIter {
 public:
+    BindingIdIter(std::size_t binding_size) :
+        my_binding(binding_size) { }
     virtual ~BindingIdIter() = default;
     virtual BindingId& begin(BindingId& input) = 0;
     virtual void reset() = 0;

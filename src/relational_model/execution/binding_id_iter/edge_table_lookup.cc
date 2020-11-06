@@ -2,7 +2,8 @@
 
 #include "relational_model/models/quad_model/quad_model.h"
 
-EdgeTableLookup::EdgeTableLookup(RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type) :
+EdgeTableLookup::EdgeTableLookup(std::size_t binding_size, RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type) :
+    BindingIdIter(binding_size),
     table (table),
     edge  (edge),
     from  (from),
@@ -20,7 +21,6 @@ void EdgeTableLookup::analyze(int indent) const {
 
 BindingId& EdgeTableLookup::begin(BindingId& input) {
     already_looked = false;
-    my_binding.init(input.var_count());
     my_input = &input;
     return my_binding;
 }
