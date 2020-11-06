@@ -1,0 +1,4 @@
+SELECT ?country, ?countryName.string_value
+MATCH (?country)-[?e :P31]->(Q3624078),
+      (?e)-[:P582]->(?endDate),
+      (?country)-[:Label]->(?countryName)

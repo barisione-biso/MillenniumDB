@@ -1,0 +1,2 @@
+MATCH (:Item {id:"Q30"})-[:CLAIM {property:"P6"}]->(p)-[:CLAIM {property:"P26"}]->(w)
+RETURN p.id, w.id , p.label, w.label;

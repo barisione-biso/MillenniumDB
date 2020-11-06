@@ -1,0 +1,6 @@
+MATCH (h)-[:CLAIM {property:"P31"}]->(:Item {id:"Q5"}),
+      (h)-[:CLAIM {property:"P570"}]->(dateD),
+      (h)-[:CLAIM {property:"P569"}]->(dateB)
+WHERE dateB.value < "+1880-01-01T00:00:00Z"
+RETURN h.id, dateB.value, dateD.value
+LIMIT 100

@@ -1,0 +1,4 @@
+MATCH (country)-[:CLAIM {property:"P31"}]->(:Item {id:"Q3624078"}),
+      (country)-[:CLAIM {property:"P47"}]->(neighbor),
+      (neighbor)-[:CLAIM {property:"P31"}]->(:Item {id:"Q3624078"})
+RETURN country.label, neighbor.label
