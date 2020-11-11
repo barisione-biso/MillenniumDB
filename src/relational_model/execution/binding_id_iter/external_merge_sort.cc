@@ -1,0 +1,296 @@
+#include "external_merge_sort.h"
+
+#include <algorithm>
+#include <cstring>
+#include <stdlib.h>
+#include <math.h>
+
+#include "storage/file_manager.h"
+#include "storage/buffer_manager.h"
+#include "storage/page.h"
+
+using namespace std;
+/*
+ TODO: Pasar referencia del modelo, left pasa a ser root.
+ TODO: Asegurar el uso de unpins para las paginas.
+ TODO: Guardar estado actual en my_binding. Next solo retorna un booleano.
+      Cambiar inicializacion de my_binding
+  */
+
+ /* Recomendación: consumir todas las tuplas
+  Se compara el id
+  orden = [2,3,1] <- viene en el contructor
+  [2,5,7]
+  [2,5,8]
+  auto binding_id = root->begin()
+  while (root->next()) {
+  }
+  */
+ExternalMergeSort::ExternalMergeSort(std::size_t binding_size, unique_ptr<BindingIdIter> root)
+    : BindingIdIter(binding_size), root(move(root))
+{
+
+}
+
+
+BindingId& ExternalMergeSort::begin(BindingId& input) {
+  current_binding = &root->begin(input);
+  return my_binding;
+ /*
+    input_dir = &input;
+    my_binding = make_unique<BindingId>(input.var_count());
+    // ObjectId => son 6 bytes ( uint64)
+    left->begin(input);
+    current_left = left->next();
+    tuple_size = input.var_count() * 6;
+    r = std::vector<BindingId>();
+    phase_0();
+    phase_1();
+    r = std::vector<BindingId>();
+    tuples_counter = 0;
+    */
+}
+
+void ExternalMergeSort::reset() {
+  root->reset();
+  /*
+    tuples_counter = 0;
+    for (size_t i = 0; i < tuples_returned_in_phase_2.size(); i++) {
+        tuples_returned_in_phase_2[i] = 0;
+    }
+    if (!(input == *input_dir)) {
+        r = std::vector<BindingId>();
+        total_pages = 0;
+        total_tuples = 0;
+        tuples_in_last_page = 0;
+        files_phase_1 = std::vector<FileId>();
+        tuples_of_file_phase_1 = std::vector<uint_fast32_t>() ;
+        tuples_returned_in_phase_2 = std::vector<uint_fast32_t>();
+        tuple_size = 0;
+        begin(input);
+    }
+    */
+}
+
+
+bool ExternalMergeSort::next() {
+  if (root->next()) {
+    construct_binding();
+    return true;
+  }
+  return false;
+  /*
+    if (tuples_counter == total_tuples){
+        return nullptr;
+    }
+    int_fast32_t tuples_per_page = PAGE_SIZE / tuple_size;
+    bool has_elements = false;
+    size_t file_with_min = 0;
+    // se buscara el minimo elemento que aun no se ha extraido en cada archivo
+    for (size_t i = 0; i < files_phase_1.size(); i++){
+    // se verifica que le queden tuplas al archivo
+        if (tuples_returned_in_phase_2[i] < tuples_of_file_phase_1[i]) {
+            uint_fast32_t n_page = tuples_returned_in_phase_2[i] / tuples_per_page;
+            uint_fast32_t n_index = (tuples_returned_in_phase_2[i] % tuples_per_page) * tuple_size;
+            Page& page = buffer_manager.get_page(files_phase_1[i],n_page);
+            char* start_pointer = page.get_bytes();
+            uint_fast64_t obj_id = 0;
+            BindingId aux = BindingId(my_binding->var_count());
+            for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
+                memcpy(&obj_id, start_pointer + n_index + j*6, 6);
+                aux.add(VarId(j),ObjectId(obj_id));
+            }
+            if (!has_elements || aux < *my_binding) {
+                construct_binding(aux);
+                has_elements = true;
+                file_with_min = i;
+            }
+        }
+    }
+    if (has_elements) {
+        tuples_returned_in_phase_2[file_with_min]++;
+        tuples_counter++;
+        return my_binding.get();
+    }
+    return nullptr;
+    */
+}
+
+
+
+void ExternalMergeSort::construct_binding() {
+  /*
+    for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
+        my_binding->add(VarId(j), aux[j]);
+    }
+    */
+    my_binding.add_all(*current_binding);
+}
+
+
+/* TODO: Hacer quicksort a la pagina, evitar el uso de r
+void ExternalMergeSort::phase_0(){
+    // Manda todas las páginas a disco 
+    while (current_left != nullptr) {
+        r = std::vector<BindingId>();
+        // se realiza el llenado del run
+        for (int_fast32_t i = 0; (i + 1) * tuple_size <= PAGE_SIZE; i++) {
+            if (current_left == nullptr) {
+                break;
+            }
+            r.push_back(*current_left);
+            current_left = left->next();
+        }
+        // se ordena el run usando quicksort
+        quicksort(0, r.size() - 1);
+        Page& page = buffer_manager.get_page(file_phase_0, total_pages);
+        char* start_pointer = page.get_bytes();
+        // se lleva el run a disco
+        for (size_t i = 0; i < r.size();i++) {
+            int tuple_pointer = tuple_size * i;
+            uint_fast64_t obj_id = 0;
+            for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
+                obj_id = r[i][j].id;
+                memcpy(start_pointer + tuple_pointer + (j*6), &obj_id, 6);
+            }
+        }
+        total_tuples += r.size();
+        tuples_in_last_page = r.size();
+        page.make_dirty();
+        total_pages++;
+    }
+}
+*/
+
+
+/* TODO: En un futuro: Implementar carga de a 2 runs
+void ExternalMergeSort::phase_1(){
+    //Se escoge dinámicamente el run
+    int B = (int)ceil(sqrt((double) total_pages));
+    uint_fast32_t start = 0;
+    uint_fast32_t end = B;
+    while (end <= total_pages) {
+        merge(start,end);
+        start+=B;
+        end+=B;
+        if (end > total_pages && start < total_pages) {
+            end = total_pages;
+            merge(start,end);
+            return;
+        }
+    }
+}
+*/
+
+
+/*TODO: Poco prioritario: Probar con insertion sort y medir tiempos
+void ExternalMergeSort::quicksort(int i, int f) {
+    if (i <= f) {
+        int p = partition(i, f);
+        quicksort(i, p - 1);
+        quicksort(p + 1, f);
+    }
+}
+*/
+
+/*
+int ExternalMergeSort::partition(int i, int f) {
+    // partition implementado según EL ramo de Estructura de Datos
+    int x = i + (rand() % (f - i + 1));
+    BindingId binding_p = BindingId(my_binding->var_count());
+    // p = arreglo[x]
+    binding_p = r[x];
+    // intercambio de elementos de x y f
+    std::swap(r[x], r[f]);
+    r[f] = binding_p;
+    int j = i;
+    BindingId binding_k = BindingId(my_binding->var_count());
+    int k = i;
+    BindingId aux = BindingId(my_binding->var_count());
+    while(k <= f) {
+        if (r[k] < binding_p) {
+            // intercambiar elemento j con elemento k
+            std::swap(r[j], r[k]);
+            j++;
+        }
+        k++;
+    }
+    std::swap(r[j], r[f]);
+    return j;
+   return 0;
+}
+*/
+
+/*
+void ExternalMergeSort::merge(uint_fast32_t B_start, uint_fast32_t B_end) {
+  
+    files_phase_1.push_back(file_manager.get_tmp_file_id()); // archivo donde se guardará el output
+    tuples_returned_in_phase_2.push_back(0);
+    int_fast32_t tuples_per_page = PAGE_SIZE / tuple_size; // tuplas que caben en una pagina
+    uint_fast32_t p_index[B_end - B_start];
+    for (uint_fast32_t i = 0; i < B_end - B_start; i++){
+        p_index[i] = 0; // indica el indice de donde se debe leer la tupla en cada pagina
+    }
+    bool has_elements = true;
+    BindingId min_bin = BindingId(my_binding->var_count());
+    r = std::vector<BindingId>();
+    uint_fast32_t p_min = 0;  // indica la pagina en la que se encontro el minimo
+    while (has_elements) {
+        has_elements = false;
+        for (uint_fast32_t i = B_start; i < B_end; i++) { // se busca el minimo en el primer indice de la pagina
+            if(((i == total_pages - 1) && (p_index[i - B_start] >= tuples_in_last_page)) || (p_index[i - B_start] == tuples_per_page)) {
+                // evita seguir buscando si ya se llegó al final de la pagina
+                continue;
+            }
+            int tuple_pointer = tuple_size * p_index[i - B_start];
+            Page& page = buffer_manager.get_page(file_phase_0, i);
+            char* start_pointer = page.get_bytes();
+            uint_fast64_t obj_id = 0;
+            BindingId aux = BindingId(my_binding->var_count());
+            for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
+                memcpy(&obj_id, start_pointer + tuple_pointer + j*6, 6);
+                aux.add(VarId(j),ObjectId(obj_id));
+            }
+            if (!has_elements || aux < min_bin) {
+                copy_binding_id(&min_bin, aux);
+                has_elements = true;
+                p_min = i - B_start;
+            }
+            buffer_manager.unpin(page);
+        }
+        if (has_elements) {
+            p_index[p_min]++; // se avanza el indice en dicha pagina
+            r.push_back(min_bin);
+        }
+    }
+    uint_fast32_t p_counter = 0; // contador de paginas
+    int index_writting = 0; // indice que indica que indica donde escribir en el archivo de fase 1
+    // se envian a disco
+    for (size_t i = 0;i < r.size();i++) {
+        int tuple_pointer = tuple_size * index_writting;
+        Page& page = buffer_manager.get_page(files_phase_1[files_phase_1.size() - 1], p_counter);
+        char* start_pointer = page.get_bytes();
+        uint_fast64_t obj_id = 0;
+        for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
+            obj_id = r[i][j].id;
+            memcpy(start_pointer + tuple_pointer + j*6, &obj_id, 6);
+        }
+        index_writting++;
+        if (index_writting == tuples_per_page) {
+            p_counter++;
+            index_writting = 0;
+        }
+        page.make_dirty();
+        buffer_manager.unpin(page);
+    }
+    tuples_of_file_phase_1.push_back(r.size());
+}
+*/
+
+/*
+void ExternalMergeSort::copy_binding_id(BindingId* destiny, BindingId origin) {
+    for (size_t i = 0; i < tuple_size / 6; i++) {
+        destiny->add(VarId(i),ObjectId(origin[i].id));
+    }
+}
+*/
