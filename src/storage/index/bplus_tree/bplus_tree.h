@@ -55,6 +55,8 @@ public:
     void bulk_import(BptLeafProvider&);
     void insert(const Record<N>& record);
     // std::unique_ptr<Record<N>> get(const Record<N>& record);
+
+    // returns false if BPT has errors
     bool check() const;
 
     std::unique_ptr<BptIter<N>> get_range(const Record<N>& min, const Record<N>& max) const noexcept;

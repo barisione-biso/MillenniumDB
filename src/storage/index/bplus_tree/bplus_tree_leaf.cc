@@ -40,7 +40,7 @@ BPlusTreeLeaf<N>::~BPlusTreeLeaf() {
 
 
 template <std::size_t N>
-unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(int pos) const {
+unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(uint_fast32_t pos) const {
     std::array<uint64_t, N> ids;
     for (uint_fast32_t i = 0; i < N; i++) {
         ids[i] = records[pos*N + i];
@@ -73,7 +73,6 @@ unique_ptr<BPlusTreeSplit<N>> BPlusTreeLeaf<N>::insert(const Record<N>& record) 
     }
 
     if (value_count < BPlusTree<N>::leaf_max_records) {
-        // shift right from index to *count-1
         shift_right_records(index, value_count-1);
 
         for (uint_fast32_t i = 0; i < N; i++) {
@@ -195,8 +194,8 @@ search_index_begin:
 
 
 template <std::size_t N>
-void BPlusTreeLeaf<N>::shift_right_records(uint_fast32_t from, uint_fast32_t to) {
-    for (uint_fast32_t i = to; i >= from; i--) {
+void BPlusTreeLeaf<N>::shift_right_records(int from, int to) {
+    for (auto i = to; i >= from; i--) {
         for (uint_fast32_t j = 0; j < N; j++) {
             records[(i+1)*N + j] = records[i*N + j];
         }

@@ -29,7 +29,7 @@
 
 class FileManager {
 public:
-    static constexpr auto DEFAULT_DB_FOLDER = "test_files/default_db";
+    static constexpr auto DEFAULT_DB_FOLDER = "tests/default_db";
 
     ~FileManager();
 

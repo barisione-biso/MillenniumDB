@@ -87,12 +87,12 @@
             ]
         },
         {
-            "name": "BPTree",
+            "name": "Create BPTree",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/bin/bplus_tree",
+            "program": "${workspaceFolder}/build/Debug/bin/create_bpt",
             "args": [
-                "18111",
+                "10000000",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
