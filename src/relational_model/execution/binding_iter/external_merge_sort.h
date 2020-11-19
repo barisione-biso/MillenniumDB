@@ -1,8 +1,8 @@
-#ifndef RELATIONAL_MODEL__EXTERNAL_MERGE_SORT_H_
+/*#ifndef RELATIONAL_MODEL__EXTERNAL_MERGE_SORT_H_
 #define RELATIONAL_MODEL__EXTERNAL_MERGE_SORT_H_
 
 #include "base/ids/var_id.h"
-#include "relational_model/execution/binding/binding_id_iter.h"
+#include "base/binding/binding_iter.h"
 #include "storage/file_id.h"
 #include "storage/page.h"
 #include <map>
@@ -10,13 +10,13 @@
 #include <vector>
 
 
-class ExternalMergeSort : public BindingIdIter {
+class ExternalMergeSort : public BindingIter {
 
 private:
     //FileId file_phase_0;
     // BindingId* current_left;
-    std::unique_ptr<BindingIdIter> root;
-    BindingId* current_binding;
+    std::unique_ptr<BindingIter> root;
+    Binding* current_binding;
     inline void construct_binding();
     //std::vector<FileId> files_phase_1; // guarda los archivos de la fase 1
     //std::vector<uint_fast32_t> tuples_of_file_phase_1; // guarda cuantas tuplas tiene el archivo i de fase 1
@@ -37,7 +37,7 @@ private:
     //void copy_binding_id(BindingId* destiny, BindingId origin);
 
 public:
-    ExternalMergeSort(std::size_t binding_size, std::unique_ptr<BindingIdIter> root);
+    ExternalMergeSort(std::size_t binding_size, std::unique_ptr<BindingIter> root);
     ~ExternalMergeSort() = default;
     void write();
     BindingId& begin(BindingId& input) override;
@@ -48,3 +48,4 @@ public:
 template class std::unique_ptr<ExternalMergeSort>;
 
 #endif //RELATIONAL_MODEL__EXTERNAL_MERGE_SORT_H_
+*/

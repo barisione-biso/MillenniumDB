@@ -1,3 +1,4 @@
+/*
 #include "external_merge_sort.h"
 
 #include <algorithm>
@@ -10,6 +11,7 @@
 #include "storage/page.h"
 
 using namespace std;
+*/
 /*
  TODO: Pasar referencia del modelo, left pasa a ser root.
  TODO: Asegurar el uso de unpins para las paginas.
@@ -26,17 +28,18 @@ using namespace std;
   while (root->next()) {
   }
   */
-ExternalMergeSort::ExternalMergeSort(std::size_t binding_size, unique_ptr<BindingIdIter> root)
+ /*
+ExternalMergeSort::ExternalMergeSort(std::size_t binding_size, unique_ptr<BindingIter> root)
     : BindingIdIter(binding_size), root(move(root))
 {
 
 }
-
-
+*/
+/*
 BindingId& ExternalMergeSort::begin(BindingId& input) {
   current_binding = &root->begin(input);
   return my_binding;
- /*
+ /
     input_dir = &input;
     my_binding = make_unique<BindingId>(input.var_count());
     // ObjectId => son 6 bytes ( uint64)
@@ -48,12 +51,13 @@ BindingId& ExternalMergeSort::begin(BindingId& input) {
     phase_1();
     r = std::vector<BindingId>();
     tuples_counter = 0;
-    */
+    /
 }
-
+*/
+/*
 void ExternalMergeSort::reset() {
   root->reset();
-  /*
+  /
     tuples_counter = 0;
     for (size_t i = 0; i < tuples_returned_in_phase_2.size(); i++) {
         tuples_returned_in_phase_2[i] = 0;
@@ -69,17 +73,17 @@ void ExternalMergeSort::reset() {
         tuple_size = 0;
         begin(input);
     }
-    */
+    /
 }
-
-
+*/
+/*
 bool ExternalMergeSort::next() {
   if (root->next()) {
     construct_binding();
     return true;
   }
   return false;
-  /*
+  /
     if (tuples_counter == total_tuples){
         return nullptr;
     }
@@ -113,19 +117,21 @@ bool ExternalMergeSort::next() {
         return my_binding.get();
     }
     return nullptr;
-    */
+    /
 }
+*/
 
 
-
+/*
 void ExternalMergeSort::construct_binding() {
-  /*
+  /
     for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
         my_binding->add(VarId(j), aux[j]);
     }
-    */
+    /
     my_binding.add_all(*current_binding);
 }
+*/
 
 
 /* TODO: Hacer quicksort a la pagina, evitar el uso de r

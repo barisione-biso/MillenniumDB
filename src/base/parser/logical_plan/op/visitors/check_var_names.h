@@ -23,6 +23,7 @@ public:
     void visit(OpLabel&) override;
     void visit(OpProperty&) override;
     void visit(OpUnjointObject&) override;
+    //void visit(OpOrderBy&) override;
 };
 
 #endif // BASE__CHECK_VAR_NAMES_EXISTS_H_

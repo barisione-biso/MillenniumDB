@@ -13,10 +13,12 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
+//#include "base/parser/logical_plan/op/op_order_by.h"
 
 #include "relational_model/execution/binding_iter/filter.h"
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/projection.h"
+//#include "relational_model/execution/binding_iter/external_merge_sort.h"
 
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
@@ -191,6 +193,24 @@ void QueryOptimizer::visit(OpFilter& op_filter) {
     }
     // else tmp stays the same
 }
+/*
+void QueryOptimizer::visit(OpOrderBy& op_order_by) {
+  /
+    vector<std::string> order_vars;
+    select_items = move(op_select.select_items);
+    for (const auto& select_item : select_items) {
+        if (select_item.key) {
+            projection_vars.push_back(select_item.var + '.' + select_item.key.get());
+        } else {
+            projection_vars.push_back(select_item.var);
+        }
+    }
+    /
+   // TODO: Añadir order vars
+    op_order_by.child_op->accept_visitor(*this);
+    tmp = make_unique<ExternalMergeSort>(model, move(tmp));
+}
+*/
 
 
 VarId QueryOptimizer::get_var_id(const std::string& var) {
