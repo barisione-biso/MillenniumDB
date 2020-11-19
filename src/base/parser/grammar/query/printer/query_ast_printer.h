@@ -26,8 +26,8 @@ public:
     void operator() (std::vector<query::ast::SelectItem> const&) const;
     void operator() (std::vector<query::ast::LinearPattern> const&) const;
     void operator() (query::ast::LinearPattern const&) const;
-    void operator() (query::ast::Node) const;
-    void operator() (query::ast::Edge) const;
+    void operator() (query::ast::Node const&) const;
+    void operator() (query::ast::Edge const&) const;
     void operator() (query::ast::StepPath) const;
     void operator() (boost::optional<query::ast::Formula> const&) const;
     void operator() (query::ast::Condition const&) const;

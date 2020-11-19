@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "base/parser/grammar/query/query_def.h"
-#include "base/parser/grammar/query/printer/query_ast_printer.h"
+// #include "base/parser/grammar/query/printer/query_ast_printer.h"
 #include "base/parser/grammar/manual_plan/manual_plan_def.h"
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_filter.h"
@@ -15,12 +15,21 @@ using namespace std;
 
 unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
     unique_ptr<Op> op_match = make_unique<OpMatch>(ast.graph_pattern);
-    unique_ptr<Op> op_filter = make_unique<OpFilter>(ast.where, move(op_match));
+
     uint_fast32_t limit = 0;
     if (ast.limit) {
         limit = ast.limit.get();
     }
-    return make_unique<OpSelect>(ast.selection, move(op_filter), limit);
+
+    if (ast.where) {
+        unique_ptr<Op> op_filter = make_unique<OpFilter>(
+            move(op_match),
+            ast.where.get()
+        );
+        return make_unique<OpSelect>(ast.selection, move(op_filter), limit);
+    } else {
+        return make_unique<OpSelect>(ast.selection, move(op_match), limit);
+    }
 }
 
 

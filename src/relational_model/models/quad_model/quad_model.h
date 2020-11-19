@@ -5,7 +5,7 @@
 #include <type_traits>
 
 // #include "relational_model/cache/strings_cache.h"
-#include "relational_model/models/graph_model.h"
+#include "base/graph/graph_model.h"
 #include "relational_model/models/quad_model/quad_catalog.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/hash_table/extendible_hash.h"
@@ -19,13 +19,14 @@ public:
 
     std::unique_ptr<BindingIter> exec(OpSelect&) override;
     std::unique_ptr<BindingIter> exec(manual_plan::ast::Root&) override;
+    ObjectId get_object_id(const GraphObject& obj) override;
+
     std::shared_ptr<GraphObject> get_graph_object(ObjectId) override;
-    std::shared_ptr<GraphObject> get_property_value(GraphObject& var, const std::string& key) override;
+    std::shared_ptr<GraphObject> get_property_value(GraphObject& var, const ObjectId key) override;
 
     // returns an ID with mask
     ObjectId get_string_id(const std::string& str, bool create_if_not_exists = false);
 
-    ObjectId get_object_id(const GraphObject& obj) const;
     ObjectId get_identifiable_object_id(const std::string& str, bool create_if_not_exists = false);
 
 

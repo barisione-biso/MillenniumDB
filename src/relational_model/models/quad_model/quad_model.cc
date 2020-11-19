@@ -158,6 +158,7 @@ ObjectId QuadModel::get_identifiable_object_id(const string& str, bool create_if
     }
 }
 
+
 ObjectId QuadModel::get_value_id(const Value& value, bool create_if_not_exists) {
     switch (value.type()) {
         case ObjectType::value_string : {
@@ -326,13 +327,12 @@ shared_ptr<GraphObject> QuadModel::get_graph_object(ObjectId object_id) {
 }
 
 
-shared_ptr<GraphObject> QuadModel::get_property_value(GraphObject& var, const string& key) {
+shared_ptr<GraphObject> QuadModel::get_property_value(GraphObject& var, const ObjectId key) {
     auto obj_id = get_object_id(var);
-    auto key_id = get_string_id(key);
 
     auto it = object_key_value->get_range(
-        RecordFactory::get(obj_id.id, key_id.id, 0),
-        RecordFactory::get(obj_id.id, key_id.id, UINT64_MAX)
+        RecordFactory::get(obj_id.id, key.id, 0),
+        RecordFactory::get(obj_id.id, key.id, UINT64_MAX)
     );
 
     auto res = it->next();
@@ -345,10 +345,10 @@ shared_ptr<GraphObject> QuadModel::get_property_value(GraphObject& var, const st
 }
 
 
-ObjectId QuadModel::get_object_id(const GraphObject& obj) const {
+ObjectId QuadModel::get_object_id(const GraphObject& obj) {
     switch (obj.type()) {
         case ObjectType::identifiable_node: {
-            const auto identifiable_node = dynamic_cast<const IdentifiableNode&>(obj);
+            const auto identifiable_node = static_cast<const IdentifiableNode&>(obj);
             if (identifiable_node.id.size() > MAX_INLINED_BYTES) {
                 return ObjectId(IDENTIFIABLE_NODE_MASK | identifiable_node.obj_id);
             } else {
@@ -356,16 +356,15 @@ ObjectId QuadModel::get_object_id(const GraphObject& obj) const {
             }
         }
         case ObjectType::anonymous_node: {
-            const auto anon_node = dynamic_cast<const AnonymousNode&>(obj);
+            const auto anon_node = static_cast<const AnonymousNode&>(obj);
             return ObjectId(ANONYMOUS_NODE_MASK | anon_node.id);
         }
         case ObjectType::edge: {
-            const auto edge = dynamic_cast<const Edge&>(obj);
+            const auto edge = static_cast<const Edge&>(obj);
             return ObjectId(CONNECTION_MASK | edge.id);
         }
-        default: {
-            cout << "QuadModel::get_object_id NOT IMPLEMENTED for values yet\n";
-            return ObjectId();
+        default: { // must be a Value
+            return get_value_id(static_cast<const Value&>(obj));
         }
     }
 }

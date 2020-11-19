@@ -150,7 +150,7 @@ void QueryAstPrinter::operator() (StepPath step_path) const {
 }
 
 
-void QueryAstPrinter::operator() (Node node) const {
+void QueryAstPrinter::operator() (Node const& node) const {
     out << "\"NODE\": {\n";
     indent("\"VAR_OR_ID\": ", 1);
     out << "\"" << node.var_or_id << "\",\n";
@@ -189,7 +189,7 @@ void QueryAstPrinter::operator() (Node node) const {
 }
 
 
-void QueryAstPrinter::operator() (Edge edge) const {
+void QueryAstPrinter::operator() (Edge const& edge) const {
     out << "\"EDGE\": {\n";
     indent("\"DIRECTION\": ", 1);
     if (edge.direction == EdgeDirection::right) {
@@ -270,9 +270,7 @@ void QueryAstPrinter::operator()(boost::optional<Formula> const& where) const {
 void QueryAstPrinter::operator()(Condition const& condition) const {
     if (condition.negation) {
         out << "\"NOT CONDITION\": {\n";
-    }
-
-    else {
+    } else {
         out << "\"CONDITION\": {\n";
     }
     auto printer = QueryAstPrinter(out, base_indent+1);

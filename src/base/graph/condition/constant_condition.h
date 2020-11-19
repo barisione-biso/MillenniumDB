@@ -16,8 +16,6 @@ public:
     ConditionType type() {
         return ConditionType::constant;
     }
-
-    void check_names(std::set<std::string>&) { }
 };
 
 #endif // BASE__CONSTANT_CONDITION_H_

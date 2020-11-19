@@ -25,8 +25,7 @@ void CheckVarNames::visit(OpMatch& op_match) {
 
 void CheckVarNames::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
-    if (op_filter.condition != nullptr)
-        op_filter.condition->check_names(declared_object_names);
+    op_filter.check_var_names(declared_object_names);
 }
 
 

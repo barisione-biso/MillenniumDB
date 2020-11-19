@@ -1,5 +1,5 @@
-#ifndef RELATIONAL_MODEL__GRAPH_MODEL_H_
-#define RELATIONAL_MODEL__GRAPH_MODEL_H_
+#ifndef BASE__GRAPH_MODEL_H_
+#define BASE__GRAPH_MODEL_H_
 
 #include <memory>
 
@@ -43,8 +43,10 @@ public:
 
     virtual std::unique_ptr<BindingIter> exec(OpSelect&) = 0;
     virtual std::unique_ptr<BindingIter> exec(manual_plan::ast::Root&) = 0;
+
+    virtual ObjectId get_object_id(const GraphObject&) = 0;
     virtual std::shared_ptr<GraphObject> get_graph_object(ObjectId) = 0;
-    virtual std::shared_ptr<GraphObject> get_property_value(GraphObject& var, const std::string& key) = 0;
+    virtual std::shared_ptr<GraphObject> get_property_value(GraphObject& var, const ObjectId key) = 0;
 };
 
-#endif // RELATIONAL_MODEL__GRAPH_MODEL_H_
+#endif // BASE__GRAPH_MODEL_H_

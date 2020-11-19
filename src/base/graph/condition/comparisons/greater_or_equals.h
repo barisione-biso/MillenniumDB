@@ -5,8 +5,8 @@
 
 class GreaterOrEquals : public Comparison {
 public:
-    GreaterOrEquals(query::ast::Statement const& statement) :
-        Comparison(statement) { }
+    GreaterOrEquals(std::unique_ptr<ValueAssign> lhs, std::unique_ptr<ValueAssign> rhs) :
+        Comparison(std::move(lhs), std::move(rhs)) { }
 
     bool compare(GraphObject& lhs, GraphObject& rhs) override {
         return lhs >= rhs;

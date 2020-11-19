@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "base/ids/var_id.h"
-#include "relational_model/execution/binding/binding_id_iter.h"
+#include "base/binding/binding_id_iter.h"
 #include "storage/index/random_access_table/random_access_table.h"
 
 class NodeTableEnum : public BindingIdIter {

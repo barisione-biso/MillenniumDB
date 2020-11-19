@@ -30,12 +30,6 @@ public:
     void add(std::unique_ptr<Condition> condition) {
         conditions.push_back(std::move(condition));
     }
-
-    void check_names(std::set<std::string>& var_names) {
-        for (auto& condition : conditions) {
-            condition->check_names(var_names);
-        }
-    }
 };
 
 #endif // BASE__DISJUNCTION_H_
