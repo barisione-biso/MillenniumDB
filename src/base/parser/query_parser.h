@@ -9,7 +9,7 @@
 class QueryParser {
 public:
     static std::unique_ptr<OpSelect>    get_query_plan(std::string& query);
-    static manual_plan::ast::Root get_manual_plan(std::string& query);
+    static manual_plan::ast::ManualRoot get_manual_plan(std::string& query);
 
 private:
     static std::unique_ptr<OpSelect> get_query_plan(query::ast::Root& ast);

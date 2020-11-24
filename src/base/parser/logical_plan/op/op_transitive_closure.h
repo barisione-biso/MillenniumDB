@@ -1,36 +1,37 @@
-#ifndef BASE__OP_CONNECTION_H_
-#define BASE__OP_CONNECTION_H_
+#ifndef BASE__OP_TRANSITIVE_CLOSURE_H_
+#define BASE__OP_TRANSITIVE_CLOSURE_H_
 
 #include <string>
 
 #include "base/parser/logical_plan/op/op.h"
 
-class OpConnection : public Op {
+class OpTransitiveClosure : public Op {
 public:
     const std::string from;
     const std::string to;
-    const std::string edge;
+    const std::string type;
 
-    OpConnection(std::string from, std::string to, std::string edge) :
+    OpTransitiveClosure(std::string from, std::string to, std::string type) :
         from (std::move(from)),
         to   (std::move(to)),
-        edge (std::move(edge)) { }
+        type (std::move(type)) { }
+
+    ~OpTransitiveClosure() = default;
 
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
 
-    bool operator<(const OpConnection& other) const {
-        // return from < other.from && to < other.to && edge < other.edge;
+    bool operator<(const OpTransitiveClosure& other) const {
         if (from < other.from) {
             return true;
         } else if (to < other.to) {
             return true;
-        } else if (edge < other.edge) {
+        } else if (type < other.type) {
             return true;
         }
         return false;
     }
 };
 
-#endif // BASE__OP_CONNECTION_H_
+#endif // BASE__OP_TRANSITIVE_CLOSURE_H_

@@ -16,7 +16,7 @@ public:
         key      (std::move(key)      ),
         value    (std::move(value)    ) { }
 
-    void accept_visitor(OpVisitor& visitor) {
+    void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
 

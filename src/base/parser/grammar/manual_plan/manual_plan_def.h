@@ -6,18 +6,20 @@
 #include "manual_plan_ast.h"
 #include "manual_plan_ast_adapted.h"
 #include "manual_plan.h"
-#include "base/parser/grammar/common/common_def.h"
+// #include "base/parser/grammar/common/common_def.h"
+#include "base/parser/grammar/query/query_def.h"
 
 namespace manual_plan {
     namespace parser {
         namespace x3 = boost::spirit::x3;
+        // using namespace query::parser;
         using namespace common::parser;
 
         using x3::uint32;
 
         // Declare rules
-        x3::rule<class root, ast::Root>
-            root = "root";
+        x3::rule<class manual_root, ast::ManualRoot>
+            manual_root = "manual_root";
         x3::rule<class select_item, ast::NodeLabel>
             node_label = "node_label";
         x3::rule<class select_item, ast::ObjectProperty>
@@ -39,11 +41,16 @@ namespace manual_plan {
             >> "," >> var
             >> ")";
 
-        auto const root_def =
-            (node_label | object_property | typed_connection) % (',');
+        auto const manual_root_def =
+            query::parser::select_statement
+            >> ((node_label | object_property | typed_connection) % (','))
+            >> -(query::parser::where_statement)
+            >> -(query::parser::group_by_statement)
+            >> -(query::parser::order_by_statement)
+            >> -(query::parser::limit_statement);
 
         BOOST_SPIRIT_DEFINE(
-            root,
+            manual_root,
             node_label,
             object_property,
             typed_connection
@@ -51,7 +58,7 @@ namespace manual_plan {
     }
 
     parser::manual_plan_type query() {
-        return parser::root;
+        return parser::manual_root;
     }
 }
 
