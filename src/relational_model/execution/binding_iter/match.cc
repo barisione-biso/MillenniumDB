@@ -3,29 +3,23 @@
 #include <limits>
 
 #include "storage/index/object_file/object_file.h"
-#include "relational_model/execution/binding/binding_match.h"
 
 using namespace std;
 
-Match::Match(GraphModel& model, unique_ptr<BindingIdIter> root, map<string, VarId> var_pos) :
-    model   (model),
-    root    (move(root)),
-    input   (BindingId(var_pos.size())),
-    var_pos (move(var_pos)) { }
+Match::Match(GraphModel& model, unique_ptr<BindingIdIter> _root, size_t binding_size) :
+    model      (model),
+    root       (move(_root)),
+    input      (binding_size),
+    my_binding (BindingMaterializeId(model, binding_size, root->begin(input)) ) { }
 
 
-// TODO: devolver Binding*?
-void Match::begin() {
-    binding_id_root = &root->begin(input);
+Binding& Match::get_binding() {
+    return my_binding;
 }
 
 
-unique_ptr<Binding> Match::next() {
-    if (root->next()) {
-        return make_unique<BindingMatch>(model, var_pos, binding_id_root);
-    } else {
-        return nullptr;
-    }
+bool Match::next() {
+    return root->next();
 }
 
 

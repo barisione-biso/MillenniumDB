@@ -7,7 +7,8 @@
 
 using namespace std;
 
-void create_ascending(int size, std::string& bpt_name) {
+void create_ascending(int size, std::string bpt_name) {
+    std::cout << "Creating bpt: " <<  bpt_name << " ...\n";
     auto bpt = BPlusTree<3>(bpt_name);
 
     uint64_t n = 0;
@@ -20,15 +21,19 @@ void create_ascending(int size, std::string& bpt_name) {
         bpt.insert( RecordFactory::get(c[0], c[1], c[2]) );
     }
 
+    std::cout << "bpt created. Now checking...\n";
+
     if (!bpt.check()) {
-        std::cout << "bpt created with errors\n";
+        std::cout << "IMPORTANT: errors found while checking.\n";
         return;
+    } else {
+        std::cout << "No errors found.\n";
     }
-    std::cout << "bpt created without errors.\n";
 }
 
 
-void create_descending(int size, std::string& bpt_name) {
+void create_descending(int size, std::string bpt_name) {
+    std::cout << "Creating bpt: " <<  bpt_name << " ...\n";
     auto bpt = BPlusTree<3>(bpt_name);
 
     uint64_t n = UINT64_MAX;
@@ -41,15 +46,19 @@ void create_descending(int size, std::string& bpt_name) {
         bpt.insert( RecordFactory::get(c[0], c[1], c[2]) );
     }
 
+    std::cout << "bpt created. Now checking...\n";
+
     if (!bpt.check()) {
-        std::cout << "bpt created with errors\n";
+        std::cout << "IMPORTANT: errors found while checking.\n";
         return;
+    } else {
+        std::cout << "No errors found.\n";
     }
-    std::cout << "bpt created without errors.\n";
 }
 
 
-void create_random(int size, std::string& bpt_name) {
+void create_random(int size, std::string bpt_name) {
+    std::cout << "Creating bpt: " <<  bpt_name << " ...\n";
     auto bpt = BPlusTree<3>(bpt_name);
 
     for (int i = 1; i <= size; i++) {
@@ -61,64 +70,35 @@ void create_random(int size, std::string& bpt_name) {
         bpt.insert( RecordFactory::get(c[0], c[1], c[2]) );
     }
 
+    std::cout << "bpt created. Now checking...\n";
+
     if (!bpt.check()) {
-        std::cout << "bpt created with errors\n";
+        std::cout << "IMPORTANT: errors found while checking.\n";
         return;
-    }
-    std::cout << "bpt created without errors.\n";
-}
-
-
-int test_order(std::string& bpt_name) {
-    auto bpt = BPlusTree<2>(bpt_name);
-
-    uint64_t min[] = {0, 0};
-	uint64_t max[] = {UINT64_MAX, UINT64_MAX};
-	auto it = bpt.get_range(RecordFactory::get(min[0], min[1]), RecordFactory::get(max[0], max[1]));
-	auto x = it->next();
-	auto y = it->next();
-    int i = 1;
-    bool error = false;
-	while (y != nullptr) {
-        i++;
-        if (*y <= *x) {
-            std::cout << "error en el orden de la tuplas " << (i-1) << " y " << (i) << "\n";
-            std::cout << "  (" << x->ids[0] << ", " << x->ids[1] << ", " << x->ids[2] << ")\n  ("
-                      << y->ids[0] << ", " << y->ids[1] << ", " << y->ids[2] << ")\n";
-            error = true;
-        }
-		x = std::move(y);
-        y = it->next();
-	}
-    if (!error) {
-        std::cout << "Orden de las " << i << " tuplas correcto.\n";
-        return 0;
-    }
-    else {
-        return 1;
+    } else {
+        std::cout << "No errors found.\n";
     }
 }
 
-// Ojo al ejecutar 2 veces seguidas el test, dará error por intentar ejecutar keys duplicadas
-// deben borrar los archivos creados antes de ejecutarlo de nuevo
+
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cout << "needed size\n";
         exit(1);
     }
     int size = atoi(argv[1]);
-    FileManager::init("test_files/test_bpt");
+    FileManager::init("tests/dbs/test_bpt");
     BufferManager::init(BufferManager::DEFAULT_BUFFER_POOL_SIZE);
 
-    string name_random = "bpt_random";
-    create_random(size, name_random);
+    try {
+        create_random(size, "bpt_random");
+        create_ascending(size, "bpt_ascending");
+        create_descending(size, "bpt_descending");
+    } catch (exception& e) {
+        std::cerr << e.what() << "\n";
+    }
 
-    // string name_ascending = "bpt_ascending";
-    // create_ascending(size, name_ascending);
-
-    // string name_descending = "bpt_descending";
-    // create_descending(size, name_descending);
-
-    // return test_order(name_random) || test_order(name_ascending) || test_order(name_descending);
-    return test_order(name_random);
+    buffer_manager.~BufferManager();
+    file_manager.~FileManager();
+    return 0;
 }

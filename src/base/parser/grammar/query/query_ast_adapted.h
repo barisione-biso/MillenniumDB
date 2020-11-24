@@ -6,15 +6,15 @@
 #include "base/parser/grammar/query/query_ast.h"
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Root,
-    explain, selection, graph_pattern, where, limit
+    explain, selection, graph_pattern, where, group_by, order_by, limit
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::LinearPattern,
     root, path
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query::ast::StepPath,
-    edge, node
+BOOST_FUSION_ADAPT_STRUCT(query::ast::LinearPatternStep,
+    path, node
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Node,
@@ -23,6 +23,10 @@ BOOST_FUSION_ADAPT_STRUCT(query::ast::Node,
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Edge,
     var_or_id, types, properties, direction
+)
+
+BOOST_FUSION_ADAPT_STRUCT(query::ast::PropertyPath,
+    type, direction
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::SelectItem,

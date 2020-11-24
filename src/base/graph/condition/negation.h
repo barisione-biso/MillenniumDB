@@ -19,10 +19,6 @@ public:
     ConditionType type() {
         return ConditionType::negation;
     }
-
-    void check_names(std::set<std::string>& var_names) {
-        condition->check_names(var_names);
-    }
 };
 
 #endif // BASE__NEGATION_H_

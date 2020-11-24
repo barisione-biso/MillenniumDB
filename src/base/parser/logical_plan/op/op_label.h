@@ -16,7 +16,7 @@ public:
 
     ~OpLabel() = default;
 
-    void accept_visitor(OpVisitor& visitor) {
+    void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
 

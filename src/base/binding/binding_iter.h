@@ -9,8 +9,12 @@
 class BindingIter {
 public:
     virtual ~BindingIter() = default;
-    virtual void begin() = 0;
-    virtual std::unique_ptr<Binding> next() = 0; // next returning nullptr means there are not more bindings
+
+    // returns the position where all the results will be written
+    virtual Binding& get_binding() = 0;
+
+    // returns true if there are more bindings and false otherwise
+    virtual bool next() = 0;
 
     // prints execution statistics
     virtual void analyze(int indent = 0) const = 0;

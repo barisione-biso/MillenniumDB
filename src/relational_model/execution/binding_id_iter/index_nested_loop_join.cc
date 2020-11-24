@@ -7,7 +7,9 @@
 
 using namespace std;
 
-IndexNestedLoopJoin::IndexNestedLoopJoin(std::size_t binding_size, unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs) :
+IndexNestedLoopJoin::IndexNestedLoopJoin(std::size_t binding_size,
+                                         unique_ptr<BindingIdIter> lhs,
+                                         unique_ptr<BindingIdIter> rhs) :
     BindingIdIter(binding_size),
     lhs (move(lhs)),
     rhs (move(rhs)) { }
@@ -15,7 +17,8 @@ IndexNestedLoopJoin::IndexNestedLoopJoin(std::size_t binding_size, unique_ptr<Bi
 
 BindingId& IndexNestedLoopJoin::begin(BindingId& input) {
     current_left = &lhs->begin(input);
-    if (lhs->next()) { // TODO: no se llama begin al rhs (it sera nullptr)
+    if (lhs->next()) { // TODO: no se llama begin al rhs (it sera nullptr),
+                       // ¿se puede optimizar para no tener que checkear si it sera nullptr?
         current_right = &rhs->begin(*current_left);
     }
     return my_binding;
@@ -32,7 +35,9 @@ void IndexNestedLoopJoin::reset() {
 bool IndexNestedLoopJoin::next() {
     while (true) {
         if (rhs->next()) {
-            construct_binding();
+            // construct binding
+            my_binding.add_all(*current_left);
+            my_binding.add_all(*current_right);
             return true;
         } else {
             if (lhs->next())
@@ -41,12 +46,6 @@ bool IndexNestedLoopJoin::next() {
                 return false;
         }
     }
-}
-
-
-void IndexNestedLoopJoin::construct_binding() {
-    my_binding.add_all(*current_left);
-    my_binding.add_all(*current_right);
 }
 
 

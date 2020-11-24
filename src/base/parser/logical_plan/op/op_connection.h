@@ -16,7 +16,7 @@ public:
         to   (std::move(to)),
         edge (std::move(edge)) { }
 
-    void accept_visitor(OpVisitor& visitor) {
+    void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
 

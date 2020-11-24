@@ -6,7 +6,7 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_connection.h"
 
-void CheckVarNames::visit(OpSelect& op_select) {
+void CheckVarNames::visit(const OpSelect& op_select) {
     op_select.op->accept_visitor(*this);
 
     for (auto& select_item : op_select.select_items) {
@@ -18,20 +18,22 @@ void CheckVarNames::visit(OpSelect& op_select) {
 }
 
 
-void CheckVarNames::visit(OpMatch& op_match) {
+void CheckVarNames::visit(const OpMatch& op_match) {
     declared_object_names = op_match.var_names;
 }
 
 
-void CheckVarNames::visit(OpFilter& op_filter) {
+void CheckVarNames::visit(const OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
-    if (op_filter.condition != nullptr)
-        op_filter.condition->check_names(declared_object_names);
+    op_filter.check_var_names(declared_object_names);
 }
 
 
-void CheckVarNames::visit(OpConnection&) { };
-void CheckVarNames::visit(OpConnectionType&) { };
-void CheckVarNames::visit(OpLabel&) { };
-void CheckVarNames::visit(OpProperty&) { };
-void CheckVarNames::visit(OpUnjointObject&) { };
+void CheckVarNames::visit(const OpGroupBy&) { }
+void CheckVarNames::visit(const OpOrderBy&) { }
+void CheckVarNames::visit(const OpTransitiveClosure&) { }
+void CheckVarNames::visit(const OpConnection&) { }
+void CheckVarNames::visit(const OpConnectionType&) { }
+void CheckVarNames::visit(const OpLabel&) { }
+void CheckVarNames::visit(const OpProperty&) { }
+void CheckVarNames::visit(const OpUnjointObject&) { }

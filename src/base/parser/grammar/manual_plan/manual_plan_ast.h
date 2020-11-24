@@ -9,11 +9,13 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
-#include "base/parser/grammar/common/common_ast.h"
+// #include "base/parser/grammar/common/common_ast.h"
+#include "base/parser/grammar/query/query_ast.h"
 
 namespace manual_plan { namespace ast {
     namespace x3 = boost::spirit::x3;
     using namespace common::ast;
+    // using namespace query::ast;
 
     struct NodeLabel {
         std::string var_or_id;
@@ -46,8 +48,13 @@ namespace manual_plan { namespace ast {
 
     using Relation = boost::variant<NodeLabel, ObjectProperty, TypedConnection>;
 
-    struct Root {
-        std::vector<Relation> relations;
+    struct ManualRoot {
+        std::vector<query::ast::SelectItem>                   selection;
+        std::vector<Relation>                                 relations;
+        boost::optional<query::ast::Formula>                  where;
+        boost::optional<std::vector<query::ast::SelectItem>>  group_by;
+        boost::optional<std::vector<query::ast::SelectItem>>  order_by;
+        boost::optional<uint_fast32_t>                        limit;
     };
 }}
 

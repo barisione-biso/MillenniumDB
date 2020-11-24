@@ -29,12 +29,12 @@
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 
-#include "base/parser/logical_plan/exceptions.h"
 #include "base/binding/binding.h"
 #include "base/binding/binding_iter.h"
+#include "base/graph/graph_model.h"
+#include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/query_parser.h"
-#include "relational_model/models/graph_model.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
@@ -45,17 +45,15 @@ using boost::asio::ip::tcp;
 namespace po = boost::program_options;
 
 void execute_query(unique_ptr<BindingIter> root, TcpBuffer& tcp_buffer) {
-    auto start = chrono::system_clock::now();
     // prepare to start the execution
-    root->begin();
+    auto start = chrono::system_clock::now();
+    unsigned int count = 0;
+    auto& binding = root->get_binding();
 
     // get all results
-    auto binding = root->next();
-    int count = 0;
-    while (binding != nullptr) {
+    while (root->next()) {
         // TODO: uncomment/comment to enable/disable printing results
-        tcp_buffer << binding->to_string();
-        binding = root->next();
+        tcp_buffer << binding.to_string();
         count++;
     }
 

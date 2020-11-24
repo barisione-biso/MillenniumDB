@@ -14,14 +14,16 @@
 #include "base/parser/logical_plan/op/op_connection.h"
 #include "base/parser/logical_plan/op/op_connection_type.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
+#include "base/parser/logical_plan/op/op_transitive_closure.h"
 
 class OpMatch : public Op {
 public:
-    std::set<OpLabel>          labels;
-    std::set<OpProperty>       properties;
-    std::set<OpConnection>     connections;
-    std::set<OpConnectionType> connection_types;
-    std::set<OpUnjointObject>  unjoint_objects;
+    std::set<OpLabel>             labels;
+    std::set<OpProperty>          properties;
+    std::set<OpConnection>        connections;
+    std::set<OpTransitiveClosure> property_paths; // TODO: for now only supporting transitive closure
+    std::set<OpConnectionType>    connection_types;
+    std::set<OpUnjointObject>     unjoint_objects;
 
     std::set<std::string> var_names; // only contains declared variables
 
@@ -38,18 +40,35 @@ public:
                 unjoint_objects.insert(OpUnjointObject(last_object_name));
             }
 
-            for (auto& step_path : linear_pattern.path) {
-                auto current_node_name = process_node(step_path.node);
-                auto edge_name         = process_edge(step_path.edge);
+            for (auto& linear_pattern_step : linear_pattern.path) {
+                auto current_node_name = process_node(linear_pattern_step.node);
 
-                if (step_path.edge.direction == query::ast::EdgeDirection::right) {
-                    connections.insert(
-                        OpConnection(last_object_name, current_node_name, edge_name)
-                    );
+                if (linear_pattern_step.path.type() == typeid(query::ast::Edge)) {
+                    // EDGE
+                    auto edge = boost::get<query::ast::Edge>(linear_pattern_step.path);
+                    auto edge_name  = process_edge(edge);
+
+                    if (edge.direction == query::ast::EdgeDirection::right) {
+                        connections.insert(
+                            OpConnection(last_object_name, current_node_name, edge_name)
+                        );
+                    } else {
+                        connections.insert(
+                            OpConnection(current_node_name, last_object_name, edge_name)
+                        );
+                    }
                 } else {
-                    connections.insert(
-                        OpConnection(current_node_name, last_object_name, edge_name)
-                    );
+                    // PROPERTY PATH
+                    auto property_path = boost::get<query::ast::PropertyPath>(linear_pattern_step.path);
+                    if (property_path.direction == query::ast::EdgeDirection::right) {
+                        property_paths.insert(
+                            OpTransitiveClosure(last_object_name, current_node_name, property_path.type)
+                        );
+                    } else {
+                        property_paths.insert(
+                            OpTransitiveClosure(current_node_name, last_object_name, property_path.type)
+                        );
+                    }
                 }
                 last_object_name = std::move(current_node_name);
             }
@@ -131,7 +150,7 @@ public:
     }
 
 
-    void accept_visitor(OpVisitor& visitor) {
+    void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
 };

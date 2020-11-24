@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-#include "relational_model/execution/binding/binding_id_iter.h"
+#include "base/binding/binding_id_iter.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 
 class SelingerOptimizer {

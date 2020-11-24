@@ -15,14 +15,17 @@ private:
     std::set<std::string> declared_object_names;
 
 public:
-    void visit(OpSelect&) override;
-    void visit(OpMatch&) override;
-    void visit(OpFilter&) override;
-    void visit(OpConnection&) override;
-    void visit(OpConnectionType&) override;
-    void visit(OpLabel&) override;
-    void visit(OpProperty&) override;
-    void visit(OpUnjointObject&) override;
+    void visit(const OpSelect&) override;
+    void visit(const OpMatch&) override;
+    void visit(const OpFilter&) override;
+    void visit(const OpConnection&) override;
+    void visit(const OpConnectionType&) override;
+    void visit(const OpLabel&) override;
+    void visit(const OpProperty&) override;
+    void visit(const OpOrderBy&) override;
+    void visit(const OpGroupBy&) override;
+    void visit(const OpTransitiveClosure&) override;
+    void visit(const OpUnjointObject&) override;
 };
 
 #endif // BASE__CHECK_VAR_NAMES_EXISTS_H_

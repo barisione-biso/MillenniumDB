@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "base/ids/var_id.h"
-#include "relational_model/execution/binding/binding_id_iter.h"
+#include "base/binding/binding_id_iter.h"
 
 // This merge is valid only under these conditions:
 // - lhs and rhs have one variable in common: `join_var`

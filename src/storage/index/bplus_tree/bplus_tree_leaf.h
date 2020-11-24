@@ -45,7 +45,7 @@ class BPlusTreeLeaf {
         void print() const;
 
         std::unique_ptr<BPlusTreeLeaf> get_next_leaf() const;
-        std::unique_ptr<Record<N>> get_record(int pos) const;
+        std::unique_ptr<Record<N>> get_record(uint_fast32_t pos) const;
 
     private:
         Page& page;
@@ -56,7 +56,7 @@ class BPlusTreeLeaf {
 
         uint_fast32_t search_index(int from, int to, const Record<N>& record) const;
         bool equal_record(const Record<N>& record, uint_fast32_t index);
-        void shift_right_records(uint_fast32_t from, uint_fast32_t to);
+        void shift_right_records(int from, int to);
 };
 
 #endif // STORAGE__B_PLUS_TREE_LEAF_H_
