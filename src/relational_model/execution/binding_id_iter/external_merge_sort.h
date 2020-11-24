@@ -1,14 +1,14 @@
 #ifndef RELATIONAL_MODEL__EXTERNAL_MERGE_SORT_H_
 #define RELATIONAL_MODEL__EXTERNAL_MERGE_SORT_H_
 
-#include "base/ids/var_id.h"
-#include "relational_model/execution/binding/binding_id_iter.h"
-#include "storage/file_id.h"
-#include "storage/page.h"
 #include <map>
 #include <memory>
 #include <vector>
 
+#include "base/ids/var_id.h"
+#include "base/binding/binding_id_iter.h"
+#include "storage/file_id.h"
+#include "storage/page.h"
 
 class ExternalMergeSort : public BindingIdIter {
 
@@ -47,4 +47,4 @@ public:
 
 template class std::unique_ptr<ExternalMergeSort>;
 
-#endif //RELATIONAL_MODEL__EXTERNAL_MERGE_SORT_H_
+#endif // RELATIONAL_MODEL__EXTERNAL_MERGE_SORT_H_

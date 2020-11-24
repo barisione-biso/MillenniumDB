@@ -24,8 +24,9 @@ int ENTRY_SIZE = POINTER_SIZE + SIZE_SIZE;
 int ID_SIZE = sizeof(uint_fast64_t);
 int PAGE_SIZE = 4096;
 
-SortPage::SortPage(Page& Page) :
-    page(page) {
+SortPage::SortPage(Page& page) :
+    page(page)
+{
     char* start_pointer = page.get_bytes();
     uint_fast16_t dirsize = 0;
     int freespace = PAGE_SIZE - N_PAGE_SIZE - DIRSIZE_SIZE - FREESPACE_SIZE;
@@ -33,7 +34,7 @@ SortPage::SortPage(Page& Page) :
     memcpy(start_pointer, &PAGE_ID, N_PAGE_SIZE);  // pageno
     memcpy(start_pointer + N_PAGE_SIZE, &dirsize, DIRSIZE_SIZE); // dirsize
     memcpy(start_pointer + N_PAGE_SIZE + DIRSIZE_SIZE, &freespace, FREESPACE_SIZE); // freespace
-    }
+}
 
 SortPage::~SortPage() = default;
 
