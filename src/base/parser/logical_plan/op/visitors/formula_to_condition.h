@@ -24,7 +24,7 @@
 class Formula2ConditionVisitor : public boost::static_visitor<std::unique_ptr<Condition>> {
 public:
     GraphModel& model;
-    std::map<std::string, VarId>& var_names2var_ids;
+    const std::map<std::string, VarId>& var_names2var_ids;
     std::map<VarId, std::pair<VarId, ObjectId>> property_map;
     std::size_t new_property_map_count;
 

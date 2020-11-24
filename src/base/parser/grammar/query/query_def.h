@@ -28,6 +28,8 @@ namespace query {
             node = "node";
         x3::rule<class edge, ast::Edge>
             edge = "edge";
+        x3::rule<class property_path, ast::PropertyPath>
+            property_path = "property_path";
         x3::rule<class condition, ast::Condition>
             condition = "condition";
         x3::rule<class statement, ast::Statement>
@@ -66,8 +68,12 @@ namespace query {
             (-("-[" >> edge_inside >> ']') >> "->" >> attr(ast::EdgeDirection::right)) |
             ("<-" >> -('[' >> edge_inside >> "]-") >> attr(ast::EdgeDirection::left));
 
+        auto const property_path_def =
+            "=["  >> label >> "*]=>" >> attr(ast::EdgeDirection::right) |
+            "<=[" >> label >> "*]="  >> attr(ast::EdgeDirection::left);
+
         auto const linear_pattern_def =
-            node >> *(edge >> node);
+            node >> *((edge | property_path) >> node);
 
         auto const statement_def =
             select_item >> comparator >> (select_item | value);
@@ -101,9 +107,14 @@ namespace query {
         auto const match_statement =
             no_case["match"] >> (linear_pattern % ',');
 
-
         auto const where_statement =
             no_case["where"] >> formula;
+
+        auto const group_by_statement =
+            no_case["group by"] >> selection;
+
+        auto const order_by_statement =
+            no_case["order by"] >> selection;
 
         auto const limit_statement =
             no_case["limit"] >> uint32;
@@ -113,6 +124,8 @@ namespace query {
             >> select_statement
             >> match_statement
             >> -(where_statement)
+            >> -(group_by_statement)
+            >> -(order_by_statement)
             >> -(limit_statement);
 
         BOOST_SPIRIT_DEFINE(
@@ -121,6 +134,7 @@ namespace query {
             select_item,
             node,
             edge,
+            property_path,
             linear_pattern,
             statement,
             formula,

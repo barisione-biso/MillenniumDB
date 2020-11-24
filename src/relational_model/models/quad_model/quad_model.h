@@ -18,7 +18,7 @@ public:
     ~QuadModel();
 
     std::unique_ptr<BindingIter> exec(OpSelect&) override;
-    std::unique_ptr<BindingIter> exec(manual_plan::ast::Root&) override;
+    std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&) override;
     ObjectId get_object_id(const GraphObject& obj) override;
 
     std::shared_ptr<GraphObject> get_graph_object(ObjectId) override;

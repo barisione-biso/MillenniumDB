@@ -7,7 +7,6 @@
 
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/op/visitors/formula_check_var_names.h"
-#include "base/parser/grammar/query/printer/query_ast_printer.h"
 
 class OpFilter : public Op {
 public:
@@ -18,12 +17,12 @@ public:
         op      (std::move(op)),
         formula (formula) { }
 
-    void accept_visitor(OpVisitor& visitor) {
+    void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
 
     // checks filters only uses declared variables, throws QuerySemanticException if not
-    void check_var_names(std::set<std::string>& declared_var_names) {
+    void check_var_names(std::set<std::string>& declared_var_names) const {
         FormulaCheckVarNames visitor(declared_var_names);
         visitor(formula);
     }

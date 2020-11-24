@@ -42,7 +42,7 @@ public:
     virtual ~GraphModel() = default;
 
     virtual std::unique_ptr<BindingIter> exec(OpSelect&) = 0;
-    virtual std::unique_ptr<BindingIter> exec(manual_plan::ast::Root&) = 0;
+    virtual std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&) = 0;
 
     virtual ObjectId get_object_id(const GraphObject&) = 0;
     virtual std::shared_ptr<GraphObject> get_graph_object(ObjectId) = 0;

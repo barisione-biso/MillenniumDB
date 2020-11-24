@@ -13,6 +13,8 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
+#include "base/parser/logical_plan/op/op_order_by.h"
+#include "base/parser/logical_plan/op/op_group_by.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
 
 #include "relational_model/execution/binding_iter/match.h"
@@ -41,7 +43,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(OpSelect& op_select) {
 }
 
 
-void QueryOptimizer::visit(OpSelect& op_select) {
+void QueryOptimizer::visit(const OpSelect& op_select) {
     // need to remember to be able to push properties from select to match
     select_items = move(op_select.select_items);
     op_select.op->accept_visitor(*this);
@@ -69,7 +71,7 @@ void QueryOptimizer::visit(OpSelect& op_select) {
 }
 
 
-void QueryOptimizer::visit(OpMatch& op_match) {
+void QueryOptimizer::visit(const OpMatch& op_match) {
     vector<unique_ptr<JoinPlan>> base_plans;
 
     // Process Labels
@@ -182,6 +184,11 @@ void QueryOptimizer::visit(OpMatch& op_match) {
         }
     }
 
+    // TODO: Process property paths
+    for (auto& property_path : op_match.property_paths) {
+        throw QuerySemanticException("Property paths not implemented yet");
+    }
+
     vector<string> var_names;
     var_names.resize(id_map.size());
     for (auto&& [var_name, var_id] : id_map) {
@@ -198,11 +205,9 @@ void QueryOptimizer::visit(OpMatch& op_match) {
 }
 
 
-void QueryOptimizer::visit(OpFilter& op_filter) {
+void QueryOptimizer::visit(const OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
     auto match_binding_size = id_map.size();
-    // TODO: how to get map new_property_var_id -> (property_var_id, property_key_object_id)
-    // poner aca el visitor y que ese construya el map?
 
     Formula2ConditionVisitor visitor(model, id_map);
     auto condition = visitor(op_filter.formula);
@@ -275,7 +280,7 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(
         auto current_element_cost = base_plans[j]->estimate_cost();
         // cout << j << ", cost:" << current_element_cost << ". ";
         base_plans[j]->print(0, true, var_names);
-        cout << "\n";
+        std::cout << "\n";
         if (current_element_cost < best_cost) {
             best_cost = current_element_cost;
             best_index = j;
@@ -328,14 +333,14 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(
         base_plans[best_index] = nullptr;
         root_plan = move(best_step_plan);
     }
-    cout << "\nPlan Generated:\n";
+    std::cout << "\nPlan Generated:\n";
     root_plan->print(2, true, var_names);
-    cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
+    std::cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
     return root_plan->get_binding_id_iter(binding_size);
 }
 
 
-unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan::ast::Root& root) {
+unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan::ast::ManualRoot& root) {
     unique_ptr<JoinPlan> root_plan = nullptr;
 
     for (auto& relation : root.relations) {
@@ -407,8 +412,19 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan::ast::Root& root) {
 }
 
 
-void QueryOptimizer::visit (OpLabel&) { }
-void QueryOptimizer::visit (OpProperty&) { }
-void QueryOptimizer::visit (OpConnection&) { }
-void QueryOptimizer::visit (OpConnectionType&) { }
-void QueryOptimizer::visit (OpUnjointObject&) { }
+void QueryOptimizer::visit(const OpGroupBy& op_group_by) {
+    op_group_by.op->accept_visitor(*this);
+}
+
+
+void QueryOptimizer::visit(const OpOrderBy& order_by) {
+    order_by.op->accept_visitor(*this);
+}
+
+
+void QueryOptimizer::visit(const OpLabel&) { }
+void QueryOptimizer::visit(const OpProperty&) { }
+void QueryOptimizer::visit(const OpConnection&) { }
+void QueryOptimizer::visit(const OpConnectionType&) { }
+void QueryOptimizer::visit(const OpTransitiveClosure&) { }
+void QueryOptimizer::visit(const OpUnjointObject&) { }
