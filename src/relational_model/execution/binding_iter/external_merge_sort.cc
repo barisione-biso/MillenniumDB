@@ -7,15 +7,9 @@
 
 #include "storage/file_manager.h"
 #include "storage/buffer_manager.h"
-#include "storage/page.h"
+#include "storage/tuple_collection/tuple_collection.h"
 
 using namespace std;
-/*
- TODO: Pasar referencia del modelo, left pasa a ser root.
- TODO: Asegurar el uso de unpins para las paginas.
- TODO: Guardar estado actual en my_binding. Next solo retorna un booleano.
-      Cambiar inicializacion de my_binding
-  */
 
  /* Recomendación: consumir todas las tuplas
   Se compara el id
@@ -26,34 +20,23 @@ using namespace std;
   while (root->next()) {
   }
   */
-ExternalMergeSort::ExternalMergeSort(std::size_t binding_size, unique_ptr<BindingIdIter> root)
-    : BindingIdIter(binding_size), root(move(root))
-{
 
+  ExternalMergeSort::ExternalMergeSort(GraphModel& model, std::unique_ptr<BindingIdIter> root, std::map<std::string, VarId> var_pos) :
+    model     (model),
+    root      (move(root)),
+    input     (BindingId(var_pos.size())),
+    var_pos   (move(var_pos)),
+    temp_file (file_manager.get_file_id("temp_file.txt")) { }
+
+
+Binding& ExternalMergeSort::get_binding() {
+    // TODO: cambiar a return my_binding;
+    return *my_binding;
 }
-
-
-BindingId& ExternalMergeSort::begin(BindingId& input) {
-  current_binding = &root->begin(input);
-  return my_binding;
- /*
-    input_dir = &input;
-    my_binding = make_unique<BindingId>(input.var_count());
-    // ObjectId => son 6 bytes ( uint64)
-    left->begin(input);
-    current_left = left->next();
-    tuple_size = input.var_count() * 6;
-    r = std::vector<BindingId>();
-    phase_0();
-    phase_1();
-    r = std::vector<BindingId>();
-    tuples_counter = 0;
-    */
-}
-
+/*
 void ExternalMergeSort::reset() {
   root->reset();
-  /*
+  /
     tuples_counter = 0;
     for (size_t i = 0; i < tuples_returned_in_phase_2.size(); i++) {
         tuples_returned_in_phase_2[i] = 0;
@@ -69,14 +52,14 @@ void ExternalMergeSort::reset() {
         tuple_size = 0;
         begin(input);
     }
-    */
+    /
 }
-
+*/
 
 bool ExternalMergeSort::next() {
   if (root->next()) {
-    construct_binding();
-    return true;
+    return false;
+     //return make_unique<BindingOrderBy>(model, var_pos, binding_id_root); ?
   }
   return false;
   /*
@@ -117,15 +100,16 @@ bool ExternalMergeSort::next() {
 }
 
 
-
+/*
 void ExternalMergeSort::construct_binding() {
-  /*
+  /
     for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
         my_binding->add(VarId(j), aux[j]);
     }
-    */
+    /
     my_binding.add_all(*current_binding);
 }
+*/
 
 
 /* TODO: Hacer quicksort a la pagina, evitar el uso de r

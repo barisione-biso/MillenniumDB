@@ -12,6 +12,7 @@ class OpTransitiveClosure;
 class OpOrderBy;
 class OpGroupBy;
 class OpUnjointObject;
+//class OpOrderBy;
 
 class OpVisitor {
 public:
