@@ -1,4 +1,3 @@
-/*
 #include "external_merge_sort.h"
 
 #include <algorithm>
@@ -8,16 +7,9 @@
 
 #include "storage/file_manager.h"
 #include "storage/buffer_manager.h"
-#include "storage/page.h"
+#include "storage/tuple_collection/tuple_collection.h"
 
 using namespace std;
-*/
-/*
- TODO: Pasar referencia del modelo, left pasa a ser root.
- TODO: Asegurar el uso de unpins para las paginas.
- TODO: Guardar estado actual en my_binding. Next solo retorna un booleano.
-      Cambiar inicializacion de my_binding
-  */
 
  /* Recomendación: consumir todas las tuplas
   Se compara el id
@@ -28,32 +20,19 @@ using namespace std;
   while (root->next()) {
   }
   */
- /*
-ExternalMergeSort::ExternalMergeSort(std::size_t binding_size, unique_ptr<BindingIter> root)
-    : BindingIdIter(binding_size), root(move(root))
-{
 
+  ExternalMergeSort(GraphModel& model, std::unique_ptr<BindingIdIter> root, std::map<std::string, VarId> var_pos) : model   (model),
+    model   (model),
+    root    (move(root)),
+    input   (BindingId(var_pos.size())),
+    var_pos (move(var_pos)),
+    temp_file (file_manager.get_file_id("temp_file.txt");) { }
+
+
+void ExternalMergeSort::begin() {
+    current_binding = &root->begin(input);
+    //return my_binding;
 }
-*/
-/*
-BindingId& ExternalMergeSort::begin(BindingId& input) {
-  current_binding = &root->begin(input);
-  return my_binding;
- /
-    input_dir = &input;
-    my_binding = make_unique<BindingId>(input.var_count());
-    // ObjectId => son 6 bytes ( uint64)
-    left->begin(input);
-    current_left = left->next();
-    tuple_size = input.var_count() * 6;
-    r = std::vector<BindingId>();
-    phase_0();
-    phase_1();
-    r = std::vector<BindingId>();
-    tuples_counter = 0;
-    /
-}
-*/
 /*
 void ExternalMergeSort::reset() {
   root->reset();
@@ -76,14 +55,14 @@ void ExternalMergeSort::reset() {
     /
 }
 */
-/*
-bool ExternalMergeSort::next() {
+
+std::unique_ptr<Binding> ExternalMergeSort::next() {
   if (root->next()) {
-    construct_binding();
-    return true;
+    return nullptr;
+     //return make_unique<BindingOrderBy>(model, var_pos, binding_id_root); ?
   }
-  return false;
-  /
+  return nullptr;
+  /*
     if (tuples_counter == total_tuples){
         return nullptr;
     }
@@ -117,9 +96,8 @@ bool ExternalMergeSort::next() {
         return my_binding.get();
     }
     return nullptr;
-    /
+    */
 }
-*/
 
 
 /*
