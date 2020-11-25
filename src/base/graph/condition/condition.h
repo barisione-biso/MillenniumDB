@@ -1,11 +1,8 @@
 #ifndef BASE__CONDITION_H_
 #define BASE__CONDITION_H_
 
-#include <set>
-
+#include "base/binding/binding.h"
 #include "base/graph/graph_object.h"
-
-class Binding;
 
 enum class ConditionType {
     comparison,
@@ -21,7 +18,6 @@ public:
     virtual ~Condition() = default;
     virtual bool eval(Binding&) = 0;
     virtual ConditionType type() = 0;
-    virtual void check_names(std::set<std::string>& var_names) = 0;
 };
 
 #endif // BASE__CONDITION_H_

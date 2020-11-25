@@ -4,8 +4,8 @@
 #include <array>
 #include <memory>
 
+#include "base/binding/binding_id_iter.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
-#include "relational_model/execution/binding/binding_id_iter.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 
 template <std::size_t N>

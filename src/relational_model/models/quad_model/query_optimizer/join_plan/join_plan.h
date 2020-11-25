@@ -7,7 +7,7 @@
 
 #include "base/ids/object_id.h"
 #include "base/ids/var_id.h"
-#include "relational_model/execution/binding/binding_id_iter.h"
+#include "base/binding/binding_id_iter.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/assigned_var.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/term.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/unassigned_var.h"

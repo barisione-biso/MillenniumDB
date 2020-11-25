@@ -5,8 +5,8 @@
 
 class NotEquals : public Comparison {
 public:
-    NotEquals(query::ast::Statement const& statement) :
-        Comparison(statement) { }
+    NotEquals(std::unique_ptr<ValueAssign> lhs, std::unique_ptr<ValueAssign> rhs) :
+        Comparison(std::move(lhs), std::move(rhs)) { }
 
     bool compare(GraphObject& lhs, GraphObject& rhs) override {
         return lhs != rhs;

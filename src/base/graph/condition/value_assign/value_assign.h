@@ -3,14 +3,15 @@
 
 #include <memory>
 
-class Binding;
+#include "base/binding/binding.h"
+#include "base/graph/graph_object.h"
+
 
 // Abstract class
 class ValueAssign {
 public:
     virtual ~ValueAssign() = default;
     virtual std::shared_ptr<GraphObject> get_value(Binding&) = 0;
-    virtual void check_names(std::set<std::string>& var_names) = 0;
 };
 
 #endif // BASE__VALUE_ASSIGN_H_

@@ -20,6 +20,12 @@ namespace query { namespace ast {
         boost::optional<std::string> key;
     };
 
+    // TODO: for now only accepting kleene star, e.g. `:P123*`
+    struct PropertyPath {
+        std::string type;
+        EdgeDirection direction;
+    };
+
     struct Edge {
         std::string var_or_id; // Can be the identifier, a variable or empty
         std::vector<std::string> types;
@@ -33,14 +39,14 @@ namespace query { namespace ast {
         std::vector<Property> properties;
     };
 
-    struct StepPath {
-        Edge edge;
+    struct LinearPatternStep {
+        boost::variant<Edge, PropertyPath> path;
         Node node;
     };
 
     struct LinearPattern {
         Node root;
-        std::vector<StepPath> path;
+        std::vector<LinearPatternStep> path;
     };
 
     enum class BinaryOp {
@@ -84,11 +90,13 @@ namespace query { namespace ast {
     };
 
     struct Root {
-        bool                           explain;
-        std::vector<SelectItem>        selection;
-        std::vector<LinearPattern>     graph_pattern;
-        boost::optional<Formula>       where;
-        boost::optional<uint_fast32_t> limit;
+        bool                                      explain;
+        std::vector<SelectItem>                   selection;
+        std::vector<LinearPattern>                graph_pattern;
+        boost::optional<Formula>                  where;
+        boost::optional<std::vector<SelectItem>>  group_by;
+        boost::optional<std::vector<SelectItem>>  order_by;
+        boost::optional<uint_fast32_t>            limit;
     };
 }}
 

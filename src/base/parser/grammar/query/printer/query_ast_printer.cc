@@ -8,11 +8,14 @@
 
 using namespace query::ast;
 
-QueryAstPrinter::QueryAstPrinter(std::ostream& out)
-    : out(out), base_indent(0) {}
+QueryAstPrinter::QueryAstPrinter(std::ostream& out) :
+    out(out),
+    base_indent(0) { }
 
-QueryAstPrinter::QueryAstPrinter(std::ostream& out, int_fast32_t base_indent)
-    : out(out), base_indent(base_indent) {}
+
+QueryAstPrinter::QueryAstPrinter(std::ostream& out, int_fast32_t base_indent) :
+    out(out),
+    base_indent(base_indent) { }
 
 
 void QueryAstPrinter::indent(std::string str) const {
@@ -44,7 +47,7 @@ void QueryAstPrinter::indent(std::string str, int_fast32_t extra_indent) const {
 void QueryAstPrinter::operator()(Root const& r) const {
     indent("{\n");
     auto printer = QueryAstPrinter(out, base_indent+1);
-    printer.indent();
+    printer.indent("\"SELECT\":");
     printer(r.selection);
     out << ",\n";
     printer.indent();
@@ -53,46 +56,42 @@ void QueryAstPrinter::operator()(Root const& r) const {
     printer.indent();
     printer(r.where);
     out << ",\n";
-    printer.indent("\"LIMIT\":");
+
+    if (r.group_by) {
+        printer.indent("\"GROUP BY\":");
+        printer(r.group_by.get());
+        out << ",\n";
+    }
+
+    if (r.order_by) {
+        printer.indent("\"ORDER BY\":");
+        printer(r.order_by.get());
+        out << ",\n";
+    }
+
     if (r.limit) {
+        printer.indent("\"LIMIT\": ");
         out << r.limit.get();
     } else {
-        out << 0;
+        printer.indent("\"LIMIT\": null");
     }
     indent("\n}\n");
 }
 
 
-// void QueryAstPrinter::operator()(std::vector<VarKey> const& select) const {
-//     out << "\"SELECT\": [\n";
-//     auto printer = QueryAstPrinter(out, base_indent+1);
-//     auto it = select.begin();
-//     while (it != select.end()) {
-//         printer.indent();
-//         printer(*it);
-//         ++it;
-//         if (it != select.end()) {
-//             out << ",\n";
-//         }
-//         else {
-//             out << "\n";
-//         }
-//     }
-//     indent("]");
-// }
 void QueryAstPrinter::operator()(SelectItem const& select_item) const {
+    out << "{\"var\": \"" << select_item.var << "\"";
     if (select_item.key) {
-        out << "property: " << select_item.var << ";" << select_item.key.get();
-    } else {
-        out << "var: " << select_item.var;
+        out << ", \"key\":\"" << select_item.key.get() << "\"";
     }
+    out << "}";
 }
 
 
 void QueryAstPrinter::operator()(std::vector<SelectItem> const& select_items) const {
-    out << "\"SELECT\": [\n";
     auto printer = QueryAstPrinter(out, base_indent+1);
     auto it = select_items.begin();
+    out << "[\n";
     while (it != select_items.end()) {
         printer.indent();
         printer(*it);
@@ -142,15 +141,15 @@ void QueryAstPrinter::operator() (LinearPattern const& linear_pattern) const {
 }
 
 
-void QueryAstPrinter::operator() (StepPath step_path) const {
-    (*this)(step_path.edge);
+void QueryAstPrinter::operator() (LinearPatternStep const& step) const {
+    boost::apply_visitor(*this, step.path);
     out << ",\n";
     indent();
-    (*this)(step_path.node);
+    (*this)(step.node);
 }
 
 
-void QueryAstPrinter::operator() (Node node) const {
+void QueryAstPrinter::operator() (Node const& node) const {
     out << "\"NODE\": {\n";
     indent("\"VAR_OR_ID\": ", 1);
     out << "\"" << node.var_or_id << "\",\n";
@@ -189,13 +188,12 @@ void QueryAstPrinter::operator() (Node node) const {
 }
 
 
-void QueryAstPrinter::operator() (Edge edge) const {
+void QueryAstPrinter::operator() (Edge const& edge) const {
     out << "\"EDGE\": {\n";
     indent("\"DIRECTION\": ", 1);
     if (edge.direction == EdgeDirection::right) {
         out << "\"RIGHT\",\n";
-    }
-    else {
+    } else {
         out << "\"LEFT\",\n";
     }
     indent("\"VAR_OR_ID\": ", 1);
@@ -235,18 +233,18 @@ void QueryAstPrinter::operator() (Edge edge) const {
 }
 
 
-// void QueryAstPrinter::operator()(VarKey const& element) const {
-//     out << "{\n";
-//     // if (!element.function.empty()) {
-//     //     indent("\"FUNCTION\": \"", 1);
-//     //     out << element.function << "\",\n";
-//     // }
-//     indent("\"VAR\": \"", 1);
-//     out << element.var << "\",\n";
-//     indent("\"KEY\": \"", 1);
-//     out << element.key << "\"\n";
-//     indent("}");
-// }
+void QueryAstPrinter::operator() (PropertyPath const& property_path) const {
+    out << "\"PROPERTY_PATH\": {\n";
+    indent("\"DIRECTION\": ", 1);
+    if (property_path.direction == EdgeDirection::right) {
+        out << "\"RIGHT\",\n";
+    } else {
+        out << "\"LEFT\",\n";
+    }
+    indent("\"TYPE\": ", 1);
+    out << "\"" << property_path.type << "\"\n";
+    indent("}");
+}
 
 
 void QueryAstPrinter::operator()(boost::optional<Formula> const& where) const {
@@ -270,9 +268,7 @@ void QueryAstPrinter::operator()(boost::optional<Formula> const& where) const {
 void QueryAstPrinter::operator()(Condition const& condition) const {
     if (condition.negation) {
         out << "\"NOT CONDITION\": {\n";
-    }
-
-    else {
+    } else {
         out << "\"CONDITION\": {\n";
     }
     auto printer = QueryAstPrinter(out, base_indent+1);

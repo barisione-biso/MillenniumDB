@@ -1,4 +1,4 @@
-/*#ifndef BASE__OP_ORDER_BY_H_
+#ifndef BASE__OP_ORDER_BY_H_
 #define BASE__OP_ORDER_BY_H_
 
 #include <string>
@@ -9,19 +9,20 @@
 
 class OpOrderBy : public Op {
 public:
-    std::vector<query::ast::SelectItem> order_items;
-    const std::unique_ptr<Op> child_op;
+    const std::unique_ptr<Op> op;
+    const bool ascending_order;
+    const std::vector<query::ast::SelectItem> items;
 
-    OpOrderBy(std::vector<query::ast::SelectItem> order_items, std::unique_ptr<Op> child_op) :
-      order_items(std::move(order_items)), child_op(std::move(child_op))
-        { }
+    OpOrderBy(std::vector<query::ast::SelectItem> items, std::unique_ptr<Op> op, bool ascending_order) :
+        op              (std::move(op)),
+        ascending_order (ascending_order),
+        items           (items) { }
 
     ~OpOrderBy() = default;
 
-    void accept_visitor(OpVisitor& visitor) {
+    void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
 };
 
 #endif // BASE__OP_ORDER_BY_H_
-*/

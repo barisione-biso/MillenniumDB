@@ -51,7 +51,7 @@ kill $FUSEKI_PID
 #     done
 # done
 
-$MILLENIUM_DB_FOLDER/build/Release/bin/server -d $MILLENIUM_DB_FOLDER/test_files/db  > /dev/null 2>&1 & disown
+$MILLENIUM_DB_FOLDER/build/Release/bin/server -d $MILLENIUM_DB_FOLDER/tests/db  > /dev/null 2>&1 & disown
 GRAPH_DB_SERVER_PID=$!
 echo Graph server runing at pid $GRAPH_DB_SERVER_PID
 for (( c=1; c<=10; c++ ))

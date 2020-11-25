@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "base/ids/var_id.h"
-#include "relational_model/execution/binding/binding_id_iter.h"
+#include "base/binding/binding_id_iter.h"
 
 class IndexNestedLoopJoin : public BindingIdIter {
 public:
@@ -25,11 +25,8 @@ private:
 
     BindingId* current_left;
     BindingId* current_right;
-
-    inline void construct_binding();
 };
 
 template class std::unique_ptr<IndexNestedLoopJoin>;
-
 
 #endif // RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_

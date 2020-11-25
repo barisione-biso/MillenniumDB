@@ -9,7 +9,7 @@
 class Op {
 public:
     virtual ~Op() = default;
-    virtual void accept_visitor(OpVisitor&) = 0;
+    virtual void accept_visitor(OpVisitor&) const = 0;
 };
 
 #endif // BASE__OP_H_

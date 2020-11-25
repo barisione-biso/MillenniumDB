@@ -16,6 +16,10 @@ public:
         return id < rhs.id;
     }
 
+    inline bool operator<=(const VarId& rhs) const noexcept {
+        return id <= rhs.id;
+    }
+
     inline bool operator==(const VarId& rhs) const noexcept {
         return id == rhs.id;
     }
