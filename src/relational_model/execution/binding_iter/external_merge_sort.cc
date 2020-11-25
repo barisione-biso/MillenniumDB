@@ -21,17 +21,17 @@ using namespace std;
   }
   */
 
-  ExternalMergeSort(GraphModel& model, std::unique_ptr<BindingIdIter> root, std::map<std::string, VarId> var_pos) : model   (model),
-    model   (model),
-    root    (move(root)),
-    input   (BindingId(var_pos.size())),
-    var_pos (move(var_pos)),
-    temp_file (file_manager.get_file_id("temp_file.txt");) { }
+  ExternalMergeSort::ExternalMergeSort(GraphModel& model, std::unique_ptr<BindingIdIter> root, std::map<std::string, VarId> var_pos) :
+    model     (model),
+    root      (move(root)),
+    input     (BindingId(var_pos.size())),
+    var_pos   (move(var_pos)),
+    temp_file (file_manager.get_file_id("temp_file.txt")) { }
 
 
-void ExternalMergeSort::begin() {
-    current_binding = &root->begin(input);
-    //return my_binding;
+Binding& ExternalMergeSort::get_binding() {
+    // TODO: cambiar a return my_binding;
+    return *my_binding;
 }
 /*
 void ExternalMergeSort::reset() {
@@ -56,12 +56,12 @@ void ExternalMergeSort::reset() {
 }
 */
 
-std::unique_ptr<Binding> ExternalMergeSort::next() {
+bool ExternalMergeSort::next() {
   if (root->next()) {
-    return nullptr;
+    return false;
      //return make_unique<BindingOrderBy>(model, var_pos, binding_id_root); ?
   }
-  return nullptr;
+  return false;
   /*
     if (tuples_counter == total_tuples){
         return nullptr;

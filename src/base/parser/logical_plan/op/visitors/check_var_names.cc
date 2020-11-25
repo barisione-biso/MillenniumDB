@@ -38,16 +38,8 @@ void CheckVarNames::visit(OpOrderBy& op_order_by) {
                 "\" used in ORDER_BY is not declared in MATCH");
         }
     }
-
 }
 */
-
-void CheckVarNames::visit(OpConnection&) { }
-void CheckVarNames::visit(OpConnectionType&) { }
-void CheckVarNames::visit(OpLabel&) { }
-void CheckVarNames::visit(OpProperty&) { }
-void CheckVarNames::visit(OpUnjointObject&) { }
-
 
 void CheckVarNames::visit(const OpGroupBy&) { }
 void CheckVarNames::visit(const OpOrderBy&) { }

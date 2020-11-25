@@ -6,21 +6,26 @@
 #include <vector>
 
 #include "base/binding/binding_iter.h"
+#include "base/binding/binding_id_iter.h"
 #include "base/ids/var_id.h"
-#include "relational_model/execution/binding/binding_id_iter.h"
-#include "relational_model//models/graph_model.h"
+#include "base/graph/graph_model.h"
 #include "storage/file_id.h"
 #include "storage/tuple_collection/tuple_collection.h"
+
 class ExternalMergeSort : public BindingIter {
 public:
     ExternalMergeSort(GraphModel& model, std::unique_ptr<BindingIdIter> root, std::map<std::string, VarId> var_pos);
     ~ExternalMergeSort() = default;
+
     // BindingId& begin(BindingId& input) override;
-    void begin();
-    std::unique_ptr<Binding> next(); // Cambiar a nueva interfaz
+    Binding& get_binding() override;
+    bool next() override;
+    void analyze(int indent = 0) const override;
+
 private:
     //FileId file_phase_0;
     // BindingId* current_left;
+    Binding* my_binding; // TODO: debes cambiar esto por un ExternalMergeSortBinding&
     FileId temp_file;
     GraphModel& model;
     std::unique_ptr<BindingIdIter> root;
@@ -44,10 +49,8 @@ private:
     //void quicksort(int i, int f);
     //void merge(uint_fast32_t B_start, uint_fast32_t B_end);
     //void copy_binding_id(BindingId* destiny, BindingId origin);
-
-
 };
 
 template class std::unique_ptr<ExternalMergeSort>;
 
-#endif //RELATIONAL_MODEL__EXTERNAL_MERGE_SORT_H_
+#endif // RELATIONAL_MODEL__EXTERNAL_MERGE_SORT_H_
