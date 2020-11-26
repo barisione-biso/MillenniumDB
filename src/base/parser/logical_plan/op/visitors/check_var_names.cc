@@ -6,6 +6,8 @@
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_connection.h"
+#include "base/parser/logical_plan/op/op_group_by.h"
+#include "base/parser/logical_plan/op/op_order_by.h"
 
 void CheckVarNames::visit(const OpSelect& op_select) {
     op_select.op->accept_visitor(*this);
@@ -41,8 +43,16 @@ void CheckVarNames::visit(OpOrderBy& op_order_by) {
 }
 */
 
-void CheckVarNames::visit(const OpGroupBy&) { }
-void CheckVarNames::visit(const OpOrderBy&) { }
+void CheckVarNames::visit(const OpGroupBy& op_group_by) {
+    op_group_by.op->accept_visitor(*this);
+}
+
+
+void CheckVarNames::visit(const OpOrderBy& op_order_by) {
+    op_order_by.op->accept_visitor(*this);
+}
+
+
 void CheckVarNames::visit(const OpTransitiveClosure&) { }
 void CheckVarNames::visit(const OpConnection&) { }
 void CheckVarNames::visit(const OpConnectionType&) { }
