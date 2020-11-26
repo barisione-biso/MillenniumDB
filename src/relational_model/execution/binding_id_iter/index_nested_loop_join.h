@@ -27,6 +27,4 @@ private:
     BindingId* current_right;
 };
 
-template class std::unique_ptr<IndexNestedLoopJoin>;
-
 #endif // RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_

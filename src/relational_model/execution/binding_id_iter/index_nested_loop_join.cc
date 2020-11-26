@@ -63,3 +63,5 @@ void IndexNestedLoopJoin::analyze(int indent) const {
     // }
     // cout << ")";
 }
+
+template class std::unique_ptr<IndexNestedLoopJoin>;
