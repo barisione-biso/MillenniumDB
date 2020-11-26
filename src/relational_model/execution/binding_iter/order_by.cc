@@ -27,6 +27,8 @@ using namespace std;
                    size_t binding_size,
                    const bool ascending) :
     root      (move(_root)),
+    ascending (ascending),
+    order_vars (move(order_vars)),
     my_binding (BindingOrderBy(move(order_vars), root->get_binding())) { }
 
 

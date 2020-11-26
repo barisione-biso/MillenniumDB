@@ -31,7 +31,7 @@ public:
 private:
     std::unique_ptr<BindingIter> root;
     BindingOrderBy my_binding;
-    //const bool ascending;
+    const bool ascending;
     std::vector<std::pair<std::string, VarId>> order_vars;
 };
 
