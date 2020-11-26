@@ -22,18 +22,12 @@ using namespace std;
   }
   */
 
-  OrderBy::OrderBy(GraphModel& model,
-                   std::unique_ptr<BindingIter> _root,
+  OrderBy::OrderBy(std::unique_ptr<BindingIter> _root,
                    vector<pair<string, VarId>> order_vars,
                    size_t binding_size,
                    const bool ascending) :
-    model     (model),
     root      (move(_root)),
-    order_vars   (order_vars),
-    ascending (ascending),
-    input      (binding_size),
-    my_binding (BindingOrderBy(move(order_vars), root->get_binding())),
-    temp_file (file_manager.get_file_id("temp_file.txt")) { }
+    my_binding (BindingOrderBy(move(order_vars), root->get_binding())) { }
 
 
 Binding& OrderBy::get_binding() {
@@ -42,7 +36,7 @@ Binding& OrderBy::get_binding() {
 
 bool OrderBy::next() {
   if (root->next()) {
-    return false;
+    return true;
   }
   return false;
 }

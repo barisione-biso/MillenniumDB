@@ -17,7 +17,6 @@
 class OrderBy : public BindingIter {
 public:
     OrderBy(
-        GraphModel& model,
         std::unique_ptr<BindingIter> root,
         std::vector<std::pair<std::string,VarId>> order_vars,
         size_t binding_size,
@@ -30,13 +29,10 @@ public:
     void analyze(int indent = 0) const override;
 
 private:
-    BindingOrderBy my_binding;
-    FileId temp_file;
-    const bool ascending;
-    GraphModel& model;
     std::unique_ptr<BindingIter> root;
+    BindingOrderBy my_binding;
+    //const bool ascending;
     std::vector<std::pair<std::string, VarId>> order_vars;
-    BindingId input;
 };
 
 template class std::unique_ptr<OrderBy>;

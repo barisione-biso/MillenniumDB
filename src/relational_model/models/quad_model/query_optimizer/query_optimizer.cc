@@ -420,6 +420,7 @@ void QueryOptimizer::visit(const OpGroupBy& op_group_by) {
 
 
 void QueryOptimizer::visit(const OpOrderBy& order_by) {
+    order_by.op->accept_visitor(*this);
     select_items = move(order_by.items);
     std::vector<std::pair<std::string, VarId>> order_vars;
     for (const auto& order_item : select_items) {
@@ -432,8 +433,7 @@ void QueryOptimizer::visit(const OpOrderBy& order_by) {
         order_vars.push_back(make_pair(var_name, var_id));
     }
     auto binding_size = id_map.size();
-    tmp = make_unique<OrderBy>(model, move(tmp), move(order_vars), binding_size, order_by.ascending_order);
-    order_by.op->accept_visitor(*this);
+    tmp = make_unique<OrderBy>(move(tmp), move(order_vars), binding_size, order_by.ascending_order);
 }
 
 
