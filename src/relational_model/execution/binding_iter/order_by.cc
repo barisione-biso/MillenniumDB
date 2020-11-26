@@ -1,10 +1,11 @@
-#include "external_merge_sort.h"
+#include "order_by.h"
 
 #include <algorithm>
 #include <cstring>
 #include <stdlib.h>
 #include <math.h>
 
+#include "relational_model/execution/binding/binding_order_by.h"
 #include "storage/file_manager.h"
 #include "storage/buffer_manager.h"
 #include "storage/tuple_collection/tuple_collection.h"
@@ -21,99 +22,36 @@ using namespace std;
   }
   */
 
-  ExternalMergeSort::ExternalMergeSort(GraphModel& model, std::unique_ptr<BindingIdIter> root, std::map<std::string, VarId> var_pos) :
+  OrderBy::OrderBy(GraphModel& model,
+                   std::unique_ptr<BindingIter> _root,
+                   vector<pair<string, VarId>> order_vars,
+                   size_t binding_size,
+                   const bool ascending) :
     model     (model),
-    root      (move(root)),
-    input     (BindingId(var_pos.size())),
-    var_pos   (move(var_pos)),
+    root      (move(_root)),
+    order_vars   (order_vars),
+    ascending (ascending),
+    input      (binding_size),
+    my_binding (BindingOrderBy(move(order_vars), root->get_binding())),
     temp_file (file_manager.get_file_id("temp_file.txt")) { }
 
 
-Binding& ExternalMergeSort::get_binding() {
-    // TODO: cambiar a return my_binding;
-    return *my_binding;
+Binding& OrderBy::get_binding() {
+    return my_binding;
 }
-/*
-void ExternalMergeSort::reset() {
-  root->reset();
-  /
-    tuples_counter = 0;
-    for (size_t i = 0; i < tuples_returned_in_phase_2.size(); i++) {
-        tuples_returned_in_phase_2[i] = 0;
-    }
-    if (!(input == *input_dir)) {
-        r = std::vector<BindingId>();
-        total_pages = 0;
-        total_tuples = 0;
-        tuples_in_last_page = 0;
-        files_phase_1 = std::vector<FileId>();
-        tuples_of_file_phase_1 = std::vector<uint_fast32_t>() ;
-        tuples_returned_in_phase_2 = std::vector<uint_fast32_t>();
-        tuple_size = 0;
-        begin(input);
-    }
-    /
-}
-*/
 
-bool ExternalMergeSort::next() {
+bool OrderBy::next() {
   if (root->next()) {
     return false;
-     //return make_unique<BindingOrderBy>(model, var_pos, binding_id_root); ?
   }
   return false;
-  /*
-    if (tuples_counter == total_tuples){
-        return nullptr;
-    }
-    int_fast32_t tuples_per_page = PAGE_SIZE / tuple_size;
-    bool has_elements = false;
-    size_t file_with_min = 0;
-    // se buscara el minimo elemento que aun no se ha extraido en cada archivo
-    for (size_t i = 0; i < files_phase_1.size(); i++){
-    // se verifica que le queden tuplas al archivo
-        if (tuples_returned_in_phase_2[i] < tuples_of_file_phase_1[i]) {
-            uint_fast32_t n_page = tuples_returned_in_phase_2[i] / tuples_per_page;
-            uint_fast32_t n_index = (tuples_returned_in_phase_2[i] % tuples_per_page) * tuple_size;
-            Page& page = buffer_manager.get_page(files_phase_1[i],n_page);
-            char* start_pointer = page.get_bytes();
-            uint_fast64_t obj_id = 0;
-            BindingId aux = BindingId(my_binding->var_count());
-            for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
-                memcpy(&obj_id, start_pointer + n_index + j*6, 6);
-                aux.add(VarId(j),ObjectId(obj_id));
-            }
-            if (!has_elements || aux < *my_binding) {
-                construct_binding(aux);
-                has_elements = true;
-                file_with_min = i;
-            }
-        }
-    }
-    if (has_elements) {
-        tuples_returned_in_phase_2[file_with_min]++;
-        tuples_counter++;
-        return my_binding.get();
-    }
-    return nullptr;
-    */
 }
 
-
-/*
-void ExternalMergeSort::construct_binding() {
-  /
-    for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
-        my_binding->add(VarId(j), aux[j]);
-    }
-    /
-    my_binding.add_all(*current_binding);
+void OrderBy::analyze(int indent) const {
 }
-*/
-
 
 /* TODO: Hacer quicksort a la pagina, evitar el uso de r
-void ExternalMergeSort::phase_0(){
+void OrderBy::phase_0(){
     // Manda todas las páginas a disco 
     while (current_left != nullptr) {
         r = std::vector<BindingId>();
@@ -148,7 +86,7 @@ void ExternalMergeSort::phase_0(){
 
 
 /* TODO: En un futuro: Implementar carga de a 2 runs
-void ExternalMergeSort::phase_1(){
+void OrderBy::phase_1(){
     //Se escoge dinámicamente el run
     int B = (int)ceil(sqrt((double) total_pages));
     uint_fast32_t start = 0;
@@ -168,7 +106,7 @@ void ExternalMergeSort::phase_1(){
 
 
 /*TODO: Poco prioritario: Probar con insertion sort y medir tiempos
-void ExternalMergeSort::quicksort(int i, int f) {
+void OrderBy::quicksort(int i, int f) {
     if (i <= f) {
         int p = partition(i, f);
         quicksort(i, p - 1);
@@ -178,7 +116,7 @@ void ExternalMergeSort::quicksort(int i, int f) {
 */
 
 /*
-int ExternalMergeSort::partition(int i, int f) {
+int OrderBy::partition(int i, int f) {
     // partition implementado según EL ramo de Estructura de Datos
     int x = i + (rand() % (f - i + 1));
     BindingId binding_p = BindingId(my_binding->var_count());
@@ -206,7 +144,7 @@ int ExternalMergeSort::partition(int i, int f) {
 */
 
 /*
-void ExternalMergeSort::merge(uint_fast32_t B_start, uint_fast32_t B_end) {
+void OrderBy::merge(uint_fast32_t B_start, uint_fast32_t B_end) {
   
     files_phase_1.push_back(file_manager.get_tmp_file_id()); // archivo donde se guardará el output
     tuples_returned_in_phase_2.push_back(0);
@@ -272,7 +210,7 @@ void ExternalMergeSort::merge(uint_fast32_t B_start, uint_fast32_t B_end) {
 */
 
 /*
-void ExternalMergeSort::copy_binding_id(BindingId* destiny, BindingId origin) {
+void OrderBy::copy_binding_id(BindingId* destiny, BindingId origin) {
     for (size_t i = 0; i < tuple_size / 6; i++) {
         destiny->add(VarId(i),ObjectId(origin[i].id));
     }
