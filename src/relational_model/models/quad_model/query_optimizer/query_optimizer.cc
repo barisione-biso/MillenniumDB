@@ -20,6 +20,7 @@
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
+#include "relational_model/execution/binding_iter/order_by.h"
 
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
@@ -73,6 +74,7 @@ void QueryOptimizer::visit(const OpSelect& op_select) {
 
 void QueryOptimizer::visit(const OpMatch& op_match) {
     vector<unique_ptr<JoinPlan>> base_plans;
+
 
     // Process Labels
     for (auto& op_label : op_match.labels) {
@@ -221,24 +223,6 @@ void QueryOptimizer::visit(const OpFilter& op_filter) {
         move(new_property_var_id)
     );
 }
-/*
-void QueryOptimizer::visit(OpOrderBy& op_order_by) {
-  /
-    vector<std::string> order_vars;
-    select_items = move(op_select.select_items);
-    for (const auto& select_item : select_items) {
-        if (select_item.key) {
-            projection_vars.push_back(select_item.var + '.' + select_item.key.get());
-        } else {
-            projection_vars.push_back(select_item.var);
-        }
-    }
-    /
-   // TODO: Añadir order vars
-    op_order_by.child_op->accept_visitor(*this);
-    tmp = make_unique<ExternalMergeSort>(model, move(tmp));
-}
-*/
 
 
 VarId QueryOptimizer::get_var_id(const std::string& var) {
@@ -436,6 +420,19 @@ void QueryOptimizer::visit(const OpGroupBy& op_group_by) {
 
 
 void QueryOptimizer::visit(const OpOrderBy& order_by) {
+    select_items = move(order_by.items);
+    std::vector<std::pair<std::string, VarId>> order_vars;
+    for (const auto& order_item : select_items) {
+        string var_name = order_item.var;
+        if (order_item.key) {
+            var_name += '.';
+            var_name += order_item.key.get();
+        }
+        auto var_id = get_var_id(var_name);
+        order_vars.push_back(make_pair(var_name, var_id));
+    }
+    auto binding_size = id_map.size();
+    tmp = make_unique<OrderBy>(model, move(tmp), move(order_vars), binding_size, order_by.ascending_order);
     order_by.op->accept_visitor(*this);
 }
 
