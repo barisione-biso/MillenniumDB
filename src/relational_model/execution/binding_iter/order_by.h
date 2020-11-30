@@ -17,7 +17,7 @@
 class OrderBy : public BindingIter {
 public:
     OrderBy(
-        std::unique_ptr<BindingIter> root,
+        std::unique_ptr<BindingIter> child,
         std::vector<std::pair<std::string,VarId>> order_vars,
         size_t binding_size,
         const bool ascending);
@@ -29,10 +29,14 @@ public:
     void analyze(int indent = 0) const override;
 
 private:
-    std::unique_ptr<BindingIter> root;
+    std::unique_ptr<BindingIter> child;
     BindingOrderBy my_binding;
-    const bool ascending;
     std::vector<std::pair<std::string, VarId>> order_vars;
+    FileId file_id;
+    uint_fast64_t n_pages = 0;
+    uint_fast64_t n_tuples_returned = 0;
+    uint_fast64_t total_tuples = 0;
+    uint_fast64_t max_tuples = 0;
 };
 
 template class std::unique_ptr<OrderBy>;

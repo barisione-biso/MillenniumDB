@@ -11,7 +11,7 @@
 
 uint64_t PAGE_SIZE = 4096;
 
-TupleCollection::TupleCollection(Page& page, const uint64_t tuple_size) :
+TupleCollection::TupleCollection(Page& page, const size_t tuple_size) :
     page(page),
     tuple_size(tuple_size)
 {
@@ -30,6 +30,10 @@ bool TupleCollection::is_full() const {
       return true;
     }
     return false;
+}
+
+uint64_t TupleCollection::get_n_tuples() const {
+  return *tuple_count;
 }
 
 
@@ -66,22 +70,22 @@ void TupleCollection::swap(int x, int y) {
 }
 
 
-void TupleCollection::sort( bool (*is_leq)(std::vector<uint64_t> x, std::vector<uint64_t> y)) {
-    quicksort(0, (*tuple_count) - 1, is_leq);
+void TupleCollection::sort( bool (*has_priority)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars),std::vector<uint64_t> order_vars) {
+    quicksort(0, (*tuple_count) - 1, has_priority, order_vars);
     page.make_dirty();
 }
 
 
-void TupleCollection::quicksort(int i, int f, bool (*is_leq)(std::vector<uint64_t> x, std::vector<uint64_t> y)) {
+void TupleCollection::quicksort(int i, int f, bool (*has_priority)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars) {
     if (i <= f) {
-        int p = partition(i, f, is_leq);
-        quicksort(i, p - 1, is_leq);
-        quicksort(p + 1, f, is_leq);
+        int p = partition(i, f, has_priority, order_vars);
+        quicksort(i, p - 1, has_priority, order_vars);
+        quicksort(p + 1, f, has_priority, order_vars);
     }
 }
 
 
-int TupleCollection::partition(int i, int f, bool (*is_leq)(std::vector<uint64_t> x, std::vector<uint64_t> y)) {
+int TupleCollection::partition(int i, int f, bool (*has_priority)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars) {
     int x = i + (rand() % (f - i + 1));
     std::vector<uint64_t> p = get(x);
     TupleCollection::swap(x,f);
@@ -89,7 +93,7 @@ int TupleCollection::partition(int i, int f, bool (*is_leq)(std::vector<uint64_t
     int j = i;
     int k = i;
     while (k <= f) {
-        if (is_leq(get(k), p)) {
+        if (has_priority(get(k), p, order_vars)) {
             TupleCollection::swap(j, k);
         }
         k++;

@@ -10,29 +10,63 @@
 #include "storage/buffer_manager.h"
 #include "storage/tuple_collection/tuple_collection.h"
 
+
+bool is_lt(std::vector<uint64_t> a, std::vector<uint64_t> b, std::vector<uint64_t> order_vars) {
+    for (size_t i = 0; i < order_vars.size(); i++) {
+        if (a[i] < b[i]) {
+            return true;
+        }
+        if (b[i] < a[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool is_gt(std::vector<uint64_t> a, std::vector<uint64_t> b, std::vector<uint64_t> order_vars) {
+    for (size_t i = 0; i < order_vars.size(); i++) {
+        if (a[i] > b[i]) {
+            return true;
+        }
+        if (b[i] > a[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 using namespace std;
 
- /* Recomendación: consumir todas las tuplas
-  Se compara el id
-  orden = [2,3,1] <- viene en el contructor
-  [2,5,7]
-  [2,5,8]
-  auto binding_id = root->begin()
-  while (root->next()) {
-  }
-  */
-
-
-OrderBy::OrderBy(std::unique_ptr<BindingIter> _root,
+OrderBy::OrderBy(std::unique_ptr<BindingIter> _child,
                    vector<pair<string, VarId>> order_vars,
                    size_t binding_size,
                    const bool ascending) :
-    root       (move(_root)),
-    ascending  (ascending),
+    child       (move(_child)),
     order_vars (move(order_vars)),
-    my_binding (BindingOrderBy(move(order_vars), root->get_binding()))
+    my_binding (BindingOrderBy(move(order_vars), child->get_binding())),
+    file_id (file_manager.get_file_id("temp.txt"))
 {
-      // TODO: ORDENAR EN CONSTRUCTOR
+    n_pages = 0;
+    bool (*has_priority)(std::vector<uint64_t> a, std::vector<uint64_t>b, std::vector<uint64_t> order_v) = (ascending) ? is_gt : is_lt;
+    std::vector<uint64_t> order_ids = std::vector<uint64_t>(order_vars.size());
+    for (size_t i = 0; i < order_vars.size(); i++) {
+        order_ids[i] = order_vars[i].second.id;
+    }
+    TupleCollection run(buffer_manager.get_page(file_id, n_pages), binding_size);
+    std::vector<uint64_t> binding_id_vec = std::vector<uint64_t>(binding_size);
+    while (child->next()) {
+        if (run.is_full()) {
+            n_pages++;
+            max_tuples = run.get_n_tuples();
+            //run.sort(has_priority, order_ids);
+            TupleCollection run(buffer_manager.get_page(file_id, n_pages), binding_size);
+        }
+        for (size_t i = 0; i < binding_size; i++) {
+            binding_id_vec[i] = my_binding.get_id(VarId(i)).id;
+        }
+        run.add(binding_id_vec);
+        total_tuples++;
+  }
 }
 
 
@@ -43,15 +77,19 @@ Binding& OrderBy::get_binding() {
 
 bool OrderBy::next() {
   // TODO: CAMBIAR ESTA LOGICA EN NEXT. DEBE COMUNICARSE CON TUPLE_COLLECTION.
-  if (root->next()) {
+  cout << total_tuples << "\n";
+  cout << n_pages << "\n";
+  cout << max_tuples << "\n";
+  if (child->next()) {
     return true;
   }
   return false;
 }
 
 void OrderBy::analyze(int indent) const {
-    root->analyze(indent);
+    child->analyze(indent);
 }
+
 
 /* TODO: Hacer quicksort a la pagina, evitar el uso de r
 void OrderBy::phase_0(){

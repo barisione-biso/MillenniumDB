@@ -11,7 +11,7 @@
 
 class BindingOrderBy : public Binding {
 public:
-    BindingOrderBy(std::vector<std::pair<std::string, VarId>> projection_vars, Binding& child_binding);
+    BindingOrderBy(std::vector<std::pair<std::string, VarId>> order_vars, Binding& child_binding);
     ~BindingOrderBy() = default;
 
     std::string to_string() const override;
@@ -21,7 +21,7 @@ public:
 
 
 private:
-    std::vector<std::pair<std::string, VarId>> projection_vars;
+    std::vector<std::pair<std::string, VarId>> order_vars;
     Binding& child_binding;
 };
 
