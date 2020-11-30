@@ -46,3 +46,10 @@ std::shared_ptr<GraphObject> BindingWhere::operator[](VarId var_id) {
         }
     }
 }
+
+
+ObjectId BindingWhere::get_id(const VarId var_id) {
+    // TODO: Ver el caso con los VarId fuera del match
+    return child_binding.get_id(var_id);
+}
+

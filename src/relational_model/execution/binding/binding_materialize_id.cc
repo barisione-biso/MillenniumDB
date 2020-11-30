@@ -33,3 +33,8 @@ std::string BindingMaterializeId::to_string() const {
 shared_ptr<GraphObject> BindingMaterializeId::operator[](const VarId var_id) {
     return model.get_graph_object(binding_id[var_id]);
 }
+
+
+ObjectId BindingMaterializeId::get_id(const VarId var_id) {
+    return binding_id[var_id];
+}

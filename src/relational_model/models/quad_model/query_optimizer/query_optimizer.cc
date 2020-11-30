@@ -421,9 +421,8 @@ void QueryOptimizer::visit(const OpGroupBy& op_group_by) {
 
 void QueryOptimizer::visit(const OpOrderBy& order_by) {
     order_by.op->accept_visitor(*this);
-    select_items = move(order_by.items);
     std::vector<std::pair<std::string, VarId>> order_vars;
-    for (const auto& order_item : select_items) {
+    for (const auto& order_item : order_by.items) {
         string var_name = order_item.var;
         if (order_item.key) {
             var_name += '.';

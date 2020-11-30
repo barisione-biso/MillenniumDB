@@ -17,7 +17,7 @@ public:
     std::string to_string() const override;
 
     std::shared_ptr<GraphObject> operator[](const VarId var_id) override;
-
+    ObjectId get_id(const VarId var_id) override;
     void begin(BindingId&);
 
 private:

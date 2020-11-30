@@ -15,6 +15,8 @@ public:
     virtual std::string to_string() const = 0;
 
     virtual std::shared_ptr<GraphObject> operator[](const VarId var_id) = 0;
+    virtual ObjectId get_id(const VarId var_id) = 0;
+
 };
 
 #endif // BASE__BINDING_H_

@@ -36,3 +36,8 @@ std::string BindingOrderBy::to_string() const {
 shared_ptr<GraphObject> BindingOrderBy::operator[](const VarId var) {
     return child_binding[var];
 }
+
+
+ObjectId BindingOrderBy::get_id(const VarId var_id) {
+    return child_binding.get_id(var_id);
+}

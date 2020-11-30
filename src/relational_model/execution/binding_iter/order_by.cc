@@ -2,8 +2,8 @@
 
 #include <algorithm>
 #include <cstring>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdlib>
+#include <cmath>
 
 #include "relational_model/execution/binding/binding_order_by.h"
 #include "storage/file_manager.h"
@@ -22,21 +22,27 @@ using namespace std;
   }
   */
 
-  OrderBy::OrderBy(std::unique_ptr<BindingIter> _root,
+
+OrderBy::OrderBy(std::unique_ptr<BindingIter> _root,
                    vector<pair<string, VarId>> order_vars,
                    size_t binding_size,
                    const bool ascending) :
-    root      (move(_root)),
-    ascending (ascending),
+    root       (move(_root)),
+    ascending  (ascending),
     order_vars (move(order_vars)),
-    my_binding (BindingOrderBy(move(order_vars), root->get_binding())) { }
+    my_binding (BindingOrderBy(move(order_vars), root->get_binding()))
+{
+      // TODO: ORDENAR EN CONSTRUCTOR
+}
 
 
 Binding& OrderBy::get_binding() {
     return my_binding;
 }
 
+
 bool OrderBy::next() {
+  // TODO: CAMBIAR ESTA LOGICA EN NEXT. DEBE COMUNICARSE CON TUPLE_COLLECTION.
   if (root->next()) {
     return true;
   }
@@ -44,6 +50,7 @@ bool OrderBy::next() {
 }
 
 void OrderBy::analyze(int indent) const {
+    root->analyze(indent);
 }
 
 /* TODO: Hacer quicksort a la pagina, evitar el uso de r
