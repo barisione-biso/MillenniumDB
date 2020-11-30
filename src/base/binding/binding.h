@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 
+#include "base/ids/object_id.h"
 #include "base/graph/graph_object.h"
 #include "base/ids/var_id.h"
 
