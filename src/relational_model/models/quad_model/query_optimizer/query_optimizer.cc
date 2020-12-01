@@ -432,7 +432,7 @@ void QueryOptimizer::visit(const OpOrderBy& order_by) {
         order_vars.push_back(make_pair(var_name, var_id));
     }
     auto binding_size = id_map.size();
-    tmp = make_unique<OrderBy>(move(tmp), move(order_vars), binding_size, order_by.ascending_order);
+    tmp = make_unique<OrderBy>(model, move(tmp), move(order_vars), binding_size, order_by.ascending_order);
 }
 
 

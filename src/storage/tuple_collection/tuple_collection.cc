@@ -27,9 +27,9 @@ TupleCollection::~TupleCollection() {
 
 bool TupleCollection::is_full() const {
     if (((*tuple_count) + 1) * tuple_size + sizeof(tuple_count) < PAGE_SIZE) {
-      return true;
+      return false;
     }
-    return false;
+    return true;
 }
 
 uint64_t TupleCollection::get_n_tuples() const {

@@ -17,9 +17,10 @@
 class OrderBy : public BindingIter {
 public:
     OrderBy(
+        GraphModel& model,
         std::unique_ptr<BindingIter> child,
         std::vector<std::pair<std::string,VarId>> order_vars,
-        size_t binding_size,
+        std::size_t binding_size,
         const bool ascending);
     ~OrderBy() = default;
 
@@ -30,13 +31,14 @@ public:
 
 private:
     std::unique_ptr<BindingIter> child;
+    std::unique_ptr<TupleCollection> run;
     BindingOrderBy my_binding;
     std::vector<std::pair<std::string, VarId>> order_vars;
     FileId file_id;
     uint_fast64_t n_pages = 0;
-    uint_fast64_t n_tuples_returned = 0;
-    uint_fast64_t total_tuples = 0;
-    uint_fast64_t max_tuples = 0;
+    uint_fast64_t page_position = 0;
+    std::size_t binding_size;
+    uint_fast64_t current_page = 0;
 };
 
 template class std::unique_ptr<OrderBy>;
