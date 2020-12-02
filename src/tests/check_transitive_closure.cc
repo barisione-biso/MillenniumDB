@@ -3,7 +3,9 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+
 #include <boost/program_options.hpp>
+
 #include "base/binding/binding.h"
 #include "base/binding/binding_iter.h"
 #include "base/graph/graph_model.h"
@@ -11,11 +13,10 @@
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/query_parser.h"
+#include "relational_model/execution/binding_id_iter/transitive_closure.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
-
-#include "relational_model/execution/binding_id_iter/transitive_closure.h"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -49,21 +50,24 @@ int main(int argc, char **argv) {
         }
         po::notify(vm);
 
-        unique_ptr<QuadModel> model = make_unique<QuadModel>(db_folder, buffer_size);
+        QuadModel model(db_folder, buffer_size);
 
         // Base Case
-        auto& bpt = model -> from_to_type_edge; //from: 0, to: 1, type: 2
-        auto start_id = ObjectId(model -> get_identifiable_object_id("Q39530"));
-        auto end_id = ObjectId(model -> get_identifiable_object_id("Q94846"));
-        auto type_id = ObjectId(model -> get_identifiable_object_id("tower"));
-        auto op = TransitiveClosure(4, *bpt, start_id, end_id, type_id, 0, 1, 2);
+        auto& bpt = *model.from_to_type_edge; //from: 0, to: 1, type: 2
+        auto start_id = ObjectId(model.get_identifiable_object_id("Q39530"));
+        auto end_id   = ObjectId(model.get_identifiable_object_id("Q94846"));
+        auto type_id  = ObjectId(model.get_identifiable_object_id("tower"));
+        cout << "before creating TransitiveClosure\n";
+        auto op = TransitiveClosure(4, bpt, start_id, end_id, type_id, 0, 1, 2);
+        cout << "after creating TransitiveClosure\n";
 
         // Transitive Closure
         BindingId binding(4);
-        auto result = op.begin(binding);
+        auto& result = op.begin(binding);
         while (op.next()) {
             cout << "Resultado\n";
         }
+        cout << "Fin\n";
     }
     catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";

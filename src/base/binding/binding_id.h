@@ -10,13 +10,19 @@
 
 class BindingId {
 private:
-    std::size_t size;
+    const std::size_t size;
     ObjectId* object_ids; // array
 
 public:
-    BindingId(std::size_t size) :
+    BindingId(const std::size_t size) :
         size       (size),
         object_ids (new ObjectId[size]) { }
+
+    // to prevent using
+    // auto b = op.begin()
+    // instead of
+    // auto& b = op.begin()
+    BindingId(const BindingId& other) = delete;
 
     ~BindingId() {
         delete[] object_ids;
@@ -38,6 +44,5 @@ public:
         return size;
     }
 };
-
 
 #endif // BASE__BINDING_ID_H_

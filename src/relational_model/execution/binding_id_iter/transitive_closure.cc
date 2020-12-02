@@ -13,9 +13,15 @@ using namespace std;
 
 
 TransitiveClosure::TransitiveClosure(std::size_t binding_size, BPlusTree<4>& bpt, ObjectId start, ObjectId end, ObjectId type,
-    uint_fast32_t start_pos, uint_fast32_t end_pos, uint_fast32_t type_pos) :
-    BindingIdIter(binding_size),
-    bpt    (bpt) {}
+                                     uint_fast32_t start_pos, uint_fast32_t end_pos, uint_fast32_t type_pos) :
+    BindingIdIter (binding_size),
+    bpt           (bpt),
+    start         (start),
+    end           (end),
+    type          (type),
+    start_pos     (start_pos),
+    end_pos       (end_pos),
+    type_pos      (type_pos) { }
 
 
 BindingId& TransitiveClosure::begin(BindingId& input) {
@@ -37,7 +43,7 @@ BindingId& TransitiveClosure::begin(BindingId& input) {
 
 bool TransitiveClosure::next() {
     // BFS (base case)
-    while (open.size()){
+    while (open.size() > 0) {
         auto current = open.front();
         open.pop();
         min_ids[start_pos] = current.id;
@@ -46,17 +52,19 @@ bool TransitiveClosure::next() {
             Record<4>(min_ids),
             Record<4>(max_ids)
         );
-        auto child_record = it -> next();
+        auto child_record = it->next();
         while (child_record != nullptr){
-            auto child = child_record -> ids[end_pos];
+            auto child = child_record->ids[end_pos];
             if (child == end.id) {
                 queue<ObjectId> empty;
                 open.swap(empty);
                 return true;
-            }
-            if (visited.find(ObjectId(child)) != visited.end()) {
-                visited.insert(ObjectId(child));
-                open.push(ObjectId(child));
+            } else {
+                if (visited.find(ObjectId(child)) != visited.end()) {
+                    visited.insert(ObjectId(child));
+                    open.push(ObjectId(child));
+                }
+                child_record = it->next();
             }
         }
     }
@@ -68,5 +76,5 @@ void TransitiveClosure::reset() {
 }
 
 
-void TransitiveClosure::analyze(int indent) const {
+void TransitiveClosure::analyze(int) const {
 }

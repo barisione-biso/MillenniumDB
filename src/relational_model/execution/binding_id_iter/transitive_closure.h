@@ -27,8 +27,8 @@ private:
     // BFS
     std::array<uint64_t, 4> min_ids;
     std::array<uint64_t, 4> max_ids;
-    set<ObjectId> visited; // Visited nodes
-    queue<ObjectId> open; // Expanded nodes
+    std::set<ObjectId> visited; // Visited nodes
+    std::queue<ObjectId> open; // Expanded nodes
 
     // Statistics
     uint_fast32_t results_found = 0;
