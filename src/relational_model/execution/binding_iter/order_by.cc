@@ -46,7 +46,7 @@ OrderBy::OrderBy(GraphModel& model,
     order_vars   (move(order_vars)),
     binding_size (binding_size),
     my_binding   (BindingOrderBy(model, move(order_vars), child->get_binding(), binding_size)),
-    file_id      (file_manager.get_file_id("temp1.txt"))
+    file_id      (file_manager.get_file_id("temp.txt"))
 {
     bool (*has_priority)(std::vector<uint64_t> a, std::vector<uint64_t>b, std::vector<uint64_t> order_v) = (ascending) ? is_gt : is_lt;
     std::vector<uint64_t> order_ids = std::vector<uint64_t>(order_vars.size());
@@ -59,7 +59,7 @@ OrderBy::OrderBy(GraphModel& model,
     while (child->next()) {
         if (run->is_full()) {
             n_pages++;
-            //run.sort(has_priority, order_ids);
+            run->sort(has_priority, order_ids);
             run = make_unique<TupleCollection>(buffer_manager.get_page(file_id, n_pages), binding_size);
         }
         for (size_t i = 0; i < binding_size; i++) {
@@ -70,6 +70,9 @@ OrderBy::OrderBy(GraphModel& model,
     run = make_unique<TupleCollection>(buffer_manager.get_page(file_id, 0), binding_size);
 }
 
+OrderBy::~OrderBy() {
+   buffer_manager.remove(file_id);
+}
 
 Binding& OrderBy::get_binding() {
     return my_binding;
@@ -94,41 +97,6 @@ bool OrderBy::next() {
 void OrderBy::analyze(int indent) const {
     child->analyze(indent);
 }
-
-
-/* TODO: Hacer quicksort a la pagina, evitar el uso de r
-void OrderBy::phase_0(){
-    // Manda todas las páginas a disco 
-    while (current_left != nullptr) {
-        r = std::vector<BindingId>();
-        // se realiza el llenado del run
-        for (int_fast32_t i = 0; (i + 1) * tuple_size <= PAGE_SIZE; i++) {
-            if (current_left == nullptr) {
-                break;
-            }
-            r.push_back(*current_left);
-            current_left = left->next();
-        }
-        // se ordena el run usando quicksort
-        quicksort(0, r.size() - 1);
-        Page& page = buffer_manager.get_page(file_phase_0, total_pages);
-        char* start_pointer = page.get_bytes();
-        // se lleva el run a disco
-        for (size_t i = 0; i < r.size();i++) {
-            int tuple_pointer = tuple_size * i;
-            uint_fast64_t obj_id = 0;
-            for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
-                obj_id = r[i][j].id;
-                memcpy(start_pointer + tuple_pointer + (j*6), &obj_id, 6);
-            }
-        }
-        total_tuples += r.size();
-        tuples_in_last_page = r.size();
-        page.make_dirty();
-        total_pages++;
-    }
-}
-*/
 
 
 /* TODO: En un futuro: Implementar carga de a 2 runs

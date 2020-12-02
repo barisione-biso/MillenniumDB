@@ -9,7 +9,6 @@
 #include "storage/file_manager.h"
 #include "storage/buffer_manager.h"
 
-uint64_t PAGE_SIZE = 4096;
 
 TupleCollection::TupleCollection(Page& page, const size_t tuple_size) :
     page(page),
@@ -21,12 +20,13 @@ TupleCollection::TupleCollection(Page& page, const size_t tuple_size) :
 
 
 TupleCollection::~TupleCollection() {
+  page.make_dirty();
 	buffer_manager.unpin(page);
 }
 
 
 bool TupleCollection::is_full() const {
-    if (((*tuple_count) + 1) * tuple_size + sizeof(tuple_count) < PAGE_SIZE) {
+    if (((*tuple_count) + 1) * tuple_size + sizeof(tuple_count) < Page::PAGE_SIZE) {
       return false;
     }
     return true;
@@ -39,14 +39,17 @@ uint64_t TupleCollection::get_n_tuples() const {
 
 void TupleCollection::add(std::vector<uint64_t> new_tuple) {
 	  for (size_t i = 0; i < tuple_size; i++) {
+      if (sizeof(new_tuple[i]) != sizeof(uint64_t)) {
+        std::cout <<"eeror\n";
+      }
     	tuples[(*tuple_count) * tuple_size + i] = new_tuple[i];
   	}
-    page.make_dirty();
   	(*tuple_count)++;
+    page.make_dirty();
 }
 
 
-std::vector<uint64_t> TupleCollection::get(int id) const {
+std::vector<uint64_t> TupleCollection::get(uint_fast64_t id) const {
     std::vector<uint64_t> n_tuple = std::vector<uint64_t>(tuple_size);
     for (size_t i = 0; i < tuple_size; i++) {
         n_tuple[i] = tuples[id * tuple_size + i];

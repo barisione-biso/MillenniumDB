@@ -15,7 +15,7 @@ friend class MergeOrderedTupleCollection;
 public:
     TupleCollection(Page& page, const size_t tuple_size);
    ~TupleCollection();
-    std::vector<uint64_t> get(int n) const;
+    std::vector<uint64_t> get(uint_fast64_t n) const;
     bool is_full() const;
     uint64_t get_n_tuples() const;
     void add(std::vector<uint64_t> new_tuple);
