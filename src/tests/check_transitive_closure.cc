@@ -9,7 +9,6 @@
 #include "base/binding/binding.h"
 #include "base/binding/binding_iter.h"
 #include "base/graph/graph_model.h"
-#include "base/graph/identifiable_node.h"
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/query_parser.h"
