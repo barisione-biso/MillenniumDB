@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cmath>
 
+
 #include "relational_model/execution/binding/binding_order_by.h"
 #include "storage/file_manager.h"
 #include "storage/buffer_manager.h"
@@ -46,32 +47,39 @@ OrderBy::OrderBy(GraphModel& model,
     order_vars   (move(order_vars)),
     binding_size (binding_size),
     my_binding   (BindingOrderBy(model, move(order_vars), child->get_binding(), binding_size)),
-    file_id      (file_manager.get_file_id("temp.txt"))
+    first_file_id     (file_manager.get_file_id("temp0.txt")),
+    second_file_id    (file_manager.get_file_id("temp1.txt"))
 {
-    bool (*has_priority)(std::vector<uint64_t> a, std::vector<uint64_t>b, std::vector<uint64_t> order_v) = (ascending) ? is_gt : is_lt;
+    bool (*has_priority)(std::vector<uint64_t> a, std::vector<uint64_t>b, std::vector<uint64_t> order_v) = (ascending) ? is_lt : is_gt;
     std::vector<uint64_t> order_ids = std::vector<uint64_t>(order_vars.size());
     for (size_t i = 0; i < order_vars.size(); i++) {
         order_ids[i] = order_vars[i].second.id;
     }
     n_pages = 0;
-    run = make_unique<TupleCollection>(buffer_manager.get_page(file_id, n_pages), binding_size);
+    merger = make_unique<MergeOrderedTupleCollection>(binding_size, order_ids, has_priority);
+    run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, n_pages), binding_size);
+    run->reset();
     std::vector<uint64_t> binding_id_vec = std::vector<uint64_t>(binding_size);
     while (child->next()) {
         if (run->is_full()) {
             n_pages++;
             run->sort(has_priority, order_ids);
-            run = make_unique<TupleCollection>(buffer_manager.get_page(file_id, n_pages), binding_size);
+            run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, n_pages), binding_size);
+            run->reset();
         }
         for (size_t i = 0; i < binding_size; i++) {
             binding_id_vec[i] = my_binding.get_id(VarId(i)).id;
         }
         run->add(binding_id_vec);
     }
-    run = make_unique<TupleCollection>(buffer_manager.get_page(file_id, 0), binding_size);
+    run = nullptr;
+    file_id_n = mergeSort(0, n_pages, -1);
+    run = make_unique<TupleCollection>(buffer_manager.get_page(file_id_n == 2 ? second_file_id : first_file_id, 0), binding_size);
 }
 
 OrderBy::~OrderBy() {
-   buffer_manager.remove(file_id);
+    //buffer_manager.remove(first_file_id);
+    //buffer_manager.remove(second_file_id);
 }
 
 Binding& OrderBy::get_binding() {
@@ -85,7 +93,7 @@ bool OrderBy::next() {
         if (current_page > n_pages) {
             return false;
         }
-        run = make_unique<TupleCollection>(buffer_manager.get_page(file_id, current_page), binding_size);
+        run = make_unique<TupleCollection>(buffer_manager.get_page(file_id_n == 2 ? second_file_id : first_file_id, current_page), binding_size);
         page_position = 0;
     }
     std::vector<uint64_t> binding_ids = run->get(page_position);
@@ -98,135 +106,39 @@ void OrderBy::analyze(int indent) const {
     child->analyze(indent);
 }
 
-
-/* TODO: En un futuro: Implementar carga de a 2 runs
-void OrderBy::phase_1(){
-    //Se escoge dinámicamente el run
-    int B = (int)ceil(sqrt((double) total_pages));
-    uint_fast32_t start = 0;
-    uint_fast32_t end = B;
-    while (end <= total_pages) {
-        merge(start,end);
-        start+=B;
-        end+=B;
-        if (end > total_pages && start < total_pages) {
-            end = total_pages;
-            merge(start,end);
-            return;
-        }
+int OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, int file_n) {
+    // false -> output save in first, output saved in second
+    if (start_page == end_page) {
+      if (start_page == 0) {
+        return 1;
+      }
+      if (file_n == 2) {
+        merger->copy_page(start_page, first_file_id, second_file_id);
+        return 2;
+      }
+      return 1;
     }
+    uint_fast64_t middle = (start_page + end_page) / 2;
+    int file_n_save = mergeSort(start_page, middle, file_n);
+    mergeSort(middle + 1, end_page, file_n == -1 ? file_n_save : file_n);
+    int output_file_n = file_n == -1 ? file_n_save == 2 ? 1 : 2 : file_n;
+    if (output_file_n == 1) {
+        merger->merge(
+          start_page,
+          middle,
+          middle + 1,
+          end_page,
+          second_file_id,
+          first_file_id);
+    } else {
+        merger->merge(
+          start_page,
+          middle,
+          middle + 1,
+          end_page,
+          first_file_id,
+          second_file_id);
+    }
+    return 2;
 }
-*/
 
-
-/*TODO: Poco prioritario: Probar con insertion sort y medir tiempos
-void OrderBy::quicksort(int i, int f) {
-    if (i <= f) {
-        int p = partition(i, f);
-        quicksort(i, p - 1);
-        quicksort(p + 1, f);
-    }
-}
-*/
-
-/*
-int OrderBy::partition(int i, int f) {
-    // partition implementado según EL ramo de Estructura de Datos
-    int x = i + (rand() % (f - i + 1));
-    BindingId binding_p = BindingId(my_binding->var_count());
-    // p = arreglo[x]
-    binding_p = r[x];
-    // intercambio de elementos de x y f
-    std::swap(r[x], r[f]);
-    r[f] = binding_p;
-    int j = i;
-    BindingId binding_k = BindingId(my_binding->var_count());
-    int k = i;
-    BindingId aux = BindingId(my_binding->var_count());
-    while(k <= f) {
-        if (r[k] < binding_p) {
-            // intercambiar elemento j con elemento k
-            std::swap(r[j], r[k]);
-            j++;
-        }
-        k++;
-    }
-    std::swap(r[j], r[f]);
-    return j;
-   return 0;
-}
-*/
-
-/*
-void OrderBy::merge(uint_fast32_t B_start, uint_fast32_t B_end) {
-  
-    files_phase_1.push_back(file_manager.get_tmp_file_id()); // archivo donde se guardará el output
-    tuples_returned_in_phase_2.push_back(0);
-    int_fast32_t tuples_per_page = PAGE_SIZE / tuple_size; // tuplas que caben en una pagina
-    uint_fast32_t p_index[B_end - B_start];
-    for (uint_fast32_t i = 0; i < B_end - B_start; i++){
-        p_index[i] = 0; // indica el indice de donde se debe leer la tupla en cada pagina
-    }
-    bool has_elements = true;
-    BindingId min_bin = BindingId(my_binding->var_count());
-    r = std::vector<BindingId>();
-    uint_fast32_t p_min = 0;  // indica la pagina en la que se encontro el minimo
-    while (has_elements) {
-        has_elements = false;
-        for (uint_fast32_t i = B_start; i < B_end; i++) { // se busca el minimo en el primer indice de la pagina
-            if(((i == total_pages - 1) && (p_index[i - B_start] >= tuples_in_last_page)) || (p_index[i - B_start] == tuples_per_page)) {
-                // evita seguir buscando si ya se llegó al final de la pagina
-                continue;
-            }
-            int tuple_pointer = tuple_size * p_index[i - B_start];
-            Page& page = buffer_manager.get_page(file_phase_0, i);
-            char* start_pointer = page.get_bytes();
-            uint_fast64_t obj_id = 0;
-            BindingId aux = BindingId(my_binding->var_count());
-            for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
-                memcpy(&obj_id, start_pointer + tuple_pointer + j*6, 6);
-                aux.add(VarId(j),ObjectId(obj_id));
-            }
-            if (!has_elements || aux < min_bin) {
-                copy_binding_id(&min_bin, aux);
-                has_elements = true;
-                p_min = i - B_start;
-            }
-            buffer_manager.unpin(page);
-        }
-        if (has_elements) {
-            p_index[p_min]++; // se avanza el indice en dicha pagina
-            r.push_back(min_bin);
-        }
-    }
-    uint_fast32_t p_counter = 0; // contador de paginas
-    int index_writting = 0; // indice que indica que indica donde escribir en el archivo de fase 1
-    // se envian a disco
-    for (size_t i = 0;i < r.size();i++) {
-        int tuple_pointer = tuple_size * index_writting;
-        Page& page = buffer_manager.get_page(files_phase_1[files_phase_1.size() - 1], p_counter);
-        char* start_pointer = page.get_bytes();
-        uint_fast64_t obj_id = 0;
-        for(int_fast32_t j = 0; j < tuple_size / 6; j++) {
-            obj_id = r[i][j].id;
-            memcpy(start_pointer + tuple_pointer + j*6, &obj_id, 6);
-        }
-        index_writting++;
-        if (index_writting == tuples_per_page) {
-            p_counter++;
-            index_writting = 0;
-        }
-        page.make_dirty();
-        buffer_manager.unpin(page);
-    }
-    tuples_of_file_phase_1.push_back(r.size());
-}
-*/
-
-/*
-void OrderBy::copy_binding_id(BindingId* destiny, BindingId origin) {
-    for (size_t i = 0; i < tuple_size / 6; i++) {
-        destiny->add(VarId(i),ObjectId(origin[i].id));
-    }
-}
-*/

@@ -32,10 +32,15 @@ private:
     std::vector<std::pair<std::string, VarId>> order_vars;
     std::size_t binding_size;
     BindingOrderBy my_binding;
-    FileId file_id;
+    FileId first_file_id;
+    FileId second_file_id;
+    std::unique_ptr<MergeOrderedTupleCollection> merger;
     uint_fast64_t n_pages = 0;
-    uint_fast64_t page_position = 0;
+    int deep_merge = 0;
+    uint64_t page_position = 0;
     uint_fast64_t current_page = 0;
+    int file_id_n;
+    int mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, int file_n);
 };
 
 template class std::unique_ptr<OrderBy>;
