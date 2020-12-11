@@ -107,7 +107,6 @@ void OrderBy::analyze(int indent) const {
 }
 
 int OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, int file_n) {
-    // false -> output save in first, output saved in second
     if (start_page == end_page) {
       if (start_page == 0) {
         return 1;
@@ -119,17 +118,26 @@ int OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, int fil
       return 1;
     }
     uint_fast64_t middle = (start_page + end_page) / 2;
-    int file_n_save = mergeSort(start_page, middle, file_n);
-    mergeSort(middle + 1, end_page, file_n == -1 ? file_n_save : file_n);
-    int output_file_n = file_n == -1 ? file_n_save == 2 ? 1 : 2 : file_n;
-    if (output_file_n == 1) {
+    int saved_in = 1;
+    int file_to_save = 1;
+    if (file_n == -1) {
+        saved_in = mergeSort(start_page, middle, -1);
+        mergeSort(middle + 1, end_page, saved_in);
+        file_to_save = (saved_in % 2) + 1;
+    } else {
+        mergeSort(start_page, middle, (file_n % 2) + 1);
+        mergeSort(middle + 1, end_page, (file_n % 2) + 1);
+        file_to_save = file_n;
+    }
+    if (file_to_save == 1) {
         merger->merge(
           start_page,
           middle,
           middle + 1,
           end_page,
           second_file_id,
-          first_file_id);
+          first_file_id
+          );
     } else {
         merger->merge(
           start_page,
@@ -139,6 +147,6 @@ int OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, int fil
           first_file_id,
           second_file_id);
     }
-    return 2;
+    return file_n;
 }
 

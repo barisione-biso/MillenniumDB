@@ -147,7 +147,6 @@ void MergeOrderedTupleCollection::merge(
             out_run->reset();
         }
         left_first = has_priority(left_tuple, right_tuple, order_vars);
-        //cout << "left_first " << left_tuple[0] << "\n           " <<right_tuple[0] << " " << left_first << "\n";
         if (open_left && (left_first || !open_right)) {
             out_run->add(left_tuple);
             left_counter++;
@@ -178,7 +177,7 @@ void MergeOrderedTupleCollection::merge(
             }
             right_tuple = right_run->get(right_counter);
         }
-    }cout << left_counter << " " << right_counter << "\n";
+    }
 
 }
 
