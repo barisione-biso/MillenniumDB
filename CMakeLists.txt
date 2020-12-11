@@ -34,7 +34,6 @@ set(TEST_TARGETS
     create_bpt
     check_bpts
     check_extendible_hash
-    create_collection
 )
 
 foreach(target ${BUILD_TARGETS})
