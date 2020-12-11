@@ -73,8 +73,8 @@ OrderBy::OrderBy(GraphModel& model,
         run->add(binding_id_vec);
     }
     run = nullptr;
-    file_id_n = mergeSort(0, n_pages, -1);
-    run = make_unique<TupleCollection>(buffer_manager.get_page(file_id_n == 2 ? second_file_id : first_file_id, 0), binding_size);
+    output_file_id = mergeSort(0, n_pages) ? &second_file_id : &first_file_id;
+    run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, 0), binding_size);
 }
 
 OrderBy::~OrderBy() {
@@ -93,7 +93,7 @@ bool OrderBy::next() {
         if (current_page > n_pages) {
             return false;
         }
-        run = make_unique<TupleCollection>(buffer_manager.get_page(file_id_n == 2 ? second_file_id : first_file_id, current_page), binding_size);
+        run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, current_page), binding_size);
         page_position = 0;
     }
     std::vector<uint64_t> binding_ids = run->get(page_position);
@@ -106,47 +106,41 @@ void OrderBy::analyze(int indent) const {
     child->analyze(indent);
 }
 
-int OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, int file_n) {
+bool OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page) {
     if (start_page == end_page) {
-      if (start_page == 0) {
-        return 1;
-      }
-      if (file_n == 2) {
-        merger->copy_page(start_page, first_file_id, second_file_id);
-        return 2;
-      }
-      return 1;
+        return true;
     }
     uint_fast64_t middle = (start_page + end_page) / 2;
-    int saved_in = 1;
-    int file_to_save = 1;
-    if (file_n == -1) {
-        saved_in = mergeSort(start_page, middle, -1);
-        mergeSort(middle + 1, end_page, saved_in);
-        file_to_save = (saved_in % 2) + 1;
-    } else {
-        mergeSort(start_page, middle, (file_n % 2) + 1);
-        mergeSort(middle + 1, end_page, (file_n % 2) + 1);
-        file_to_save = file_n;
+    bool is_output_in_second = mergeSort(start_page, middle);
+    mergeSort(middle + 1, end_page, is_output_in_second);
+    merger->merge(
+        start_page,
+        middle,
+        middle + 1,
+        end_page,
+        is_output_in_second ? second_file_id : first_file_id,
+        is_output_in_second ? first_file_id : second_file_id
+    );
+    return !is_output_in_second;
+}
+
+void OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, bool save_in_second) {
+    if (start_page == end_page) {
+      if (save_in_second) {
+        merger->copy_page(start_page, first_file_id, second_file_id);
+      }
+      return;
     }
-    if (file_to_save == 1) {
-        merger->merge(
-          start_page,
-          middle,
-          middle + 1,
-          end_page,
-          second_file_id,
-          first_file_id
-          );
-    } else {
-        merger->merge(
-          start_page,
-          middle,
-          middle + 1,
-          end_page,
-          first_file_id,
-          second_file_id);
-    }
-    return file_n;
+    uint_fast64_t middle = (start_page + end_page) / 2;
+    mergeSort(start_page, middle, !save_in_second);
+    mergeSort(middle + 1, end_page, !save_in_second);
+    merger->merge(
+        start_page,
+        middle,
+        middle + 1,
+        end_page,
+        save_in_second ? first_file_id : second_file_id,
+        save_in_second ? second_file_id : first_file_id
+    );
 }
 

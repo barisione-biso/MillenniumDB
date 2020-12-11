@@ -39,8 +39,10 @@ private:
     int deep_merge = 0;
     uint64_t page_position = 0;
     uint_fast64_t current_page = 0;
-    int file_id_n;
-    int mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, int file_n);
+    FileId* output_file_id;
+    bool file_id_n;
+    bool mergeSort(uint_fast64_t start_page, uint_fast64_t end_page);
+    void mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, bool save_in_second);
 };
 
 template class std::unique_ptr<OrderBy>;
