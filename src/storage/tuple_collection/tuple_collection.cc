@@ -22,10 +22,8 @@ TupleCollection::TupleCollection(Page& page, const size_t tuple_size) :
 
 
 TupleCollection::~TupleCollection() {
-  // TODO: VER FLUSH
-  page.make_dirty();
-	buffer_manager.unpin(page);
-  file_manager.flush(page.page_id, page.get_bytes());
+    page.make_dirty();
+    buffer_manager.unpin(page);
 }
 
 
