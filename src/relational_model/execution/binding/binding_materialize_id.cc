@@ -13,23 +13,20 @@ BindingMaterializeId::BindingMaterializeId(GraphModel& model, std::size_t bindin
 BindingMaterializeId::~BindingMaterializeId() = default;
 
 
-std::string BindingMaterializeId::to_string() const {
-    string result;
-    result.reserve(128);
+std::ostream& BindingMaterializeId::print_to_ostream(std::ostream& os) const {
     bool first = true;
     for (uint_fast32_t i = 0; i < binding_size; ++i) {
         if (first) {
             first = false;
         } else {
-            result += ", ";
+            os << ", ";
         }
-        auto obj = model.get_graph_object(binding_id[VarId(i)]);
-        result += obj->to_string();
+        os << model.get_graph_object(binding_id[VarId(i)]);
     }
-    return result;
+    return os;
 }
 
 
-shared_ptr<GraphObject> BindingMaterializeId::operator[](const VarId var_id) {
+GraphObject BindingMaterializeId::operator[](const VarId var_id) {
     return model.get_graph_object(binding_id[var_id]);
 }

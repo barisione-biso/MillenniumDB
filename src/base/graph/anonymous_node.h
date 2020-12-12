@@ -1,9 +1,7 @@
 #ifndef BASE__ANONYMOUS_NODE_H_
 #define BASE__ANONYMOUS_NODE_H_
 
-#include "base/graph/graph_object.h"
-
-class AnonymousNode : public GraphObject {
+class AnonymousNode {
 public:
     const uint64_t id;
 
@@ -11,44 +9,28 @@ public:
         : id(id) { }
     ~AnonymousNode() = default;
 
-    std::string to_string() const noexcept override {
-        return "AnonymousObject(" + std::to_string(id) + ")";
+    inline bool operator==(const AnonymousNode& rhs) const noexcept {
+        return this->id == rhs.id;
     }
 
-    ObjectType type() const noexcept override {
-        return ObjectType::anonymous_node;
+    inline bool operator!=(const AnonymousNode& rhs) const noexcept {
+        return this->id != rhs.id;
     }
 
-    bool operator==(const GraphObject& rhs) const noexcept override {
-        if (rhs.type() == ObjectType::anonymous_node) {
-            const auto& casted_rhs = static_cast<const AnonymousNode&>(rhs);
-            return this->id == casted_rhs.id;
-        }
-        else return false;
+    inline bool operator<=(const AnonymousNode& rhs) const noexcept {
+        return this->id <= rhs.id;
     }
 
-    bool operator!=(const GraphObject& rhs) const noexcept override {
-        if (rhs.type() == ObjectType::anonymous_node) {
-            const auto& casted_rhs = static_cast<const AnonymousNode&>(rhs);
-            return this->id != casted_rhs.id;
-        }
-        else return true;
+    inline bool operator>=(const AnonymousNode& rhs) const noexcept {
+        return this->id >= rhs.id;
     }
 
-    bool operator<=(const GraphObject&) const noexcept override {
-        return false;
+    inline bool operator<(const AnonymousNode& rhs) const noexcept {
+        return this->id < rhs.id;
     }
 
-    bool operator>=(const GraphObject&) const noexcept override {
-        return false;
-    }
-
-    bool operator<(const GraphObject&) const noexcept override {
-        return false;
-    }
-
-    bool operator>(const GraphObject&) const noexcept override {
-        return false;
+    inline bool operator>(const AnonymousNode& rhs) const noexcept {
+        return this->id > rhs.id;
     }
 };
 

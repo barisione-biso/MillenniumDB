@@ -4,7 +4,6 @@
 #include <iostream>
 #include <boost/spirit/include/support_istream_iterator.hpp>
 
-#include "base/graph/value/value_string.h"
 #include "base/parser/grammar/import/import_ast.h"
 #include "base/parser/grammar/import/import_ast_adapted.h"
 #include "base/parser/grammar/import/import.h"
@@ -373,10 +372,11 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
 
     for (auto& property : node.properties) {
         ValueVisitor visitor;
-        auto value = visitor(property.value);
+        auto v = property.value;
+        auto value = visitor(v);
 
         auto key_id   = model.get_string_id(property.key, true).id;
-        auto value_id = model.get_value_id(*value, true).id;
+        auto value_id = model.get_object_id(value, true).id;
 
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];
@@ -419,10 +419,11 @@ uint64_t BulkImport::process_edge(const import::ast::Edge edge) {
 
     for (auto& property : edge.properties) {
         ValueVisitor visitor;
-        auto value = visitor(property.value);
+        auto v = property.value;
+        auto value = visitor(v);
 
         auto key_id   = model.get_string_id(property.key, true).id;
-        auto value_id = model.get_value_id(*value, true).id;
+        auto value_id = model.get_object_id(value, true).id;
 
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];
@@ -462,10 +463,11 @@ uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge edge,
 
     for (auto& property : edge.properties) {
         ValueVisitor visitor;
-        auto value = visitor(property.value);
+        auto v = property.value;
+        auto value = visitor(v);
 
         auto key_id   = model.get_string_id(property.key, true).id;
-        auto value_id = model.get_value_id(*value, true).id;
+        auto value_id = model.get_object_id(value, true).id;
 
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];

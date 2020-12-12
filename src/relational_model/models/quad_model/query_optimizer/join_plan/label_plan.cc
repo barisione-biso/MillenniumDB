@@ -33,15 +33,15 @@ void LabelPlan::print(int indent, bool estimated_cost, std::vector<std::string>&
     }
     cout << "Label(";
     if (std::holds_alternative<ObjectId>(node)) {
-        cout << "node: " << model.get_graph_object(std::get<ObjectId>(node))->to_string() << "";
+        cout << "node: " << model.get_graph_object(std::get<ObjectId>(node)) << "";
     } else {
         cout << "node: " <<  var_names[std::get<VarId>(node).id] << "";
     }
 
     if (std::holds_alternative<ObjectId>(label)) {
-        cout << ", label: " << model.get_graph_object(std::get<ObjectId>(label))->to_string() << "";
+        cout << ", label: " << model.get_graph_object(std::get<ObjectId>(label)) << "";
     } else {
-        cout << ", label: " <<  var_names[std::get<VarId>(label).id] << "";
+        cout << ", label: " << var_names[std::get<VarId>(label).id] << "";
     }
     cout << ")";
 

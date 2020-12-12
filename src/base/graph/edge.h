@@ -1,9 +1,7 @@
 #ifndef BASE__EDGE_H_
 #define BASE__EDGE_H_
 
-#include "base/graph/graph_object.h"
-
-class Edge : public GraphObject {
+class Edge {
 public:
     const uint64_t id;
 
@@ -11,44 +9,28 @@ public:
         : id(id) { }
     ~Edge() = default;
 
-    inline std::string to_string() const noexcept override {
-        return "_e" + std::to_string(id);
+    inline bool operator==(const Edge& rhs) const noexcept {
+        return this->id == rhs.id;
     }
 
-    ObjectType type() const noexcept override {
-        return ObjectType::edge;
+    inline bool operator!=(const Edge& rhs) const noexcept {
+        return this->id != rhs.id;
     }
 
-    bool operator==(const GraphObject& rhs) const noexcept override {
-        if (rhs.type() == ObjectType::edge) {
-            const auto& casted_rhs = static_cast<const Edge&>(rhs);
-            return this->id == casted_rhs.id;
-        }
-        else return false;
+    inline bool operator<=(const Edge& rhs) const noexcept {
+        return this->id <= rhs.id;
     }
 
-    bool operator!=(const GraphObject& rhs) const noexcept override {
-        if (rhs.type() == ObjectType::edge) {
-            const auto& casted_rhs = static_cast<const Edge&>(rhs);
-            return this->id != casted_rhs.id;
-        }
-        else return true;
+    inline bool operator>=(const Edge& rhs) const noexcept {
+        return this->id >= rhs.id;
     }
 
-    bool operator<=(const GraphObject&) const noexcept override {
-        return false;
+    inline bool operator<(const Edge& rhs) const noexcept {
+        return this->id < rhs.id;
     }
 
-    bool operator>=(const GraphObject&) const noexcept override {
-        return false;
-    }
-
-    bool operator<(const GraphObject&) const noexcept override {
-        return false;
-    }
-
-    bool operator>(const GraphObject&) const noexcept override {
-        return false;
+    inline bool operator>(const Edge& rhs) const noexcept {
+        return this->id > rhs.id;
     }
 };
 

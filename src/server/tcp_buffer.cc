@@ -1,7 +1,9 @@
 #include "tcp_buffer.h"
 
-TcpBuffer::TcpBuffer(tcp::socket& sock)
-    : sock(sock) { }
+#include <cassert>
+
+TcpBuffer::TcpBuffer(tcp::socket& sock) :
+    sock (sock) { }
 
 
 TcpBuffer::~TcpBuffer() = default;
@@ -14,29 +16,20 @@ void TcpBuffer::begin(db_server::MessageType msg_type) {
 }
 
 
-void TcpBuffer::set_error() {
-    error = true;
+int TcpBuffer::overflow(int i) {
+    char c = static_cast<char>(i);
+    assert(current_pos < db_server::BUFFER_SIZE);
+    buffer[current_pos] = c;
+    ++current_pos;
+    if (current_pos == db_server::BUFFER_SIZE) {
+        send(); // send() will reset current_pos
+    }
+    return i;
 }
 
 
-TcpBuffer& TcpBuffer::operator<<(std::string msg) {
-    auto msg_len = msg.size();
-    unsigned available_space = db_server::BUFFER_SIZE - current_pos; // unsigned instead of auto to avoid warning in comparison
-    if (msg_len < available_space) { // msg fits in buffer
-        memcpy( &buffer[current_pos], msg.data(), msg_len );
-        current_pos += msg_len;
-        if (current_pos == db_server::BUFFER_SIZE) {
-            send();
-        }
-    } else { // msg needs to be splitted, could need multiple sends
-        for (auto it = msg.begin(); it != msg.end(); ++it) {
-            buffer[current_pos++] = *it;
-            if (current_pos == db_server::BUFFER_SIZE) {
-                send();
-            }
-        }
-    }
-    return *this;
+void TcpBuffer::set_error() {
+    error = true;
 }
 
 

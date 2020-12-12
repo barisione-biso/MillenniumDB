@@ -1,6 +1,8 @@
 #ifndef BASE__OBJECT_ID_H_
 #define BASE__OBJECT_ID_H_
 
+#include <cstdint>
+
 class ObjectId {
 public:
     static constexpr uint64_t NULL_OBJECT_ID      = 0;
@@ -17,9 +19,10 @@ public:
     ~ObjectId() = default;
 
     static ObjectId get_null() { return ObjectId(NULL_OBJECT_ID); }
+    static ObjectId get_not_found() { return ObjectId(OBJECT_ID_NOT_FOUND); }
 
     inline bool is_null()   const noexcept { return id == NULL_OBJECT_ID; }
-    inline bool not_found() const noexcept { return id == OBJECT_ID_NOT_FOUND; }
+    inline bool is_not_found() const noexcept { return id == OBJECT_ID_NOT_FOUND; }
 
     ObjectId& operator=(const ObjectId&) = default;
     inline bool operator==(const ObjectId& rhs) const noexcept { return id == rhs.id; }
