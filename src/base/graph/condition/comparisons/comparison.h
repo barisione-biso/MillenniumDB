@@ -10,7 +10,6 @@
 #include "base/graph/condition/value_assign/value_assign.h"
 #include "base/graph/condition/value_assign/value_assign_constant.h"
 #include "base/graph/condition/value_assign/value_assign_variable.h"
-#include "base/graph/value/value.h"
 #include "base/parser/grammar/query/query_ast.h"
 #include "base/parser/grammar/common/value_visitor.h"
 
@@ -35,13 +34,7 @@ public:
         auto left_value = lhs->get_value(binding);
         auto right_value = rhs->get_value(binding);
 
-        if (left_value != nullptr && right_value != nullptr) {
-            return compare(*left_value, *right_value);
-        } else if (left_value == nullptr && right_value == nullptr) {
-            return true;
-        } else{
-            return false;
-        }
+        return compare(left_value, right_value);
     }
 };
 

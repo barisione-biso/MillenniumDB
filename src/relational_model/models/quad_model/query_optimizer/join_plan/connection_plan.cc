@@ -42,17 +42,17 @@ void ConnectionPlan::print(int indent, bool estimated_cost, std::vector<std::str
     }
     cout << "Connection(";
     if (std::holds_alternative<ObjectId>(from)) {
-        cout << "from: " << model.get_graph_object(std::get<ObjectId>(from))->to_string();
+        cout << "from: " << model.get_graph_object(std::get<ObjectId>(from));
     } else {
         cout << "from: " << var_names[std::get<VarId>(from).id];
     }
     if (std::holds_alternative<ObjectId>(to)) {
-        cout << ", to: " << model.get_graph_object(std::get<ObjectId>(to))->to_string();
+        cout << ", to: " << model.get_graph_object(std::get<ObjectId>(to));
     } else {
         cout << ", to: " << var_names[std::get<VarId>(to).id];
     }
     if (std::holds_alternative<ObjectId>(type)) {
-        cout << ", type: " << model.get_graph_object(std::get<ObjectId>(type))->to_string();
+        cout << ", type: " << model.get_graph_object(std::get<ObjectId>(type));
     } else {
         cout << ", type: " << var_names[std::get<VarId>(type).id];
     }

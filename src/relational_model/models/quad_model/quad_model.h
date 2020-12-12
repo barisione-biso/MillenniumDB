@@ -4,7 +4,6 @@
 #include <memory>
 #include <type_traits>
 
-// #include "relational_model/cache/strings_cache.h"
 #include "base/graph/graph_model.h"
 #include "relational_model/models/quad_model/quad_catalog.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
@@ -20,25 +19,19 @@ public:
     std::unique_ptr<BindingIter> exec(OpSelect&) override;
     std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&) override;
     ObjectId get_object_id(const GraphObject& obj) override;
+    ObjectId get_object_id(const GraphObject& obj, bool create_if_not_exists);
 
-    std::shared_ptr<GraphObject> get_graph_object(ObjectId) override;
-    std::shared_ptr<GraphObject> get_property_value(GraphObject& var, const ObjectId key) override;
+    GraphObject get_graph_object(ObjectId) override;
+    GraphObject get_property_value(GraphObject& var, const ObjectId key) override;
 
     // returns an ID with mask
     ObjectId get_string_id(const std::string& str, bool create_if_not_exists = false);
-
     ObjectId get_identifiable_object_id(const std::string& str, bool create_if_not_exists = false);
-
-
-    // returns an ID with mask
-    ObjectId get_value_id(const Value& value, bool create_if_not_exists = false);
-
+    uint64_t get_external_id(const std::string& str, bool create_if_not_exists = false);
 
     inline QuadCatalog&    catalog()      noexcept { return reinterpret_cast<QuadCatalog&>(catalog_buf); }
     inline ObjectFile&     object_file()  noexcept { return reinterpret_cast<ObjectFile&>(object_file_buf); }
     inline ExtendibleHash& strings_hash() noexcept { return reinterpret_cast<ExtendibleHash&>(strings_cache_buf); }
-    // TODO: measure if using strins cache improves times
-    // std::unique_ptr<StringsCache>   strings_cache;
 
     std::unique_ptr<RandomAccessTable<1>> node_table;
     std::unique_ptr<RandomAccessTable<3>> edge_table;
@@ -64,8 +57,6 @@ public:
     std::unique_ptr<BPlusTree<3>>   equal_to_type_inverted;
 
 private:
-    uint64_t get_external_id(const std::string& str, bool create_if_not_exists = false);
-
     typename std::aligned_storage<sizeof(QuadCatalog), alignof(QuadCatalog)>::type       catalog_buf;
     typename std::aligned_storage<sizeof(ObjectFile), alignof(ObjectFile)>::type         object_file_buf;
     typename std::aligned_storage<sizeof(ExtendibleHash), alignof(ExtendibleHash)>::type strings_cache_buf;

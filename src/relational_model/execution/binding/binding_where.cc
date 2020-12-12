@@ -14,8 +14,9 @@ BindingWhere::BindingWhere(GraphModel& model, Binding& child_binding, VarId max_
     property_map        (move(property_map)) { }
 
 
-std::string BindingWhere::to_string() const {
-    throw std::logic_error("Binding filter only intended to be used by get()");
+std::ostream& BindingWhere::print_to_ostream(std::ostream& os) const {
+    os << child_binding;
+    return os;
 }
 
 
@@ -24,7 +25,7 @@ void BindingWhere::clear_cache() {
 }
 
 
-std::shared_ptr<GraphObject> BindingWhere::operator[](VarId var_id) {
+GraphObject BindingWhere::operator[](VarId var_id) {
     if (var_id <= max_var_id_in_child) {
         return child_binding[var_id];
     } else {
@@ -40,7 +41,7 @@ std::shared_ptr<GraphObject> BindingWhere::operator[](VarId var_id) {
             auto var = child_binding[property_var_id];
 
             // TODO: if optionals were allowed, should check is not null
-            auto value = model.get_property_value(*var, property_key);
+            auto value = model.get_property_value(var, property_key);
             cache.insert({ var_id, value });
             return value;
         }

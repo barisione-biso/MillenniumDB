@@ -37,19 +37,19 @@ void PropertyPlan::print(int indent, bool estimated_cost, std::vector<std::strin
     }
     cout << "Property(";
     if (std::holds_alternative<ObjectId>(object)) {
-        cout << "object: " << model.get_graph_object(std::get<ObjectId>(object))->to_string() << "";
+        cout << "object: " << model.get_graph_object(std::get<ObjectId>(object)) << "";
     } else {
         cout << "object: " <<  var_names[std::get<VarId>(object).id] << "";
     }
 
     if (std::holds_alternative<ObjectId>(key)) {
-        cout << ", key: " << model.get_graph_object(std::get<ObjectId>(key))->to_string() << "";
+        cout << ", key: " << model.get_graph_object(std::get<ObjectId>(key)) << "";
     } else {
         cout << ", key: " <<  var_names[std::get<VarId>(key).id] << "";
     }
 
     if (std::holds_alternative<ObjectId>(value)) {
-        cout << ", value: " << model.get_graph_object(std::get<ObjectId>(value))->to_string() << "";
+        cout << ", value: " << model.get_graph_object(std::get<ObjectId>(value)) << "";
     } else {
         cout << ", value: " <<  var_names[std::get<VarId>(value).id] << "";
     }

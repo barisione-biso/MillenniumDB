@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "base/binding/binding.h"
-#include "base/graph/value/value.h"
 
 using namespace std;
 
@@ -12,27 +11,24 @@ BindingSelect::BindingSelect(vector<pair<string, VarId>> projection_vars, Bindin
     child_binding   (child_binding) { }
 
 
-std::string BindingSelect::to_string() const {
-    std::string result;
-    result += '{';
+std::ostream& BindingSelect::print_to_ostream(std::ostream& os) const {
+    os << '{';
     auto it = projection_vars.cbegin();
 
     while (true) {
         auto& var_varid_pair = *it;
-        result += var_varid_pair.first;
-        result += ':';
-        result += child_binding[var_varid_pair.second]->to_string();
+        os << var_varid_pair.first << ':' << child_binding[var_varid_pair.second];
         ++it;
         if (it != projection_vars.cend()) {
-            result += ',';
+            os << ',';
         } else {
-            result +=  "}\n";
-            return result;
+            os << "}\n";
+            return os;
         }
     }
 }
 
 
-shared_ptr<GraphObject> BindingSelect::operator[](const VarId var) {
+GraphObject BindingSelect::operator[](const VarId var) {
     return child_binding[var];
 }

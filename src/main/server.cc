@@ -24,6 +24,7 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <ostream>
 #include <thread>
 
 #include <boost/asio.hpp>
@@ -44,7 +45,7 @@ using namespace std;
 using boost::asio::ip::tcp;
 namespace po = boost::program_options;
 
-void execute_query(unique_ptr<BindingIter> root, TcpBuffer& tcp_buffer) {
+void execute_query(unique_ptr<BindingIter> root, std::ostream& os) {
     // prepare to start the execution
     auto start = chrono::system_clock::now();
     unsigned int count = 0;
@@ -53,7 +54,7 @@ void execute_query(unique_ptr<BindingIter> root, TcpBuffer& tcp_buffer) {
     // get all results
     while (root->next()) {
         // TODO: uncomment/comment to enable/disable printing results
-        tcp_buffer << binding.to_string();
+        os << binding;
         count++;
     }
 
@@ -64,8 +65,8 @@ void execute_query(unique_ptr<BindingIter> root, TcpBuffer& tcp_buffer) {
 
     auto end = chrono::system_clock::now();
     chrono::duration<float, std::milli> duration = end - start;
-    tcp_buffer << "Found " << std::to_string(count) << " results.\n";
-    tcp_buffer << "Execution time: " << std::to_string(duration.count()) << " ms.\n";
+    os << "Found " << std::to_string(count) << " results.\n";
+    os << "Execution time: " << std::to_string(duration.count()) << " ms.\n";
 }
 
 
@@ -88,6 +89,7 @@ void session(tcp::socket sock, GraphModel* model) {
 
         TcpBuffer tcp_buffer = TcpBuffer(sock);
         tcp_buffer.begin(db_server::MessageType::plain_text);
+        std::ostream os(&tcp_buffer);
 
         // start timer
         auto start = chrono::system_clock::now();
@@ -97,8 +99,8 @@ void session(tcp::socket sock, GraphModel* model) {
 
             auto end = chrono::system_clock::now();
             chrono::duration<float, std::milli> duration = end - start;
-            execute_query(move(physical_plan), tcp_buffer);
-            tcp_buffer << "Query Parser/Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
+            execute_query(move(physical_plan), os);
+            os << "Query Parser/Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
         }
         catch (QueryParsingException& e) {
             // Try with manual plan
@@ -107,16 +109,16 @@ void session(tcp::socket sock, GraphModel* model) {
                 auto physical_plan = model->exec(manual_plan);
                 auto end = chrono::system_clock::now();
                 chrono::duration<float, std::milli> duration = end - start;
-                tcp_buffer << "Manual Plan Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
-                execute_query(move(physical_plan), tcp_buffer);
+                os << "Manual Plan Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
+                execute_query(move(physical_plan), os);
             }
             catch (QueryException& e) {
-                tcp_buffer << "(Manual Plan) Query Parsing Exception: " << e.what() << "\n";
+                os << "(Manual Plan) Query Parsing Exception: " << e.what() << "\n";
                 tcp_buffer.set_error();
             }
         }
         catch (QueryException& e) {
-            tcp_buffer << "Query Exception: " << e.what() << "\n";
+            os << "Query Exception: " << e.what() << "\n";
             tcp_buffer.set_error();
         }
         tcp_buffer.end();

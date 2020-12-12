@@ -60,7 +60,7 @@ std::unique_ptr<ValueAssign> Formula2ConditionVisitor::get_value_assignator(
 
         if (select_item.key) {
             VarId new_property_var_id(new_property_map_count++);
-            auto property_key_as_string = ValueString(select_item.key.get());
+            auto property_key_as_string = GraphObject::make_string(select_item.key.get());
             auto property_key_object_id = model.get_object_id(property_key_as_string);
             property_map.insert({ new_property_var_id, std::make_pair(find_var_id->second, property_key_object_id) });
             return std::make_unique<ValueAssignVariable>(new_property_var_id);
@@ -71,7 +71,7 @@ std::unique_ptr<ValueAssign> Formula2ConditionVisitor::get_value_assignator(
         auto casted_value = boost::get<query::ast::Value>(item);
         auto visitor = ValueVisitor();
         auto value = visitor(casted_value);
-        return std::make_unique<ValueAssignConstant>(move(value));
+        return std::make_unique<ValueAssignConstant>(value);
     }
 }
 

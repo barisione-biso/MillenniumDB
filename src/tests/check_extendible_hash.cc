@@ -51,8 +51,8 @@ int main(int argc, char **argv) {
     uint64_t wrong = 0;
     try {
         while (true) {
-            auto bytes = object_file.read(current_id);
-            string str(bytes->begin(), bytes->end());
+            auto c_str = object_file.read(current_id);
+            string str(c_str);
 
             auto id_found = strings_hash.get_id(str);
             if (current_id != id_found) {
@@ -64,10 +64,10 @@ int main(int argc, char **argv) {
                 ++correct;
             }
 
-            current_id += bytes->size() + 4;
+            current_id += str.size() + 1;
         }
     }
-    catch (ObjectFileEOF&) {
+    catch (ObjectFileOutOfBounds&) {
         cout << "Reached end of ObjectFile.\n";
     }
     catch (exception& e) {

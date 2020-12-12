@@ -74,6 +74,7 @@ bool IndexScan<N>::next() {
 template <std::size_t N>
 void IndexScan<N>::reset() {
     // TODO: if nulls were supported a my_binding->clean should be performed to set NULL_OBJECT_ID
+    // or maybe optionals should handle writing nulls
     std::array<uint64_t, N> min_ids;
     std::array<uint64_t, N> max_ids;
 

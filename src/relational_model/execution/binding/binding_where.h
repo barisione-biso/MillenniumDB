@@ -14,9 +14,9 @@ public:
                  std::map<VarId, std::pair<VarId, ObjectId>> property_map);
     ~BindingWhere() = default;
 
-    std::string to_string() const override;
+    std::ostream& print_to_ostream(std::ostream&) const override;
 
-    std::shared_ptr<GraphObject> operator[](const VarId var_id) override;
+    GraphObject operator[](const VarId var_id) override;
 
     void clear_cache(); // needs to be called when the binding changes
 
@@ -25,7 +25,7 @@ private:
     VarId max_var_id_in_child;
     Binding& child_binding;
 
-    std::map<VarId, std::shared_ptr<GraphObject>> cache;
+    std::map<VarId, GraphObject> cache;
 
     // property_var_id -> (property_var_id, property_key_object_id)
     std::map<VarId, std::pair<VarId, ObjectId>> property_map;
