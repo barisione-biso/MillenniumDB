@@ -142,25 +142,4 @@ void OrderBy::mergeSort() {
     output_file_id = output_is_in_second ? &second_file_id : &first_file_id;
 }
 
-/*
-void OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, bool save_in_second) {
-    if (start_page == end_page) {
-      if (save_in_second) {
-        merger->copy_page(start_page, first_file_id, second_file_id);
-      }
-      return;
-    }
-    uint_fast64_t middle = (start_page + end_page) / 2;
-    mergeSort(start_page, middle, !save_in_second);
-    mergeSort(middle + 1, end_page, !save_in_second);
-    merger->merge(
-        start_page,
-        middle,
-        middle + 1,
-        end_page,
-        save_in_second ? first_file_id : second_file_id,
-        save_in_second ? second_file_id : first_file_id
-    );
-}
-*/
 
