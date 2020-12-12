@@ -21,7 +21,7 @@ public:
         std::vector<std::pair<std::string,VarId>> order_vars,
         std::size_t binding_size,
         const bool ascending);
-    ~OrderBy();
+    ~OrderBy() = default;
     Binding& get_binding() override;
     bool next() override;
     void analyze(int indent = 0) const override;
@@ -41,8 +41,8 @@ private:
     uint_fast64_t current_page = 0;
     FileId* output_file_id;
     bool file_id_n;
-    bool mergeSort(uint_fast64_t start_page, uint_fast64_t end_page);
-    void mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, bool save_in_second);
+    // bool mergeSort(uint_fast64_t start_page, uint_fast64_t end_page);
+    void mergeSort();
 };
 
 template class std::unique_ptr<OrderBy>;

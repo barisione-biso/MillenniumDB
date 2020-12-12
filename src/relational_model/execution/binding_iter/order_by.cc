@@ -11,32 +11,33 @@
 #include "storage/buffer_manager.h"
 #include "storage/tuple_collection/tuple_collection.h"
 
-
-bool is_lt(std::vector<uint64_t> a, std::vector<uint64_t> b, std::vector<uint64_t> order_vars) {
-    for (size_t i = 0; i < order_vars.size(); i++) {
-        if (a[i] < b[i]) {
-            return true;
-        }
-        if (b[i] < a[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool is_gt(std::vector<uint64_t> a, std::vector<uint64_t> b, std::vector<uint64_t> order_vars) {
-    for (size_t i = 0; i < order_vars.size(); i++) {
-        if (a[i] > b[i]) {
-            return true;
-        }
-        if (b[i] > a[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-
 using namespace std;
+
+
+bool is_leq(std::vector<uint64_t> a, std::vector<uint64_t> b, std::vector<uint64_t> order_vars) {
+    for (size_t i = 0; i < order_vars.size(); i++) {
+        if (a[order_vars[i]] < b[order_vars[i]]) {
+            return true;
+        }
+        if (b[order_vars[i]] < a[order_vars[i]]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool is_geq(std::vector<uint64_t> a, std::vector<uint64_t> b, std::vector<uint64_t> order_vars) {
+    for (size_t i = 0; i < order_vars.size(); i++) {
+        if (a[order_vars[i]] > b[order_vars[i]]) {
+            return true;
+        }
+        if (b[order_vars[i]] > a[order_vars[i]]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 OrderBy::OrderBy(GraphModel& model,
                  std::unique_ptr<BindingIter> _child,
@@ -50,7 +51,7 @@ OrderBy::OrderBy(GraphModel& model,
     first_file_id     (file_manager.get_file_id("temp0.txt")),
     second_file_id    (file_manager.get_file_id("temp1.txt"))
 {
-    bool (*has_priority)(std::vector<uint64_t> a, std::vector<uint64_t>b, std::vector<uint64_t> order_v) = (ascending) ? is_lt : is_gt;
+    bool (*has_priority)(std::vector<uint64_t> a, std::vector<uint64_t>b, std::vector<uint64_t> order_v) = (ascending) ? is_leq : is_geq;
     std::vector<uint64_t> order_ids = std::vector<uint64_t>(order_vars.size());
     for (size_t i = 0; i < order_vars.size(); i++) {
         order_ids[i] = order_vars[i].second.id;
@@ -72,14 +73,11 @@ OrderBy::OrderBy(GraphModel& model,
         }
         run->add(binding_id_vec);
     }
+    // TODO: VER ERROR DE PAGINAS
+    n_pages++;
     run = nullptr;
-    output_file_id = mergeSort(0, n_pages) ? &second_file_id : &first_file_id;
+    mergeSort();
     run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, 0), binding_size);
-}
-
-OrderBy::~OrderBy() {
-    //buffer_manager.remove(first_file_id);
-    //buffer_manager.remove(second_file_id);
 }
 
 Binding& OrderBy::get_binding() {
@@ -90,7 +88,7 @@ Binding& OrderBy::get_binding() {
 bool OrderBy::next() {
     if (page_position == run->get_n_tuples()) {
         current_page++;
-        if (current_page > n_pages) {
+        if (current_page == n_pages) {
             return false;
         }
         run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, current_page), binding_size);
@@ -106,24 +104,45 @@ void OrderBy::analyze(int indent) const {
     child->analyze(indent);
 }
 
-bool OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page) {
-    if (start_page == end_page) {
-        return true;
+
+// TODO: MERGE SORT ITERATIVO
+void OrderBy::mergeSort() {
+    uint_fast64_t start_page;
+    uint_fast64_t end_page;
+    uint_fast64_t middle;
+    uint_fast64_t runs_to_merge = 1;
+    bool output_is_in_second = false;
+    FileId* source_pointer = &first_file_id;
+    FileId* output_pointer = &second_file_id;
+    while (runs_to_merge < n_pages) {
+        runs_to_merge *= 2; // TODO: HACER EL 2 CONSTANTE?
+        if (runs_to_merge > n_pages) {
+            runs_to_merge = n_pages;
+        }
+        start_page = 0;
+        end_page = runs_to_merge - 1;
+        middle = (start_page + end_page) / 2;
+        while (start_page < n_pages) {
+            if (start_page == end_page) {
+                merger->copy_page(start_page, *source_pointer, *output_pointer);
+            } else {
+                merger->merge(start_page, middle, middle + 1, end_page, *source_pointer, *output_pointer);
+            }
+            start_page = end_page + 1;
+            end_page += runs_to_merge;
+            if (end_page >= n_pages) {
+                end_page = n_pages - 1;
+            }
+            middle = (start_page + end_page) / 2;
+        }
+        output_is_in_second = !output_is_in_second;
+        source_pointer = output_is_in_second ? &second_file_id : &first_file_id;
+        output_pointer = output_is_in_second ? &first_file_id : &second_file_id;
     }
-    uint_fast64_t middle = (start_page + end_page) / 2;
-    bool is_output_in_second = mergeSort(start_page, middle);
-    mergeSort(middle + 1, end_page, is_output_in_second);
-    merger->merge(
-        start_page,
-        middle,
-        middle + 1,
-        end_page,
-        is_output_in_second ? second_file_id : first_file_id,
-        is_output_in_second ? first_file_id : second_file_id
-    );
-    return !is_output_in_second;
+    output_file_id = output_is_in_second ? &second_file_id : &first_file_id;
 }
 
+/*
 void OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, bool save_in_second) {
     if (start_page == end_page) {
       if (save_in_second) {
@@ -143,4 +162,5 @@ void OrderBy::mergeSort(uint_fast64_t start_page, uint_fast64_t end_page, bool s
         save_in_second ? second_file_id : first_file_id
     );
 }
+*/
 
