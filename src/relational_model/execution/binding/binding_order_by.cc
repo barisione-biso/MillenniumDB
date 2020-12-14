@@ -10,10 +10,11 @@ using namespace std;
 
 
 BindingOrderBy::BindingOrderBy(GraphModel& model, vector<pair<string, VarId>> order_vars, Binding& child_binding, size_t binding_size) :
-    model         (model),
     order_vars    (move(order_vars)),
-    child_binding (child_binding),
-    binding_size  (binding_size)
+    model         (model),
+    binding_size  (binding_size),
+    child_binding (child_binding)
+
 {
     binding_id = new ObjectId(binding_size);
 }
@@ -23,7 +24,7 @@ BindingOrderBy::~BindingOrderBy() {
     delete binding_id;
 }
 
-
+// TODO: LO ELIMINO O LE DEJO POR RETURN UN STRING VACIO?
 std::string BindingOrderBy::to_string() const {
     // std::string result;
     // result += '{';

@@ -45,16 +45,15 @@ OrderBy::OrderBy(GraphModel& model,
                  size_t binding_size,
                  const bool ascending) :
     child        (move(_child)),
-    order_vars   (move(order_vars)),
     binding_size (binding_size),
     my_binding   (BindingOrderBy(model, move(order_vars), child->get_binding(), binding_size)),
     first_file_id     (file_manager.get_file_id("temp0.txt")),
     second_file_id    (file_manager.get_file_id("temp1.txt"))
 {
     bool (*has_priority)(std::vector<uint64_t> a, std::vector<uint64_t>b, std::vector<uint64_t> order_v) = (ascending) ? is_leq : is_geq;
-    std::vector<uint64_t> order_ids = std::vector<uint64_t>(order_vars.size());
-    for (size_t i = 0; i < order_vars.size(); i++) {
-        order_ids[i] = order_vars[i].second.id;
+    std::vector<uint64_t> order_ids = std::vector<uint64_t>(my_binding.order_vars.size());
+    for (size_t i = 0; i < my_binding.order_vars.size(); i++) {
+        order_ids[i] = my_binding.order_vars[i].second.id;
     }
     n_pages = 0;
     merger = make_unique<MergeOrderedTupleCollection>(binding_size, order_ids, has_priority);
@@ -95,6 +94,7 @@ bool OrderBy::next() {
         page_position = 0;
     }
     std::vector<uint64_t> binding_ids = run->get(page_position);
+    // cout << "id " << binding_ids[my_binding.order_vars[0].second.id] << "\n"; TODO: ELIMINAR LINEA
     my_binding.update_binding_object(move(binding_ids));
     page_position++;
     return true;
