@@ -78,11 +78,20 @@ void TupleCollection::swap(int x, int y) {
 
 void TupleCollection::sort( bool (*has_priority)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars),std::vector<uint64_t> order_vars) {
     quicksort(0, (*tuple_count) - 1, has_priority, order_vars);
+    /*
+    for (size_t i = 0; i < *tuple_count - 1; i++) {
+      for (size_t j = i + 1; j < *tuple_count; j++) {
+        if (has_priority(get(j), get(i), order_vars)) {
+          swap(i,j);
+        }
+      }
+    }
+    */
 }
 
 
 void TupleCollection::quicksort(int i, int f, bool (*has_priority)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars) {
-    if (i <= f) {
+    if (i < f) {
         int p = partition(i, f, has_priority, order_vars);
         quicksort(i, p - 1, has_priority, order_vars);
         quicksort(p + 1, f, has_priority, order_vars);
@@ -94,23 +103,21 @@ int TupleCollection::partition(int i, int f, bool (*has_priority)(std::vector<ui
     int x = i + (rand() % (f - i + 1));
     std::vector<uint64_t> p = get(x);
     TupleCollection::swap(x,f);
-    override_tuple(p, f);
-    int j = i;
-    int k = i;
-    while (k <= f) {
-        if (has_priority(get(k), p, order_vars)) {
-            TupleCollection::swap(j, k);
-        }
-        k++;
+    int low_el = i - 1;
+    for (int j = i; j <= f - 1; j++) {
+      if (has_priority(get(j), p, order_vars)) {
+        low_el++;
+        TupleCollection::swap(low_el, j);
+      }
     }
-    TupleCollection::swap(j, f);
-    return j;
+    TupleCollection::swap(low_el + 1, f);
+    return low_el + 1;
 }
 
 MergeOrderedTupleCollection::MergeOrderedTupleCollection(
     size_t tuple_size,
     std::vector<uint_fast64_t> order_vars,
-    bool (*has_priority)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars)) :
+    bool (*has_priority)(std::vector<uint64_t> lhs, std::vector<uint64_t> rhs, std::vector<uint64_t> order_vars)) :
         tuple_size(tuple_size),
         order_vars(order_vars),
         has_priority(has_priority),

@@ -72,7 +72,6 @@ OrderBy::OrderBy(GraphModel& model,
         }
         run->add(binding_id_vec);
     }
-    // TODO: VER ERROR DE PAGINAS
     n_pages++;
     run = nullptr;
     mergeSort();
@@ -94,7 +93,6 @@ bool OrderBy::next() {
         page_position = 0;
     }
     std::vector<uint64_t> binding_ids = run->get(page_position);
-    // cout << "id " << binding_ids[my_binding.order_vars[0].second.id] << "\n"; TODO: ELIMINAR LINEA
     my_binding.update_binding_object(move(binding_ids));
     page_position++;
     return true;
@@ -105,7 +103,6 @@ void OrderBy::analyze(int indent) const {
 }
 
 
-// TODO: MERGE SORT ITERATIVO
 void OrderBy::mergeSort() {
     uint_fast64_t start_page;
     uint_fast64_t end_page;
@@ -115,7 +112,7 @@ void OrderBy::mergeSort() {
     FileId* source_pointer = &first_file_id;
     FileId* output_pointer = &second_file_id;
     while (runs_to_merge < n_pages) {
-        runs_to_merge *= 2; // TODO: HACER EL 2 CONSTANTE?
+        runs_to_merge *= 2;
         if (runs_to_merge > n_pages) {
             runs_to_merge = n_pages;
         }
