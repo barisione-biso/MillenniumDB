@@ -25,6 +25,7 @@ public:
     void operator() (query::ast::Root const&) const;
     void operator() (std::vector<query::ast::SelectItem> const&) const;
     void operator() (std::vector<query::ast::LinearPattern> const&) const;
+    void operator() (query::ast::GraphPattern const&) const;
     void operator() (query::ast::LinearPattern const&) const;
     void operator() (query::ast::Node const&) const;
     void operator() (query::ast::Edge const&) const;
@@ -41,7 +42,6 @@ public:
     void operator() (float           const&) const;
     void operator() (bool            const&) const;
     void operator() (std::string     const&) const;
-    void operator() (VarId           const&) const;
 
     void operator() (query::ast::BinaryOp   const&) const;
     void operator() (query::ast::Comparator const&) const;

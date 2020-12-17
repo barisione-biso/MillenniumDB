@@ -22,8 +22,16 @@ namespace query {
             select_item = "select_item";
         x3::rule<class selection, std::vector<ast::SelectItem>>
             selection = "selection";
+
+        x3::rule<class graph_pattern, ast::GraphPattern>
+            graph_pattern = "graph_pattern";
+        x3::rule<class optional_pattern, ast::GraphPattern>
+            optional_pattern = "optional_pattern";
         x3::rule<class linear_pattern, ast::LinearPattern>
             linear_pattern = "linear_pattern";
+        // x3::rule<class linear_pattern_list, std::vector<ast::LinearPattern>>
+        //     linear_pattern_list = "linear_pattern_list";
+
         x3::rule<class node, ast::Node>
             node = "node";
         x3::rule<class edge, ast::Edge>
@@ -105,16 +113,26 @@ namespace query {
             no_case["select"] >> ((lit('*') >> attr(std::vector<ast::SelectItem>()) ) | selection);
 
         auto const match_statement =
-            no_case["match"] >> (linear_pattern % ',');
+            // no_case["match"] >> (linear_pattern % ',');
+            no_case["match"] >> graph_pattern;
+
+        auto const linear_pattern_list =
+            linear_pattern % ',';
+
+        auto const optional_pattern_def =
+            no_case["optional"] >> '{' >> graph_pattern >> '}';
+
+        auto const graph_pattern_def =
+            linear_pattern_list >> *optional_pattern;
 
         auto const where_statement =
             no_case["where"] >> formula;
 
         auto const group_by_statement =
-            no_case["group by"] >> selection;
+            no_case["group by"] >> selection; // TODO: asc/desc
 
         auto const order_by_statement =
-            no_case["order by"] >> selection;
+            no_case["order by"] >> selection; // TODO: asc/desc
 
         auto const limit_statement =
             no_case["limit"] >> uint32;
@@ -135,7 +153,11 @@ namespace query {
             node,
             edge,
             property_path,
+
+            graph_pattern,
+            optional_pattern,
             linear_pattern,
+
             statement,
             formula,
             step_formula,

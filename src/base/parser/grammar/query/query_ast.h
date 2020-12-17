@@ -49,6 +49,11 @@ namespace query { namespace ast {
         std::vector<LinearPatternStep> path;
     };
 
+    struct GraphPattern {
+        std::vector<LinearPattern> pattern;
+        std::vector<boost::recursive_wrapper<GraphPattern>> optionals;
+    };
+
     enum class BinaryOp {
         And,
         Or
@@ -92,7 +97,7 @@ namespace query { namespace ast {
     struct Root {
         bool                                      explain;
         std::vector<SelectItem>                   selection;
-        std::vector<LinearPattern>                graph_pattern;
+        GraphPattern                              graph_pattern;
         boost::optional<Formula>                  where;
         boost::optional<std::vector<SelectItem>>  group_by;
         boost::optional<std::vector<SelectItem>>  order_by;

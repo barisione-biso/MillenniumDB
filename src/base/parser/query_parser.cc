@@ -16,7 +16,8 @@
 using namespace std;
 
 unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
-    unique_ptr<Op> op = make_unique<OpMatch>(ast.graph_pattern);
+    // TODO: `ast.graph_pattern.optionals` are ignored
+    unique_ptr<Op> op = make_unique<OpMatch>(ast.graph_pattern.pattern);
 
     uint_fast32_t limit = 0;
     if (ast.limit) {
