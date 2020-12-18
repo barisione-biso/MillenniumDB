@@ -14,10 +14,9 @@ public:
     BindingSelect(std::vector<std::pair<std::string, VarId>> projection_vars, Binding& child_binding);
     ~BindingSelect() = default;
 
-    std::string to_string() const override;
+    std::ostream& print_to_ostream(std::ostream&) const override;
 
-    std::shared_ptr<GraphObject> operator[](const VarId var_id) override;
-    ObjectId get_id(const VarId var_id) override;
+    GraphObject operator[](const VarId var_id) override;
 
 private:
     std::vector<std::pair<std::string, VarId>> projection_vars;

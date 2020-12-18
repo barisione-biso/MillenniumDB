@@ -14,31 +14,34 @@
 #ifndef STORAGE__OBJECT_FILE_H_
 #define STORAGE__OBJECT_FILE_H_
 
-#include "base/graph/value/value.h"
-#include "base/ids/object_id.h"
-
 #include <fstream>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "base/ids/object_id.h"
 
-struct ObjectFileEOF : public std::runtime_error {
-	ObjectFileEOF(std::string msg)
+struct ObjectFileOutOfBounds : public std::runtime_error {
+	ObjectFileOutOfBounds(std::string msg)
 		: std::runtime_error(msg) { }
 };
 
-class ObjectFile
-{
-    public:
-        ObjectFile(const std::string& filename);
-        ~ObjectFile() = default;
-        std::unique_ptr<std::vector<unsigned char>> read(uint64_t id);
-        uint64_t write(std::vector<unsigned char>& bytes);
+class ObjectFile {
+public:
+    static constexpr auto INITIAL_SIZE = 4096*1024;
 
-    private:
-        std::fstream& file;
+    ObjectFile(const std::string& filename);
+    ~ObjectFile();
+
+    const char* read(uint64_t id);
+    uint64_t write(std::vector<unsigned char>& bytes);
+
+private:
+    uint64_t current_end;
+    uint64_t capacity;
+    std::fstream& file;
+    char* objects; // All objects separated by '\0'
 };
 
 #endif // STORAGE__OBJECT_FILE_H_

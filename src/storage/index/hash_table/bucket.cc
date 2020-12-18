@@ -3,6 +3,7 @@
 #include <bitset>
 #include <cstring>
 #include <memory>
+#include <iostream>
 
 #include "storage/buffer_manager.h"
 
@@ -42,10 +43,8 @@ uint64_t Bucket::get_id(const string& str, uint64_t hash1, uint64_t hash2, bool 
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             // check if object is
             auto id = read_id(i);
-            auto bytes = object_file.read(id);
-            string value_string(bytes->begin(), bytes->end());
-            // TODO: try using string cache
-            if (value_string == str) {
+            auto c_str = object_file.read(id);
+            if (str == c_str) {
                 return id;
             }
         }

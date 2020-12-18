@@ -14,10 +14,8 @@ class BindingOrderBy : public Binding {
 public:
     BindingOrderBy(GraphModel& model, std::vector<std::pair<std::string, VarId>> order_vars, Binding& child_binding, size_t binding_size);
     ~BindingOrderBy();
-    std::string to_string() const override;
     std::vector<std::pair<std::string, VarId>> order_vars;
-    std::shared_ptr<GraphObject> operator[](const VarId var_id) override;
-    ObjectId get_id(const VarId var_id) override;
+    GraphObject operator[](const VarId var_id) override;
     void update_binding_object(std::vector<uint64_t> obj_ids);
 
 

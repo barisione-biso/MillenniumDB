@@ -3,31 +3,26 @@
 
 #include <boost/variant.hpp>
 
-#include "base/graph/value/value_int.h"
-#include "base/graph/value/value_float.h"
-#include "base/graph/value/value_bool.h"
-#include "base/graph/value/value_string.h"
-
-class ValueVisitor : public boost::static_visitor<std::unique_ptr<Value>> {
+class ValueVisitor : public boost::static_visitor<GraphObject> {
 public:
-    std::unique_ptr<Value> operator() (common::ast::Value value) const {
+    GraphObject operator() (common::ast::Value& value) const {
         return boost::apply_visitor(*this, value);
     }
 
-    std::unique_ptr<Value> operator() (int64_t const& n) const {
-        return std::make_unique<ValueInt>(n);
+    GraphObject operator() (int64_t const& i) const {
+        return GraphObject::make_int(i);
     }
 
-    std::unique_ptr<Value> operator() (float const& f) const {
-        return std::make_unique<ValueFloat>(f);
+    GraphObject operator() (float const& f) const {
+        return GraphObject::make_float(f);
     }
 
-    std::unique_ptr<Value> operator() (bool const& b) const {
-        return std::make_unique<ValueBool>(b);
+    GraphObject operator() (bool const& b) const {
+        return GraphObject::make_bool(b);
     }
 
-    std::unique_ptr<Value> operator() (std::string const& text) const {
-        return std::make_unique<ValueString>(text);
+    GraphObject operator() (std::string const& str) const {
+        return GraphObject::make_string(str);
     }
 };
 

@@ -89,7 +89,7 @@ manual_plan::ast::ManualRoot QueryParser::get_manual_plan(string& query) {
     if (r && iter == end) { // parsing succeeded
         return manual_plan;
     } else {
-        cout << "ManualPlan failed\n";
+        cout << "\nManualPlan failed\n";
         throw QueryParsingException();
     }
 }

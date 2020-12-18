@@ -2,19 +2,19 @@
 #define BASE__VALUE_ASSIGN_CONSTANT_H_
 
 #include "base/graph/condition/value_assign/value_assign.h"
-#include "base/graph/value/value.h"
+#include "base/graph/graph_object.h"
 
 class ValueAssignConstant : public ValueAssign {
 private:
-    std::shared_ptr<GraphObject> value;
+    GraphObject value;
 
 public:
-    ValueAssignConstant(std::unique_ptr<Value> value)
-        : value(std::move(value)) { }
+    ValueAssignConstant(GraphObject value)
+        : value(value) { }
 
     ~ValueAssignConstant() = default;
 
-    std::shared_ptr<GraphObject> get_value(Binding&) {
+    GraphObject get_value(Binding&) {
         return value;
     }
 };

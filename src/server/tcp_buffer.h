@@ -1,7 +1,6 @@
 #ifndef SERVER__TCP_BUFFER_H_
 #define SERVER__TCP_BUFFER_H_
 
-#include <ostream>
 #include <string>
 #include <boost/asio.hpp>
 
@@ -9,15 +8,17 @@
 
 using boost::asio::ip::tcp;
 
-class TcpBuffer {
+class TcpBuffer : public std::stringbuf  {
 public:
     TcpBuffer(tcp::socket& sock);
     ~TcpBuffer();
 
-    TcpBuffer& operator<<(std::string msg);
     void begin(db_server::MessageType msg_type);
     void set_error();
     void end();
+
+protected:
+    int overflow(int c) override;
 
 private:
     int current_pos;

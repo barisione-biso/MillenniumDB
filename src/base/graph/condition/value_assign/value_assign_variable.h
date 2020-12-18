@@ -14,7 +14,7 @@ public:
 
     ~ValueAssignVariable() = default;
 
-    std::shared_ptr<GraphObject> get_value(Binding& binding) {
+    GraphObject get_value(Binding& binding) {
         return binding[var_id];
     }
 };

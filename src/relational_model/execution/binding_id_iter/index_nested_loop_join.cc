@@ -21,6 +21,9 @@ BindingId& IndexNestedLoopJoin::begin(BindingId& input) {
                        // ¿se puede optimizar para no tener que checkear si it sera nullptr?
         current_right = &rhs->begin(*current_left);
     }
+    // else {
+    //     current_right = &rhs->begin_at_end(*current_left);
+    // }
     return my_binding;
 }
 
@@ -36,7 +39,7 @@ bool IndexNestedLoopJoin::next() {
     while (true) {
         if (rhs->next()) {
             // construct binding
-            my_binding.add_all(*current_left);
+            my_binding.add_all(*current_left); // TODO: reduntante?
             my_binding.add_all(*current_right);
             return true;
         } else {

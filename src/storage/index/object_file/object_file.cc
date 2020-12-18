@@ -1,57 +1,79 @@
 #include "object_file.h"
 
-#include <iostream>
+#include <cassert>
+#include <cstring>
 
 #include "storage/file_manager.h"
 
 using namespace std;
 
-ObjectFile::ObjectFile(const string& filename)
-    : file(file_manager.get_file(file_manager.get_file_id(filename)))
+
+ObjectFile::ObjectFile(const string& filename) :
+    file (file_manager.get_file(file_manager.get_file_id(filename)))
 {
     file.seekg (0, file.end);
+    auto end_pos = file.tellg();
+
     // If the file is empty, write a trash byte to prevent the ID = 0
-    if (file.tellg() == 0) {
-        char c = 0;
-        file.write(&c, 1);
+    if (end_pos == 0) {
+        capacity = INITIAL_SIZE;
+        objects = new char[INITIAL_SIZE];
+        objects[0] = '\0';
+        current_end = 1;
+    } else {
+        capacity = end_pos;
+        objects = new char[end_pos];
+        file.seekg(0, file.beg);
+        file.read(objects, end_pos);
+        current_end = end_pos;
     }
 }
 
 
-unique_ptr<vector<unsigned char>> ObjectFile::read(uint64_t id) {
-    // set position=`id` and read the length of the object
-    file.seekg(id);
-    char length_b[4]; // 4 bytes to store the length of the object
-    file.read(length_b, 4);
-    uint32_t length = *(uint32_t *)length_b;
+ObjectFile::~ObjectFile() {
+    file.seekg(0, file.beg);
+    file.write(objects, current_end);
+    delete[] objects;
+}
 
-    // read the following `length` bytes
-    auto value = make_unique<vector<unsigned char>>(length);
 
-    // check sanity
-    if (file.eof()) {
-        file.clear(); // important to clear, otherwise following calls to this method will throw same error.
-        throw ObjectFileEOF("OBJECT FILE ERROR: tried to read inexistent object (id: " + std::to_string(id)+ ")");
+const char* ObjectFile::read(uint64_t id) {
+    assert(id > 0);
+    assert(objects[id-1] == '\0');
+    if (id >= current_end) {
+        throw ObjectFileOutOfBounds("OBJECT FILE ERROR: tried to read inexistent object (id: " + std::to_string(id)+ ")");
     }
-
-    file.read((char*) value->data(), length);
-    return value;
+    return &objects[id];
 }
 
 
 uint64_t ObjectFile::write(vector<unsigned char>& bytes) {
-    // set position at end of file
-    file.seekg(0, file.end);
+    assert(bytes.size() >= 8); // 7 or less bytes can be inlined
 
-    // remember the actual position where we are writing the object
-    uint64_t write_pos = file.tellg();
+    uint64_t write_pos = current_end;
+    // check the is enough space
+    while (current_end + bytes.size() + 1 >= capacity) {
+        // duplicate buffer
+        char* new_objects = new char[capacity*2];
+        std::memcpy(
+            new_objects,
+            objects,
+            capacity
+        );
+        capacity *= 2;
 
-    // write to the file the length in bytes
-    uint32_t length = bytes.size();
-    file.write((const char *)&length, 4);
-
-    // write to the file the bytes of the object
-    file.write((const char*)bytes.data(), length);
+        delete[] objects;
+        objects = new_objects;
+    }
+    // write
+    std::memcpy(
+        &objects[current_end],
+        bytes.data(),
+        bytes.size()
+    );
+    current_end += bytes.size();
+    objects[current_end] = '\0';
+    ++current_end;
 
     return write_pos;
 }

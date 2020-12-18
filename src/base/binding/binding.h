@@ -10,14 +10,15 @@
 
 // Abstract class
 class Binding {
+    virtual std::ostream& print_to_ostream(std::ostream&) const = 0;
 public:
     virtual ~Binding() = default;
 
-    virtual std::string to_string() const = 0;
+    friend std::ostream& operator<<(std::ostream& os, const Binding& b) {
+        return b.print_to_ostream(os);
+    }
 
-    virtual std::shared_ptr<GraphObject> operator[](const VarId var_id) = 0;
-    virtual ObjectId get_id(const VarId var_id) = 0;
-
+    virtual GraphObject operator[](const VarId var_id) = 0;
 };
 
 #endif // BASE__BINDING_H_

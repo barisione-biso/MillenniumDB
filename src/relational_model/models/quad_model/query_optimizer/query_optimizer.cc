@@ -5,10 +5,6 @@
 #include <set>
 
 #include "base/binding/binding.h"
-#include "base/graph/value/value_int.h"
-#include "base/graph/value/value_bool.h"
-#include "base/graph/value/value_float.h"
-#include "base/graph/value/value_string.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_select.h"
@@ -62,7 +58,6 @@ void QueryOptimizer::visit(const OpSelect& op_select) {
 
     if (projection_vars.size() == 0) {
         // SELECT *
-        // TODO: add only non-anonymous variables?
         for (auto&& [k, v] : id_map) {
             projection_vars.push_back(make_pair(k, v));
         }
@@ -240,20 +235,17 @@ VarId QueryOptimizer::get_var_id(const std::string& var) {
 
 ObjectId QueryOptimizer::get_value_id(const common::ast::Value& value) {
     if (value.type() == typeid(string)) {
-        auto val_str = boost::get<string>(value);
-        return model.get_value_id(ValueString(val_str));
+        auto str = boost::get<string>(value);
+        return model.get_object_id(GraphObject::make_string(str));
     }
     else if (value.type() == typeid(int64_t)) {
-        auto val_int = boost::get<int64_t>(value);
-        return model.get_value_id(ValueInt(val_int));
+        return model.get_object_id(GraphObject::make_int( boost::get<int64_t>(value) ));
     }
     else if (value.type() == typeid(float)) {
-        auto val_float = boost::get<float>(value);
-        return model.get_value_id(ValueFloat(val_float));
+        return model.get_object_id(GraphObject::make_float( boost::get<float>(value) ));
     }
     else if (value.type() == typeid(bool)) {
-        auto val_bool = boost::get<bool>(value);
-        return model.get_value_id(ValueBool(val_bool));
+        return model.get_object_id(GraphObject::make_bool( boost::get<bool>(value) ));
     }
     else {
         throw logic_error("Unknown value type.");
@@ -409,8 +401,24 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan::ast::ManualRoot& root)
     auto binding_size = id_map.size();
     auto match = make_unique<Match>(model, root_plan->get_binding_id_iter(binding_size), binding_size);
     vector<pair<string, VarId>> projection_vars; // empty list will select *
-    // TODO: fill vector
-    return make_unique<Select>(move(match), move(projection_vars), 0); // TODO: limit?
+    for (const auto& select_item : root.selection) {
+        string var_name = select_item.var;
+        if (select_item.key) {
+            var_name += '.';
+            var_name += select_item.key.get();
+        }
+        auto var_id = get_var_id(var_name);
+        projection_vars.push_back(make_pair(var_name, var_id));
+    }
+
+    if (projection_vars.size() == 0) {
+        // SELECT *
+        for (auto&& [k, v] : id_map) {
+            projection_vars.push_back(make_pair(k, v));
+        }
+    }
+    uint_fast32_t limit = root.limit ? root.limit.get() : 0;
+    return make_unique<Select>(move(match), move(projection_vars), limit);
 }
 
 

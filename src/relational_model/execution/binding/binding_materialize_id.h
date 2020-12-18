@@ -14,10 +14,10 @@ public:
     BindingMaterializeId(GraphModel& model, std::size_t binding_size, BindingId& binding_id);
     ~BindingMaterializeId();
 
-    std::string to_string() const override;
+    std::ostream& print_to_ostream(std::ostream&) const override;
 
-    std::shared_ptr<GraphObject> operator[](const VarId var_id) override;
-    ObjectId get_id(const VarId var_id) override;
+    GraphObject operator[](const VarId var_id) override;
+
     void begin(BindingId&);
 
 private:
