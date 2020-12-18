@@ -1,5 +1,5 @@
-#ifndef RELATIONAL_MODEL__TRANSITIVE_CLOSURE_H_
-#define RELATIONAL_MODEL__TRANSITIVE_CLOSURE_H_
+#ifndef RELATIONAL_MODEL__TRANSITIVE_CLOSURE_ENUM_H_
+#define RELATIONAL_MODEL__TRANSITIVE_CLOSURE_ENUM_H_
 
 #include <array>
 #include <memory>
@@ -12,7 +12,7 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 
 
-class TransitiveClosure : public BindingIdIter {
+class TransitiveClosureEnum : public BindingIdIter {
     using Id = std::variant<VarId, ObjectId>;
 
 private:
@@ -21,10 +21,8 @@ private:
 
     BindingId* my_input;
     Id start;
-    Id end;
     ObjectId type;
     uint_fast32_t start_pos;
-    uint_fast32_t end_pos;
     uint_fast32_t type_pos;
     ObjectId end_object_id;
 
@@ -33,15 +31,16 @@ private:
     std::array<uint64_t, 4> max_ids;
     std::set<ObjectId> visited; // Visited nodes
     std::queue<ObjectId> open;  // Expanded nodes
+    std::unique_ptr<Record<4>> child_record; // Current children node
 
     // Statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
 public:
-    TransitiveClosure(std::size_t binding_size, BPlusTree<4>& bpt, Id start, Id end, ObjectId type,
-                      uint_fast32_t start_pos, uint_fast32_t end_pos, uint_fast32_t type_pos);
-    ~TransitiveClosure() = default;
+    TransitiveClosureEnum(std::size_t binding_size, BPlusTree<4>& bpt, Id start, ObjectId type,
+                      uint_fast32_t start_pos, uint_fast32_t type_pos);
+    ~TransitiveClosureEnum() = default;
 
     void analyze(int indent = 0) const override;
     BindingId& begin(BindingId& input) override;
@@ -49,4 +48,4 @@ public:
     bool next() override;
 };
 
-#endif // RELATIONAL_MODEL__TRANSITIVE_CLOSURE_H_
+#endif // RELATIONAL_MODEL__TRANSITIVE_CLOSURE_ENUM_H_
