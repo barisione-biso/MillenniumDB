@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "base/binding/binding.h"
+#include "storage/tuple_collection/tuple_collection.h"
 
 using namespace std;
 
@@ -23,6 +24,11 @@ BindingOrderBy::~BindingOrderBy() {
     delete binding_id;
 }
 
+std::ostream& BindingOrderBy::print_to_ostream(std::ostream& os) const {
+    return os;
+}
+
+
 
 GraphObject BindingOrderBy::operator[](const VarId var) {
     assert(var.id < binding_size);
@@ -30,9 +36,9 @@ GraphObject BindingOrderBy::operator[](const VarId var) {
 }
 
 
-void BindingOrderBy::update_binding_object(std::vector<uint64_t> obj_ids) {
-    assert(obj_ids.size() == binding_size);
+void BindingOrderBy::update_binding_object(uint8_t* graph_obj) {
     for (size_t i = 0; i < binding_size; i++) {
-        binding_id[i] = ObjectId(obj_ids[i]);
+        const GraphObject* obj = reinterpret_cast<GraphObject*>(&graph_obj[i * TupleCollection::GRAPH_OBJECT_SIZE]);
+        binding_id[i] = model.get_object_id(*obj);
     }
 }

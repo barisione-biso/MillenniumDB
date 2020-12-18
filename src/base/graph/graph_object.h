@@ -14,6 +14,9 @@
 #include "base/graph/string_external.h"
 
 struct NullGraphObject {
+    inline void operator=(const NullGraphObject&) {
+    }
+
     inline bool operator==(const NullGraphObject&) const noexcept {
         return false;
     }
@@ -40,6 +43,9 @@ struct NullGraphObject {
 };
 
 struct NotFoundObject {
+    inline void operator=(const NotFoundObject&) {
+    }
+
     inline bool operator==(const NotFoundObject&) const noexcept {
         return false;
     }
@@ -103,6 +109,16 @@ class GraphObject {
 public:
     GraphObjectVariant value;
 
+    GraphObject() :
+        value (NullGraphObject()) { }
+
+    GraphObject(const GraphObject& graph_object) :
+        value (graph_object.value) { }
+
+    inline void operator=(const GraphObject& other) noexcept {
+        value = other.value;
+    }
+
     static GraphObject make_identifiable_external(const char* str) {
         IdentifiableExternal string_external{ str };
         return GraphObject(string_external);
@@ -153,7 +169,7 @@ public:
             }
             return GraphObject::make_string_inlined(c);
         } else {
-            return GraphObject::make_string_external(str.c_str());
+            return GraphObject::make_string_external(const_cast<char*>(str.c_str()));
         }
     }
 
@@ -169,17 +185,17 @@ public:
             }
             return GraphObject::make_identifiable_inlined(c);
         } else {
-            return GraphObject::make_identifiable_external(str.c_str());
+            return GraphObject::make_identifiable_external(const_cast<char*>(str.c_str()));
         }
     }
 
-    static GraphObject make_string_external(const char* str) {
+    static GraphObject make_string_external(char* str) {
         StringExternal string_external{ str };
         return GraphObject(string_external);
     }
 
     // must receive an array of size 8, terminating in '\0'
-    static GraphObject make_string_inlined(const char* str) {
+    static GraphObject make_string_inlined(char* str) {
         StringInlined string_inlined{ str };
         return GraphObject(string_inlined);
     }

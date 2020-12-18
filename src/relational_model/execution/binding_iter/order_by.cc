@@ -14,24 +14,24 @@
 using namespace std;
 
 
-bool is_leq(std::vector<uint64_t> a, std::vector<uint64_t> b, std::vector<uint64_t> order_vars) {
+bool is_leq(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_vars) {
     for (size_t i = 0; i < order_vars.size(); i++) {
-        if (a[order_vars[i]] < b[order_vars[i]]) {
+        if (lhs[order_vars[i]] < rhs[order_vars[i]]) {
             return true;
         }
-        if (b[order_vars[i]] < a[order_vars[i]]) {
+        if (lhs[order_vars[i]] < rhs[order_vars[i]]) {
             return false;
         }
     }
     return true;
 }
 
-bool is_geq(std::vector<uint64_t> a, std::vector<uint64_t> b, std::vector<uint64_t> order_vars) {
+bool is_geq(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_vars) {
     for (size_t i = 0; i < order_vars.size(); i++) {
-        if (a[order_vars[i]] > b[order_vars[i]]) {
+        if (lhs[order_vars[i]] > rhs[order_vars[i]]) {
             return true;
         }
-        if (b[order_vars[i]] > a[order_vars[i]]) {
+        if (rhs[order_vars[i]] > lhs[order_vars[i]]) {
             return false;
         }
     }
@@ -44,13 +44,13 @@ OrderBy::OrderBy(GraphModel& model,
                  vector<pair<string, VarId>> order_vars,
                  size_t binding_size,
                  const bool ascending) :
-    child        (move(_child)),
-    binding_size (binding_size),
-    my_binding   (BindingOrderBy(model, move(order_vars), child->get_binding(), binding_size)),
-    first_file_id     (file_manager.get_file_id("temp0.txt")),
-    second_file_id    (file_manager.get_file_id("temp1.txt"))
+    child          (move(_child)),
+    binding_size   (binding_size),
+    my_binding     (BindingOrderBy(model, move(order_vars), child->get_binding(), binding_size)),
+    first_file_id  (file_manager.get_file_id("temp0.txt")),
+    second_file_id (file_manager.get_file_id("temp1.txt"))
 {
-    bool (*has_priority)(std::vector<uint64_t> a, std::vector<uint64_t>b, std::vector<uint64_t> order_v) = (ascending) ? is_leq : is_geq;
+    bool (*has_priority)(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_v) = (ascending) ? is_leq : is_geq;
     std::vector<uint64_t> order_ids = std::vector<uint64_t>(my_binding.order_vars.size());
     for (size_t i = 0; i < my_binding.order_vars.size(); i++) {
         order_ids[i] = my_binding.order_vars[i].second.id;
@@ -59,24 +59,30 @@ OrderBy::OrderBy(GraphModel& model,
     merger = make_unique<MergeOrderedTupleCollection>(binding_size, order_ids, has_priority);
     run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, n_pages), binding_size);
     run->reset();
-    std::vector<uint64_t> binding_id_vec = std::vector<uint64_t>(binding_size);
+    // uint8_t graph_objects[binding_size * TupleCollection::GRAPH_OBJECT_SIZE];
+    GraphObject* graph_objects = new GraphObject[binding_size];
     while (child->next()) {
         if (run->is_full()) {
             n_pages++;
-            run->sort(has_priority, order_ids);
+            //run->sort(has_priority, order_ids);
             run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, n_pages), binding_size);
             run->reset();
         }
         for (size_t i = 0; i < binding_size; i++) {
-            binding_id_vec[i] = my_binding.get_id(VarId(i)).id;
+            cout << "se cae acá\n";
+            GraphObject graph_obj = my_binding[VarId(i)];
+            graph_objects[i] = graph_obj;
         }
-        run->add(binding_id_vec);
+        run->add(graph_objects);
     }
     n_pages++;
     run = nullptr;
-    mergeSort();
+    cout << "Paso\n";
+    output_file_id = &first_file_id;
+    //mergeSort();
     run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, 0), binding_size);
 }
+
 
 Binding& OrderBy::get_binding() {
     return my_binding;
@@ -92,8 +98,8 @@ bool OrderBy::next() {
         run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, current_page), binding_size);
         page_position = 0;
     }
-    std::vector<uint64_t> binding_ids = run->get(page_position);
-    my_binding.update_binding_object(move(binding_ids));
+    uint8_t* graph_object = run->get(page_position);
+    my_binding.update_binding_object(graph_object);
     page_position++;
     return true;
 }
@@ -138,5 +144,3 @@ void OrderBy::mergeSort() {
     }
     output_file_id = output_is_in_second ? &second_file_id : &first_file_id;
 }
-
-

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "base/graph/graph_object.h"
 #include "storage/page.h"
 #include "storage/page_id.h"
 #include "storage/file_id.h"
@@ -14,24 +15,27 @@ class MergeOrderedTupleCollection;
 class TupleCollection {
 friend class MergeOrderedTupleCollection;
 public:
+    static constexpr size_t GRAPH_OBJECT_SIZE = sizeof(GraphObject);
+
     TupleCollection(Page& page, const size_t tuple_size);
    ~TupleCollection();
-    std::vector<uint64_t> get(uint_fast64_t n) const;
     bool is_full() const;
     uint64_t get_n_tuples() const;
-    void add(std::vector<uint64_t> new_tuple);
-    void sort(bool (*is_leq)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars),std::vector<uint64_t> order_vars);
+    // void add(uint8_t* new_tuple);
+    void add(GraphObject* new_tuple);
+    uint8_t* get(uint_fast64_t n) const;
+    void sort(bool (*is_leq)(uint8_t* x, uint8_t* y, std::vector<uint64_t> order_vars),std::vector<uint64_t> order_vars);
     void reset();
 
 private:
     Page& page;
     const size_t tuple_size;
     uint64_t* tuple_count;
-    uint64_t* tuples;
+    GraphObject* tuples;
     void swap(int x, int y);
-    void override_tuple(std::vector<uint64_t>& bytes, int position);
-    int partition(int i, int f, bool (*is_leq)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars);
-    void quicksort(int i, int f, bool (*is_leq)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars);
+    void override_tuple(uint8_t* bytes, int position);
+    int partition(int i, int f, bool (*is_leq)(uint8_t* x, uint8_t* y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars);
+    void quicksort(int i, int f, bool (*is_leq)(uint8_t* x, uint8_t* y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars);
 
 };
 
@@ -40,7 +44,7 @@ public:
     MergeOrderedTupleCollection(
         size_t tuple_size,
         std::vector<uint64_t> order_vars,
-        bool (*is_leq)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars));
+        bool (*is_leq)(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_vars));
     void merge(
         uint_fast64_t left_start,
         uint_fast64_t left_end,
@@ -57,9 +61,9 @@ public:
 private:
     size_t tuple_size;
     std::vector<uint_fast64_t> order_vars;
-    bool (*has_priority)(std::vector<uint64_t> x, std::vector<uint64_t> y, std::vector<uint64_t> order_vars);
-    std::vector<uint_fast64_t> left_tuple;
-    std::vector<uint_fast64_t> right_tuple;
+    bool (*has_priority)(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_vars);
+    uint8_t* left_tuple;
+    uint8_t* right_tuple;
 };
 
 #endif  // STORAGE__TUPLE_COLLECTION_H_

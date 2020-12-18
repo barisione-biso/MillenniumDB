@@ -3,11 +3,15 @@
 
 class Edge {
 public:
-    const uint64_t id;
+    uint64_t id;
 
     Edge(const uint64_t id)
         : id(id) { }
     ~Edge() = default;
+
+    inline void operator=(const Edge& other) {
+        id = other.id;
+    }
 
     inline bool operator==(const Edge& rhs) const noexcept {
         return this->id == rhs.id;

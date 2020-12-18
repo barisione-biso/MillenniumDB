@@ -6,17 +6,19 @@
 #include <vector>
 
 #include "base/binding/binding.h"
-#include "base/binding/binding_iter.h"
-#include "base/binding/binding_id.h"
 #include "base/graph/graph_model.h"
+
+class BindingId;
 
 class BindingOrderBy : public Binding {
 public:
     BindingOrderBy(GraphModel& model, std::vector<std::pair<std::string, VarId>> order_vars, Binding& child_binding, size_t binding_size);
     ~BindingOrderBy();
     std::vector<std::pair<std::string, VarId>> order_vars;
+    std::ostream& print_to_ostream(std::ostream&) const override;
     GraphObject operator[](const VarId var_id) override;
-    void update_binding_object(std::vector<uint64_t> obj_ids);
+    void begin(BindingId&);
+    void update_binding_object(uint8_t* graph_object);
 
 
 private:
