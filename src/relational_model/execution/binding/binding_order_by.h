@@ -18,7 +18,7 @@ public:
     std::ostream& print_to_ostream(std::ostream&) const override;
     GraphObject operator[](const VarId var_id) override;
     void begin(BindingId&);
-    void update_binding_object(uint8_t* graph_object);
+    void update_binding_object(std::vector<GraphObject> graph_object);
 
 
 private:

@@ -28,8 +28,8 @@ TupleCollection::~TupleCollection() {
 
 
 bool TupleCollection::is_full() const {
-    const int bytes_used = (*tuple_count) * tuple_size * GRAPH_OBJECT_SIZE + sizeof(tuple_count);
-    const int size_new_tuple = tuple_size * GRAPH_OBJECT_SIZE;
+    const auto bytes_used = (*tuple_count) * tuple_size * GRAPH_OBJECT_SIZE + sizeof(tuple_count);
+    const auto size_new_tuple = tuple_size * GRAPH_OBJECT_SIZE;
     if (bytes_used + size_new_tuple < Page::PAGE_SIZE) {
       return false;
     }
@@ -41,7 +41,7 @@ uint64_t TupleCollection::get_n_tuples() const {
 }
 
 
-void TupleCollection::add(GraphObject* new_tuple) {
+void TupleCollection::add(std::vector<GraphObject> new_tuple) {
     const size_t bytes_used = (*tuple_count) * tuple_size * GRAPH_OBJECT_SIZE;
     for (size_t i = 0; i < tuple_size * GRAPH_OBJECT_SIZE; i++) {
         tuples[bytes_used + i] = new_tuple[i];
@@ -50,19 +50,19 @@ void TupleCollection::add(GraphObject* new_tuple) {
 }
 
 
-uint8_t* TupleCollection::get(uint_fast64_t id) const {
-    uint8_t n_tuple[GRAPH_OBJECT_SIZE * tuple_size];
-    size_t tuple_position = id * GRAPH_OBJECT_SIZE * tuple_size;
-    for (size_t i = 0; i < tuple_size * GRAPH_OBJECT_SIZE; i++) {
+std::vector<GraphObject> TupleCollection::get(uint_fast64_t id) const {
+    std::vector<GraphObject> n_tuple(tuple_size);
+    size_t tuple_position = id * tuple_size;
+    for (size_t i = 0; i < tuple_size; i++) {
         n_tuple[i] = tuples[tuple_position + i];
     }
     return n_tuple;
 }
 
 
-void TupleCollection::override_tuple(uint8_t* tuple_to_override, int position) {
-    size_t position_to_override = position * GRAPH_OBJECT_SIZE * tuple_size;
-    for (size_t i = 0; i < tuple_size * GRAPH_OBJECT_SIZE; i++) {
+void TupleCollection::override_tuple(std::vector<GraphObject> tuple_to_override, int position) {
+    size_t position_to_override = position * tuple_size;
+    for (size_t i = 0; i < tuple_size; i++) {
         tuples[position_to_override + i] = tuple_to_override[i];
     }
 }
@@ -74,14 +74,14 @@ void TupleCollection::reset() {
 
 
 void TupleCollection::swap(int x, int y) {
-    uint8_t* x_tuple = get(x);
-    uint8_t* y_tuple = get(y);
+    auto x_tuple = get(x);
+    auto y_tuple = get(y);
     override_tuple(x_tuple, y);
     override_tuple(y_tuple, x);
 }
 
 
-void TupleCollection::sort( bool (*has_priority)(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_vars),std::vector<uint64_t> order_vars) {
+void TupleCollection::sort( bool (*has_priority)(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_vars),std::vector<uint64_t> order_vars) {
     quicksort(0, (*tuple_count) - 1, has_priority, order_vars);
     /*
     for (size_t i = 0; i < *tuple_count - 1; i++) {
@@ -95,7 +95,7 @@ void TupleCollection::sort( bool (*has_priority)(uint8_t* lhs, uint8_t* rhs, std
 }
 
 
-void TupleCollection::quicksort(int i, int f, bool (*has_priority)(uint8_t* x, uint8_t* y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars) {
+void TupleCollection::quicksort(int i, int f, bool (*has_priority)(std::vector<GraphObject> x, std::vector<GraphObject> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars) {
     if (i < f) {
         int p = partition(i, f, has_priority, order_vars);
         quicksort(i, p - 1, has_priority, order_vars);
@@ -104,9 +104,9 @@ void TupleCollection::quicksort(int i, int f, bool (*has_priority)(uint8_t* x, u
 }
 
 
-int TupleCollection::partition(int i, int f, bool (*has_priority)(uint8_t* x, uint8_t* y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars) {
+int TupleCollection::partition(int i, int f, bool (*has_priority)(std::vector<GraphObject> x, std::vector<GraphObject> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars) {
     int x = i + (rand() % (f - i + 1));
-    uint8_t* p = get(x);
+    auto p = get(x);
     TupleCollection::swap(x,f);
     int low_el = i - 1;
     for (int j = i; j <= f - 1; j++) {
@@ -122,7 +122,7 @@ int TupleCollection::partition(int i, int f, bool (*has_priority)(uint8_t* x, ui
 MergeOrderedTupleCollection::MergeOrderedTupleCollection(
     size_t tuple_size,
     std::vector<uint_fast64_t> order_vars,
-    bool (*has_priority)(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_vars)) :
+    bool (*has_priority)(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_vars)) :
         tuple_size(tuple_size),
         order_vars(order_vars),
         has_priority(has_priority) { }
@@ -199,7 +199,7 @@ void MergeOrderedTupleCollection::copy_page(
       auto output_tuples = make_unique<TupleCollection>(buffer_manager.get_page(output_file_id, source_page), tuple_size);
       output_tuples->reset();
       for (size_t i = 0; i < source_tuples->get_n_tuples(); i++) {
-          uint8_t* t = source_tuples->get(i);
+          auto t = source_tuples->get(i);
           output_tuples->add(t);
       }
       source_tuples->reset();

@@ -14,7 +14,7 @@
 using namespace std;
 
 
-bool is_leq(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_vars) {
+bool is_leq(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_vars) {
     for (size_t i = 0; i < order_vars.size(); i++) {
         if (lhs[order_vars[i]] < rhs[order_vars[i]]) {
             return true;
@@ -26,7 +26,7 @@ bool is_leq(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_vars) {
     return true;
 }
 
-bool is_geq(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_vars) {
+bool is_geq(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_vars) {
     for (size_t i = 0; i < order_vars.size(); i++) {
         if (lhs[order_vars[i]] > rhs[order_vars[i]]) {
             return true;
@@ -50,7 +50,7 @@ OrderBy::OrderBy(GraphModel& model,
     first_file_id  (file_manager.get_file_id("temp0.txt")),
     second_file_id (file_manager.get_file_id("temp1.txt"))
 {
-    bool (*has_priority)(uint8_t* lhs, uint8_t* rhs, std::vector<uint64_t> order_v) = (ascending) ? is_leq : is_geq;
+    bool (*has_priority)(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_v) = (ascending) ? is_leq : is_geq;
     std::vector<uint64_t> order_ids = std::vector<uint64_t>(my_binding.order_vars.size());
     for (size_t i = 0; i < my_binding.order_vars.size(); i++) {
         order_ids[i] = my_binding.order_vars[i].second.id;
@@ -60,7 +60,7 @@ OrderBy::OrderBy(GraphModel& model,
     run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, n_pages), binding_size);
     run->reset();
     // uint8_t graph_objects[binding_size * TupleCollection::GRAPH_OBJECT_SIZE];
-    GraphObject* graph_objects = new GraphObject[binding_size];
+    std::vector<GraphObject> graph_objects(binding_size);
     while (child->next()) {
         if (run->is_full()) {
             n_pages++;
@@ -98,7 +98,7 @@ bool OrderBy::next() {
         run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, current_page), binding_size);
         page_position = 0;
     }
-    uint8_t* graph_object = run->get(page_position);
+    auto graph_object = run->get(page_position);
     my_binding.update_binding_object(graph_object);
     page_position++;
     return true;

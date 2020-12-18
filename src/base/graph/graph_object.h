@@ -189,13 +189,13 @@ public:
         }
     }
 
-    static GraphObject make_string_external(char* str) {
+    static GraphObject make_string_external(const char* str) {
         StringExternal string_external{ str };
         return GraphObject(string_external);
     }
 
     // must receive an array of size 8, terminating in '\0'
-    static GraphObject make_string_inlined(char* str) {
+    static GraphObject make_string_inlined(const char* str) {
         StringInlined string_inlined{ str };
         return GraphObject(string_inlined);
     }
