@@ -10,6 +10,7 @@
 
 using namespace std;
 
+// TODO: end_pos is not needed (always 2)
 TransitiveClosure::TransitiveClosure(std::size_t binding_size,
                                      BPlusTree<4>& bpt,
                                      Id start,
@@ -63,7 +64,6 @@ BindingId& TransitiveClosure::begin(BindingId& input) {
 
 
 bool TransitiveClosure::next() {
-    // BFS (base case)
     while (open.size() > 0) {
         auto current = open.front();
         open.pop();
@@ -79,9 +79,10 @@ bool TransitiveClosure::next() {
             if (child == end_object_id) {
                 queue<ObjectId> empty;
                 open.swap(empty);
+                my_binding.add_all(*my_input);
                 return true;
             } else {
-                if (visited.find(child) != visited.end()) {
+                if (visited.find(child) == visited.end()) {
                     visited.insert(child);
                     open.push(child);
                 }

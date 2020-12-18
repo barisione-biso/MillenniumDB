@@ -21,6 +21,7 @@ private:
 
     BindingId* my_input;
     Id start;
+    VarId end;
     ObjectId type;
     uint_fast32_t start_pos;
     uint_fast32_t type_pos;
@@ -38,7 +39,7 @@ private:
     uint_fast32_t bpt_searches = 0;
 
 public:
-    TransitiveClosureEnum(std::size_t binding_size, BPlusTree<4>& bpt, Id start, ObjectId type,
+    TransitiveClosureEnum(std::size_t binding_size, BPlusTree<4>& bpt, Id start, VarId end, ObjectId type,
                       uint_fast32_t start_pos, uint_fast32_t type_pos);
     ~TransitiveClosureEnum() = default;
 
