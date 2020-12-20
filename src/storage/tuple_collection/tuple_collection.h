@@ -23,7 +23,8 @@ public:
     uint64_t get_n_tuples() const;
     void add(std::vector<GraphObject> new_tuple);
     std::vector<GraphObject> get(uint_fast64_t n) const;
-    void sort(bool (*is_leq)(std::vector<GraphObject> x, std::vector<GraphObject> y, std::vector<uint64_t> order_vars),std::vector<uint64_t> order_vars);
+    void sort(std::vector<uint_fast64_t> order_vars, bool ascending);
+    static bool has_priority(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint_fast64_t> order_vars, bool ascending);
     void reset();
 
 private:
@@ -33,8 +34,8 @@ private:
     GraphObject* tuples;
     void swap(int x, int y);
     void override_tuple(std::vector<GraphObject> bytes, int position);
-    int partition(int i, int f, bool (*is_leq)(std::vector<GraphObject> x, std::vector<GraphObject> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars);
-    void quicksort(int i, int f, bool (*is_leq)(std::vector<GraphObject> x, std::vector<GraphObject> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars);
+    int partition(int i, int f, std::vector<uint_fast64_t> order_vars, bool ascending);
+    void quicksort(int i, int f, std::vector<uint_fast64_t> order_vars, bool ascending);
 
 };
 
@@ -43,7 +44,8 @@ public:
     MergeOrderedTupleCollection(
         size_t tuple_size,
         std::vector<uint64_t> order_vars,
-        bool (*is_leq)(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_vars));
+        bool ascending);
+
     void merge(
         uint_fast64_t left_start,
         uint_fast64_t left_end,
@@ -60,7 +62,7 @@ public:
 private:
     size_t tuple_size;
     std::vector<uint_fast64_t> order_vars;
-    bool (*has_priority)(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_vars);
+    bool ascending;
     std::vector<GraphObject> left_tuple;
     std::vector<GraphObject> right_tuple;
 };

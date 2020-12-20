@@ -16,29 +16,29 @@ BindingOrderBy::BindingOrderBy(GraphModel& model, vector<pair<string, VarId>> or
     child_binding (child_binding)
 
 {
-    binding_id = new ObjectId(binding_size);
 }
 
 
-BindingOrderBy::~BindingOrderBy() {
-    delete binding_id;
-}
+BindingOrderBy::~BindingOrderBy() = default;
 
 std::ostream& BindingOrderBy::print_to_ostream(std::ostream& os) const {
     return os;
 }
 
+void BindingOrderBy::finish_read_of_child() {
+    consume_from_child = false;
+}
 
 GraphObject BindingOrderBy::operator[](const VarId var) {
     assert(var.id < binding_size);
-    return model.get_graph_object(binding_id[var.id]);
+    if (consume_from_child) {
+        return child_binding[var];
+    } else {
+      return objects_vector[var.id];
+    }
 }
 
 
 void BindingOrderBy::update_binding_object(std::vector<GraphObject> graph_obj) {
-    for (size_t i = 0; i < binding_size; i++) {
-        // const GraphObject* obj = reinterpret_cast<GraphObject*>(&graph_obj[i * TupleCollection::GRAPH_OBJECT_SIZE]);
-        // binding_id[i] = model.get_object_id(*obj);
-        binding_id[i] = model.get_object_id(graph_obj[i]);
-    }
+    objects_vector = move(graph_obj);
 }

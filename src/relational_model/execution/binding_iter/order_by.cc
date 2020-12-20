@@ -14,31 +14,6 @@
 using namespace std;
 
 
-bool is_leq(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_vars) {
-    for (size_t i = 0; i < order_vars.size(); i++) {
-        if (lhs[order_vars[i]] < rhs[order_vars[i]]) {
-            return true;
-        }
-        if (lhs[order_vars[i]] < rhs[order_vars[i]]) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool is_geq(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_vars) {
-    for (size_t i = 0; i < order_vars.size(); i++) {
-        if (lhs[order_vars[i]] > rhs[order_vars[i]]) {
-            return true;
-        }
-        if (rhs[order_vars[i]] > lhs[order_vars[i]]) {
-            return false;
-        }
-    }
-    return true;
-}
-
-
 OrderBy::OrderBy(GraphModel& model,
                  std::unique_ptr<BindingIter> _child,
                  vector<pair<string, VarId>> order_vars,
@@ -50,36 +25,34 @@ OrderBy::OrderBy(GraphModel& model,
     first_file_id  (file_manager.get_file_id("temp0.txt")),
     second_file_id (file_manager.get_file_id("temp1.txt"))
 {
-    bool (*has_priority)(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_v) = (ascending) ? is_leq : is_geq;
-    std::vector<uint64_t> order_ids = std::vector<uint64_t>(my_binding.order_vars.size());
+    std::vector<uint_fast64_t> order_ids = std::vector<uint64_t>(my_binding.order_vars.size());
     for (size_t i = 0; i < my_binding.order_vars.size(); i++) {
         order_ids[i] = my_binding.order_vars[i].second.id;
     }
     n_pages = 0;
-    merger = make_unique<MergeOrderedTupleCollection>(binding_size, order_ids, has_priority);
+    merger = make_unique<MergeOrderedTupleCollection>(binding_size, order_ids, ascending);
     run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, n_pages), binding_size);
     run->reset();
-    // uint8_t graph_objects[binding_size * TupleCollection::GRAPH_OBJECT_SIZE];
     std::vector<GraphObject> graph_objects(binding_size);
     while (child->next()) {
         if (run->is_full()) {
             n_pages++;
-            //run->sort(has_priority, order_ids);
+            run->sort(order_ids, ascending);
             run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, n_pages), binding_size);
             run->reset();
         }
         for (size_t i = 0; i < binding_size; i++) {
-            cout << "se cae acá\n";
             GraphObject graph_obj = my_binding[VarId(i)];
+            //GraphObject graph_obj;
             graph_objects[i] = graph_obj;
         }
         run->add(graph_objects);
     }
     n_pages++;
-    run = nullptr;
-    cout << "Paso\n";
+    my_binding.finish_read_of_child();
+    run = nullptr;;
     output_file_id = &first_file_id;
-    //mergeSort();
+    mergeSort();
     run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, 0), binding_size);
 }
 

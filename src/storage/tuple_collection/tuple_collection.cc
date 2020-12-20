@@ -31,7 +31,7 @@ bool TupleCollection::is_full() const {
     const auto bytes_used = (*tuple_count) * tuple_size * GRAPH_OBJECT_SIZE + sizeof(tuple_count);
     const auto size_new_tuple = tuple_size * GRAPH_OBJECT_SIZE;
     if (bytes_used + size_new_tuple < Page::PAGE_SIZE) {
-      return false;
+        return false;
     }
     return true;
 }
@@ -42,8 +42,8 @@ uint64_t TupleCollection::get_n_tuples() const {
 
 
 void TupleCollection::add(std::vector<GraphObject> new_tuple) {
-    const size_t bytes_used = (*tuple_count) * tuple_size * GRAPH_OBJECT_SIZE;
-    for (size_t i = 0; i < tuple_size * GRAPH_OBJECT_SIZE; i++) {
+    const size_t bytes_used = (*tuple_count) * tuple_size;
+    for (size_t i = 0; i < tuple_size; i++) {
         tuples[bytes_used + i] = new_tuple[i];
     }
   	(*tuple_count)++;
@@ -81,8 +81,8 @@ void TupleCollection::swap(int x, int y) {
 }
 
 
-void TupleCollection::sort( bool (*has_priority)(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_vars),std::vector<uint64_t> order_vars) {
-    quicksort(0, (*tuple_count) - 1, has_priority, order_vars);
+void TupleCollection::sort(std::vector<uint_fast64_t> order_vars, bool ascending) {
+    quicksort(0, (*tuple_count) - 1, order_vars, ascending);
     /*
     for (size_t i = 0; i < *tuple_count - 1; i++) {
       for (size_t j = i + 1; j < *tuple_count; j++) {
@@ -94,26 +94,50 @@ void TupleCollection::sort( bool (*has_priority)(std::vector<GraphObject> lhs, s
     */
 }
 
-
-void TupleCollection::quicksort(int i, int f, bool (*has_priority)(std::vector<GraphObject> x, std::vector<GraphObject> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars) {
-    if (i < f) {
-        int p = partition(i, f, has_priority, order_vars);
-        quicksort(i, p - 1, has_priority, order_vars);
-        quicksort(p + 1, f, has_priority, order_vars);
+bool TupleCollection::has_priority(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint_fast64_t> order_vars, bool ascending) {
+    if (ascending) {
+       for (size_t i = 0; i < order_vars.size(); i++) {
+            if (lhs[order_vars[i]] < rhs[order_vars[i]]) {
+                return true;
+            }
+            if (rhs[order_vars[i]] < lhs[order_vars[i]]) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        for (size_t i = 0; i < order_vars.size(); i++) {
+            if (lhs[order_vars[i]] > rhs[order_vars[i]]) {
+                return true;
+            }
+            if (rhs[order_vars[i]] > lhs[order_vars[i]]) {
+                return false;
+            }
+        }
+        return true;
     }
 }
 
 
-int TupleCollection::partition(int i, int f, bool (*has_priority)(std::vector<GraphObject> x, std::vector<GraphObject> y, std::vector<uint64_t> order_vars), std::vector<uint64_t> order_vars) {
+void TupleCollection::quicksort(int i, int f, std::vector<uint_fast64_t> order_vars, bool ascending) {
+    if (i < f) {
+        int p = partition(i, f, order_vars, ascending);
+        quicksort(i, p - 1, order_vars, ascending);
+        quicksort(p + 1, f, order_vars, ascending);
+    }
+}
+
+
+int TupleCollection::partition(int i, int f, std::vector<uint_fast64_t> order_vars, bool ascending) {
     int x = i + (rand() % (f - i + 1));
     auto p = get(x);
     TupleCollection::swap(x,f);
     int low_el = i - 1;
     for (int j = i; j <= f - 1; j++) {
-      if (has_priority(get(j), p, order_vars)) {
-        low_el++;
-        TupleCollection::swap(low_el, j);
-      }
+        if (has_priority(get(j), p, order_vars, ascending)) {
+            low_el++;
+            TupleCollection::swap(low_el, j);
+        }
     }
     TupleCollection::swap(low_el + 1, f);
     return low_el + 1;
@@ -122,10 +146,11 @@ int TupleCollection::partition(int i, int f, bool (*has_priority)(std::vector<Gr
 MergeOrderedTupleCollection::MergeOrderedTupleCollection(
     size_t tuple_size,
     std::vector<uint_fast64_t> order_vars,
-    bool (*has_priority)(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint64_t> order_vars)) :
+    bool ascending) :
         tuple_size(tuple_size),
         order_vars(order_vars),
-        has_priority(has_priority) { }
+        ascending(ascending)
+       { }
 
 
 void MergeOrderedTupleCollection::merge(
@@ -154,7 +179,7 @@ void MergeOrderedTupleCollection::merge(
             out_run = make_unique<TupleCollection>(buffer_manager.get_page(output_file_id, out_page_counter), tuple_size);
             out_run->reset();
         }
-        left_first = has_priority(left_tuple, right_tuple, order_vars);
+        left_first = TupleCollection::has_priority(left_tuple, right_tuple, order_vars, ascending);
         if (open_left && (left_first || !open_right)) {
             out_run->add(left_tuple);
             left_counter++;
