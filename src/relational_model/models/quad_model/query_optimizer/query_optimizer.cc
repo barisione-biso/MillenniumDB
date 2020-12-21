@@ -11,6 +11,7 @@
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
+#include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
 
 #include "relational_model/execution/binding_iter/match.h"
@@ -20,7 +21,6 @@
 // CRIS INCLUDES
 #include "relational_model/execution/binding_id_iter/left_outer_join.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
-#include "relational_model/execution/binding_id_iter/index_nested_loop_join.h" // delete
 #include "relational_model/execution/binding_id_iter/index_scan.h"
 #include "base/ids/object_id.h"
 #include "base/ids/var_id.h"
@@ -488,10 +488,10 @@ void QueryOptimizer::visit(const OpOrderBy& order_by) {
     order_by.op->accept_visitor(*this);
 }
 
-/*
+
 void QueryOptimizer::visit(const OpOptional& optional) {
     optional.op->accept_visitor(*this);
-}*/
+}
 
 
 void QueryOptimizer::visit(const OpLabel&) { }

@@ -48,6 +48,7 @@ bool OptionalNode::next() {
 
 
 void OptionalNode::analyze(int indent) const {
+    // TODO CRIS
     cout << 'OptionalNode(';
 }
 

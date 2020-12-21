@@ -1,4 +1,4 @@
-/*
+
 #ifndef BASE__OP_OPTIONAL_H_
 #define BASE__OP_OPTIONAL_H_
 
@@ -11,13 +11,11 @@
 class OpOptional : public Op {
 public:
     const std::unique_ptr<Op> op;
-    const bool ascending_order;
-    const std::vector<query::ast::SelectItem> items;
+    const std::vector<boost::recursive_wrapper<query::ast::GraphPattern>> optionals;
 
-    OpOptional(std::vector<query::ast::SelectItem> items, std::unique_ptr<Op> op, bool ascending_order) :
+    OpOptional(std::unique_ptr<Op> op, std::vector<boost::recursive_wrapper<query::ast::GraphPattern>> optionals) :
         op              (std::move(op)),
-        ascending_order (ascending_order),
-        items           (items) { }
+        optionals(std::move(optionals)) { }
 
     ~OpOptional() = default;
 
@@ -26,5 +24,3 @@ public:
     }
 };
 #endif // BASE__OP_OPTIONAL_H_
-
-*/
