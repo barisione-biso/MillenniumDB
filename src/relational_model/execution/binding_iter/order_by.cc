@@ -43,14 +43,14 @@ OrderBy::OrderBy(GraphModel& model,
         }
         for (size_t i = 0; i < binding_size; i++) {
             GraphObject graph_obj = my_binding[VarId(i)];
-            //GraphObject graph_obj;
             graph_objects[i] = graph_obj;
         }
         run->add(graph_objects);
     }
+    run->sort(order_ids, ascending); // TODO: Revisar este ultimo sort
     n_pages++;
     my_binding.finish_read_of_child();
-    run = nullptr;;
+    run = nullptr;
     output_file_id = &first_file_id;
     mergeSort();
     run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, 0), binding_size);
@@ -92,12 +92,14 @@ void OrderBy::mergeSort() {
     FileId* output_pointer = &second_file_id;
     while (runs_to_merge < n_pages) {
         runs_to_merge *= 2;
+        start_page = 0;
+        middle = (runs_to_merge / 2) - 1;
         if (runs_to_merge > n_pages) {
             runs_to_merge = n_pages;
+            end_page = runs_to_merge - 1;
+        } else {
+            end_page = runs_to_merge - 1;
         }
-        start_page = 0;
-        end_page = runs_to_merge - 1;
-        middle = (start_page + end_page) / 2;
         while (start_page < n_pages) {
             if (start_page == end_page) {
                 merger->copy_page(start_page, *source_pointer, *output_pointer);
@@ -105,11 +107,14 @@ void OrderBy::mergeSort() {
                 merger->merge(start_page, middle, middle + 1, end_page, *source_pointer, *output_pointer);
             }
             start_page = end_page + 1;
+            middle = start_page +  (runs_to_merge / 2)  - 1;
             end_page += runs_to_merge;
             if (end_page >= n_pages) {
                 end_page = n_pages - 1;
             }
-            middle = (start_page + end_page) / 2;
+            if (middle >= end_page) {
+                middle = (start_page + end_page) / 2;
+            }
         }
         output_is_in_second = !output_is_in_second;
         source_pointer = output_is_in_second ? &second_file_id : &first_file_id;

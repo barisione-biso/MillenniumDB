@@ -86,7 +86,7 @@ void TupleCollection::sort(std::vector<uint_fast64_t> order_vars, bool ascending
     /*
     for (size_t i = 0; i < *tuple_count - 1; i++) {
       for (size_t j = i + 1; j < *tuple_count; j++) {
-        if (has_priority(get(j), get(i), order_vars)) {
+        if (TupleCollection::has_priority(get(j), get(i), order_vars, ascending)) {
           swap(i,j);
         }
       }
