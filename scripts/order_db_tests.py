@@ -4,7 +4,7 @@ import random
 
 '''
 Create BD EXAMPLE
-python3 scripts/generate_order_db_test.py 1000000 tests/dbs/order_ex.txt 800000
+python3 scripts/order_db_tests.py create 10000 tests/dbs/order_ex.txt 8000
 output -> A file that can be used to create a db MilleniumDB with 1.000.000 tuples with
 a key value between 1 and 800.000
 
@@ -17,7 +17,7 @@ SELECT ?x, ?x.value
 MATCH (?x)
 
 And save the output in out_all.txt or the name that you choose. Then you have to execute the query
-SELECT ?x, ?x.value
+SELECT ?x.v, ?x.value
 MATCH (?x)
 ORDER BY ?x.value
 
@@ -35,7 +35,7 @@ def create_test_db():
   max_value = int(sys.argv[4])
   with open(name_db, 'w') as file:
     for i in range(1, n_tuples + 1):
-      tup = f'Q{i} value:{random.randint(1, max_value)}\n'
+      tup = f'Q{i} value:{random.randint(1, max_value)} v:{random.randint(1, max_value)}\n'
       file.write(tup)
 
 
