@@ -13,7 +13,6 @@
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/query_parser.h"
 #include "relational_model/execution/binding_id_iter/transitive_closure.h"
-#include "relational_model/execution/binding_id_iter/transitive_closure_enum.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
@@ -23,22 +22,29 @@ namespace po = boost::program_options;
 
 // Antes de probar el test se espera que se cargó una base de datos en la carpeta correcta, ej:
 // build/Release/bin/create_db tests/dbs/db_name.txt tests/dbs/db_name
+// Test: build/Release/bin/check_transitive_closure_bool -d tests/dbs/transitive-db -s Q1 -e Q2 -t knows
 int main(int argc, char **argv) {
     int buffer_size;
     string db_folder;
+    string start_node;
+    string end_node;
+    string connection_type;
 
     try {
         // Parse arguments
         po::options_description desc("Allowed options");
         desc.add_options()
             ("help,h", "show this help message")
-            ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
             ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_BUFFER_POOL_SIZE),
                 "set buffer pool size")
+            ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
+            ("start,s", po::value<string>(&start_node)->required(), "set start node")
+            ("end,e", po::value<string>(&end_node)->required(), "set end node")
+            ("type,t", po::value<string>(&connection_type)->required(), "set connection type")
         ;
 
         po::positional_options_description p;
-        p.add("db-folder", -1);
+        p.add("db-folder", 1);
 
         po::variables_map vm;
         po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
@@ -52,23 +58,17 @@ int main(int argc, char **argv) {
 
         QuadModel model(db_folder, buffer_size);
 
-        auto& bpt = *model.type_from_to_edge; //from: 1, to: 2, type: 0
-        auto start_id = ObjectId(model.get_identifiable_object_id("Q0"));
-        // auto end_id   = ObjectId(model.get_identifiable_object_id("Q94846"));
-        auto type_id  = ObjectId(model.get_identifiable_object_id("knows"));
-        cout << "before creating TransitiveClosure\n";
-        // auto op = TransitiveClosure(4, bpt, start_id, end_id, type_id, 0, 1, 2); // Boolean case
-
-        auto op = TransitiveClosureEnum(4, bpt, start_id, VarId(1), type_id, 1, 0); // Enum case
-        cout << "after creating TransitiveClosure\n";
+        auto& bpt = *model.type_from_to_edge; // from: 1, to: 2, type: 0
+        auto start_id = ObjectId(model.get_identifiable_object_id(start_node)); // Start node
+        auto end_id   = ObjectId(model.get_identifiable_object_id(end_node)); // End node
+        auto type_id  = ObjectId(model.get_identifiable_object_id(connection_type)); // Connection type
+        auto op = TransitiveClosure(4, bpt, start_id, end_id, type_id, 1, 0); // Boolean case
 
         // Transitive Closure Test
         BindingId binding(4);
-        auto& result = op.begin(binding);
+        op.begin(binding);
         while (op.next()) {
-            auto obj_id = result[VarId(1)];
-            auto obj = model.get_graph_object(obj_id);
-            cout << "Resultado: " << obj->to_string() << "\n";
+            cout << "Connected!\n";
         }
         cout << "Fin\n";
     }
