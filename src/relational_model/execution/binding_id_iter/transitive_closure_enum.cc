@@ -35,24 +35,24 @@ BindingId& TransitiveClosureEnum::begin(BindingId& input) {
     min_ids[3] = 0;
     max_ids[3] = 0xFFFFFFFFFFFFFFFF;
 
-    // set start_object_id and add it to `open` and `visited`
+    // Set start_object_id and add it to `open`
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        // visited.insert(start_object_id); // TODO: First node can point to itself (check)
         open.push(start_object_id);
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*my_input)[start_var_id];
-        // visited.insert(start_object_id); // TODO: First node can point to itself (check)
         open.push(start_object_id);
     }
+
     child_record = nullptr;
+    self_reference = false;
     return my_binding;
 }
 
 
 bool TransitiveClosureEnum::next() {
-    while (open.size() > 0) {
+    while ((open.size() > 0) || self_reference) {
         // Change iterator to next root node
         if (child_record == nullptr) {
             auto current = open.front();
@@ -65,14 +65,19 @@ bool TransitiveClosureEnum::next() {
             );
         }
         // Find next node
+        self_reference = false;
         child_record = it->next();
         while (child_record != nullptr){
             ObjectId child( child_record->ids[2] );
             if (visited.find(child) == visited.end()) {
                 visited.insert(child);
-                open.push(child);
                 my_binding.add_all(*my_input);
                 my_binding.add(end, child);
+                if (child != std::get<ObjectId>(start)) {
+                    open.push(child);
+                } else {
+                    self_reference = true;
+                }
                 return true;
             }
             child_record = it->next();
@@ -83,21 +88,19 @@ bool TransitiveClosureEnum::next() {
 
 
 void TransitiveClosureEnum::reset() {
-    // empty open and visited
+    // Empty open, visited, current node
     queue<ObjectId> empty;
     open.swap(empty);
-    child_record = nullptr;
-
     visited.clear();
+    child_record = nullptr;
+    self_reference = false;
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        // visited.insert(start_object_id);
         open.push(start_object_id);
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*my_input)[start_var_id];
-        // visited.insert(start_object_id);
         open.push(start_object_id);
     }
 }

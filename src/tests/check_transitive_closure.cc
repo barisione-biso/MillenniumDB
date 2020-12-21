@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
         QuadModel model(db_folder, buffer_size);
 
         auto& bpt = *model.type_from_to_edge; //from: 1, to: 2, type: 0
-        auto start_id = ObjectId(model.get_identifiable_object_id("Q2"));
+        auto start_id = ObjectId(model.get_identifiable_object_id("Q0"));
         // auto end_id   = ObjectId(model.get_identifiable_object_id("Q94846"));
         auto type_id  = ObjectId(model.get_identifiable_object_id("knows"));
         cout << "before creating TransitiveClosure\n";

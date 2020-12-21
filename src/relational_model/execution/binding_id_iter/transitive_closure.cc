@@ -10,14 +10,12 @@
 
 using namespace std;
 
-// TODO: end_pos is not needed (always 2)
 TransitiveClosure::TransitiveClosure(std::size_t binding_size,
                                      BPlusTree<4>& bpt,
                                      Id start,
                                      Id end,
                                      ObjectId type,
                                      uint_fast32_t start_pos,
-                                     uint_fast32_t end_pos,
                                      uint_fast32_t type_pos) :
     BindingIdIter (binding_size),
     bpt           (bpt),
@@ -25,7 +23,6 @@ TransitiveClosure::TransitiveClosure(std::size_t binding_size,
     end           (end),
     type          (type),
     start_pos     (start_pos),
-    end_pos       (end_pos),
     type_pos      (type_pos) { }
 
 
@@ -33,13 +30,13 @@ BindingId& TransitiveClosure::begin(BindingId& input) {
     my_input = &input;
     min_ids[type_pos] = type.id;
     max_ids[type_pos] = type.id;
-    min_ids[end_pos] = 0;
-    max_ids[end_pos] = 0xFFFFFFFFFFFFFFFF;
+    min_ids[2] = 0;
+    max_ids[2] = 0xFFFFFFFFFFFFFFFF;
     min_ids[3] = 0;
     max_ids[3] = 0xFFFFFFFFFFFFFFFF;
-    // min_ids[start_pos] and max_ids[start_pos] will be setted at next()
+    // min_ids[start_pos] and max_ids[start_pos] will be set at next()
 
-    // set start_object_id and add it to `open` and `visited`
+    // Set start_object_id and add it to `open` and `visited`
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
         visited.insert(start_object_id);
@@ -51,7 +48,7 @@ BindingId& TransitiveClosure::begin(BindingId& input) {
         open.push(start_object_id);
     }
 
-    // set end_object_id
+    // Set end_object_id
     if (std::holds_alternative<ObjectId>(end)) {
         end_object_id = std::get<ObjectId>(end);
     } else {
@@ -75,7 +72,7 @@ bool TransitiveClosure::next() {
         );
         auto child_record = it->next();
         while (child_record != nullptr){
-            ObjectId child( child_record->ids[end_pos] );
+            ObjectId child( child_record->ids[2] );
             if (child == end_object_id) {
                 queue<ObjectId> empty;
                 open.swap(empty);
@@ -95,10 +92,9 @@ bool TransitiveClosure::next() {
 
 
 void TransitiveClosure::reset() {
-    // empty open and visited
+    // Empty open and visited
     queue<ObjectId> empty;
     open.swap(empty);
-
     visited.clear();
 
     if (std::holds_alternative<ObjectId>(start)) {

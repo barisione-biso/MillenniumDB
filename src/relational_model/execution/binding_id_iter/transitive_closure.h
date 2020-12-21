@@ -24,7 +24,6 @@ private:
     Id end;
     ObjectId type;
     uint_fast32_t start_pos;
-    uint_fast32_t end_pos;
     uint_fast32_t type_pos;
     ObjectId end_object_id;
 
@@ -40,7 +39,7 @@ private:
 
 public:
     TransitiveClosure(std::size_t binding_size, BPlusTree<4>& bpt, Id start, Id end, ObjectId type,
-                      uint_fast32_t start_pos, uint_fast32_t end_pos, uint_fast32_t type_pos);
+                      uint_fast32_t start_pos, uint_fast32_t type_pos);
     ~TransitiveClosure() = default;
 
     void analyze(int indent = 0) const override;

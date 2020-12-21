@@ -33,6 +33,7 @@ private:
     std::set<ObjectId> visited; // Visited nodes
     std::queue<ObjectId> open;  // Expanded nodes
     std::unique_ptr<Record<4>> child_record; // Current children node
+    bool self_reference; // Self reference to start node
 
     // Statistics
     uint_fast32_t results_found = 0;
