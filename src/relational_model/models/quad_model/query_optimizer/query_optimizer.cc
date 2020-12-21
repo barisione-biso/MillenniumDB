@@ -17,6 +17,15 @@
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
 
+// CRIS INCLUDES
+#include "relational_model/execution/binding_id_iter/left_outer_join.h"
+#include "relational_model/execution/binding_id_iter/optional_node.h"
+#include "relational_model/execution/binding_id_iter/index_nested_loop_join.h" // delete
+#include "relational_model/execution/binding_id_iter/index_scan.h"
+#include "base/ids/object_id.h"
+#include "base/ids/var_id.h"
+// END CRIS INCLUDES
+
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
@@ -105,19 +114,6 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
         }
     }
 
-    // Push properties from SELECT into MATCH
-    for (const auto& select_item : select_items) {
-        if (select_item.key) {
-            auto obj_var_id = get_var_id(select_item.var);
-            auto value_var  = get_var_id(select_item.var + '.' + select_item.key.get());
-            auto key_id     = model.get_string_id(select_item.key.get());
-
-            base_plans.push_back(
-                make_unique<PropertyPlan>(model, obj_var_id, key_id, value_var)
-            );
-        }
-    }
-
     // Process UnjointObjects when select doesn't project a property of them.
     // We need to discard UnjointObjects like ?x in:
     // SELECT ?x.name
@@ -184,19 +180,71 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
         throw QuerySemanticException("Property paths not implemented yet");
     }
 
+
     vector<string> var_names;
     var_names.resize(id_map.size());
     for (auto&& [var_name, var_id] : id_map) {
         var_names[var_id.id] = var_name;
     }
 
+    // get binding size
+    unique_ptr<BindingIdIter> binding_id_iter;
+
+    for (auto& property_path : op_match.property_paths) {
+        throw QuerySemanticException("Property paths not implemented yet");
+    }
+
+    var_names.resize(id_map.size());
+    for (auto&& [var_name, var_id] : id_map) {
+        var_names[var_id.id] = var_name;
+    }
+
+    for (const auto& select_item : select_items) {
+        if (select_item.key) {
+            // This is for filling up id_map in order to know the binding_size
+            get_var_id(select_item.var);
+            get_var_id(select_item.var + '.' + select_item.key.get());
+        }
+    }
+
+    // final size
     auto binding_size = id_map.size();
+
+    // get initial binding_id_iter
     if (base_plans.size() <= MAX_SELINGER_PLANS) {
         auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
-        tmp = make_unique<Match>(model, selinger_optimizer.get_binding_id_iter(binding_size), binding_size);
+        binding_id_iter = selinger_optimizer.get_binding_id_iter(binding_size);
     } else {
-        tmp = make_unique<Match>(model, get_greedy_join_plan(move(base_plans), binding_size), binding_size);
+        binding_id_iter = get_greedy_join_plan( move(base_plans), binding_size);
     }
+
+    // vector of binding_id_iter
+    vector<unique_ptr<BindingIdIter>> opt_children;
+
+    // Push properties from SELECT into MATCH
+    for (const auto& select_item : select_items) {
+        if (select_item.key) {
+            auto obj_var_id = get_var_id(select_item.var);
+            auto value_var  = get_var_id(select_item.var + '.' + select_item.key.get());
+
+            // TODO: check property is not present in Match
+            // TODO: explicar porque funciona mal si no se vuelve a meter el property en el match
+            auto key_id = model.get_string_id(select_item.key.get());
+
+            array<unique_ptr<ScanRange>, 3> ranges;
+
+            ranges[0] = get_scan_range(obj_var_id, true);
+            ranges[1] = get_scan_range(key_id, true);
+            ranges[2] = get_scan_range(value_var, false);
+            auto index_scan = make_unique<IndexScan<3>>(binding_size, *model.object_key_value, move(ranges));
+            // binding_id_iter = make_unique<LeftOuterJoin>(binding_size, move(binding_id_iter), move(index_scan));
+            opt_children.push_back(move(index_scan));
+
+        }
+    }
+    // Optional node
+    binding_id_iter =  make_unique<OptionalNode>(binding_size, move(binding_id_iter), move(opt_children)); // NEW
+    tmp = make_unique<Match>(model, move(binding_id_iter), binding_size);
 }
 
 
@@ -227,6 +275,17 @@ VarId QueryOptimizer::get_var_id(const std::string& var) {
         VarId res = VarId(id_count++);
         id_map.insert({ var, res });
         return res;
+    }
+}
+
+
+std::unique_ptr<ScanRange> QueryOptimizer::get_scan_range(Id id, bool assigned) {
+    if ( std::holds_alternative<ObjectId>(id) ) {
+        return std::make_unique<Term>(std::get<ObjectId>(id));
+    } else if (assigned) {
+        return std::make_unique<AssignedVar>(std::get<VarId>(id));
+    } else {
+        return std::make_unique<UnassignedVar>(std::get<VarId>(id));
     }
 }
 
@@ -428,6 +487,11 @@ void QueryOptimizer::visit(const OpGroupBy& op_group_by) {
 void QueryOptimizer::visit(const OpOrderBy& order_by) {
     order_by.op->accept_visitor(*this);
 }
+
+/*
+void QueryOptimizer::visit(const OpOptional& optional) {
+    optional.op->accept_visitor(*this);
+}*/
 
 
 void QueryOptimizer::visit(const OpLabel&) { }

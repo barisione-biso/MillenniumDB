@@ -13,13 +13,17 @@
 #include "base/parser/grammar/manual_plan/manual_plan_ast.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 #include "relational_model/models/quad_model/quad_model.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 
 class BindingIter;
 class BindingIdIter;
 class OpMatch;
 class OpFilter;
 class OpSelect;
+// class OpOptional;
 class JoinPlan;
+
+using Id = std::variant<VarId, ObjectId>;
 
 class QueryOptimizer : public OpVisitor {
 public:
@@ -28,6 +32,7 @@ public:
 
     std::unique_ptr<BindingIter> exec(OpSelect&);
     std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&);
+    std::unique_ptr<ScanRange> get_scan_range(Id id, bool assigned);
 
     void visit(const OpSelect&) override;
     void visit(const OpMatch&) override;
@@ -38,6 +43,7 @@ public:
     void visit(const OpProperty&) override;
     void visit(const OpGroupBy&) override;
     void visit(const OpOrderBy&) override;
+    // void visit(const OpOptional&) override;
     void visit(const OpTransitiveClosure&) override;
     void visit(const OpUnjointObject&) override;
 

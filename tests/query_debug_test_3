@@ -1,0 +1,2 @@
+SELECT ?x, ?x.K1, ?x.K2
+MATCH (?x :L2)

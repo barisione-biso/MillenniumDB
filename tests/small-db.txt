@@ -1,0 +1,10 @@
+Q0 :Person
+Q1 :Person age:20
+Q2 :Person age:13
+Q3 :Person
+Q4 :Person
+Q5 :Person age:15
+Q6 :Animal age:15
+Q7 :Animal age:27
+Q8 :Animal age:99
+Q9 :Animal age:20

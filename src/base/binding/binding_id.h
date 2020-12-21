@@ -1,6 +1,7 @@
 #ifndef BASE__BINDING_ID_H_
 #define BASE__BINDING_ID_H_
 
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -11,12 +12,18 @@
 class BindingId {
 private:
     std::size_t size;
-    ObjectId* object_ids; // array
 
 public:
+    // TODO CRIS: Mover object_ids a private
+    ObjectId* object_ids; // array
     BindingId(std::size_t size) :
         size       (size),
-        object_ids (new ObjectId[size]) { }
+        object_ids (new ObjectId[size]())
+    {
+        for (std::size_t i = 0; i < size; ++i) {
+            assert(object_ids[i].is_null());
+        }
+    }
 
     ~BindingId() {
         delete[] object_ids;
@@ -36,6 +43,17 @@ public:
 
     inline std::size_t var_count() const noexcept {
         return size;
+    }
+
+    inline void print() const noexcept{
+        printf("printing binding\n");
+        for(unsigned int i = 0; i < size; i++)
+        {
+            auto type = object_ids[i].id & 0xFF00'0000'0000'0000;
+            type >>= 56;
+            auto id  = object_ids[i].id & 0x00FF'FFFF'FFFF'FFFF;
+            printf("type: %ld, id: %ld\n", type, id);
+        }
     }
 };
 
