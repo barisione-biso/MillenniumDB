@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
     string db_folder;
     string start_node;
     string connection_type;
+    bool verbose;
 
     try {
         // Parse arguments
@@ -39,6 +40,7 @@ int main(int argc, char **argv) {
             ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
             ("start,s", po::value<string>(&start_node)->required(), "set start node")
             ("type,t", po::value<string>(&connection_type)->required(), "set connection type")
+            ("verbose,v", po::value<bool>(&verbose)->required(), "show results")
         ;
 
         po::positional_options_description p;
@@ -67,9 +69,14 @@ int main(int argc, char **argv) {
         while (op.next()) {
             auto obj_id = result[VarId(2)];
             auto obj = model.get_graph_object(obj_id);
-            cout << "Resultado: " << obj->to_string() << "\n";
+            if (verbose) {
+                cout << "Resultado: " << obj->to_string() << "\n";
+            }
         }
         cout << "Fin\n";
+
+        // Check statistics
+        op.analyze();
     }
     catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";

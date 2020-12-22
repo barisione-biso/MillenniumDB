@@ -33,10 +33,11 @@ private:
     std::set<ObjectId> visited; // Visited nodes
     std::queue<ObjectId> open;  // Expanded nodes
     std::unique_ptr<Record<4>> child_record; // Current children node
-    bool self_reference; // Self reference to start node
+    bool self_reference; // Needed for border case where the initial node references itself
 
     // Statistics
-    uint_fast32_t results_found = 0;
+    uint_fast32_t outer_while_count = 0;
+    uint_fast32_t inner_while_count = 0;
     uint_fast32_t bpt_searches = 0;
 
 public:

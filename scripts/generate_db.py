@@ -3,7 +3,7 @@ from random import randint, choice
 
 """
 * Args:
--> path_to_output: path to '.txt' file 
+-> path_to_output: path to '.txt' file
 -> size: amount of nodes
 -> graph_type: clique, line, bipartite, cyclic
 -> multiple: indicates multiple connection types (0: single, 1: multiple)

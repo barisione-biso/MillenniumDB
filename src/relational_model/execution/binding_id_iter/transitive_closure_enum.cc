@@ -53,28 +53,34 @@ BindingId& TransitiveClosureEnum::begin(BindingId& input) {
 
 bool TransitiveClosureEnum::next() {
     while ((open.size() > 0) || self_reference) {
+        outer_while_count ++;
         // Change iterator to next root node
         if (child_record == nullptr) {
             auto current = open.front();
             open.pop();
+            // cout << "Open Size: " << open.size() << "\n";
             min_ids[start_pos] = current.id;
             max_ids[start_pos] = current.id;
             it = bpt.get_range(
                 Record<4>(min_ids),
                 Record<4>(max_ids)
             );
+            bpt_searches ++;
         }
         // Find next node
         self_reference = false;
         child_record = it->next();
         while (child_record != nullptr){
+            inner_while_count ++;
             ObjectId child( child_record->ids[2] );
             if (visited.find(child) == visited.end()) {
                 visited.insert(child);
+                // cout << "Visited Size: " << visited.size() << "\n";
                 my_binding.add_all(*my_input);
                 my_binding.add(end, child);
                 if (child != std::get<ObjectId>(start)) {
                     open.push(child);
+                    // cout << "Open Size: " << open.size() << "\n";
                 } else {
                     self_reference = true;
                 }
@@ -107,4 +113,7 @@ void TransitiveClosureEnum::reset() {
 
 
 void TransitiveClosureEnum::analyze(int) const {
+    cout << "Outer While Count: " << outer_while_count << "\n";
+    cout << "Inner While Count: " << inner_while_count << "\n";
+    cout << "BPT Searches: " << bpt_searches << "\n";
 }
