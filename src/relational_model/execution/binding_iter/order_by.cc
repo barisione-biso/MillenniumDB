@@ -21,13 +21,13 @@ OrderBy::OrderBy(GraphModel& model,
                  const bool ascending) :
     child          (move(_child)),
     binding_size   (binding_size),
-    my_binding     (BindingOrderBy(model, move(order_vars), child->get_binding(), binding_size)),
+    my_binding     (BindingOrderBy(model, binding_size)),
     first_file_id  (file_manager.get_file_id("temp0.txt")),
     second_file_id (file_manager.get_file_id("temp1.txt"))
 {
-    std::vector<uint_fast64_t> order_ids = std::vector<uint64_t>(my_binding.order_vars.size());
-    for (size_t i = 0; i < my_binding.order_vars.size(); i++) {
-        order_ids[i] = my_binding.order_vars[i].second.id;
+    std::vector<uint_fast64_t> order_ids = std::vector<uint64_t>(order_vars.size());
+    for (size_t i = 0; i < order_vars.size(); i++) {
+        order_ids[i] = order_vars[i].second.id;
     }
     n_pages = 0;
     merger = make_unique<MergeOrderedTupleCollection>(binding_size, order_ids, ascending);

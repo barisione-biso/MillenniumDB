@@ -8,11 +8,9 @@
 using namespace std;
 
 
-BindingOrderBy::BindingOrderBy(GraphModel& model, vector<pair<string, VarId>> order_vars, Binding& child_binding, size_t binding_size) :
-    order_vars    (move(order_vars)),
+BindingOrderBy::BindingOrderBy(GraphModel& model, size_t binding_size) :
     model         (model),
-    binding_size  (binding_size),
-    child_binding (child_binding)
+    binding_size  (binding_size)
 
 { }
 
