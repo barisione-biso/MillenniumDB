@@ -16,6 +16,7 @@ BindingOrderBy::BindingOrderBy(GraphModel& model, vector<pair<string, VarId>> or
     child_binding (child_binding)
 
 {
+    // TODO: 
 }
 
 
@@ -25,17 +26,18 @@ std::ostream& BindingOrderBy::print_to_ostream(std::ostream& os) const {
     return os;
 }
 
-void BindingOrderBy::finish_read_of_child() {
-    consume_from_child = false;
-}
+// void BindingOrderBy::finish_read_of_child() {
+//     consume_from_child = false;
+// }
 
 GraphObject BindingOrderBy::operator[](const VarId var) {
     assert(var.id < binding_size);
-    if (consume_from_child) {
-        return child_binding[var];
-    } else {
-      return objects_vector[var.id];
-    }
+    // if (consume_from_child) {
+    //     return child_binding[var];
+    // } else {
+    //     return objects_vector[var.id];
+    // }
+    return objects_vector[var.id];
 }
 
 

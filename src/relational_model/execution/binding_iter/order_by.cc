@@ -34,6 +34,8 @@ OrderBy::OrderBy(GraphModel& model,
     run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, n_pages), binding_size);
     run->reset();
     std::vector<GraphObject> graph_objects(binding_size);
+
+    auto& child_binding = child->get_binding();
     while (child->next()) {
         if (run->is_full()) {
             n_pages++;
@@ -42,14 +44,13 @@ OrderBy::OrderBy(GraphModel& model,
             run->reset();
         }
         for (size_t i = 0; i < binding_size; i++) {
-            GraphObject graph_obj = my_binding[VarId(i)];
+            GraphObject graph_obj = child_binding[VarId(i)];
             graph_objects[i] = graph_obj;
         }
         run->add(graph_objects);
     }
-    run->sort(order_ids, ascending); // TODO: Revisar este ultimo sort
+    run->sort(order_ids, ascending);
     n_pages++;
-    my_binding.finish_read_of_child();
     run = nullptr;
     output_file_id = &first_file_id;
     mergeSort();
