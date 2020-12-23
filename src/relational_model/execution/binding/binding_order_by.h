@@ -17,7 +17,6 @@ public:
     std::vector<std::pair<std::string, VarId>> order_vars;
     std::ostream& print_to_ostream(std::ostream&) const override;
     GraphObject operator[](const VarId var_id) override;
-    // void finish_read_of_child();
     void begin(BindingId&);
     void update_binding_object(std::vector<GraphObject> graph_object);
 
@@ -26,7 +25,6 @@ private:
     GraphModel& model;
     size_t binding_size;
     std::vector<GraphObject> objects_vector;
-    bool consume_from_child = true;
     Binding& child_binding;
 };
 
