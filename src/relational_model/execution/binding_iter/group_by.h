@@ -19,7 +19,7 @@ public:
     GroupBy(
         GraphModel& model,
         std::unique_ptr<BindingIter> child,
-        std::vector<std::pair<std::string,VarId>> group_vars,
+        std::vector<std::pair<std::string,VarId>> _group_vars,
         std::size_t binding_size
         );
     ~GroupBy() = default;
@@ -30,12 +30,17 @@ public:
 private:
     OrderBy order_child;
     std::size_t binding_size;
+    std::vector<std::pair<std::string, VarId>> group_vars;
     BindingGroupBy my_binding;
     FileId group_file_id;
+    std::vector<GraphObject> current_group_tuple;
+    std::vector<GraphObject> current_tuple;
     std::unique_ptr<TupleCollection> group_run;
     uint_fast64_t n_pages = 0;
-    uint64_t page_position = 0;
-    uint_fast64_t current_page = 0;
+
+    bool has_same_group_vars();
+    void add_tuple_to_group();
+    void compute_agregation_function();
 };
 
 template class std::unique_ptr<GroupBy>;

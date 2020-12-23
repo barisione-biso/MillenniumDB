@@ -65,7 +65,7 @@ Binding& OrderBy::get_binding() {
 bool OrderBy::next() {
     if (page_position == run->get_n_tuples()) {
         current_page++;
-        if (current_page == n_pages) {
+        if (current_page >= n_pages) {
             return false;
         }
         run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, current_page), binding_size);

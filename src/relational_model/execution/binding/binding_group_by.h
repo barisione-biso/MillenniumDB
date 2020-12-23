@@ -18,6 +18,7 @@ public:
     std::vector<std::pair<std::string, VarId>> group_vars;
     std::ostream& print_to_ostream(std::ostream&) const override;
     GraphObject operator[](const VarId var_id) override;
+    void update_binding(std::vector<GraphObject>);
     void begin(BindingId&);
 
 

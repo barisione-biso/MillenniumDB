@@ -9,7 +9,7 @@ using namespace std;
 
 
 BindingGroupBy::BindingGroupBy(GraphModel& model, vector<pair<string, VarId>> _group_vars, Binding& child_binding, size_t binding_size) :
-    group_vars    (move(_group_vars)),
+    group_vars    (_group_vars),
     model         (model),
     binding_size  (binding_size),
     child_binding (child_binding)
@@ -26,5 +26,9 @@ std::ostream& BindingGroupBy::print_to_ostream(std::ostream& os) const {
 
 GraphObject BindingGroupBy::operator[](const VarId var) {
     assert(var.id < binding_size);
-    return child_binding[var];
+    return objects_vector[var.id];
+}
+
+void BindingGroupBy::update_binding(std::vector<GraphObject> new_tuple) {
+    objects_vector = move(new_tuple);
 }
