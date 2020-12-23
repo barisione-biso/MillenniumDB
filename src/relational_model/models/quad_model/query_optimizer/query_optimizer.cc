@@ -17,6 +17,7 @@
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
 #include "relational_model/execution/binding_iter/order_by.h"
+#include "relational_model/execution/binding_iter/group_by.h"
 
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
@@ -424,6 +425,18 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan::ast::ManualRoot& root)
 
 void QueryOptimizer::visit(const OpGroupBy& op_group_by) {
     op_group_by.op->accept_visitor(*this);
+    std::vector<std::pair<std::string, VarId>> group_vars;
+    for (const auto& group_item : op_group_by.items) {
+        string var_name = group_item.var;
+        if (group_item.key) {
+            var_name += '.';
+            var_name += group_item.key.get();
+        }
+        auto var_id = get_var_id(var_name);
+        group_vars.push_back(make_pair(var_name, var_id));
+    }
+    auto binding_size = id_map.size();
+    tmp = make_unique<GroupBy>(model, move(tmp), move(group_vars), binding_size);
 }
 
 

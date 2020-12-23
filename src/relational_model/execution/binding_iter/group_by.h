@@ -29,13 +29,13 @@ public:
 
 private:
     OrderBy order_child;
-    std::unique_ptr<TupleCollection> group_run;
     std::size_t binding_size;
     BindingGroupBy my_binding;
+    FileId group_file_id;
+    std::unique_ptr<TupleCollection> group_run;
     uint_fast64_t n_pages = 0;
     uint64_t page_position = 0;
     uint_fast64_t current_page = 0;
-    FileId group_file_id;
 };
 
 template class std::unique_ptr<GroupBy>;

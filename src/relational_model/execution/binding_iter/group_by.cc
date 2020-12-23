@@ -17,9 +17,9 @@ GroupBy::GroupBy(GraphModel& model,
                  vector<pair<string, VarId>> group_vars,
                  size_t _binding_size
                  ) :
-    order_child    (OrderBy(model, move(_child), group_vars, binding_size, true)),
+    order_child    (OrderBy(model, move(_child), group_vars, _binding_size, true)),
     binding_size   (_binding_size),
-    my_binding     (BindingGroupBy(model, move(group_vars), order_child.get_binding(), binding_size)),
+    my_binding     (BindingGroupBy(model, group_vars, order_child.get_binding(), _binding_size)),
     group_file_id (file_manager.get_file_id("group_file.txt"))
 { }
 

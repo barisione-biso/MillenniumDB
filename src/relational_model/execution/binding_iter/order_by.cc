@@ -34,7 +34,6 @@ OrderBy::OrderBy(GraphModel& model,
     run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, n_pages), binding_size);
     run->reset();
     std::vector<GraphObject> graph_objects(binding_size);
-
     auto& child_binding = child->get_binding();
     while (child->next()) {
         if (run->is_full()) {

@@ -26,5 +26,5 @@ std::ostream& BindingGroupBy::print_to_ostream(std::ostream& os) const {
 
 GraphObject BindingGroupBy::operator[](const VarId var) {
     assert(var.id < binding_size);
-    return objects_vector[var.id];
+    return child_binding[var];
 }
