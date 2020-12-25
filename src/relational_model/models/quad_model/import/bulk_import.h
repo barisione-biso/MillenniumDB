@@ -34,10 +34,6 @@ private:
     OrderedFile<3> equal_to_type;           // to/type, from, edge
     OrderedFile<2> equal_from_to_type;      // from/to/type,  edge
 
-    // TODO: maybe I should use disk in case this is too big?
-    // std::map<std::string, uint64_t> identificable_node_dict;
-    // std::map<std::string, uint64_t> anonymous_node_dict;
-
     uint64_t process_node(const import::ast::Node node);
     uint64_t process_edge(const import::ast::Edge edge);
     uint64_t process_implicit_edge(const import::ast::ImplicitEdge implicit_edge, const uint64_t implicit_object_id);

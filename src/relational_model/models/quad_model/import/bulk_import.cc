@@ -327,7 +327,7 @@ void BulkImport::set_distinct_type_stats(OrderedFile<N>& ordered_file, std::map<
 // }
 uint64_t BulkImport::get_node_id(const string& node_name) {
     auto obj_id = model.get_identifiable_object_id(node_name, false);
-    if (obj_id.is_null()) {
+    if (obj_id.is_not_found()) {
         obj_id = model.get_identifiable_object_id(node_name, true);
         model.node_table->append_record(RecordFactory::get(obj_id.id));
         ++catalog.identifiable_nodes_count;
