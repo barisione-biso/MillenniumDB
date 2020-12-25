@@ -326,29 +326,36 @@ void BulkImport::set_distinct_type_stats(OrderedFile<N>& ordered_file, std::map<
 //     file_manager.rename(new_leaf_file_id, original_leaf_filename);
 // }
 uint64_t BulkImport::get_node_id(const string& node_name) {
-    auto search = identificable_node_dict.find(node_name);
-    if (search != identificable_node_dict.end()) {
-        return search->second;
-    } else {
-        auto new_id = model.get_identifiable_object_id(node_name, true).id;
-        model.node_table->append_record(RecordFactory::get(new_id));
-
-        identificable_node_dict.insert({ node_name, new_id });
+    auto obj_id = model.get_identifiable_object_id(node_name, false);
+    if (obj_id.is_null()) {
+        obj_id = model.get_identifiable_object_id(node_name, true);
+        model.node_table->append_record(RecordFactory::get(obj_id.id));
         ++catalog.identifiable_nodes_count;
-        return new_id;
     }
+    return obj_id.id;
 }
 
 
 uint64_t BulkImport::get_anonymous_node_id(const string& tmp_name) {
-    auto search = anonymous_node_dict.find(tmp_name);
-    if (search != anonymous_node_dict.end()) {
-        return search->second;
-    } else {
-        auto new_anonymous_id = (++catalog.anonymous_nodes_count) | model.ANONYMOUS_NODE_MASK;
-        anonymous_node_dict.insert({ tmp_name, new_anonymous_id });
-        return new_anonymous_id;
+    auto str = tmp_name;
+    str.erase(0, 1); // delete first character: '_'
+    uint64_t unmasked_id = std::stoull(str);
+    if (catalog.anonymous_nodes_count < unmasked_id) {
+        catalog.anonymous_nodes_count = unmasked_id;
     }
+    // if (id == ObjectId::OBJECT_ID_NOT_FOUND) {
+    //     id = anonymous_hash.get_id(tmp_name, true);
+
+    // }
+    // auto search = anonymous_node_dict.find(tmp_name);
+    // if (search != anonymous_node_dict.end()) {
+    //     return search->second;
+    // } else {
+    //     auto new_anonymous_id = (++catalog.anonymous_nodes_count) | model.ANONYMOUS_NODE_MASK;
+    //     anonymous_node_dict.insert({ tmp_name, new_anonymous_id });
+    //     return new_anonymous_id;
+    // }
+    return unmasked_id | model.ANONYMOUS_NODE_MASK;
 }
 
 

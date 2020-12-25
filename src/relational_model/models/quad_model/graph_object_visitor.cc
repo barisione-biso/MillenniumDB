@@ -21,7 +21,7 @@ ObjectId GraphObjectVisitor::operator()(const IdentifiableExternal& identifiable
     std::string str(identifiable_external.id);
     auto external_id = model.get_external_id(str, create_if_not_exists);
     if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
-        return ObjectId(external_id);
+        return ObjectId::get_not_found();
     } else {
         return ObjectId(external_id | GraphModel::IDENTIFIABLE_EXTERNAL_MASK);
     }
@@ -40,18 +40,10 @@ ObjectId GraphObjectVisitor::operator()(const AnonymousNode& anonymous_node) con
 
 ObjectId GraphObjectVisitor::operator()(const StringInlined& string_inlined) const {
     std::string str(string_inlined.id);
-    auto string_len = str.length();
 
     uint64_t res = 0;
     int shift_size = 0;
-    std::size_t i = 0;
-    for (; i < string_len; i++) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
-        uint64_t byte = static_cast<uint8_t>(str[i]); // IMPORTANT static_cast, str[i] can be negative
-        res |= byte << shift_size;
-        shift_size += 8;
-    }
-    for (; i < 8; i++) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
-        uint64_t byte = static_cast<uint8_t>('\0'); // IMPORTANT static_cast, str[i] can be negative
+    for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
         res |= byte << shift_size;
         shift_size += 8;
     }
@@ -114,7 +106,7 @@ ObjectId GraphObjectVisitor::operator()(const float value_float) const {
 
     uint64_t res = 0;
     int shift_size = 0;
-    for (int i = 0; i < sizeof(bytes); ++i) {
+    for (std::size_t i = 0; i < sizeof(bytes); ++i) {
         uint64_t byte = bytes[i];
         res |= byte << shift_size;
         shift_size += 8;

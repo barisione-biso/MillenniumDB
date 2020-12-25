@@ -6,7 +6,7 @@
 
 class StringInlined {
 public:
-    const char id[8];
+    char id[8];
 
     StringInlined() = delete;
     StringInlined(const char* _id) :
@@ -16,6 +16,17 @@ public:
     }
 
     ~StringInlined() = default;
+
+    inline void operator=(const StringInlined& other) noexcept {
+        id[0] = other.id[0];
+        id[1] = other.id[1];
+        id[2] = other.id[2];
+        id[3] = other.id[3];
+        id[4] = other.id[4];
+        id[5] = other.id[5];
+        id[6] = other.id[6];
+        id[7] = other.id[7];
+    }
 
     inline bool operator==(const StringInlined& rhs) const noexcept {
         return strcmp(this->id, rhs.id) == 0;

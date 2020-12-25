@@ -8,7 +8,7 @@ public:
     NotEquals(std::unique_ptr<ValueAssign> lhs, std::unique_ptr<ValueAssign> rhs) :
         Comparison(std::move(lhs), std::move(rhs)) { }
 
-    bool compare(GraphObject& lhs, GraphObject& rhs) override {
+    bool compare(const GraphObject lhs, const GraphObject rhs) const override {
         return lhs != rhs;
     }
 };

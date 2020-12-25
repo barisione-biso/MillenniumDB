@@ -5,11 +5,11 @@
 
 class StringExternal {
 public:
-    const char* id;
+    char* id;
 
     StringExternal() = delete;
     StringExternal(const char* id) :
-        id (id) { }
+        id (const_cast<char*>(id)) { }
 
     ~StringExternal() = default;
 

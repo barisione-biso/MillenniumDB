@@ -3,7 +3,7 @@
 
 class Edge {
 public:
-    const uint64_t id;
+    uint64_t id;
 
     Edge(const uint64_t id)
         : id(id) { }

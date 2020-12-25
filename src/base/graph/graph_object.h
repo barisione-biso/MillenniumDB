@@ -103,6 +103,9 @@ class GraphObject {
 public:
     GraphObjectVariant value;
 
+    GraphObject(const GraphObject& graph_object) :
+        value (graph_object.value) { }
+
     static GraphObject make_identifiable_external(const char* str) {
         IdentifiableExternal string_external{ str };
         return GraphObject(string_external);
@@ -187,6 +190,10 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const GraphObject& graph_obj) {
         std::visit(GraphObjectOstreamVisitor{os}, graph_obj.value);
         return os;
+    }
+
+    inline void operator=(const GraphObject& other) noexcept {
+        this->value = other.value;
     }
 
     bool operator==(const GraphObject& rhs) const noexcept {
