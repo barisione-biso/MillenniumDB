@@ -97,12 +97,42 @@ uint64_t QuadModel::get_external_id(const string& str, bool create_if_not_exists
 
 
 ObjectId QuadModel::get_string_id(const string& str, bool create_if_not_exists) {
-    return this->get_object_id(GraphObject::make_string(str), create_if_not_exists);
+    if (str.size() < 8) {
+        uint64_t res = 0;
+        int shift_size = 0;
+        for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            res |= byte << shift_size;
+            shift_size += 8;
+        }
+        return ObjectId(res | GraphModel::IDENTIFIABLE_INLINED_MASK);
+    } else {
+        auto external_id = get_external_id(str, create_if_not_exists);
+        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
+            return ObjectId::get_not_found();
+        } else {
+            return ObjectId(external_id | GraphModel::VALUE_EXTERNAL_STR_MASK);
+        }
+    }
 }
 
 
 ObjectId QuadModel::get_identifiable_object_id(const string& str, bool create_if_not_exists) {
-    return this->get_object_id(GraphObject::make_identifiable(str), create_if_not_exists);
+    if (str.size() < 8) {
+        uint64_t res = 0;
+        int shift_size = 0;
+        for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            res |= byte << shift_size;
+            shift_size += 8;
+        }
+        return ObjectId(res | GraphModel::IDENTIFIABLE_INLINED_MASK);
+    } else {
+        auto external_id = get_external_id(str, create_if_not_exists);
+        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
+            return ObjectId::get_not_found();
+        } else {
+            return ObjectId(external_id | GraphModel::IDENTIFIABLE_EXTERNAL_MASK);
+        }
+    }
 }
 
 

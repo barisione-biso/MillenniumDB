@@ -3,7 +3,7 @@
 
 class AnonymousNode {
 public:
-    const uint64_t id;
+    uint64_t id;
 
     AnonymousNode(const uint64_t id)
         : id(id) { }

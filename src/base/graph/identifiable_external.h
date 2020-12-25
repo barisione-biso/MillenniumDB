@@ -5,10 +5,10 @@
 
 class IdentifiableExternal {
 public:
-    const char* id;
+    char* id;
 
     IdentifiableExternal(const char* id) :
-        id (id) { }
+        id (const_cast<char*>(id)) { }
     ~IdentifiableExternal() = default;
 
     inline bool operator==(const IdentifiableExternal& rhs) const noexcept {
