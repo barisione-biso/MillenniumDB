@@ -104,7 +104,7 @@ ObjectId QuadModel::get_string_id(const string& str, bool create_if_not_exists) 
             res |= byte << shift_size;
             shift_size += 8;
         }
-        return ObjectId(res | GraphModel::IDENTIFIABLE_INLINED_MASK);
+        return ObjectId(res | GraphModel::VALUE_INLINE_STR_MASK);
     } else {
         auto external_id = get_external_id(str, create_if_not_exists);
         if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
