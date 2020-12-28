@@ -55,7 +55,7 @@ ObjectId GraphObjectVisitor::operator()(const StringExternal& string_external) c
     std::string str(string_external.id);
     auto external_id = model.get_external_id(str, create_if_not_exists);
     if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
-        return ObjectId(external_id);
+        return ObjectId::get_not_found();
     } else {
         return ObjectId(external_id | GraphModel::VALUE_EXTERNAL_STR_MASK);
     }
