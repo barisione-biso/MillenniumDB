@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
             auto obj_id = result[VarId(2)];
             auto obj = model.get_graph_object(obj_id);
             if (verbose) {
-                cout << "Resultado: " << obj->to_string() << "\n";
+                cout << "Resultado: " << obj << "\n";
             }
         }
         cout << "Fin\n";
