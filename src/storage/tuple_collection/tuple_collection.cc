@@ -43,6 +43,7 @@ uint64_t TupleCollection::get_n_tuples() const {
 
 
 void TupleCollection::add(std::vector<GraphObject> new_tuple) {
+    // Add a new tuple in the last position of the page
     const size_t bytes_used = (*tuple_count) * tuple_size;
     for (size_t i = 0; i < tuple_size; i++) {
         tuples[bytes_used + i] = new_tuple[i];
@@ -52,6 +53,7 @@ void TupleCollection::add(std::vector<GraphObject> new_tuple) {
 
 
 std::vector<GraphObject> TupleCollection::get(uint_fast64_t id) const {
+    // Return the n- tuple of the page
     std::vector<GraphObject> n_tuple(tuple_size);
     size_t tuple_position = id * tuple_size;
     for (size_t i = 0; i < tuple_size; i++) {
@@ -62,6 +64,8 @@ std::vector<GraphObject> TupleCollection::get(uint_fast64_t id) const {
 
 
 void TupleCollection::override_tuple(std::vector<GraphObject> tuple_to_override, int position) {
+    // Write a tupĺe in the specific position. tuple_count don't increase because
+    // this method assume that is overriding a tuple
     size_t position_to_override = position * tuple_size;
     for (size_t i = 0; i < tuple_size; i++) {
         tuples[position_to_override + i] = tuple_to_override[i];
@@ -70,11 +74,14 @@ void TupleCollection::override_tuple(std::vector<GraphObject> tuple_to_override,
 
 
 void TupleCollection::reset() {
+    // Causes all tuples on the page will be ignored
     (*tuple_count) = 0;
 }
 
 
 void TupleCollection::swap(int x, int y) {
+    // Override tuple in position x in position y
+    // and tuple in position y in position x
     auto x_tuple = get(x);
     auto y_tuple = get(y);
     override_tuple(x_tuple, y);
@@ -83,6 +90,8 @@ void TupleCollection::swap(int x, int y) {
 
 
 void TupleCollection::sort(std::vector<uint_fast64_t> order_vars, bool ascending) {
+    // Sort all the tuples. order_vars the position of the vars in each array that
+    // define the order.
     quicksort(0, (*tuple_count) - 1, order_vars, ascending);
 
     // Insertion sort:
@@ -99,6 +108,8 @@ void TupleCollection::sort(std::vector<uint_fast64_t> order_vars, bool ascending
 bool TupleCollection::has_priority(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs,
                                    std::vector<uint_fast64_t> order_vars, bool ascending)
 {
+    // Returns true if lhs < rhs, false in other case. Only vars that order_vars
+    // indicate will be compared
     if (ascending) {
        for (size_t i = 0; i < order_vars.size(); i++) {
             if (lhs[order_vars[i]] < rhs[order_vars[i]]) {
@@ -165,6 +176,8 @@ void MergeOrderedTupleCollection::merge(
     FileId source_file_id,
     FileId output_file_id)
 {
+    // Merge [left_start-left_end] with [right_start-right_end] from source_file_id in output_file_id,
+    // in output_file_id is sorted
     auto left_run = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, left_start), tuple_size);
     auto right_run = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, right_start), tuple_size);
     auto out_run = make_unique<TupleCollection>(buffer_manager.get_page(output_file_id, left_start), tuple_size);

@@ -1,3 +1,10 @@
+// A TupleCollection allows you to store arrangements
+// of GraphObjects on disk, the purpose of this class is to abstract the
+// operations of saving and reading the tuples on disk that a physical operator requires.
+
+// TupleCollection asume that all the arrays of GraphObject have the same size
+
+
 #ifndef STORAGE__TUPLE_COLLECTION_H_
 #define STORAGE__TUPLE_COLLECTION_H_
 
@@ -38,6 +45,11 @@ private:
     void quicksort(int i, int f, std::vector<uint_fast64_t> order_vars, bool ascending);
 
 };
+
+
+// MergeOrderedTupleCollection abstract the merge of two
+// sorted runs (arrays of tuple collections)
+
 
 class MergeOrderedTupleCollection {
 public:
