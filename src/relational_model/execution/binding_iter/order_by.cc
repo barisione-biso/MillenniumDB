@@ -35,6 +35,7 @@ OrderBy::OrderBy(GraphModel& model,
     run->reset();
     std::vector<GraphObject> graph_objects(binding_size);
     auto& child_binding = child->get_binding();
+    // Save all the tuples of child in disk and apply sort to each page
     while (child->next()) {
         if (run->is_full()) {
             n_pages++;
@@ -83,6 +84,8 @@ void OrderBy::analyze(int indent) const {
 
 
 void OrderBy::mergeSort() {
+    // Iterative merge sort implementation. Run to merge are
+    // a power of two
     uint_fast64_t start_page;
     uint_fast64_t end_page;
     uint_fast64_t middle;

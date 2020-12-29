@@ -98,7 +98,7 @@ void GroupBy::add_tuple_to_group() {
     group_run->add(current_tuple);
 }
 
-// TODO: Crear alguna funcion de agregación y pasar valor al binding
+// TODO: Agregation function. Now only return the first tuple of the group
 void GroupBy::compute_agregation_function() {
     group_run = make_unique<TupleCollection>(buffer_manager.get_page(group_file_id, 0), binding_size);
     my_binding.update_binding(group_run->get(0));
