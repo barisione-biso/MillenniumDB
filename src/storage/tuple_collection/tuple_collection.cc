@@ -36,8 +36,9 @@ bool TupleCollection::is_full() const {
     return true;
 }
 
+
 uint64_t TupleCollection::get_n_tuples() const {
-  return *tuple_count;
+    return *tuple_count;
 }
 
 
@@ -83,18 +84,21 @@ void TupleCollection::swap(int x, int y) {
 
 void TupleCollection::sort(std::vector<uint_fast64_t> order_vars, bool ascending) {
     quicksort(0, (*tuple_count) - 1, order_vars, ascending);
-    /*
-    for (size_t i = 0; i < *tuple_count - 1; i++) {
-      for (size_t j = i + 1; j < *tuple_count; j++) {
-        if (TupleCollection::has_priority(get(j), get(i), order_vars, ascending)) {
-          swap(i,j);
-        }
-      }
-    }
-    */
+
+    // Insertion sort:
+    // for (size_t i = 0; i < *tuple_count - 1; i++) {
+    //     for (size_t j = i + 1; j < *tuple_count; j++) {
+    //         if (TupleCollection::has_priority(get(j), get(i), order_vars, ascending)) {
+    //             swap(i,j);
+    //         }
+    //     }
+    // }
 }
 
-bool TupleCollection::has_priority(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs, std::vector<uint_fast64_t> order_vars, bool ascending) {
+
+bool TupleCollection::has_priority(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs,
+                                   std::vector<uint_fast64_t> order_vars, bool ascending)
+{
     if (ascending) {
        for (size_t i = 0; i < order_vars.size(); i++) {
             if (lhs[order_vars[i]] < rhs[order_vars[i]]) {
@@ -143,14 +147,14 @@ int TupleCollection::partition(int i, int f, std::vector<uint_fast64_t> order_va
     return low_el + 1;
 }
 
+
 MergeOrderedTupleCollection::MergeOrderedTupleCollection(
     size_t tuple_size,
     std::vector<uint_fast64_t> order_vars,
     bool ascending) :
         tuple_size(tuple_size),
         order_vars(order_vars),
-        ascending(ascending)
-       { }
+        ascending(ascending) { }
 
 
 void MergeOrderedTupleCollection::merge(
@@ -159,8 +163,8 @@ void MergeOrderedTupleCollection::merge(
     uint_fast64_t right_start,
     uint_fast64_t right_end,
     FileId source_file_id,
-    FileId output_file_id
-    ) {
+    FileId output_file_id)
+{
     auto left_run = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, left_start), tuple_size);
     auto right_run = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, right_start), tuple_size);
     auto out_run = make_unique<TupleCollection>(buffer_manager.get_page(output_file_id, left_start), tuple_size);
@@ -211,21 +215,20 @@ void MergeOrderedTupleCollection::merge(
             right_tuple = right_run->get(right_counter);
         }
     }
-
 }
 
 
 void MergeOrderedTupleCollection::copy_page(
-      uint_fast64_t source_page,
-      FileId source_file_id,
-      FileId output_file_id
-    ) {
-      auto source_tuples = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, source_page), tuple_size);
-      auto output_tuples = make_unique<TupleCollection>(buffer_manager.get_page(output_file_id, source_page), tuple_size);
-      output_tuples->reset();
-      for (size_t i = 0; i < source_tuples->get_n_tuples(); i++) {
-          auto t = source_tuples->get(i);
-          output_tuples->add(t);
-      }
-      source_tuples->reset();
+    uint_fast64_t source_page,
+    FileId source_file_id,
+    FileId output_file_id)
+{
+    auto source_tuples = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, source_page), tuple_size);
+    auto output_tuples = make_unique<TupleCollection>(buffer_manager.get_page(output_file_id, source_page), tuple_size);
+    output_tuples->reset();
+    for (size_t i = 0; i < source_tuples->get_n_tuples(); i++) {
+        auto t = source_tuples->get(i);
+        output_tuples->add(t);
+    }
+    source_tuples->reset();
 }

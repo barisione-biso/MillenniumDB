@@ -18,7 +18,7 @@ public:
     static constexpr size_t GRAPH_OBJECT_SIZE = sizeof(GraphObject);
 
     TupleCollection(Page& page, const size_t tuple_size);
-   ~TupleCollection();
+    ~TupleCollection();
     bool is_full() const;
     uint64_t get_n_tuples() const;
     void add(std::vector<GraphObject> new_tuple);
@@ -52,13 +52,13 @@ public:
         uint_fast64_t right_start,
         uint_fast64_t right_end,
         FileId source_file_id,
-        FileId output_file_id
-        );
+        FileId output_file_id);
+
     void copy_page(
-      uint_fast64_t source_page,
-      FileId source_file_id,
-      FileId output_file_id
-    );
+        uint_fast64_t source_page,
+        FileId source_file_id,
+        FileId output_file_id);
+
 private:
     size_t tuple_size;
     std::vector<uint_fast64_t> order_vars;
