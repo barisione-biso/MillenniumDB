@@ -1,8 +1,7 @@
 #include "graph_object_visitor.h"
 
-GraphObjectVisitor::GraphObjectVisitor(QuadModel& model, bool create_if_not_exists) :
-    model (model),
-    create_if_not_exists (create_if_not_exists) { }
+GraphObjectVisitor::GraphObjectVisitor(QuadModel& model) :
+    model (model) { }
 
 
 ObjectId GraphObjectVisitor::operator()(const IdentifiableInlined& identifiable_inlined) const {
@@ -19,7 +18,7 @@ ObjectId GraphObjectVisitor::operator()(const IdentifiableInlined& identifiable_
 
 ObjectId GraphObjectVisitor::operator()(const IdentifiableExternal& identifiable_external) const {
     std::string str(identifiable_external.id);
-    auto external_id = model.get_external_id(str, create_if_not_exists);
+    auto external_id = model.get_external_id(str);
     if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
         return ObjectId::get_not_found();
     } else {
@@ -53,7 +52,7 @@ ObjectId GraphObjectVisitor::operator()(const StringInlined& string_inlined) con
 
 ObjectId GraphObjectVisitor::operator()(const StringExternal& string_external) const {
     std::string str(string_external.id);
-    auto external_id = model.get_external_id(str, create_if_not_exists);
+    auto external_id = model.get_external_id(str);
     if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
         return ObjectId::get_not_found();
     } else {

@@ -22,7 +22,8 @@ public:
     }
 
     GraphObject operator() (std::string const& str) const {
-        return GraphObject::make_string(str);
+        // Warning: after str is destructed outside this function, the returned GraphObject will be invalid
+        return GraphObject::make_string(str.c_str());
     }
 };
 

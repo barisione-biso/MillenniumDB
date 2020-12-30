@@ -91,12 +91,77 @@ std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& manua
 }
 
 
-uint64_t QuadModel::get_external_id(const string& str, bool create_if_not_exists) {
-    return strings_hash().get_id(str, create_if_not_exists);
+uint64_t QuadModel::get_external_id(const string& str) {
+    return strings_hash().get_id(str);
 }
 
 
-ObjectId QuadModel::get_string_id(const string& str, bool create_if_not_exists) {
+uint64_t QuadModel::get_or_create_external_id(const string& str, bool* created) {
+    return strings_hash().get_or_create_id(str, created);
+}
+
+
+uint64_t QuadModel::get_or_create_identifiable_object_id(const std::string& str, bool* created) {
+    if (str.size() < 8) {
+        uint64_t res = 0;
+        int shift_size = 0;
+        for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            res |= byte << shift_size;
+            shift_size += 8;
+        }
+        return res | GraphModel::IDENTIFIABLE_INLINED_MASK;
+    } else {
+        auto external_id = get_or_create_external_id(str, created);
+        return external_id | GraphModel::IDENTIFIABLE_EXTERNAL_MASK;
+    }
+}
+
+
+uint64_t QuadModel::get_or_create_string_id(const std::string& str) {
+    if (str.size() < 8) {
+        uint64_t res = 0;
+        int shift_size = 0;
+        for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
+            res |= byte << shift_size;
+            shift_size += 8;
+        }
+        return res | GraphModel::VALUE_INLINE_STR_MASK;
+    } else {
+        bool created;
+        auto external_id = get_or_create_external_id(str, &created);
+        return external_id | GraphModel::VALUE_EXTERNAL_STR_MASK;
+    }
+}
+
+
+uint64_t QuadModel::get_or_create_value_id(const GraphObject& obj) {
+    if (std::holds_alternative<StringExternal>(obj.value)) {
+        const std::string str(std::get<StringExternal>(obj.value).id);
+        bool created;
+        auto external_id = get_or_create_external_id(str, &created);
+        return external_id | GraphModel::VALUE_EXTERNAL_STR_MASK;
+    } else {
+        GraphObjectVisitor visitor(*this);
+        if (std::holds_alternative<StringInlined>(obj.value)) {
+            return visitor(std::get<StringInlined>(obj.value)).id;
+        }
+        else if (std::holds_alternative<int64_t>(obj.value)) {
+            return visitor(std::get<int64_t>(obj.value)).id;
+        }
+        else if (std::holds_alternative<float>(obj.value)) {
+            return visitor(std::get<float>(obj.value)).id;
+        }
+        else if (std::holds_alternative<bool>(obj.value)) {
+            return visitor(std::get<bool>(obj.value)).id;
+        }
+        else {
+            throw std::logic_error("QuadModel::get_or_create_value_id(): unknown value type");
+        }
+    }
+}
+
+
+ObjectId QuadModel::get_string_id(const string& str) {
     if (str.size() < 8) {
         uint64_t res = 0;
         int shift_size = 0;
@@ -106,7 +171,7 @@ ObjectId QuadModel::get_string_id(const string& str, bool create_if_not_exists) 
         }
         return ObjectId(res | GraphModel::VALUE_INLINE_STR_MASK);
     } else {
-        auto external_id = get_external_id(str, create_if_not_exists);
+        auto external_id = get_external_id(str);
         if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
             return ObjectId::get_not_found();
         } else {
@@ -116,7 +181,7 @@ ObjectId QuadModel::get_string_id(const string& str, bool create_if_not_exists) 
 }
 
 
-ObjectId QuadModel::get_identifiable_object_id(const string& str, bool create_if_not_exists) {
+ObjectId QuadModel::get_identifiable_object_id(const string& str) {
     if (str.size() < 8) {
         uint64_t res = 0;
         int shift_size = 0;
@@ -126,7 +191,7 @@ ObjectId QuadModel::get_identifiable_object_id(const string& str, bool create_if
         }
         return ObjectId(res | GraphModel::IDENTIFIABLE_INLINED_MASK);
     } else {
-        auto external_id = get_external_id(str, create_if_not_exists);
+        auto external_id = get_external_id(str);
         if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
             return ObjectId::get_not_found();
         } else {
@@ -247,10 +312,5 @@ GraphObject QuadModel::get_property_value(GraphObject& var, const ObjectId key) 
 
 
 ObjectId QuadModel::get_object_id(const GraphObject& graph_object) {
-    return get_object_id(graph_object, false);
-}
-
-
-ObjectId QuadModel::get_object_id(const GraphObject& graph_object, bool create_if_not_exists) {
-    return std::visit(GraphObjectVisitor{ *this, create_if_not_exists }, graph_object.value);
+    return std::visit(GraphObjectVisitor{ *this }, graph_object.value);
 }

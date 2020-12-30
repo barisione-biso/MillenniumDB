@@ -297,42 +297,14 @@ void BulkImport::set_distinct_type_stats(OrderedFile<N>& ordered_file, std::map<
 }
 
 
-// template <std::size_t N>
-// void BulkImport::merge_tree_and_ordered_file(unique_ptr<BPlusTree<N>>& bpt, OrderedFile<N>& ordered_file)
-// {
-//     auto original_dir_filename  = file_manager.get_filename(bpt->dir_file_id);
-//     auto original_leaf_filename = file_manager.get_filename(bpt->leaf_file_id);
-//     auto original_filename = original_dir_filename.substr(0, original_dir_filename.size()-4);
-//     auto tmp_filename = original_filename + ".tmp";
-
-//     auto new_bpt = make_unique<BPlusTree<N>>(tmp_filename);
-//     { // new scope so bpt_merger is destroyed before file_manager.remove
-//         auto bpt_merger = BptMerger<N>(ordered_file, *bpt);
-//         new_bpt->bulk_import(bpt_merger);
-//     }
-
-//     auto old_dir_file_id  = bpt->dir_file_id;
-//     auto old_leaf_file_id = bpt->leaf_file_id;
-
-//     auto new_dir_file_id  = new_bpt->dir_file_id;
-//     auto new_leaf_file_id = new_bpt->leaf_file_id;
-
-//     bpt = move(new_bpt);
-
-//     file_manager.remove(old_dir_file_id);
-//     file_manager.remove(old_leaf_file_id);
-
-//     file_manager.rename(new_dir_file_id,  original_dir_filename);
-//     file_manager.rename(new_leaf_file_id, original_leaf_filename);
-// }
 uint64_t BulkImport::get_node_id(const string& node_name) {
-    auto obj_id = model.get_identifiable_object_id(node_name, false);
-    if (obj_id.is_not_found()) {
-        obj_id = model.get_identifiable_object_id(node_name, true);
-        model.node_table->append_record(RecordFactory::get(obj_id.id));
+    bool created;
+    auto obj_id = model.get_or_create_identifiable_object_id(node_name, &created);
+    if (created) {
+        model.node_table->append_record(RecordFactory::get(obj_id));
         ++catalog.identifiable_nodes_count;
     }
-    return obj_id.id;
+    return obj_id;
 }
 
 
@@ -370,7 +342,7 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
     }
 
     for (auto& label : node.labels) {
-        auto label_id = model.get_string_id(label, true).id;
+        auto label_id = model.get_or_create_string_id(label);
         ++catalog.label_count;
         ++catalog.label2total_count[label_id];
 
@@ -382,11 +354,10 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
         auto v = property.value;
         auto value = visitor(v);
 
-        auto key_id   = model.get_string_id(property.key, true).id;
-        auto value_id = model.get_object_id(value, true).id;
+        auto key_id   = model.get_or_create_string_id(property.key);
+        auto value_id = model.get_or_create_value_id(value);
 
-        ++catalog.properties_count;
-        // ++catalog.key2total_count[key_id];
+        ++catalog.properties_count; // TODO: more efficient to count it later?
 
         object_key_value.append_record(RecordFactory::get(node_id, key_id, value_id));
     }
@@ -429,8 +400,8 @@ uint64_t BulkImport::process_edge(const import::ast::Edge edge) {
         auto v = property.value;
         auto value = visitor(v);
 
-        auto key_id   = model.get_string_id(property.key, true).id;
-        auto value_id = model.get_object_id(value, true).id;
+        auto key_id   = model.get_or_create_string_id(property.key);
+        auto value_id = model.get_or_create_value_id(value);
 
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];
@@ -473,8 +444,8 @@ uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge edge,
         auto v = property.value;
         auto value = visitor(v);
 
-        auto key_id   = model.get_string_id(property.key, true).id;
-        auto value_id = model.get_object_id(value, true).id;
+        auto key_id   = model.get_or_create_string_id(property.key);
+        auto value_id = model.get_or_create_value_id(value);
 
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];
@@ -513,39 +484,3 @@ uint64_t BulkImport::create_connection(const uint64_t from_id, const uint64_t to
 
     return edge_id;
 }
-
-
-// void BulkImport::set_property_stats(map<uint64_t, pair<uint64_t, uint64_t>>& m, OrderedFile<3>& ordered_properties) {
-//     uint64_t current_key = 0;
-//     uint64_t current_value = 0;
-//     uint64_t key_count = 0;
-//     uint64_t distinct_values = 0;
-
-//     ordered_properties.begin();
-//     auto record = ordered_properties.next_record();
-//     while (record != nullptr) {
-//         // check same key
-//         if (record->ids[0] == current_key) {
-//             ++key_count;
-//             // check if value changed
-//             if (record->ids[1] != current_value) {
-//                 ++distinct_values;
-//             }
-//         } else {
-//             // save stats from last key
-//             if (current_key != 0) {
-//                 m.insert({ current_key, make_pair(key_count, distinct_values) });
-//             }
-//             current_key = record->ids[0];
-//             current_value = record->ids[1];
-
-//             key_count = 1;
-//             distinct_values = 1;
-//         }
-//         record = ordered_properties.next_record();
-//     }
-//     // save stats from last key
-//     if (current_key != 0) {
-//         m.insert({ current_key, make_pair(key_count, distinct_values) });
-//     }
-// }

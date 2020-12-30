@@ -7,9 +7,8 @@
 
 struct GraphObjectVisitor {
     QuadModel& model;
-    bool create_if_not_exists;
 
-    GraphObjectVisitor(QuadModel& model, bool create_if_not_exists);
+    GraphObjectVisitor(QuadModel& model);
     ~GraphObjectVisitor() = default;
 
     ObjectId operator()(const IdentifiableInlined& i)   const;
