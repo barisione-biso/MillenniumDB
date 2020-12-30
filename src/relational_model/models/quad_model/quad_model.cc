@@ -82,7 +82,7 @@ QuadModel::~QuadModel() {
 
 std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select) {
     // auto query_optimizer = QueryOptimizer(*this);
-    auto query_optimizer = BindingIterVisitor(*this);
+    auto query_optimizer = BindingIterVisitor(*this, op_select.get_var_names());
     return query_optimizer.exec(op_select);
     // CRIS TODO: Change to BindingIdVisitor
     // return query_optimizer.exec(op_select);

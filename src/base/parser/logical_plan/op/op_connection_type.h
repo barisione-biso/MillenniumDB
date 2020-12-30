@@ -36,6 +36,17 @@ public:
         }
         return false;
     }
+
+    std::set<std::string> get_var_names() const override {
+        std::set<std::string> res;
+        if (edge[0] == '?') {
+            res.insert(edge);
+        }
+        if (type[0] == '?') {
+            res.insert(type);
+        }
+        return res;
+    }
 };
 
 #endif // BASE__OP_CONNECTION_TYPE_H_

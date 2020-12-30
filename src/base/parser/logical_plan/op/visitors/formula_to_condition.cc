@@ -1,6 +1,7 @@
 #include "formula_to_condition.h"
 
-Formula2ConditionVisitor::Formula2ConditionVisitor(GraphModel& model, std::map<std::string, VarId>& _var_names2var_ids) :
+Formula2ConditionVisitor::Formula2ConditionVisitor(GraphModel& model,
+                                                   const std::map<std::string, VarId>& _var_names2var_ids) :
     model                  (model),
     var_names2var_ids      (_var_names2var_ids),
     new_property_map_count (var_names2var_ids.size()) { }

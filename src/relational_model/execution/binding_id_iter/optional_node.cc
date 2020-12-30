@@ -16,12 +16,11 @@ OptionalNode::OptionalNode(std::size_t binding_size,
     basic_graph_pattern (move(_basic_graph_pattern)),
     binding_size        (binding_size)
 {
-    for (std::size_t i = 0; i < children.size(); i++) {
-        //auto a = move(children[i]);
-        //printf("IM GETTING INTO LEFT OUTER JOIN!\n");
-        basic_graph_pattern = make_unique<LeftOuterJoin>(binding_size, move(basic_graph_pattern), move(children[i]));
+    // TEST 1
+    for (auto& child : children) {
+        basic_graph_pattern = make_unique<LeftOuterJoin>(binding_size, move(basic_graph_pattern), move(child));
     }
-    // children.clear(); // TODO: TEST
+    children.clear(); // TODO: TEST
 }
 
 

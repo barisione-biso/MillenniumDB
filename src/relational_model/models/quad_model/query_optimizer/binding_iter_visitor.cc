@@ -1,5 +1,7 @@
 #include "binding_iter_visitor.h"
 
+#include <iostream>
+
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_filter.h"
@@ -19,6 +21,23 @@
 
 using namespace std;
 
+BindingIterVisitor::BindingIterVisitor(QuadModel& model, std::set<std::string> var_names) :
+    model           (model),
+    var_name2var_id (construct_var_name2var_id(var_names)) { }
+
+
+map<string, VarId> BindingIterVisitor::construct_var_name2var_id(std::set<std::string>& var_names) {
+    map<string, VarId> res;
+    uint_fast32_t i = 0;
+    cout << "printing var names:\n";
+    for (auto& var_name : var_names) {
+        cout << var_name << "\n";
+        res.insert({ var_name, VarId(i++) });
+    }
+    return res;
+}
+
+
 // TODO: ScanRange::get
 std::unique_ptr<ScanRange> BindingIterVisitor::get_scan_range(Id id, bool assigned) {
     if ( std::holds_alternative<ObjectId>(id) ) {
@@ -29,9 +48,6 @@ std::unique_ptr<ScanRange> BindingIterVisitor::get_scan_range(Id id, bool assign
         return std::make_unique<UnassignedVar>(std::get<VarId>(id));
     }
 }
-
-BindingIterVisitor::BindingIterVisitor(QuadModel& model) :
-    model (model) { }
 
 
 std::unique_ptr<BindingIter> BindingIterVisitor::exec(OpSelect& op_select) {
@@ -49,10 +65,12 @@ std::unique_ptr<BindingIter> BindingIterVisitor::exec(manual_plan::ast::ManualRo
 void BindingIterVisitor::visit(const OpSelect& op_select) {
     // need to save the select items to be able to push optional properties from select to match in visit(OpGraphPatternRoot&)
     select_items = move(op_select.select_items);
+
+    // TODO: set var_name2var_id
     op_select.op->accept_visitor(*this);
 
     vector<pair<string, VarId>> projection_vars;
-
+    
     if (select_items.size() == 0) { // SELECT *
         for (auto&& [k, v] : var_name2var_id) {
             projection_vars.push_back(make_pair(k, v));
@@ -93,13 +111,16 @@ void BindingIterVisitor::visit(const OpFilter& op_filter) {
 
 
 void BindingIterVisitor::visit(const OpGraphPatternRoot& op_graph_pattern_root) {
-    BindingIdIterVisitor id_visitor(model);
+
+    op_graph_pattern_root.op->get_var_names();
+
+    BindingIdIterVisitor id_visitor(model, var_name2var_id);
     op_graph_pattern_root.op->accept_visitor(id_visitor);
 
-    var_name2var_id = move(id_visitor.var_name2var_id);
-    // var_name2var_id = id_visitor.var_name2var_id;
+    // var_name2var_id = move(id_visitor.var_name2var_id);
     unique_ptr<BindingIdIter> binding_id_iter_current_root = move(id_visitor.tmp);
-    
+    // TEST
+    // unique_ptr<BindingIdIter> binding_id_iter_current_root = id_visitor.tmp;
 
     // We need to get the final binding_size
     // `var_name2var_id` may not contain all properties from SELECT, so we call `get_var_id(var_name)`
@@ -107,11 +128,11 @@ void BindingIterVisitor::visit(const OpGraphPatternRoot& op_graph_pattern_root) 
     // SELECT ?x.key
     // MATCH (?x)
     // "?x.key" is not present in `var_name2var_id`, but it will be present after calling `get_var_id("?x.key")`
-    for (const auto& select_item : select_items) {
+    /*for (const auto& select_item : select_items) {
         if (select_item.key) {
             get_var_id(select_item.var + '.' + select_item.key.get());
         }
-    }
+    }*/
 
     auto binding_size = var_name2var_id.size();
     cout << "binding size:" << binding_size << "\n";
@@ -176,9 +197,10 @@ VarId BindingIterVisitor::get_var_id(const std::string& var) {
     if (search != var_name2var_id.end()) {
         return (*search).second;
     } else {
-        VarId res(var_name2var_id.size());
-        var_name2var_id.insert({ var, res });
-        return res;
+        throw std::logic_error("variable " + var + " not present in var_name2var_id");
+        // VarId res(var_name2var_id.size());
+        // var_name2var_id.insert({ var, res });
+        // return res;
     }
 }
 

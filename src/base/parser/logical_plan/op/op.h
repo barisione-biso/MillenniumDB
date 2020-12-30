@@ -2,6 +2,7 @@
 #define BASE__OP_H_
 
 #include <memory>
+#include <set>
 #include <string>
 
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
@@ -12,7 +13,7 @@ public:
     virtual ~Op() = default;
 
     virtual void accept_visitor(OpVisitor&) const = 0;
-    // virtual void accept_visitor(OpVisitor&, NewVisitor&) const = 0;
+    virtual std::set<std::string> get_var_names() const = 0;
 
     virtual std::ostream& print_to_ostream(std::ostream& os, int indent=0) const = 0;
     friend std::ostream& operator<<(std::ostream& os, const Op& b) {

@@ -16,17 +16,14 @@ private:
 public:
     BindingId(const std::size_t size) :
         size       (size),
-        object_ids (new ObjectId[size]) {
-            printf("Pointer: %p\n", object_ids); // TODO: delete
-         } // TODO: buscar como imprimir puntero
+        object_ids (new ObjectId[size]) { }
 
     // to prevent using
     // auto b = op.begin()
     // instead of
     // auto& b = op.begin()
-    BindingId() = delete; // TODO: ver si aporta. Ya debería estar.
-    // BindingId(BindingId &&) = delete;
-    // BindingId(const BindingId &&) = delete;
+    // TEST 1
+    // END TEST 1
     BindingId(const BindingId& other) = delete;
 
     ~BindingId() {

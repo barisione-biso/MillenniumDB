@@ -1,9 +1,10 @@
 #ifndef RELATIONAL_MODEL__BINDING_ITER_VISITOR_H_
 #define RELATIONAL_MODEL__BINDING_ITER_VISITOR_H_
 
-// #include <set>
 #include <map>
 #include <memory>
+#include <set>
+#include <string>
 #include <vector>
 
 #include "base/ids/var_id.h"
@@ -34,7 +35,7 @@ class OpGraphPatternRoot;
 
 class BindingIterVisitor : public OpVisitor {
 public:
-    BindingIterVisitor(QuadModel& model);
+    BindingIterVisitor(QuadModel& model, std::set<std::string> var_names);
     ~BindingIterVisitor() = default;
 
     std::unique_ptr<BindingIter> exec(OpSelect&);
@@ -56,11 +57,9 @@ public:
     void visit(const OpGraphPatternRoot&) override;
 
     QuadModel& model;
+    const std::map<std::string, VarId> var_name2var_id;
     std::unique_ptr<BindingIter> tmp;
-    std::map<std::string, VarId> var_name2var_id;
     std::vector<query::ast::SelectItem> select_items;
-
-    // int_fast32_t id_count = 0;
 
     VarId get_var_id(const std::string& var_name);
     ObjectId get_value_id(const common::ast::Value& value);
@@ -68,7 +67,7 @@ public:
     // std::unique_ptr<BindingIdIter> get_greedy_join_plan(
     //     std::vector<std::unique_ptr<JoinPlan>> base_plans,
     //     std::size_t binding_size);
-
+    static std::map<std::string, VarId> construct_var_name2var_id(std::set<std::string>& var_names);
 };
 
 #endif // RELATIONAL_MODEL__BINDING_ITER_VISITOR_H_

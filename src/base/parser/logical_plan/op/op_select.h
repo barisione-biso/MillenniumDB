@@ -35,30 +35,39 @@ public:
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
         os << "OpSelect(";
-        if(select_items.size() == 0){
+        if (select_items.size() == 0) {
             os << "*";
-        }else{
+        } else {
             bool first = true;
             for (auto & select_item : select_items) {
-                if (!first) os << ", ";
+                if (!first)
+                    os << ", ";
                 first = false;
-                if(select_item.key)
-                {
+                if (select_item.key) {
                     os << select_item.var << "." << select_item.key.get();
-                }else{
+                } else {
                     os << select_item.var;
                 }
             }
         }
         os << ")";
 
-        if (limit)
-        {
+        if (limit) {
             os << " LIMIT " << limit;
         }
         os << "\n";
         return op->print_to_ostream(os, indent + 2);
     };
+
+    std::set<std::string> get_var_names() const override {
+        auto res = op->get_var_names();
+        for (const auto& select_item : select_items) {
+            if (select_item.key) {
+                res.insert(select_item.var + '.' + select_item.key.get());
+            }
+        }
+        return res;
+    }
 };
 
 #endif // BASE__OP_SELECT_H_

@@ -56,6 +56,10 @@ public:
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
+
+    std::set<std::string> get_var_names() const override {
+        return op->get_var_names(); // TODO: pensar bien si se pueden añadir variables
+    }
 };
 
 #endif // BASE__OP_GROUP_BY_H_

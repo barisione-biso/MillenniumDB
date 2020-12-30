@@ -41,6 +41,9 @@ public:
         return op->print_to_ostream(os, indent + 2);
     };
 
+    std::set<std::string> get_var_names() const override {
+        return op->get_var_names(); // TODO: should add properties mentioned in the WHERE that are not present in the MATCH
+    }
 };
 
 #endif // BASE__OP_FILTER_H_

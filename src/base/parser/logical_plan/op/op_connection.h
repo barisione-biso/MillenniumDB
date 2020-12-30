@@ -26,7 +26,7 @@ public:
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
-    
+
     bool operator<(const OpConnection& other) const {
         // return from < other.from && to < other.to && edge < other.edge;
         if (from < other.from) {
@@ -37,6 +37,20 @@ public:
             return true;
         }
         return false;
+    }
+
+    std::set<std::string> get_var_names() const override {
+        std::set<std::string> res;
+        if (from[0] == '?') {
+            res.insert(from);
+        }
+        if (to[0] == '?') {
+            res.insert(to);
+        }
+        if (edge[0] == '?') {
+            res.insert(edge);
+        }
+        return res;
     }
 };
 

@@ -51,6 +51,7 @@ unique_ptr<BindingIter> QueryOptimizer::exec(OpSelect& op_select) {
 
 void QueryOptimizer::visit(const OpSelect& op_select) {
     // need to remember to be able to push properties from select to match
+    
     select_items = move(op_select.select_items);
     op_select.op->accept_visitor(*this);
 
@@ -116,6 +117,8 @@ void QueryOptimizer::visit(const OpSelect& op_select) {
 
 void QueryOptimizer::visit(const OpMatch& op_match) {
     // TODO: Dejar vacío
+
+    // TODO: DELETE this is on visit op_match on binding_id_iter_visitor.cc
     vector<unique_ptr<JoinPlan>> base_plans;
 
     // Process Labels
@@ -158,6 +161,8 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
     // We need to discard UnjointObjects like ?x in:
     // SELECT ?x.name
     // MATCH (?x)
+
+    // TODO: add this case
     for (auto& unjoint_object : op_match.unjoint_objects) {
         bool unjoint_object_mentioned_in_select = false;
         for (const auto& select_item : select_items) {
@@ -220,7 +225,9 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
         throw QuerySemanticException("Property paths not implemented yet");
     }
 
+    // TODO: DELETE this is the end of visit op_match on binding_id_iter_visitor.cc
 
+    // TODO: DELETE this is on visit op_graph_pattern_root on binding_iter_visitor.cc
     vector<string> var_names;
     var_names.resize(id_map.size());
     for (auto&& [var_name, var_id] : id_map) {
@@ -250,12 +257,15 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
     // final size
     auto binding_size = id_map.size();
 
+    printf("FINAL SIZE (QO): %d\n", binding_size);
+
     // get initial binding_id_iter
-    if (base_plans.size() <= MAX_SELINGER_PLANS) {
+    if (base_plans.size() <= MAX_SELINGER_PLANS && 0 > 1) { //TODO: REMOVE 0 > 1
         // TODO: construir aca var_names
         auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
         binding_id_iter = selinger_optimizer.get_binding_id_iter(binding_size);
     } else {
+        printf("ON GJP \n");
         binding_id_iter = get_greedy_join_plan( move(base_plans), binding_size);
     }
 

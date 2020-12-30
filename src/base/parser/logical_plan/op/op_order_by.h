@@ -53,6 +53,10 @@ public:
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
+
+    std::set<std::string> get_var_names() const override {
+        return op->get_var_names();
+    }
 };
 
 #endif // BASE__OP_ORDER_BY_H_

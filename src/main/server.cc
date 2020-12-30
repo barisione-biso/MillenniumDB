@@ -60,7 +60,6 @@ void execute_query(unique_ptr<BindingIter> root, std::ostream& os) {
 
     // print execution stats
     cout << "\nPlan Executed:\n";
-    cout << "N results:" << std::to_string(count) << "\n"; // TODO: delete
 
     root->analyze(2);
 

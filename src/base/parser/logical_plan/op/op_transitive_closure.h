@@ -39,6 +39,20 @@ public:
         os << "OpTransitiveClosure(" << from << "->" << to  << ":" << type << ")\n";
         return os;
     };
+
+    std::set<std::string> get_var_names() const override {
+        std::set<std::string> res;
+        if (from[0] == '?') {
+            res.insert(from);
+        }
+        if (to[0] == '?') {
+            res.insert(to);
+        }
+        if (type[0] == '?') {
+            res.insert(type);
+        }
+        return res;
+    }
 };
 
 #endif // BASE__OP_TRANSITIVE_CLOSURE_H_

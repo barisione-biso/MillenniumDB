@@ -81,6 +81,7 @@ public:
         if (node.var_or_id.empty()) {
             // anonymous variable
             node_name = "?_" + std::to_string(anonymous_var_count++);
+            var_names.insert(node_name);
         } else if (node.var_or_id[0] == '?') {
             // explicit variable
             node_name = node.var_or_id;
@@ -116,13 +117,16 @@ public:
         if (edge.var_or_id.empty()) {
             // anonymous variable
             edge_name = "?_e" + std::to_string(anonymous_var_count++);
+            var_names.insert(edge_name);
         } else if (edge.var_or_id[0] == '?') {
             // explicit variable
             edge_name = edge.var_or_id;
             var_names.insert(edge_name);
         } else {
             // identifier
-            edge_name = edge.var_or_id;
+            edge_name = edge.var_or_id;// (Q1)-[?e :P2 :P5]->(Q3)
+                                       // (Q1)-[?e =TYPE(?t)]->(Q3)
+                                       // (Q1)-[?e]->(Q3)
         }
 
         for (const auto& type : edge.types) {
@@ -130,6 +134,10 @@ public:
                 var_names.insert(type);
             }
             connection_types.insert(OpConnectionType(edge_name, type));
+        }
+
+        if (edge.types.size() == 0) {
+            var_names.insert(edge_name + ":type");
         }
 
         for (auto& property : edge.properties) {
@@ -184,6 +192,10 @@ public:
 
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
+    }
+
+    std::set<std::string> get_var_names() const override {
+        return var_names;
     }
 };
 

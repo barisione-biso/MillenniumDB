@@ -38,6 +38,16 @@ public:
         // not checking value
         return false;
     }
+
+    std::set<std::string> get_var_names() const override {
+        std::set<std::string> res;
+        if (obj_name[0] == '?') {
+            res.insert(obj_name);
+        }
+        // we assume key won't be a variable
+        // we assume value won't be a variable
+        return res;
+    }
 };
 
 #endif // BASE__OP_PROPERTY_H_

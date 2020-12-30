@@ -14,17 +14,19 @@
 
 using namespace std;
 
-BindingIdIterVisitor::BindingIdIterVisitor(QuadModel& model) :
-    model (model) { }
+BindingIdIterVisitor::BindingIdIterVisitor(QuadModel& model, const map<string, VarId>& var_name2var_id) :
+    model           (model),
+    var_name2var_id (var_name2var_id) { }
 
 VarId BindingIdIterVisitor::get_var_id(const std::string& var) {
     auto search = var_name2var_id.find(var);
     if (search != var_name2var_id.end()) {
         return (*search).second;
     } else {
-        VarId res(var_name2var_id.size());
-        var_name2var_id.insert({ var, res });
-        return res;
+        throw std::logic_error("variable " + var + " not present in var_name2var_id");
+        // VarId res(var_name2var_id.size());
+        // var_name2var_id.insert({ var, res });
+        // return res;
     }
 }
 
@@ -32,6 +34,7 @@ VarId BindingIdIterVisitor::get_var_id(const std::string& var) {
 void BindingIdIterVisitor::visit(const OpMatch& op_match) {
     // assigned_vars
 
+    
     // new_assigned_vars
     vector<unique_ptr<JoinPlan>> base_plans;
 
@@ -131,8 +134,10 @@ void BindingIdIterVisitor::visit(const OpMatch& op_match) {
 
     assert(tmp == nullptr);
     // TODO: use assigned_vars
+
+
+    printf("BINDING SIZE (greedy join plan): %d\n", var_name2var_id.size());
     tmp = get_greedy_join_plan( move(base_plans), var_name2var_id.size() );
-    // TODO: set assigned vars
 }
 
 

@@ -5,6 +5,7 @@
 #include <set>
 #include <memory>
 #include <vector>
+#include <string>
 
 #include "base/ids/var_id.h"
 #include "base/ids/object_id.h"
@@ -19,7 +20,7 @@ class BindingIdIter;
 
 class BindingIdIterVisitor : public OpVisitor {
 public:
-    BindingIdIterVisitor(QuadModel& model);
+    BindingIdIterVisitor(QuadModel& model, const std::map<std::string, VarId>& var_name2var_id);
     ~BindingIdIterVisitor() = default;
 
     std::unique_ptr<BindingIdIter> exec(OpSelect&);
@@ -41,7 +42,7 @@ public:
 
     QuadModel& model;
     std::vector<query::ast::SelectItem> select_items;
-    std::map<std::string, VarId> var_name2var_id;
+    const std::map<std::string, VarId>& var_name2var_id;
     std::set<VarId> assigned_vars;
     std::unique_ptr<BindingIdIter> tmp;
     // int_fast32_t id_count = 0;
