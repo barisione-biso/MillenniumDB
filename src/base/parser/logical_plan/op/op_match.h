@@ -12,9 +12,9 @@
 #include "base/parser/logical_plan/op/op_label.h"
 #include "base/parser/logical_plan/op/op_property.h"
 #include "base/parser/logical_plan/op/op_connection.h"
-#include "base/parser/logical_plan/op/op_connection_type.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op_transitive_closure.h"
+#include "base/parser/logical_plan/op/op_connection_type.h"
 
 class OpMatch : public Op {
 public:
@@ -149,6 +149,38 @@ public:
         return edge_name;
     }
 
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+        os << std::string(indent, ' ');
+        os << "OpMatch()\n";
+        /*
+            std::set<OpLabel>             labels;
+            std::set<OpProperty>          properties;
+            std::set<OpConnection>        connections;
+            std::set<OpTransitiveClosure> property_paths; // TODO: for now only supporting transitive closure
+            std::set<OpConnectionType>    connection_types;
+            std::set<OpUnjointObject>     unjoint_objects;
+        */
+        for (auto& label : labels) {
+            label.print_to_ostream(os, indent + 2);
+        }
+        for (auto& property : properties) {
+            property.print_to_ostream(os, indent + 2);
+        }
+        for (auto& connection : connections) {
+            connection.print_to_ostream(os, indent + 2);
+        }
+        for (auto& property_path : property_paths) {
+            property_path.print_to_ostream(os, indent + 2);
+        }
+        for (auto& connection_type : connection_types) {
+            connection_type.print_to_ostream(os, indent + 2);
+        }
+        for (auto& unjoint_object : unjoint_objects) {
+            unjoint_object.print_to_ostream(os, indent + 2);
+        }
+
+        return os;
+    };
 
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);

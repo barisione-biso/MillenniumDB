@@ -1,3 +1,2 @@
 EXPLAIN SELECT ?x, ?x.K0
-MATCH (?x :L4)
-OPTIONAL { (?x)->(?y) }
+MATCH (?x :L0)

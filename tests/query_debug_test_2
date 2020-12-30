@@ -1,2 +1,3 @@
-SELECT ?x, ?x.K1
-MATCH (?x :L1)
+SELECT *
+MATCH (?x :Person)
+OPTIONAL {(?x :Person)}

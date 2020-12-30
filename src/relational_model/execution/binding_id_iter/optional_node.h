@@ -23,17 +23,10 @@ public:
 private:
     std::unique_ptr<BindingIdIter> basic_graph_pattern;
     std::size_t binding_size;
-    std::vector<std::unique_ptr<BindingIdIter>> children;
-    // std::unique_ptr<BindingIdIter> basic_graph_pattern;
-    // std::vector<std::unique_ptr<Le>> children;
+    //std::vector<std::unique_ptr<BindingIdIter>> children;
 
     BindingId* current_left;
     BindingId* current_right;
 };
 
 #endif // RELATIONAL_MODEL__OPTIONAL_NODE_H_
-
-/*
-
-
-*/

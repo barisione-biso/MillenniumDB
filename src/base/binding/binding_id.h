@@ -1,7 +1,6 @@
 #ifndef BASE__BINDING_ID_H_
 #define BASE__BINDING_ID_H_
 
-#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -11,19 +10,24 @@
 
 class BindingId {
 private:
-    std::size_t size;
+    const std::size_t size;
+    ObjectId* object_ids; // array
 
 public:
-    // TODO CRIS: Mover object_ids a private
-    ObjectId* object_ids; // array
-    BindingId(std::size_t size) :
+    BindingId(const std::size_t size) :
         size       (size),
-        object_ids (new ObjectId[size]())
-    {
-        for (std::size_t i = 0; i < size; ++i) {
-            assert(object_ids[i].is_null());
-        }
-    }
+        object_ids (new ObjectId[size]) {
+            printf("Pointer: %p\n", object_ids); // TODO: delete
+         } // TODO: buscar como imprimir puntero
+
+    // to prevent using
+    // auto b = op.begin()
+    // instead of
+    // auto& b = op.begin()
+    BindingId() = delete; // TODO: ver si aporta. Ya debería estar.
+    // BindingId(BindingId &&) = delete;
+    // BindingId(const BindingId &&) = delete;
+    BindingId(const BindingId& other) = delete;
 
     ~BindingId() {
         delete[] object_ids;
@@ -44,18 +48,6 @@ public:
     inline std::size_t var_count() const noexcept {
         return size;
     }
-
-    inline void print() const noexcept{
-        printf("printing binding\n");
-        for(unsigned int i = 0; i < size; i++)
-        {
-            auto type = object_ids[i].id & 0xFF00'0000'0000'0000;
-            type >>= 56;
-            auto id  = object_ids[i].id & 0x00FF'FFFF'FFFF'FFFF;
-            printf("type: %ld, id: %ld\n", type, id);
-        }
-    }
 };
-
 
 #endif // BASE__BINDING_ID_H_

@@ -18,6 +18,7 @@ public:
 
     ~OpTransitiveClosure() = default;
 
+
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -32,6 +33,12 @@ public:
         }
         return false;
     }
+
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+        os << std::string(indent, ' ');
+        os << "OpTransitiveClosure(" << from << "->" << to  << ":" << type << ")\n";
+        return os;
+    };
 };
 
 #endif // BASE__OP_TRANSITIVE_CLOSURE_H_

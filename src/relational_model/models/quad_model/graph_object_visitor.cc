@@ -114,7 +114,7 @@ ObjectId GraphObjectVisitor::operator()(const float value_float) const {
 
     uint64_t res = 0;
     int shift_size = 0;
-    for (int i = 0; i < sizeof(bytes); ++i) {
+    for (std::size_t i = 0; i < sizeof(bytes); ++i) {
         uint64_t byte = bytes[i];
         res |= byte << shift_size;
         shift_size += 8;

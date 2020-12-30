@@ -9,10 +9,17 @@ class OpUnjointObject : public Op {
 public:
     const std::string obj_name;
 
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+        os << std::string(indent, ' ');
+        os << "OpUnjointObject(" << obj_name << ")\n";
+        return os;
+    };
+
     OpUnjointObject(std::string obj_name) :
         obj_name (std::move(obj_name )) { }
 
     ~OpUnjointObject() = default;
+
 
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);

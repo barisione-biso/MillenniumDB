@@ -1,0 +1,9 @@
+1 this OI: 0x7fffb8000bb0 (ELIMINANDO MATCH)
+2 this OI: 0x7fffb8001860 (1ro en ser creado) (ELIMINANDO LOJ)
+3 this OI: 0x7fffb8001640 (ELIMINANDO LOJ)
+4 this OI: FAILS
+
+Pointer: 0x7fffb8001570 (No está involucrado por ahora?)
+Pointer: 0x7fffb8001750 (No está involucrado por ahora?)
+binding size:4
+Pointer: 0x7fffb8000bb0

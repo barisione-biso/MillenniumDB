@@ -12,6 +12,7 @@
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
 #include "base/parser/logical_plan/op/op_optional.h"
+#include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
 
 #include "relational_model/execution/binding_iter/match.h"
@@ -74,8 +75,47 @@ void QueryOptimizer::visit(const OpSelect& op_select) {
     tmp = make_unique<Select>(move(tmp), move(projection_vars), op_select.limit);
 }
 
+// MATCH (?x :Person)
+// MATCH (?x)->(?y)
+// MATCH (?x :Person) OPTIONAL { (?x)->(?y) }
+
+//   OpSelect
+//       |
+//   OpFilter
+//       |
+//   OpMatch
+
+
+//   OpSelect
+//       |
+//   OpFilter
+//       |
+//   OpGraphPatternRoot
+//       |
+//   OpOptional
+//     /   \
+// OpBGP  (   )
+//       /  |  \
+//  OpBGP OpBGP OpOptional
+//                /   \
+//            OpBGP   OpBGP
+
+//   OpSelect
+//       |
+//   OpFilter
+//       |
+//   OpMatch
+
+//   OpSelect
+//       |
+//   OpFilter
+//       |
+//    OpMatch
+//       |
+//     OpBGP
 
 void QueryOptimizer::visit(const OpMatch& op_match) {
+    // TODO: Dejar vacío
     vector<unique_ptr<JoinPlan>> base_plans;
 
     // Process Labels
@@ -168,7 +208,7 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
             }
         }
         if (connection_labels_found == 0) {
-            auto type_id = get_var_id(op_connection.edge + ".type");
+            auto type_id = get_var_id(op_connection.edge + ":type");
             base_plans.push_back(
                 make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
             );
@@ -212,6 +252,7 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
 
     // get initial binding_id_iter
     if (base_plans.size() <= MAX_SELINGER_PLANS) {
+        // TODO: construir aca var_names
         auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
         binding_id_iter = selinger_optimizer.get_binding_id_iter(binding_size);
     } else {
@@ -242,8 +283,13 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
 
         }
     }
+    // En visit de OpGraphPatternRoot
+    // PASO 1: se obtiene binding_id_iter con lo que hay en OpGraphPatterRoot.op
+    // PASO 2: se extiende binding_id_iter con lo que hay en OpSelect (guardar elementos en una variable)
+    // PASO 3: return make_unique<Match>(model, move(binding_id_iter), binding_size);
+
     // Optional node
-    binding_id_iter =  make_unique<OptionalNode>(binding_size, move(binding_id_iter), move(opt_children)); // NEW
+    binding_id_iter = make_unique<OptionalNode>(binding_size, move(binding_id_iter), move(opt_children));
     tmp = make_unique<Match>(model, move(binding_id_iter), binding_size);
 }
 
@@ -268,7 +314,7 @@ void QueryOptimizer::visit(const OpFilter& op_filter) {
 
 VarId QueryOptimizer::get_var_id(const std::string& var) {
     auto search = id_map.find(var);
-    if (id_map.find(var) != id_map.end()) {
+    if (search != id_map.end()) {
         return (*search).second;
     }
     else {
@@ -312,7 +358,7 @@ ObjectId QueryOptimizer::get_value_id(const common::ast::Value& value) {
 
 unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(
     vector<unique_ptr<JoinPlan>> base_plans,
-    std::size_t binding_size)
+    std::size_t binding_size) // TODO: falta saber que variables están asignadas
 {
     auto base_plans_size = base_plans.size();
 
@@ -370,7 +416,7 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(
                 if (base_plans[j] == nullptr) {
                     continue;
                 }
-                auto nested_loop_plan =  make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                auto nested_loop_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
 
                 auto nested_loop_cost = nested_loop_plan->estimate_cost();
 
@@ -489,11 +535,19 @@ void QueryOptimizer::visit(const OpOrderBy& order_by) {
 }
 
 
-void QueryOptimizer::visit(const OpOptional& optional) {
-    optional.op->accept_visitor(*this);
+void QueryOptimizer::visit(const OpGraphPatternRoot& graph_pattern_root) {
+    /*
+        NewVisitor visitor(...); // TODO: pasar parametros?
+        graph_pattern_root.op->accept_visitor(visitor);
+        // TODO: poner cosas del select como opcionales
+        tmp = make_unique<Match>(model, move(visitor.tmp), binding_size);
+    */
+   graph_pattern_root.op->accept_visitor(*this);
 }
 
 
+// void QueryOptimizer::visit(const OpMatch&) { }
+void QueryOptimizer::visit(const OpOptional&) { }
 void QueryOptimizer::visit(const OpLabel&) { }
 void QueryOptimizer::visit(const OpProperty&) { }
 void QueryOptimizer::visit(const OpConnection&) { }

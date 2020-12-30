@@ -13,6 +13,7 @@ class OpTransitiveClosure;
 class OpOrderBy;
 class OpGroupBy;
 class OpUnjointObject;
+class OpGraphPatternRoot;
 
 class OpVisitor {
 public:
@@ -26,6 +27,7 @@ public:
     virtual void visit(const OpOptional&) = 0;
     virtual void visit(const OpProperty&) = 0;
     virtual void visit(const OpTransitiveClosure&) = 0;
+    virtual void visit(const OpGraphPatternRoot&) = 0;
     virtual void visit(const OpOrderBy&) = 0;
     virtual void visit(const OpGroupBy&) = 0;
     virtual void visit(const OpUnjointObject&) = 0;

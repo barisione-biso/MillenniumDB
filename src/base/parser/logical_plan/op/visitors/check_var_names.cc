@@ -8,6 +8,7 @@
 #include "base/parser/logical_plan/op/op_group_by.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_optional.h"
+#include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 
 void CheckVarNames::visit(const OpSelect& op_select) {
     op_select.op->accept_visitor(*this);
@@ -20,9 +21,19 @@ void CheckVarNames::visit(const OpSelect& op_select) {
     }
 }
 
+void CheckVarNames::visit(const OpOptional& op_optional) {
+    op_optional.op->accept_visitor(*this);
+    for (auto& optional_child : op_optional.optionals) {
+        optional_child->accept_visitor(*this);
+    }
+}
 
 void CheckVarNames::visit(const OpMatch& op_match) {
-    declared_object_names = op_match.var_names;
+    auto var_names = move(op_match.var_names);
+    for (auto& var_name : var_names) {
+        declared_object_names.insert(var_name);
+    }
+    // declared_object_names = move(op_match.var_names);
 }
 
 
@@ -41,11 +52,9 @@ void CheckVarNames::visit(const OpOrderBy& op_order_by) {
     op_order_by.op->accept_visitor(*this);
 }
 
-void CheckVarNames::visit(const OpOptional& op_optional) {
-     op_optional.op->accept_visitor(*this);
+void CheckVarNames::visit(const OpGraphPatternRoot& op_graph_pattern_root) {
+     op_graph_pattern_root.op->accept_visitor(*this);
 }
-
-
 
 void CheckVarNames::visit(const OpTransitiveClosure&) { }
 void CheckVarNames::visit(const OpConnection&) { }

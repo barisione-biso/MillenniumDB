@@ -2,6 +2,7 @@
 #define RELATIONAL_MODEL__JOIN_PLAN_H_
 
 #include <memory>
+#include <set>
 #include <variant>
 #include <vector>
 
@@ -39,6 +40,8 @@ public:
     }
 
     // TODO: using 64 bits limits the number of variables up to 64
+    // TODO: Change uint64_t to std::set<VarId>
+    // virtual void set_input_vars(const std::set<VarId>& input_vars) = 0;
     virtual void set_input_vars(const uint64_t input_vars) = 0;
     virtual uint64_t get_vars() = 0;
 

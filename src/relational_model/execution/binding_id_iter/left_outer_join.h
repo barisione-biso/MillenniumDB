@@ -10,8 +10,8 @@
 class LeftOuterJoin : public BindingIdIter {
 public:
     LeftOuterJoin(std::size_t binding_size,
-                        std::unique_ptr<BindingIdIter> lhs,
-                        std::unique_ptr<BindingIdIter> rhs);
+                  std::unique_ptr<BindingIdIter> lhs,
+                  std::unique_ptr<BindingIdIter> rhs);
     ~LeftOuterJoin() = default;
 
     void analyze(int indent = 0) const override;
@@ -32,8 +32,3 @@ private:
 };
 
 #endif // RELATIONAL_MODEL__LEFT_OUTER__JOIN_H_
-
-/*
-
-
-*/

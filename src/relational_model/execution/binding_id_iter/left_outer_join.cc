@@ -9,8 +9,8 @@
 using namespace std;
 
 LeftOuterJoin::LeftOuterJoin(std::size_t binding_size,
-                                         unique_ptr<BindingIdIter> lhs,
-                                         unique_ptr<BindingIdIter> rhs) :
+                             unique_ptr<BindingIdIter> lhs,
+                             unique_ptr<BindingIdIter> rhs) :
     BindingIdIter(binding_size),
     lhs (move(lhs)),
     rhs (move(rhs)) { }
@@ -33,23 +33,22 @@ void LeftOuterJoin::reset() {
     has_result = false;
     has_left = true;
     lhs->reset();
-    if (lhs->next()){
+    if (lhs->next()) {
         rhs->reset();
-    }else{
+    } else {
         has_left = false;
     }
 }
 
 
 bool LeftOuterJoin::next() {
-    if(!has_left)
-    {
+    if(!has_left) {
         return false;
     }
     while (true) {
         if (rhs->next()) {
             has_result = true;
-            // my_binding.add_all(*current_left);
+            my_binding.add_all(*current_left);
             my_binding.add_all(*current_right);
             return true;
         } else {

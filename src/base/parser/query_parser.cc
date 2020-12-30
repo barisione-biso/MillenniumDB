@@ -12,18 +12,21 @@
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
 #include "base/parser/logical_plan/op/op_optional.h"
+#include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/visitors/check_var_names.h"
 
 using namespace std;
 
 unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
-    unique_ptr<Op> op = make_unique<OpMatch>(ast.graph_pattern.pattern);
+    unique_ptr<Op> op;
 
     if (ast.graph_pattern.optionals.size() > 0) {
-        // TODO: `ast.graph_pattern.optionals` are ignored
-        // TODO: crear OpOptional, dejar `op` listo para ser enchufado al OpFilter o al OpSelect
-        op = make_unique<OpOptional>(move(op), ast.graph_pattern.optionals);
+        op = make_unique<OpOptional>(ast.graph_pattern);
+    } else {
+        op = make_unique<OpMatch>(ast.graph_pattern.pattern);
     }
+
+    op = make_unique<OpGraphPatternRoot>(std::move(op));
 
     uint_fast32_t limit = 0;
     if (ast.limit) {
@@ -72,6 +75,9 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(string& query) {
             printer(ast);
         }
         auto res = QueryParser::get_query_plan(ast);
+        if (ast.explain) {
+            cout << *res << "\n";
+        }
         check_query_plan(*res);
         return res;
     } else {

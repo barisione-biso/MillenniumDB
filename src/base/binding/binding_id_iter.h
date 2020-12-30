@@ -9,6 +9,8 @@ public:
     BindingIdIter(std::size_t binding_size) :
         my_binding(binding_size) { }
 
+    BindingIdIter(const BindingIdIter& other) = delete;
+
     virtual ~BindingIdIter() = default;
 
     virtual BindingId& begin(BindingId& input) = 0;

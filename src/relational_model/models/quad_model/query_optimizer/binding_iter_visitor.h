@@ -1,7 +1,7 @@
-#ifndef RELATIONAL_MODEL__QUERY_OPTIMIZER_H_
-#define RELATIONAL_MODEL__QUERY_OPTIMIZER_H_
+#ifndef RELATIONAL_MODEL__BINDING_ITER_VISITOR_H_
+#define RELATIONAL_MODEL__BINDING_ITER_VISITOR_H_
 
-#include <set>
+// #include <set>
 #include <map>
 #include <memory>
 #include <vector>
@@ -9,26 +9,33 @@
 #include "base/ids/var_id.h"
 #include "base/ids/object_id.h"
 #include "base/graph/graph_object.h"
+#include "base/parser/logical_plan/op/visitors/op_visitor.h"
 #include "base/parser/grammar/query/query_ast.h"
 #include "base/parser/grammar/manual_plan/manual_plan_ast.h"
-#include "base/parser/logical_plan/op/visitors/op_visitor.h"
 #include "relational_model/models/quad_model/quad_model.h"
+
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
+#include "relational_model/execution/binding_id_iter/index_scan.h"
+#include "base/ids/object_id.h"
+#include "base/ids/var_id.h"
 
-class BindingIter;
-class BindingIdIter;
-class OpMatch;
-class OpFilter;
-class OpSelect;
-class OpOptional;
-class JoinPlan;
-
+//TODO: DELETE SOME OF THE FOLLOWING
+#include "relational_model/execution/binding_id_iter/scan_ranges/term.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/assigned_var.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/unassigned_var.h"
 using Id = std::variant<VarId, ObjectId>;
 
-class QueryOptimizer : public OpVisitor {
+class BindingIter;
+class OpOptional;
+class OpFilter;
+class OpGraphPatternRoot;
+
+// using Id = std::variant<VarId, ObjectId>;
+
+class BindingIterVisitor : public OpVisitor {
 public:
-    QueryOptimizer(QuadModel& model);
-    ~QueryOptimizer() = default;
+    BindingIterVisitor(QuadModel& model);
+    ~BindingIterVisitor() = default;
 
     std::unique_ptr<BindingIter> exec(OpSelect&);
     std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&);
@@ -48,20 +55,20 @@ public:
     void visit(const OpUnjointObject&) override;
     void visit(const OpGraphPatternRoot&) override;
 
-private:
     QuadModel& model;
     std::unique_ptr<BindingIter> tmp;
-    std::map<std::string, VarId> id_map;
+    std::map<std::string, VarId> var_name2var_id;
     std::vector<query::ast::SelectItem> select_items;
-    int_fast32_t id_count = 0;
+
+    // int_fast32_t id_count = 0;
 
     VarId get_var_id(const std::string& var_name);
     ObjectId get_value_id(const common::ast::Value& value);
 
-    std::unique_ptr<BindingIdIter> get_greedy_join_plan(
-        std::vector<std::unique_ptr<JoinPlan>> base_plans,
-        std::size_t binding_size);
+    // std::unique_ptr<BindingIdIter> get_greedy_join_plan(
+    //     std::vector<std::unique_ptr<JoinPlan>> base_plans,
+    //     std::size_t binding_size);
 
 };
 
-#endif // RELATIONAL_MODEL__QUERY_OPTIMIZER_H_
+#endif // RELATIONAL_MODEL__BINDING_ITER_VISITOR_H_

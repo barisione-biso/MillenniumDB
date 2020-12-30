@@ -17,6 +17,7 @@ public:
         op      (std::move(op)),
         formula (formula) { }
 
+
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
     }
@@ -26,6 +27,20 @@ public:
         FormulaCheckVarNames visitor(declared_var_names);
         visitor(formula);
     }
+
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
+        os << std::string(indent, ' ');
+        os << "OpFilter(";
+        // TODO: print formulas
+        // for (auto const& step_formula : formula.path) {
+            // if (step_formula.condition.negation) {
+                // os << "!" << step_formula.condition.content;
+            // }
+        // };
+        os << ")\n";
+        return op->print_to_ostream(os, indent + 2);
+    };
+
 };
 
 #endif // BASE__OP_FILTER_H_

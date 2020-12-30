@@ -60,13 +60,20 @@ void execute_query(unique_ptr<BindingIter> root, std::ostream& os) {
 
     // print execution stats
     cout << "\nPlan Executed:\n";
+    cout << "N results:" << std::to_string(count) << "\n"; // TODO: delete
+
     root->analyze(2);
+
     cout << "\n";
 
+    cout << "N results:" << std::to_string(count);
+
     auto end = chrono::system_clock::now();
+
     chrono::duration<float, std::milli> duration = end - start;
     os << "Found " << std::to_string(count) << " results.\n";
     os << "Execution time: " << std::to_string(duration.count()) << " ms.\n";
+    cout<< "\nEnd!\n"; // TODO: delete
 }
 
 
