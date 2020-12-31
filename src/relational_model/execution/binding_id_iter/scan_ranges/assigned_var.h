@@ -3,6 +3,9 @@
 
 #include <cassert>
 
+#include <stdio.h> // TODO: DELETE
+#include <inttypes.h> // TODO: DELETE
+
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 
 class AssignedVar : public ScanRange {
@@ -14,6 +17,7 @@ public:
         var_id(var_id) { }
 
     uint64_t get_min(BindingId& binding_id) override {
+        printf("GET MIN VAR ID: %" PRIuFAST32 "\n", var_id.id);
         auto obj_id = binding_id[var_id];
         assert(!obj_id.is_null() && "var should be assigned in binding");
         return obj_id.id;

@@ -119,8 +119,6 @@ void BindingIterVisitor::visit(const OpGraphPatternRoot& op_graph_pattern_root) 
 
     // var_name2var_id = move(id_visitor.var_name2var_id);
     unique_ptr<BindingIdIter> binding_id_iter_current_root = move(id_visitor.tmp);
-    // TEST
-    // unique_ptr<BindingIdIter> binding_id_iter_current_root = id_visitor.tmp;
 
     // We need to get the final binding_size
     // `var_name2var_id` may not contain all properties from SELECT, so we call `get_var_id(var_name)`
@@ -159,6 +157,7 @@ void BindingIterVisitor::visit(const OpGraphPatternRoot& op_graph_pattern_root) 
     }
 
     tmp = make_unique<Match>(model, move(binding_id_iter_current_root), binding_size);
+    cout << "Finished BindingIterVisitor\n";
 }
 
 

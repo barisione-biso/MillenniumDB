@@ -1,6 +1,7 @@
 #include "binding_id_iter_visitor.h"
 
 #include <cassert>
+#include <iostream> // TODO: delete
 
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
@@ -151,6 +152,22 @@ void BindingIdIterVisitor::visit(const OpOptional& op_optional) {
     vector<unique_ptr<BindingIdIter>> optional_children;
     // TODO: Verify this idea works testing with complex optionals patterns
     auto current_scope_assigned_vars = assigned_vars; // TODO: maybe its not necesary if we only support well designed patterns
+    // TODO: DELETE
+    cout << "starting assigned vars from op_optional:\n";
+    for (auto assigned_var :assigned_vars)
+    {
+        // FIND KEY
+        string key = "";
+        for (auto &i : var_name2var_id) {
+            if (i.second.id == assigned_var.id) {
+                key = i.first;
+                break; // to stop searching
+            }
+        }
+        // END FIND KEY
+        cout << "assigned var: " << assigned_var.id << " (" << key << ")" << "\n";
+    }
+    // TODO: END DELETE
     for (auto& optional : op_optional.optionals) {
         optional->accept_visitor(*this); // P1 OPT {P2} OPT {P3} -> OpOptional(op: P1, optionals = {P2, P3})
                                          // P1 OPT {P2 OPT {P3}} -> OpOptional(op: P1, optionals = {OpOptional(op: P2, optionals: {P3})})
