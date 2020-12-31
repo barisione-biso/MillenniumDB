@@ -1,2 +1,3 @@
-SELECT ?x, ?x.age
-MATCH (?x :Person)
+EXPLAIN SELECT ?w, ?x, ?y, ?z
+MATCH (?w :node)-[?a :named]->(?x :name)
+OPTIONAL {(?w)-[?b :mail]->(?y) OPTIONAL {(?w)-[?c :page]->(?z)}}
