@@ -15,7 +15,8 @@ public:
     ExtendibleHash(ObjectFile& object_file, const std::string& filename);
     ~ExtendibleHash();
 
-    uint64_t get_id(const std::string& str, bool insert_if_not_present = false);
+    uint64_t get_id(const std::string& str);
+    uint64_t get_or_create_id(const std::string& str, bool* created);
 
 private:
     ObjectFile& object_file;

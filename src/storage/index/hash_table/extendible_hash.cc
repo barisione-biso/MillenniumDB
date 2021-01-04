@@ -89,7 +89,7 @@ void ExtendibleHash::duplicate_dirs() {
 }
 
 
-uint64_t ExtendibleHash::get_id(const std::string& str, bool insert_if_not_present) {
+uint64_t ExtendibleHash::get_or_create_id(const std::string& str, bool* created) {
     uint64_t hash[2];
     MurmurHash3_x64_128(str.data(), str.length(), 0, hash);
 
@@ -101,15 +101,10 @@ uint64_t ExtendibleHash::get_id(const std::string& str, bool insert_if_not_prese
         auto bucket_number = dir[suffix];
         auto bucket = Bucket(buckets_file_id, bucket_number, object_file);
 
-        bool need_split = false;
-        auto id = bucket.get_id(str, hash[0], hash[1], insert_if_not_present, &need_split);
+        bool need_split;
+        auto id = bucket.get_or_create_id(str, hash[0], hash[1], &need_split, created);
 
         if (need_split) {
-            // std::cout << "\nstring: " << str << "\n";
-            // std::cout << "bucket        " << std::bitset<8*sizeof(bucket_number)>(bucket_number) << " split, global depth: " << (int)global_depth
-            //     << ". local depth: " << (int)bucket.local_depth << ". key_count: " << (int)bucket.key_count << "\n";
-            // std::cout << "hash:         " << std::bitset<8*sizeof(hash[0])>(hash[0]) << " | " << std::bitset<8*sizeof(hash[1])>(hash[1]) << "\n";
-
             if (bucket.local_depth < global_depth) {
                 auto new_bucket_number = bucket_number | (1 << bucket.local_depth);
                 ++bucket.local_depth;
@@ -126,11 +121,6 @@ uint64_t ExtendibleHash::get_id(const std::string& str, bool insert_if_not_prese
                 for (auto i = 0; i < update_dir_count; ++i) {
                     dir[(i << bucket.local_depth) | new_bucket_number] = new_bucket_number;
                 }
-                // std::cout << "after redistribution: \n"
-                //     << "  bucket.key_count: " << (int)bucket.key_count
-                //     << "  bucket.local_depth: " << (int)bucket.local_depth
-                //     << "  new_bucket.key_count: " << (int)new_bucket.key_count
-                //     << "  new_bucket.local_depth: " << (int)new_bucket.local_depth << "\n";
 
                 assert(bucket.key_count + new_bucket.key_count== Bucket::MAX_KEYS
                     && "EXTENDIBLE HASH INCONSISTENCY: sum of keys must be MAX_KEYS after a split");
@@ -154,17 +144,27 @@ uint64_t ExtendibleHash::get_id(const std::string& str, bool insert_if_not_prese
                 // update dir for `1|bucket_number`
                 dir[new_bucket_number] = new_bucket_number;
 
-                // std::cout << "after redistribution: \n"
-                //     << "  bucket.key_count: " << (int)bucket.key_count
-                //     << "  bucket.local_depth: " << (int)bucket.local_depth
-                //     << "  new_bucket.key_count: " << (int)new_bucket.key_count
-                //     << "  new_bucket.local_depth: " << (int)new_bucket.local_depth << "\n";
-
                 assert(bucket.key_count + new_bucket.key_count== Bucket::MAX_KEYS
                     && "EXTENDIBLE HASH INCONSISTENCY: sum of keys must be MAX_KEYS after a split");
             }
         } else {
             return id;
         }
+    }
+}
+
+uint64_t ExtendibleHash::get_id(const std::string& str) {
+    uint64_t hash[2];
+    MurmurHash3_x64_128(str.data(), str.length(), 0, hash);
+
+    // After a bucket split, need to try insert again.
+    while (true) {
+        // global_depth must be <= 64
+        auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
+        auto suffix = hash[0] & mask;
+        auto bucket_number = dir[suffix];
+        auto bucket = Bucket(buckets_file_id, bucket_number, object_file);
+
+        return bucket.get_id(str, hash[0], hash[1]);
     }
 }

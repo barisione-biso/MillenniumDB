@@ -37,8 +37,7 @@ Bucket::~Bucket() {
     buffer_manager.unpin(page);
 }
 
-
-uint64_t Bucket::get_id(const string& str, uint64_t hash1, uint64_t hash2, bool insert_if_not_present, bool* need_split) {
+uint64_t Bucket::get_id(const string& str, uint64_t hash1, uint64_t hash2) {
     for (uint8_t i = 0; i < key_count; ++i) {
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             // check if object is
@@ -49,27 +48,42 @@ uint64_t Bucket::get_id(const string& str, uint64_t hash1, uint64_t hash2, bool 
             }
         }
     }
-    if (insert_if_not_present) {
-        if (key_count == MAX_KEYS) {
-            *need_split = true;
-            return ObjectId::OBJECT_ID_NOT_FOUND;
+    return ObjectId::OBJECT_ID_NOT_FOUND;
+}
+
+
+uint64_t Bucket::get_or_create_id(const string& str, uint64_t hash1, uint64_t hash2, bool* need_split, bool* created) {
+    for (uint8_t i = 0; i < key_count; ++i) {
+        if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
+            // check if object is
+            auto id = read_id(i);
+            auto c_str = object_file.read(id);
+            if (str == c_str) {
+                *created = false;
+                *need_split = false;
+                return id;
+            }
         }
-
-        auto bytes = make_unique<vector<unsigned char>>(str.length());
-        copy(str.begin(), str.end(), bytes->begin());
-        auto new_id = object_file.write(*bytes);
-
-        hashes[2 * key_count]     = hash1;
-        hashes[2 * key_count + 1] = hash2;
-
-        write_id(new_id, key_count);
-        ++key_count;
-        page.make_dirty();
-
-        return new_id;
-    } else {
-        return ObjectId::OBJECT_ID_NOT_FOUND;
     }
+    if (key_count == MAX_KEYS) {
+        *need_split = true;
+        return 0; // doesn't matter this returned value, ExtendibleHash needs to try to insert again
+    }
+
+    auto bytes = make_unique<vector<unsigned char>>(str.length());
+    copy(str.begin(), str.end(), bytes->begin());
+    auto new_id = object_file.write(*bytes);
+
+    hashes[2 * key_count]     = hash1;
+    hashes[2 * key_count + 1] = hash2;
+
+    write_id(new_id, key_count);
+    ++key_count;
+    page.make_dirty();
+
+    *created = true;
+    *need_split = false;
+    return new_id;
 }
 
 void Bucket::write_id(uint64_t id, int i) {

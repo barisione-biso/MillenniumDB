@@ -17,7 +17,7 @@ public:
 
     ~StringInlined() = default;
 
-    inline void operator=(const StringInlined& other) {
+    inline void operator=(const StringInlined& other) noexcept {
         id[0] = other.id[0];
         id[1] = other.id[1];
         id[2] = other.id[2];

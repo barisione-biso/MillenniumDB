@@ -91,8 +91,8 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
 
     // Process properties from Match
     for (auto& op_property : op_match.properties) {
-        auto key_id     = model.get_string_id(op_property.key);
-        auto value_id   = get_value_id(op_property.value);
+        auto key_id   = model.get_string_id(op_property.key);
+        auto value_id = get_value_id(op_property.value);
 
         if (op_property.obj_name[0] == '?') {
             auto obj_var_id = get_var_id(op_property.obj_name);
@@ -237,7 +237,7 @@ VarId QueryOptimizer::get_var_id(const std::string& var) {
 ObjectId QueryOptimizer::get_value_id(const common::ast::Value& value) {
     if (value.type() == typeid(string)) {
         auto str = boost::get<string>(value);
-        return model.get_object_id(GraphObject::make_string(str));
+        return model.get_object_id(GraphObject::make_string(str.c_str()));
     }
     else if (value.type() == typeid(int64_t)) {
         return model.get_object_id(GraphObject::make_int( boost::get<int64_t>(value) ));

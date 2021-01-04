@@ -240,6 +240,10 @@ bool BPlusTreeLeaf<N>::check() const {
 
         uint_fast32_t current_pos = 0;
         while (current_pos < N) {
+            if (records[current_pos] == 0xFFFF'FFFF'FFFF'FFFF) {
+                cerr << "  ERROR: record not_found(0xFFFF'FFFF'FFFF'FFFF) at BPlusTreeLeaf\n";
+                return false;
+            }
             x[current_pos] = records[current_pos];
             current_pos++;
         }

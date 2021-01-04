@@ -14,6 +14,17 @@ public:
         assert(_id[7] == '\0');
     }
 
+    inline void operator=(const IdentifiableInlined& other) noexcept {
+        id[0] = other.id[0];
+        id[1] = other.id[1];
+        id[2] = other.id[2];
+        id[3] = other.id[3];
+        id[4] = other.id[4];
+        id[5] = other.id[5];
+        id[6] = other.id[6];
+        id[7] = other.id[7];
+    }
+
     ~IdentifiableInlined() = default;
 
     inline void operator=(const IdentifiableInlined& other) {
