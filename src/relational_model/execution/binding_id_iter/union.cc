@@ -3,16 +3,17 @@
 using namespace std;
 
 Union::Union(std::size_t binding_size, std::vector<std::unique_ptr<BindingIdIter>> iters) :
-    BindingIdIter(binding_size),
+    // BindingIdIter(binding_size),
     iters(move(iters)) { }
 
 
-BindingId& Union::begin(BindingId& input) {
+void Union::begin(BindingId& parent_binding, bool) {
     current_iter = 0;
-    for (auto& iter : iters) {
-        my_inputs.push_back( &iter->begin(input) );
-    }
-    return my_binding;
+    // TODO: remake
+    // for (auto& iter : iters) {
+    //     my_inputs.push_back( &iter->begin(input) );
+    // }
+    // return my_binding;
 }
 
 
@@ -25,14 +26,14 @@ void Union::reset() {
 
 
 bool Union::next() {
-    while (current_iter < iters.size()) {
-        if (iters[current_iter]->next()) {
-            my_binding.add_all(*my_inputs[current_iter]);
-            return true;
-        } else {
-            ++current_iter;
-        }
-    }
+    // while (current_iter < iters.size()) {
+    //     if (iters[current_iter]->next()) {
+    //         my_binding.add_all(*my_inputs[current_iter]);
+    //         return true;
+    //     } else {
+    //         ++current_iter;
+    //     }
+    // }
     return false;
 }
 

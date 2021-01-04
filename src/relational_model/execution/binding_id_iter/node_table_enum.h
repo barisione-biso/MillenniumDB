@@ -15,14 +15,14 @@ private:
     uint_fast32_t current_pos;
     uint64_t results = 0;
 
-    BindingId* my_input;
+    BindingId* parent_binding;
 
 public:
     NodeTableEnum(std::size_t binding_size, const VarId var_id, RandomAccessTable<1>& table);
     ~NodeTableEnum() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId& begin(BindingId& input) override;
+    void begin(BindingId& parent_binding, bool parent_has_next) override;
     void reset() override;
     bool next() override;
 };

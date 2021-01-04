@@ -11,21 +11,33 @@ using namespace std;
 LeftOuterJoin::LeftOuterJoin(std::size_t binding_size,
                              unique_ptr<BindingIdIter> lhs,
                              unique_ptr<BindingIdIter> rhs) :
-    BindingIdIter(binding_size),
-    lhs (move(lhs)),
-    rhs (move(rhs)) { }
+    // BindingIdIter(binding_size),
+    lhs           (move(lhs)),
+    rhs           (move(rhs)),
+    current_left  (binding_size),
+    current_right (binding_size) { }
 
 
-BindingId& LeftOuterJoin::begin(BindingId& input) {
+void LeftOuterJoin::begin(BindingId& parent_binding, bool parent_has_next) {
     has_result = false;
-    has_left = true;
-    current_left = &lhs->begin(input);
-    if (lhs->next()) {
-        current_right = &rhs->begin(*current_left);
-    }else{
+    this->parent_binding = &parent_binding;
+    current_left.add_all(parent_binding);
+    current_right.add_all(parent_binding);
+    if (!parent_has_next) {
         has_left = false;
+        lhs->begin(current_left, false);
+        rhs->begin(current_right, false);
+    } else {
+        lhs->begin(current_left, true);
+        if (lhs->next()) {
+            current_right.add_all(current_left); // NEW
+            has_left = true;
+            rhs->begin(current_right, true);
+        } else {
+            has_left = false;
+            rhs->begin(current_right, false);
+        }
     }
-    return my_binding;
 }
 
 
@@ -34,6 +46,7 @@ void LeftOuterJoin::reset() {
     has_left = true;
     lhs->reset();
     if (lhs->next()) {
+        current_right.add_all(current_left); // NEW
         rhs->reset();
     } else {
         has_left = false;
@@ -48,16 +61,17 @@ bool LeftOuterJoin::next() {
     while (true) {
         if (rhs->next()) {
             has_result = true;
-            my_binding.add_all(*current_left);
-            my_binding.add_all(*current_right);
+            parent_binding->add_all(current_left);
+            parent_binding->add_all(current_right);
             return true;
         } else {
             if (!has_result) {
-                my_binding.add_all(*current_left);
+                parent_binding->add_all(current_left);
                 has_result = true;
                 return true;
             } else {
                 if (lhs->next()) {
+                    current_right.add_all(current_left); // NEW
                     has_result = false;
                     rhs->reset();
                 } else {

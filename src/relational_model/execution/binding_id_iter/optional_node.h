@@ -15,7 +15,7 @@ public:
     ~OptionalNode() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId& begin(BindingId& input) override;
+    void begin(BindingId& parent_binding, bool parent_has_next) override;
     void reset() override;
     bool next() override;
     bool has_result;

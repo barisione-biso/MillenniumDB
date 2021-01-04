@@ -10,7 +10,10 @@ Match::Match(GraphModel& model, unique_ptr<BindingIdIter> _root, size_t binding_
     model      (model),
     root       (move(_root)),
     input      (binding_size),
-    my_binding (BindingMaterializeId(model, binding_size, root->begin(input)) ) { }
+    my_binding (BindingMaterializeId(model, binding_size, input/*root->begin(input)*/) )
+{
+    root->begin(input, true); // TODO: hacer en otra parte? BindingMaterializeId?
+}
 
 
 Binding& Match::get_binding() {

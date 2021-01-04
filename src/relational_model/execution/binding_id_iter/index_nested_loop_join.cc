@@ -10,21 +10,24 @@ using namespace std;
 IndexNestedLoopJoin::IndexNestedLoopJoin(std::size_t binding_size,
                                          unique_ptr<BindingIdIter> lhs,
                                          unique_ptr<BindingIdIter> rhs) :
-    BindingIdIter(binding_size),
+    // BindingIdIter(binding_size),
     lhs (move(lhs)),
     rhs (move(rhs)) { }
 
 
-BindingId& IndexNestedLoopJoin::begin(BindingId& input) {
-    current_left = &lhs->begin(input);
-    if (lhs->next()) { // TODO: no se llama begin al rhs (it sera nullptr),
-                       // ¿se puede optimizar para no tener que checkear si it sera nullptr?
-        current_right = &rhs->begin(*current_left);
+void IndexNestedLoopJoin::begin(BindingId& parent_binding, bool parent_has_next) {
+    this->parent_binding = &parent_binding;
+    if (!parent_has_next) {
+        lhs->begin(parent_binding, false);
+        rhs->begin(parent_binding, false);
+    } else {
+        lhs->begin(parent_binding, true);
+        if (lhs->next()) {
+            rhs->begin(parent_binding, true);
+        } else {
+            rhs->begin(parent_binding, false);
+        }
     }
-    // else {
-    //     current_right = &rhs->begin_at_end(*current_left);
-    // }
-    return my_binding;
 }
 
 
@@ -39,8 +42,8 @@ bool IndexNestedLoopJoin::next() {
     while (true) {
         if (rhs->next()) {
             // construct binding
-            my_binding.add_all(*current_left); // TODO: reduntante?
-            my_binding.add_all(*current_right);
+            // my_binding.add_all(*current_left); // TODO: reduntante?
+            // my_binding.add_all(*current_right);
             return true;
         } else {
             if (lhs->next())

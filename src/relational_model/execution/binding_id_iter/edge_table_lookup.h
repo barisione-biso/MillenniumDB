@@ -23,14 +23,14 @@ private:
     uint64_t results = 0;
     bool already_looked;
 
-    BindingId* my_input;
+    BindingId* parent_binding;
 
 public:
     EdgeTableLookup(std::size_t binding_size, RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type);
     ~EdgeTableLookup() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId& begin(BindingId& input) override;
+    void begin(BindingId& parent_binding, bool parent_has_next) override;
     void reset() override;
     bool next() override;
 };

@@ -53,7 +53,7 @@ void execute_query(unique_ptr<BindingIter> root, std::ostream& os) {
 
     // get all results
     while (root->next()) {
-        cout << "starting next!\n";
+        // cout << "starting next!\n";
         // TODO: uncomment/comment to enable/disable printing results
         os << binding;
         count++;

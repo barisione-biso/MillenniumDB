@@ -15,7 +15,7 @@ public:
     ~LeftOuterJoin() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId& begin(BindingId& input) override;
+    void begin(BindingId& parent_binding, bool parent_has_next) override;
     void reset() override;
     bool next() override;
     bool has_result;
@@ -24,11 +24,11 @@ public:
 private:
     std::unique_ptr<BindingIdIter> lhs;
     std::unique_ptr<BindingIdIter> rhs;
-    // std::unique_ptr<BindingIdIter> basic_graph_pattern;
-    // std::vector<std::unique_ptr<Le>> children;
 
-    BindingId* current_left;
-    BindingId* current_right;
+    BindingId current_left;
+    BindingId current_right;
+
+    BindingId* parent_binding;
 };
 
 #endif // RELATIONAL_MODEL__LEFT_OUTER__JOIN_H_

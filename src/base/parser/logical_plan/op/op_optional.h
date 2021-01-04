@@ -46,9 +46,11 @@ public:
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
         os << "OpOptional()\n";
-        op->print_to_ostream(os, indent + 2);
+        os << std::string(indent + 2, ' ') << "main pattern:\n";
+        op->print_to_ostream(os, indent + 4);
         for (auto& optional : optionals) {
-            optional->print_to_ostream(os, indent + 2);
+            os << std::string(indent + 2, ' ') << "child:\n";
+            optional->print_to_ostream(os, indent + 4);
         }
         return os;
     };
