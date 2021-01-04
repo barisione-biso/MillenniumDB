@@ -118,10 +118,6 @@ public:
     GraphObject(const GraphObject& graph_object) :
         value (graph_object.value) { }
 
-    inline void operator=(const GraphObject& other) noexcept {
-        value = other.value;
-    }
-
     static GraphObject make_identifiable_external(const char* str) {
         IdentifiableExternal string_external{ str };
         return GraphObject(string_external);
@@ -173,7 +169,7 @@ public:
             }
             return GraphObject::make_string_inlined(c);
         } else {
-            return GraphObject::make_string_external(const_cast<char*>(str.c_str()));
+            return GraphObject::make_string_external(const_cast<char*>(str));
         }
     }
 
