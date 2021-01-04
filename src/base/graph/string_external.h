@@ -13,6 +13,10 @@ public:
 
     ~StringExternal() = default;
 
+    inline void operator=(const StringExternal& other) {
+        id = other.id;
+    }
+
     inline bool operator==(const StringExternal& rhs) const noexcept {
         return strcmp(this->id, rhs.id) == 0;
     }
