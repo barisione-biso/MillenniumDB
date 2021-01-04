@@ -1,0 +1,5 @@
+MATCH (:Item {id:"Q30"})-[e :CLAIM {property:"P6"}]->(president),
+      (c {id:e.claim})-[:QUALIFIER {property:"P580"}]->(start),
+      (c)-[:QUALIFIER {property:"P582"}]->(end)
+RETURN president, start.value, end.value
+LIMIT 1

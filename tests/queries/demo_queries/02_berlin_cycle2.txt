@@ -1,3 +1,0 @@
-// Ciclos de tamaño 2
-SELECT *
-MATCH (?x)->(?y)->(?x) ON "berlin"

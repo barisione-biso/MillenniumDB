@@ -1,0 +1,5 @@
+// SELECT ?property ?value
+// WHERE { <:Q42 ?property ?value ?i> }
+SELECT ?property, ?value.string_value
+MATCH (Q42)-[=TYPE(?property)]->(?value)
+LIMIT 100

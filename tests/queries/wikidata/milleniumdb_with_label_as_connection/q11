@@ -1,0 +1,10 @@
+// SELECT ?president ?start ?end
+// WHERE {
+//     <:Q30 :P6 ?president ?i > .
+//     ?g :P580q [ :time ?start ] ; :P582q [ :time ?end ] .
+// } ORDER BY (?start)
+SELECT ?president, ?start.time, ?end.time
+MATCH (Q30)-[?e :P6]->(?president),
+      (?e)-[:P580]->(?start),
+      (?e)-[:P582]->(?end)
+LIMIT 100

@@ -1,2 +1,0 @@
-SELECT ?f.title, ?f.date
-MATCH (?f :film) ON "lmdb"

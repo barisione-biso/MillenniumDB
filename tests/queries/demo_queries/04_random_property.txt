@@ -1,2 +1,0 @@
-SELECT *
-MATCH (?x)-[{derogates:true}]->(?y) ON "random"

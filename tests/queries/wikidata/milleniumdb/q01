@@ -1,6 +1,3 @@
 // US presidents and their wives
-SELECT ?president, ?wife, ?pl.string_value, ?wl.string_value
-MATCH (Q30)-[:P6]->(?president)-[:P26]->(?wife),
-      (?president)-[?e1 :Label]->(?pl),
-      (?wife)-[?e2 :Label]->(?wl)
-// WHERE ?e1.language == "en" AND ?e2.language == "en"
+SELECT ?president, ?wife, ?president.label, ?wife.label
+MATCH (Q30)-[:P6]->(?president)-[:P26]->(?wife)

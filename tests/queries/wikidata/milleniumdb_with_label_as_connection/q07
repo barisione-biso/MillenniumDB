@@ -1,0 +1,12 @@
+// SELECT DISTINCT ?entity ?year
+// WHERE {
+//     <?entityS :P569 ?value ?i1> .
+//     ?value :time ?date .
+//     ?entityS rs:label ?entity .
+//     FILTER(lang(?entity)="en")
+//     FILTER(date(?date)=month(now()) && date(?date)=day(now()))
+// } LIMIT 10
+SELECT ?entity, ?entitylabel.string_value
+MATCH (?entity)-[:P569]->(?value {time:"+1950-02-01T00:00:00Z"}),
+      (?entity)-[:Label]->(?entitylabel)
+LIMIT 100

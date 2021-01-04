@@ -1,0 +1,4 @@
+MATCH (:Item {id:"Q42"})-[e]->(value)
+WHERE value.value IS NOT NULL
+RETURN e.property, value.value
+LIMIT 100
