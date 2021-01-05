@@ -8,8 +8,11 @@ ObjectId GraphObjectVisitor::operator()(const IdentifiableInlined& identifiable_
     std::string str(identifiable_inlined.id);
     uint64_t res = 0;
     int shift_size = 0;
-    for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
-        res |= byte << shift_size;
+    // MUST convert to uint8_t and then to uint64_t.
+    // Shift with shift_size >=32 is undefined behaviour.
+    for (uint8_t byte : str) {
+        uint64_t byte64 = static_cast<uint64_t>(byte);
+        res |= byte64 << shift_size;
         shift_size += 8;
     }
     return ObjectId(res | GraphModel::IDENTIFIABLE_INLINED_MASK);
@@ -42,8 +45,11 @@ ObjectId GraphObjectVisitor::operator()(const StringInlined& string_inlined) con
 
     uint64_t res = 0;
     int shift_size = 0;
-    for (uint64_t byte : str) { // MUST convert to 64bits or shift (shift_size >=32) is undefined behaviour
-        res |= byte << shift_size;
+    // MUST convert to uint8_t and then to uint64_t.
+    // Shift with shift_size >=32 is undefined behaviour.
+    for (uint8_t byte : str) {
+        uint64_t byte64 = static_cast<uint64_t>(byte);
+        res |= byte64 << shift_size;
         shift_size += 8;
     }
     return ObjectId(res | GraphModel::VALUE_INLINE_STR_MASK);

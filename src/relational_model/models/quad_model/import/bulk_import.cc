@@ -303,6 +303,14 @@ uint64_t BulkImport::get_node_id(const string& node_name) {
     if (created) {
         model.node_table->append_record(RecordFactory::get(obj_id));
         ++catalog.identifiable_nodes_count;
+    } else {
+        if (node_name.size() < 8) {
+            // TODO: node table dont contain inline strings, use std::unordered_map?
+            if (false) {
+                model.node_table->append_record(RecordFactory::get(obj_id));
+                ++catalog.identifiable_nodes_count;
+            }
+        }
     }
     return obj_id;
 }
