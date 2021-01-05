@@ -1,5 +1,7 @@
 #include "edge_table_lookup.h"
 
+#include <cassert>
+
 #include "relational_model/models/quad_model/quad_model.h"
 
 EdgeTableLookup::EdgeTableLookup(std::size_t binding_size, RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type) :
@@ -41,10 +43,13 @@ bool EdgeTableLookup::next() {
         auto edge_assignation = (*my_input)[edge];
         auto edge_id = QuadModel::VALUE_MASK & edge_assignation.id;
 
-        auto record = table[edge_id];
+        assert(edge_id > 0);
+        auto record = table[edge_id - 1]; // first edge has the id 1, and its inserted at pos 0 in the table
         if (record == nullptr) {
             return false;
         } else {
+            my_binding.add_all(*my_input);
+
             // check if assignated variables (not null) have the same value
             if (std::holds_alternative<VarId>(from)) {
                 auto from_value = (*my_input)[std::get<VarId>(from)];
@@ -91,7 +96,6 @@ bool EdgeTableLookup::next() {
                     my_binding.add(std::get<VarId>(type), ObjectId(record->ids[2]));
                 }
             }
-            my_binding.add_all(*my_input);
             ++results;
             return true;
         }
