@@ -37,5 +37,5 @@ void ObjectEnum::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "ObjectEnum(found: " << current_node << ")\n";
+    cout << "ObjectEnum(results: " << (current_node-1) << ")\n";
 }
