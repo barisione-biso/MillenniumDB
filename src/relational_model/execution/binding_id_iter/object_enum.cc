@@ -9,10 +9,9 @@ ObjectEnum::ObjectEnum(std::size_t binding_size, VarId var_id, const uint64_t ma
     max_count (max_count) { }
 
 
-void ObjectEnum::begin(BindingId& parent_binding, bool) {
+void ObjectEnum::begin(BindingId& parent_binding, bool /*parent_has_next*/) {
     this->parent_binding = &parent_binding;
     current_node = 0;
-    // return my_binding;
 }
 
 
@@ -30,6 +29,11 @@ bool ObjectEnum::next() {
 
 void ObjectEnum::reset() {
     current_node = 0;
+}
+
+
+void ObjectEnum::assign_nulls() {
+    parent_binding->add(var_id, ObjectId::get_null());
 }
 
 

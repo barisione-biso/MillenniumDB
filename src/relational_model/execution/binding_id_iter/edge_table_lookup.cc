@@ -11,23 +11,10 @@ EdgeTableLookup::EdgeTableLookup(std::size_t binding_size, RandomAccessTable<3>&
     type  (type) { }
 
 
-void EdgeTableLookup::analyze(int indent) const {
-    for (int i = 0; i < indent; ++i) {
-        std::cout << ' ';
-    }
-    std::cout << "EdgeTableLookup(lookups: " << lookups << ", found: " << results << ")\n";
-}
-
-
 void EdgeTableLookup::begin(BindingId& parent_binding, bool) {
     already_looked = false;
     this->parent_binding = &parent_binding;
     // return my_binding;
-}
-
-
-void EdgeTableLookup::reset() {
-    already_looked = false;
 }
 
 
@@ -91,9 +78,35 @@ bool EdgeTableLookup::next() {
                     parent_binding->add(std::get<VarId>(type), ObjectId(record->ids[2]));
                 }
             }
-            // my_input.add_all(*my_input);
             ++results;
             return true;
         }
     }
+}
+
+
+void EdgeTableLookup::reset() {
+    already_looked = false;
+}
+
+
+void EdgeTableLookup::assign_nulls() {
+    parent_binding->add(edge, ObjectId::get_null());
+    if (std::holds_alternative<VarId>(from)) {
+        parent_binding->add(std::get<VarId>(from), ObjectId::get_null());
+    }
+    if (std::holds_alternative<VarId>(to)) {
+        parent_binding->add(std::get<VarId>(to), ObjectId::get_null());
+    }
+    if (std::holds_alternative<VarId>(type)) {
+        parent_binding->add(std::get<VarId>(type), ObjectId::get_null());
+    }
+}
+
+
+void EdgeTableLookup::analyze(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        std::cout << ' ';
+    }
+    std::cout << "EdgeTableLookup(lookups: " << lookups << ", found: " << results << ")\n";
 }

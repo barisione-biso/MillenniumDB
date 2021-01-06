@@ -17,6 +17,7 @@ public:
     virtual void begin(BindingId& parent_binding, bool parent_has_next) = 0;
     virtual void reset() = 0;
     virtual bool next() = 0; // next returning false means there are not more bindings
+    virtual void assign_nulls() = 0;
 
     // prints execution statistics
     virtual void analyze(int indent = 0) const = 0;

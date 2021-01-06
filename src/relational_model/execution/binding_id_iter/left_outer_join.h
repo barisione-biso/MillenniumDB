@@ -16,18 +16,15 @@ public:
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
-    void reset() override;
     bool next() override;
+    void reset() override;
+    void assign_nulls() override;
     bool has_result;
     bool has_left;
 
 private:
     std::unique_ptr<BindingIdIter> lhs;
     std::unique_ptr<BindingIdIter> rhs;
-
-    BindingId current_left;
-    BindingId current_right;
-
     BindingId* parent_binding;
 };
 

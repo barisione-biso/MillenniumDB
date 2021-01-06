@@ -14,12 +14,12 @@ public:
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
-    void reset() override;
     bool next() override;
+    void reset() override;
+    void assign_nulls() override;
 
 private:
     std::vector<std::unique_ptr<BindingIdIter>> iters;
-    std::vector<BindingId*> my_inputs;
     uint_fast32_t current_iter;
 };
 

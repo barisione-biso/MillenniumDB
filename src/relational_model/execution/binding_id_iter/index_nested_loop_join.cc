@@ -30,14 +30,6 @@ void IndexNestedLoopJoin::begin(BindingId& parent_binding, bool parent_has_next)
     }
 }
 
-
-void IndexNestedLoopJoin::reset() {
-    lhs->reset();
-    if (lhs->next())
-        rhs->reset();
-}
-
-
 bool IndexNestedLoopJoin::next() {
     while (true) {
         if (rhs->next()) {
@@ -52,6 +44,18 @@ bool IndexNestedLoopJoin::next() {
                 return false;
         }
     }
+}
+
+void IndexNestedLoopJoin::reset() {
+    lhs->reset();
+    if (lhs->next())
+        rhs->reset();
+}
+
+
+void IndexNestedLoopJoin::assign_nulls() {
+    rhs->assign_nulls();
+    lhs->assign_nulls();
 }
 
 

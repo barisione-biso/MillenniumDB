@@ -23,8 +23,9 @@ public:
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
-    void reset() override;
     bool next() override;
+    void reset() override;
+    void assign_nulls() override;
 };
 
 #endif // RELATIONAL_MODEL__NODE_TABLE_ENUM_H_

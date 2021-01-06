@@ -13,65 +13,44 @@ LeftOuterJoin::LeftOuterJoin(std::size_t binding_size,
                              unique_ptr<BindingIdIter> rhs) :
     // BindingIdIter(binding_size),
     lhs           (move(lhs)),
-    rhs           (move(rhs)),
-    current_left  (binding_size),
-    current_right (binding_size) { }
+    rhs           (move(rhs)) { }
 
 
 void LeftOuterJoin::begin(BindingId& parent_binding, bool parent_has_next) {
     has_result = false;
     this->parent_binding = &parent_binding;
-    current_left.add_all(parent_binding);
-    current_right.add_all(parent_binding);
     if (!parent_has_next) {
         has_left = false;
-        lhs->begin(current_left, false);
-        rhs->begin(current_right, false);
+        lhs->begin(parent_binding, false);
+        rhs->begin(parent_binding, false);
     } else {
-        lhs->begin(current_left, true);
+        lhs->begin(parent_binding, true);
         if (lhs->next()) {
-            current_right.add_all(current_left); // NEW
             has_left = true;
-            rhs->begin(current_right, true);
+            rhs->begin(parent_binding, true);
         } else {
             has_left = false;
-            rhs->begin(current_right, false);
+            rhs->begin(parent_binding, false);
         }
     }
 }
 
 
-void LeftOuterJoin::reset() {
-    has_result = false;
-    has_left = true;
-    lhs->reset();
-    if (lhs->next()) {
-        current_right.add_all(current_left); // NEW
-        rhs->reset();
-    } else {
-        has_left = false;
-    }
-}
-
-
 bool LeftOuterJoin::next() {
-    if(!has_left) {
+    if (!has_left) {
         return false;
     }
     while (true) {
         if (rhs->next()) {
             has_result = true;
-            parent_binding->add_all(current_left);
-            parent_binding->add_all(current_right);
             return true;
         } else {
             if (!has_result) {
-                parent_binding->add_all(current_left);
+                rhs->assign_nulls();
                 has_result = true;
                 return true;
             } else {
                 if (lhs->next()) {
-                    current_right.add_all(current_left); // NEW
                     has_result = false;
                     rhs->reset();
                 } else {
@@ -80,6 +59,24 @@ bool LeftOuterJoin::next() {
             }
         }
     }
+}
+
+
+void LeftOuterJoin::reset() {
+    has_result = false;
+    lhs->reset();
+    if (lhs->next()) {
+        rhs->reset();
+        has_left = true;
+    } else {
+        has_left = false;
+    }
+}
+
+
+void LeftOuterJoin::assign_nulls() {
+    lhs->assign_nulls();
+    rhs->assign_nulls();
 }
 
 

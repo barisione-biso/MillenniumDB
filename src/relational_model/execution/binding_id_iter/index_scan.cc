@@ -95,6 +95,14 @@ void IndexScan<N>::reset() {
 
 
 template <std::size_t N>
+void IndexScan<N>::assign_nulls(){
+    for (uint_fast32_t i = 0; i < N; ++i) {
+        ranges[i]->try_assign(*parent_binding, ObjectId::get_null());
+    }
+}
+
+
+template <std::size_t N>
 void IndexScan<N>::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
