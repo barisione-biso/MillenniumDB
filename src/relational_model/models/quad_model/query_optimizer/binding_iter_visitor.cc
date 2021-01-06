@@ -171,25 +171,6 @@ void BindingIterVisitor::visit(const OpGroupBy& op_group_by) {
 }
 
 
-ObjectId BindingIterVisitor::get_value_id(const common::ast::Value& value) {
-    if (value.type() == typeid(string)) {
-        return model.get_object_id(GraphObject::make_string( boost::get<string>(value) ));
-    }
-    else if (value.type() == typeid(int64_t)) {
-        return model.get_object_id(GraphObject::make_int( boost::get<int64_t>(value) ));
-    }
-    else if (value.type() == typeid(float)) {
-        return model.get_object_id(GraphObject::make_float( boost::get<float>(value) ));
-    }
-    else if (value.type() == typeid(bool)) {
-        return model.get_object_id(GraphObject::make_bool( boost::get<bool>(value) ));
-    }
-    else {
-        throw logic_error("Unknown value type.");
-    }
-}
-
-
 // You only should use this after var_name2var_id was setted at visit(OpGraphPatternRoot)
 VarId BindingIterVisitor::get_var_id(const std::string& var) {
     auto search = var_name2var_id.find(var);

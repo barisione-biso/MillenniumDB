@@ -1,3 +1,6 @@
-MATCH (h)-[:CLAIM {property:"P39"}]->(:Item {id:"Q11696"})
-MATCH (h)-[:CLAIM {property:"P509"}]->(c)
+MATCH (h)-[:CLAIM]->(c1)-[:CV]->(:Item {id:"Q11696"})
+MATCH (h)-[:CLAIM]->(c2)-[:CV]->(c)
+MATCH (c1)-[:CPROP]->(:Property {id:"P39"})
+MATCH (c2)-[:CPROP]->(:Property {id:"P509"})
+
 RETURN h.id, c.id, h.label, c.label;

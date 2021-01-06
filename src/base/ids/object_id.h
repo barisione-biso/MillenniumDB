@@ -25,8 +25,9 @@ public:
     inline bool is_not_found() const noexcept { return id == OBJECT_ID_NOT_FOUND; }
 
     ObjectId& operator=(const ObjectId&) = default;
-    bool operator==(const ObjectId& rhs) const noexcept { return id == rhs.id; }
-    bool operator!=(const ObjectId& rhs) const noexcept { return id != rhs.id; }
+    inline bool operator==(const ObjectId& rhs) const noexcept { return id == rhs.id; }
+    inline bool operator!=(const ObjectId& rhs) const noexcept { return id != rhs.id; }
+    inline bool operator<(const ObjectId& rhs)  const noexcept { return id <  rhs.id; }
 };
 
 #endif // BASE__OBJECT_ID_H_

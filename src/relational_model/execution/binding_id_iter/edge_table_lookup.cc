@@ -1,9 +1,10 @@
 #include "edge_table_lookup.h"
 
+#include <cassert>
+
 #include "relational_model/models/quad_model/quad_model.h"
 
-EdgeTableLookup::EdgeTableLookup(std::size_t binding_size, RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type) :
-    // BindingIdIter(binding_size),
+EdgeTableLookup::EdgeTableLookup(std::size_t, RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type) :
     table (table),
     edge  (edge),
     from  (from),
@@ -11,10 +12,17 @@ EdgeTableLookup::EdgeTableLookup(std::size_t binding_size, RandomAccessTable<3>&
     type  (type) { }
 
 
-void EdgeTableLookup::begin(BindingId& parent_binding, bool) {
+void EdgeTableLookup::analyze(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        std::cout << ' ';
+    }
+    std::cout << "EdgeTableLookup(lookups: " << lookups << ", found: " << results << ")\n";
+}
+
+
+void EdgeTableLookup::begin(BindingId& parent_binding, bool /*parent_has_next*/) {
     already_looked = false;
     this->parent_binding = &parent_binding;
-    // return my_binding;
 }
 
 
@@ -28,7 +36,8 @@ bool EdgeTableLookup::next() {
         auto edge_assignation = (*parent_binding)[edge];
         auto edge_id = QuadModel::VALUE_MASK & edge_assignation.id;
 
-        auto record = table[edge_id];
+        assert(edge_id > 0);
+        auto record = table[edge_id - 1]; // first edge has the id 1, and its inserted at pos 0 in the table
         if (record == nullptr) {
             return false;
         } else {
@@ -101,12 +110,4 @@ void EdgeTableLookup::assign_nulls() {
     if (std::holds_alternative<VarId>(type)) {
         parent_binding->add(std::get<VarId>(type), ObjectId::get_null());
     }
-}
-
-
-void EdgeTableLookup::analyze(int indent) const {
-    for (int i = 0; i < indent; ++i) {
-        std::cout << ' ';
-    }
-    std::cout << "EdgeTableLookup(lookups: " << lookups << ", found: " << results << ")\n";
 }

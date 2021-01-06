@@ -14,6 +14,9 @@
 #include "base/graph/string_external.h"
 
 struct NullGraphObject {
+    inline void operator=(const NullGraphObject&) {
+    }
+
     inline bool operator==(const NullGraphObject&) const noexcept {
         return false;
     }
@@ -40,6 +43,9 @@ struct NullGraphObject {
 };
 
 struct NotFoundObject {
+    inline void operator=(const NotFoundObject&) {
+    }
+
     inline bool operator==(const NotFoundObject&) const noexcept {
         return false;
     }
@@ -85,12 +91,12 @@ struct GraphObjectOstreamVisitor {
     GraphObjectOstreamVisitor(std::ostream& os) :
         os (os) { }
 
-    void operator()(const IdentifiableInlined& i)   const { os << i.id; }
-    void operator()(const IdentifiableExternal& i)  const { os << i.id; }
+    void operator()(const IdentifiableInlined& i)   const { os << '(' << i.id << ')'; }
+    void operator()(const IdentifiableExternal& i)  const { os << '(' << i.id << ')'; }
     void operator()(const Edge& e)                  const { os << "_e(" << e.id << ')'; }
     void operator()(const AnonymousNode& a)         const { os << "_a(" << a.id << ')'; }
-    void operator()(const StringInlined& s)         const { os << s.id; }
-    void operator()(const StringExternal& s)        const { os << s.id; }
+    void operator()(const StringInlined& s)         const { os << '"' << s.id << '"'; }
+    void operator()(const StringExternal& s)        const { os << '"' << s.id << '"'; }
     void operator()(const NullGraphObject&)         const { os << "null"; }
     void operator()(const NotFoundObject&)          const { os << "NotFoundObj"; }
     void operator()(const int64_t n)                const { os << n; }
@@ -105,6 +111,12 @@ struct GraphObjectOstreamVisitor {
 class GraphObject {
 public:
     GraphObjectVariant value;
+
+    GraphObject() :
+        value (NullGraphObject()) { }
+
+    GraphObject(const GraphObject& graph_object) :
+        value (graph_object.value) { }
 
     static GraphObject make_identifiable_external(const char* str) {
         IdentifiableExternal string_external{ str };
@@ -144,11 +156,12 @@ public:
         return GraphObject(NotFoundObject());
     }
 
-    static GraphObject make_string(const std::string& str) {
-        if (str.size() < 8) {
+    static GraphObject make_string(const char* str) {
+        std::size_t size = strlen(str);
+        if (size < 8) {
             char c[8];
             std::size_t i = 0;
-            for (; i < str.size(); ++i) {
+            for (; i < size; ++i) {
                 c[i] = str[i];
             }
             for (; i < 8; ++i) {
@@ -156,7 +169,7 @@ public:
             }
             return GraphObject::make_string_inlined(c);
         } else {
-            return GraphObject::make_string_external(str.c_str());
+            return GraphObject::make_string_external(const_cast<char*>(str));
         }
     }
 
@@ -172,7 +185,7 @@ public:
             }
             return GraphObject::make_identifiable_inlined(c);
         } else {
-            return GraphObject::make_identifiable_external(str.c_str());
+            return GraphObject::make_identifiable_external(const_cast<char*>(str.c_str()));
         }
     }
 
@@ -192,27 +205,147 @@ public:
         return os;
     }
 
-    bool operator==(const GraphObject& rhs) const noexcept {
+    inline void operator=(const GraphObject& other) noexcept {
+        this->value = other.value;
+    }
+
+    inline bool operator==(const GraphObject& rhs) const noexcept {
         return this->value == rhs.value;
     }
 
-    bool operator!=(const GraphObject& rhs) const noexcept {
+    inline bool operator!=(const GraphObject& rhs) const noexcept {
         return this->value != rhs.value;
     }
 
-    bool operator<=(const GraphObject& rhs) const noexcept {
+    inline bool operator<=(const GraphObject& rhs) const noexcept {
+        if (std::holds_alternative<StringExternal>(this->value)) {
+            if (std::holds_alternative<StringInlined>(rhs.value)) {
+                return strcmp(
+                    std::get<StringExternal>(this->value).id,
+                    std::get<StringInlined>(rhs.value).id
+                ) <= 0;
+            }
+        }
+
+        else if (std::holds_alternative<StringInlined>(this->value)) {
+            if (std::holds_alternative<StringExternal>(rhs.value)) {
+                return strcmp(
+                    std::get<StringInlined>(this->value).id,
+                    std::get<StringExternal>(rhs.value).id
+                ) <= 0;
+            }
+        }
+
+        else if (std::holds_alternative<int64_t>(this->value)) {
+            if (std::holds_alternative<float>(rhs.value)) {
+                return std::get<int64_t>(this->value) <= std::get<float>(rhs.value);
+            }
+        }
+
+        else if (std::holds_alternative<float>(this->value)) {
+            if (std::holds_alternative<int64_t>(rhs.value)) {
+                return std::get<float>(this->value) <= std::get<int64_t>(rhs.value);
+            }
+        }
         return this->value <= rhs.value;
     }
 
-    bool operator>=(const GraphObject& rhs) const noexcept {
+    inline bool operator>=(const GraphObject& rhs) const noexcept {
+        if (std::holds_alternative<StringExternal>(this->value)) {
+            if (std::holds_alternative<StringInlined>(rhs.value)) {
+                return strcmp(
+                    std::get<StringExternal>(this->value).id,
+                    std::get<StringInlined>(rhs.value).id
+                ) >= 0;
+            }
+        }
+
+        else if (std::holds_alternative<StringInlined>(this->value)) {
+            if (std::holds_alternative<StringExternal>(rhs.value)) {
+                return strcmp(
+                    std::get<StringInlined>(this->value).id,
+                    std::get<StringExternal>(rhs.value).id
+                ) >= 0;
+            }
+        }
+
+        else if (std::holds_alternative<int64_t>(this->value)) {
+            if (std::holds_alternative<float>(rhs.value)) {
+                return std::get<int64_t>(this->value) >= std::get<float>(rhs.value);
+            }
+        }
+
+        else if (std::holds_alternative<float>(this->value)) {
+            if (std::holds_alternative<int64_t>(rhs.value)) {
+                return std::get<float>(this->value) >= std::get<int64_t>(rhs.value);
+            }
+        }
         return this->value >= rhs.value;
     }
 
-    bool operator<(const GraphObject& rhs)  const noexcept {
+    inline bool operator<(const GraphObject& rhs)  const noexcept {
+        if (std::holds_alternative<StringExternal>(this->value)) {
+            if (std::holds_alternative<StringInlined>(rhs.value)) {
+                return strcmp(
+                    std::get<StringExternal>(this->value).id,
+                    std::get<StringInlined>(rhs.value).id
+                ) < 0;
+            }
+        }
+
+        else if (std::holds_alternative<StringInlined>(this->value)) {
+            if (std::holds_alternative<StringExternal>(rhs.value)) {
+                return strcmp(
+                    std::get<StringInlined>(this->value).id,
+                    std::get<StringExternal>(rhs.value).id
+                ) < 0;
+            }
+        }
+
+        else if (std::holds_alternative<int64_t>(this->value)) {
+            if (std::holds_alternative<float>(rhs.value)) {
+                return std::get<int64_t>(this->value) < std::get<float>(rhs.value);
+            }
+        }
+
+        else if (std::holds_alternative<float>(this->value)) {
+            if (std::holds_alternative<int64_t>(rhs.value)) {
+                return std::get<float>(this->value) < std::get<int64_t>(rhs.value);
+            }
+        }
         return this->value < rhs.value;
     }
 
-    bool operator>(const GraphObject& rhs)  const noexcept {
+    inline bool operator>(const GraphObject& rhs)  const noexcept {
+        if (std::holds_alternative<StringExternal>(this->value)) {
+            if (std::holds_alternative<StringInlined>(rhs.value)) {
+                return strcmp(
+                    std::get<StringExternal>(this->value).id,
+                    std::get<StringInlined>(rhs.value).id
+                ) > 0;
+            }
+        }
+
+        else if (std::holds_alternative<StringInlined>(this->value)) {
+            if (std::holds_alternative<StringExternal>(rhs.value)) {
+                return strcmp(
+                    std::get<StringInlined>(this->value).id,
+                    std::get<StringExternal>(rhs.value).id
+                ) > 0;
+            }
+        }
+
+        else if (std::holds_alternative<int64_t>(this->value)) {
+            if (std::holds_alternative<float>(rhs.value)) {
+                return std::get<int64_t>(this->value) > std::get<float>(rhs.value);
+            }
+        }
+
+        else if (std::holds_alternative<float>(this->value)) {
+            if (std::holds_alternative<int64_t>(rhs.value)) {
+                return std::get<float>(this->value) > std::get<int64_t>(rhs.value);
+            }
+        }
         return this->value > rhs.value;
     }
 

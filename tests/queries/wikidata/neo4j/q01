@@ -1,3 +1,5 @@
 // US presidents and their wives
-MATCH (:Item {id:"Q30"})-[:CLAIM {property:"P6"}]->(p)-[:CLAIM {property:"P26"}]->(w)
+MATCH (:Item {id:"Q30"})-[:CLAIM]->(c1)-[:CV]->(p)-[:CLAIM]->(c2)-[:CV]->(w)
+MATCH (c1)-[:CPROP]->(:Property {id:"P6"})
+MATCH (c2)-[:CPROP]->(:Property {id:"P26"})
 RETURN p.id, w.id , p.label, w.label;

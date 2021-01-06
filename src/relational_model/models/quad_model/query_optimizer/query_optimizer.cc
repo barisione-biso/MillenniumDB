@@ -11,21 +11,13 @@
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
-#include "base/parser/logical_plan/op/op_optional.h"
-#include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
 
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
-
-// CRIS INCLUDES
-#include "relational_model/execution/binding_id_iter/left_outer_join.h"
-#include "relational_model/execution/binding_id_iter/optional_node.h"
-#include "relational_model/execution/binding_id_iter/index_scan.h"
-#include "base/ids/object_id.h"
-#include "base/ids/var_id.h"
-// END CRIS INCLUDES
+#include "relational_model/execution/binding_iter/order_by.h"
+#include "relational_model/execution/binding_iter/group_by.h"
 
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
@@ -51,7 +43,6 @@ unique_ptr<BindingIter> QueryOptimizer::exec(OpSelect& op_select) {
 
 void QueryOptimizer::visit(const OpSelect& op_select) {
     // need to remember to be able to push properties from select to match
-    
     select_items = move(op_select.select_items);
     op_select.op->accept_visitor(*this);
 
@@ -76,50 +67,10 @@ void QueryOptimizer::visit(const OpSelect& op_select) {
     tmp = make_unique<Select>(move(tmp), move(projection_vars), op_select.limit);
 }
 
-// MATCH (?x :Person)
-// MATCH (?x)->(?y)
-// MATCH (?x :Person) OPTIONAL { (?x)->(?y) }
-
-//   OpSelect
-//       |
-//   OpFilter
-//       |
-//   OpMatch
-
-
-//   OpSelect
-//       |
-//   OpFilter
-//       |
-//   OpGraphPatternRoot
-//       |
-//   OpOptional
-//     /   \
-// OpBGP  (   )
-//       /  |  \
-//  OpBGP OpBGP OpOptional
-//                /   \
-//            OpBGP   OpBGP
-
-//   OpSelect
-//       |
-//   OpFilter
-//       |
-//   OpMatch
-
-//   OpSelect
-//       |
-//   OpFilter
-//       |
-//    OpMatch
-//       |
-//     OpBGP
 
 void QueryOptimizer::visit(const OpMatch& op_match) {
-    // TODO: Dejar vacío
-
-    // TODO: DELETE this is on visit op_match on binding_id_iter_visitor.cc
     vector<unique_ptr<JoinPlan>> base_plans;
+
 
     // Process Labels
     for (auto& op_label : op_match.labels) {
@@ -140,8 +91,8 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
 
     // Process properties from Match
     for (auto& op_property : op_match.properties) {
-        auto key_id     = model.get_string_id(op_property.key);
-        auto value_id   = get_value_id(op_property.value);
+        auto key_id   = model.get_string_id(op_property.key);
+        auto value_id = get_value_id(op_property.value);
 
         if (op_property.obj_name[0] == '?') {
             auto obj_var_id = get_var_id(op_property.obj_name);
@@ -157,12 +108,23 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
         }
     }
 
+    // Push properties from SELECT into MATCH
+    for (const auto& select_item : select_items) {
+        if (select_item.key) {
+            auto obj_var_id = get_var_id(select_item.var);
+            auto value_var  = get_var_id(select_item.var + '.' + select_item.key.get());
+            auto key_id     = model.get_string_id(select_item.key.get());
+
+            base_plans.push_back(
+                make_unique<PropertyPlan>(model, obj_var_id, key_id, value_var)
+            );
+        }
+    }
+
     // Process UnjointObjects when select doesn't project a property of them.
     // We need to discard UnjointObjects like ?x in:
     // SELECT ?x.name
     // MATCH (?x)
-
-    // TODO: add this case
     for (auto& unjoint_object : op_match.unjoint_objects) {
         bool unjoint_object_mentioned_in_select = false;
         for (const auto& select_item : select_items) {
@@ -213,7 +175,7 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
             }
         }
         if (connection_labels_found == 0) {
-            auto type_id = get_var_id(op_connection.edge + ":type");
+            auto type_id = get_var_id(op_connection.edge + ".type");
             base_plans.push_back(
                 make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
             );
@@ -225,82 +187,19 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
         throw QuerySemanticException("Property paths not implemented yet");
     }
 
-    // TODO: DELETE this is the end of visit op_match on binding_id_iter_visitor.cc
-
-    // TODO: DELETE this is on visit op_graph_pattern_root on binding_iter_visitor.cc
     vector<string> var_names;
     var_names.resize(id_map.size());
     for (auto&& [var_name, var_id] : id_map) {
         var_names[var_id.id] = var_name;
     }
 
-    // get binding size
-    unique_ptr<BindingIdIter> binding_id_iter;
-
-    for (auto& property_path : op_match.property_paths) {
-        throw QuerySemanticException("Property paths not implemented yet");
-    }
-
-    var_names.resize(id_map.size());
-    for (auto&& [var_name, var_id] : id_map) {
-        var_names[var_id.id] = var_name;
-    }
-
-    for (const auto& select_item : select_items) {
-        if (select_item.key) {
-            // This is for filling up id_map in order to know the binding_size
-            get_var_id(select_item.var);
-            get_var_id(select_item.var + '.' + select_item.key.get());
-        }
-    }
-
-    // final size
     auto binding_size = id_map.size();
-
-    printf("FINAL SIZE (QO): %d\n", binding_size);
-
-    // get initial binding_id_iter
-    if (base_plans.size() <= MAX_SELINGER_PLANS && 0 > 1) { //TODO: REMOVE 0 > 1
-        // TODO: construir aca var_names
+    if (base_plans.size() <= MAX_SELINGER_PLANS) {
         auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
-        binding_id_iter = selinger_optimizer.get_binding_id_iter(binding_size);
+        tmp = make_unique<Match>(model, selinger_optimizer.get_binding_id_iter(binding_size), binding_size);
     } else {
-        printf("ON GJP \n");
-        binding_id_iter = get_greedy_join_plan( move(base_plans), binding_size);
+        tmp = make_unique<Match>(model, get_greedy_join_plan(move(base_plans), binding_size), binding_size);
     }
-
-    // vector of binding_id_iter
-    vector<unique_ptr<BindingIdIter>> opt_children;
-
-    // Push properties from SELECT into MATCH
-    for (const auto& select_item : select_items) {
-        if (select_item.key) {
-            auto obj_var_id = get_var_id(select_item.var);
-            auto value_var  = get_var_id(select_item.var + '.' + select_item.key.get());
-
-            // TODO: check property is not present in Match
-            // TODO: explicar porque funciona mal si no se vuelve a meter el property en el match
-            auto key_id = model.get_string_id(select_item.key.get());
-
-            array<unique_ptr<ScanRange>, 3> ranges;
-
-            ranges[0] = get_scan_range(obj_var_id, true);
-            ranges[1] = get_scan_range(key_id, true);
-            ranges[2] = get_scan_range(value_var, false);
-            auto index_scan = make_unique<IndexScan<3>>(binding_size, *model.object_key_value, move(ranges));
-            // binding_id_iter = make_unique<LeftOuterJoin>(binding_size, move(binding_id_iter), move(index_scan));
-            opt_children.push_back(move(index_scan));
-
-        }
-    }
-    // En visit de OpGraphPatternRoot
-    // PASO 1: se obtiene binding_id_iter con lo que hay en OpGraphPatterRoot.op
-    // PASO 2: se extiende binding_id_iter con lo que hay en OpSelect (guardar elementos en una variable)
-    // PASO 3: return make_unique<Match>(model, move(binding_id_iter), binding_size);
-
-    // Optional node
-    binding_id_iter = make_unique<OptionalNode>(binding_size, move(binding_id_iter), move(opt_children));
-    tmp = make_unique<Match>(model, move(binding_id_iter), binding_size);
 }
 
 
@@ -324,7 +223,7 @@ void QueryOptimizer::visit(const OpFilter& op_filter) {
 
 VarId QueryOptimizer::get_var_id(const std::string& var) {
     auto search = id_map.find(var);
-    if (search != id_map.end()) {
+    if (id_map.find(var) != id_map.end()) {
         return (*search).second;
     }
     else {
@@ -335,21 +234,10 @@ VarId QueryOptimizer::get_var_id(const std::string& var) {
 }
 
 
-std::unique_ptr<ScanRange> QueryOptimizer::get_scan_range(Id id, bool assigned) {
-    if ( std::holds_alternative<ObjectId>(id) ) {
-        return std::make_unique<Term>(std::get<ObjectId>(id));
-    } else if (assigned) {
-        return std::make_unique<AssignedVar>(std::get<VarId>(id));
-    } else {
-        return std::make_unique<UnassignedVar>(std::get<VarId>(id));
-    }
-}
-
-
 ObjectId QueryOptimizer::get_value_id(const common::ast::Value& value) {
     if (value.type() == typeid(string)) {
         auto str = boost::get<string>(value);
-        return model.get_object_id(GraphObject::make_string(str));
+        return model.get_object_id(GraphObject::make_string(str.c_str()));
     }
     else if (value.type() == typeid(int64_t)) {
         return model.get_object_id(GraphObject::make_int( boost::get<int64_t>(value) ));
@@ -368,7 +256,7 @@ ObjectId QueryOptimizer::get_value_id(const common::ast::Value& value) {
 
 unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(
     vector<unique_ptr<JoinPlan>> base_plans,
-    std::size_t binding_size) // TODO: falta saber que variables están asignadas
+    std::size_t binding_size)
 {
     auto base_plans_size = base_plans.size();
 
@@ -426,7 +314,7 @@ unique_ptr<BindingIdIter> QueryOptimizer::get_greedy_join_plan(
                 if (base_plans[j] == nullptr) {
                     continue;
                 }
-                auto nested_loop_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                auto nested_loop_plan =  make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
 
                 auto nested_loop_cost = nested_loop_plan->estimate_cost();
 
@@ -537,26 +425,39 @@ unique_ptr<BindingIter> QueryOptimizer::exec(manual_plan::ast::ManualRoot& root)
 
 void QueryOptimizer::visit(const OpGroupBy& op_group_by) {
     op_group_by.op->accept_visitor(*this);
+    std::vector<std::pair<std::string, VarId>> group_vars;
+    for (const auto& group_item : op_group_by.items) {
+        string var_name = group_item.var;
+        if (group_item.key) {
+            var_name += '.';
+            var_name += group_item.key.get();
+        }
+        auto var_id = get_var_id(var_name);
+        group_vars.push_back(make_pair(var_name, var_id));
+    }
+    auto binding_size = id_map.size();
+    tmp = make_unique<GroupBy>(model, move(tmp), move(group_vars), binding_size);
 }
 
 
 void QueryOptimizer::visit(const OpOrderBy& order_by) {
     order_by.op->accept_visitor(*this);
+    std::vector<std::pair<std::string, VarId>> order_vars;
+    for (const auto& order_item : order_by.items) {
+        string var_name = order_item.var;
+        if (order_item.key) {
+            var_name += '.';
+            var_name += order_item.key.get();
+        }
+        auto var_id = get_var_id(var_name);
+        order_vars.push_back(make_pair(var_name, var_id));
+    }
+    auto binding_size = id_map.size();
+    tmp = make_unique<OrderBy>(model, move(tmp), move(order_vars), binding_size, order_by.ascending_order);
 }
 
 
-void QueryOptimizer::visit(const OpGraphPatternRoot& graph_pattern_root) {
-    /*
-        NewVisitor visitor(...); // TODO: pasar parametros?
-        graph_pattern_root.op->accept_visitor(visitor);
-        // TODO: poner cosas del select como opcionales
-        tmp = make_unique<Match>(model, move(visitor.tmp), binding_size);
-    */
-   graph_pattern_root.op->accept_visitor(*this);
-}
-
-
-// void QueryOptimizer::visit(const OpMatch&) { }
+void QueryOptimizer::visit(const OpGraphPatternRoot&) { }
 void QueryOptimizer::visit(const OpOptional&) { }
 void QueryOptimizer::visit(const OpLabel&) { }
 void QueryOptimizer::visit(const OpProperty&) { }

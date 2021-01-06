@@ -278,7 +278,8 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::get_greedy_join_plan(
 
 ObjectId BindingIdIterVisitor::get_value_id(const common::ast::Value& value) {
     if (value.type() == typeid(string)) {
-        return model.get_object_id(GraphObject::make_string( boost::get<string>(value) ));
+        auto str = boost::get<string>(value);
+        return model.get_object_id(GraphObject::make_string(str.c_str()));
     }
     else if (value.type() == typeid(int64_t)) {
         return model.get_object_id(GraphObject::make_int( boost::get<int64_t>(value) ));

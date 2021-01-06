@@ -45,6 +45,7 @@ public:
     virtual std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&) = 0;
 
     virtual ObjectId get_object_id(const GraphObject&) = 0;
+    virtual ObjectId get_string_id(const std::string&) = 0;
     virtual GraphObject get_graph_object(ObjectId) = 0;
     virtual GraphObject get_property_value(GraphObject& var, const ObjectId key) = 0;
 };

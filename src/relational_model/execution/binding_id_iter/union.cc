@@ -40,9 +40,8 @@ void Union::assign_nulls() {
 
 
 void Union::analyze(int indent) const {
-    cout << "Sequence:\n";
+    cout << "Union:\n";
     for (const auto& iter : iters) {
         iter->analyze(indent + 2);
-        cout << "\n";
     }
 }

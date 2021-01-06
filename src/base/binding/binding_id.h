@@ -22,8 +22,6 @@ public:
     // auto b = op.begin()
     // instead of
     // auto& b = op.begin()
-    // TEST 1
-    // END TEST 1
     BindingId(const BindingId& other) = delete;
 
     ~BindingId() {

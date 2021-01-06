@@ -1,0 +1,5 @@
+//SELECT ?p1
+SELECT ?p1, ?p1.name
+MATCH (?p1 :Organisation)
+WHERE ?p1.name >= "Air_Algérie" AND ?p1.name <= "Air_Algérie"
+LIMIT 100

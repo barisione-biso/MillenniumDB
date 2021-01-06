@@ -19,15 +19,19 @@ public:
     std::unique_ptr<BindingIter> exec(OpSelect&) override;
     std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&) override;
     ObjectId get_object_id(const GraphObject& obj) override;
-    ObjectId get_object_id(const GraphObject& obj, bool create_if_not_exists);
+    ObjectId get_string_id(const std::string& str) override;
 
     GraphObject get_graph_object(ObjectId) override;
     GraphObject get_property_value(GraphObject& var, const ObjectId key) override;
 
-    // returns an ID with mask
-    ObjectId get_string_id(const std::string& str, bool create_if_not_exists = false);
-    ObjectId get_identifiable_object_id(const std::string& str, bool create_if_not_exists = false);
-    uint64_t get_external_id(const std::string& str, bool create_if_not_exists = false);
+    ObjectId get_identifiable_object_id(const std::string& str);
+    uint64_t get_external_id(const std::string& str);
+    uint64_t get_or_create_external_id(const std::string& str, bool* created);
+
+    // Methods used by bulk_import
+    uint64_t get_or_create_identifiable_object_id(const std::string& obj_name, bool* created);
+    uint64_t get_or_create_string_id(const std::string& str);
+    uint64_t get_or_create_value_id(const GraphObject& value);
 
     inline QuadCatalog&    catalog()      noexcept { return reinterpret_cast<QuadCatalog&>(catalog_buf); }
     inline ObjectFile&     object_file()  noexcept { return reinterpret_cast<ObjectFile&>(object_file_buf); }

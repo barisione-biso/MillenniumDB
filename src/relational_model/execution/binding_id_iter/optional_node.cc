@@ -9,6 +9,10 @@
 
 using namespace std;
 
+// TODO CRIS:
+// Add manual plan
+// Include Selinger
+
 OptionalNode::OptionalNode(std::size_t binding_size,
                            unique_ptr<BindingIdIter> _graph_pattern,
                            std::vector<std::unique_ptr<BindingIdIter>> children) :

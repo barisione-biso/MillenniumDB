@@ -1,9 +1,8 @@
 #include "formula_to_condition.h"
 
-Formula2ConditionVisitor::Formula2ConditionVisitor(GraphModel& model,
-                                                   const std::map<std::string, VarId>& _var_names2var_ids) :
+Formula2ConditionVisitor::Formula2ConditionVisitor(GraphModel& model, const std::map<std::string, VarId>& var_names2var_ids) :
     model                  (model),
-    var_names2var_ids      (_var_names2var_ids),
+    var_names2var_ids      (var_names2var_ids),
     new_property_map_count (var_names2var_ids.size()) { }
 
 
@@ -61,8 +60,7 @@ std::unique_ptr<ValueAssign> Formula2ConditionVisitor::get_value_assignator(
 
         if (select_item.key) {
             VarId new_property_var_id(new_property_map_count++);
-            auto property_key_as_string = GraphObject::make_string(select_item.key.get());
-            auto property_key_object_id = model.get_object_id(property_key_as_string);
+            auto property_key_object_id = model.get_string_id(select_item.key.get());
             property_map.insert({ new_property_var_id, std::make_pair(find_var_id->second, property_key_object_id) });
             return std::make_unique<ValueAssignVariable>(new_property_var_id);
         } else {
@@ -70,9 +68,16 @@ std::unique_ptr<ValueAssign> Formula2ConditionVisitor::get_value_assignator(
         }
     } else {
         auto casted_value = boost::get<query::ast::Value>(item);
-        auto visitor = ValueVisitor();
-        auto value = visitor(casted_value);
-        return std::make_unique<ValueAssignConstant>(value);
+        if (casted_value.type() == typeid(std::string)) {
+            // strings can be destroyed after `casted_value` is visited, so it needs to be handled differently
+            auto str_ptr = std::make_unique<std::string>(boost::get<std::string>(casted_value));
+            auto str_graph_object = GraphObject::make_string(str_ptr->c_str());
+            return std::make_unique<ValueAssignConstant>(str_graph_object, move(str_ptr));
+        } else {
+            auto visitor = ValueVisitor();
+            auto value = visitor(casted_value);
+            return std::make_unique<ValueAssignConstant>(value, nullptr);
+        }
     }
 }
 

@@ -1,4 +1,0 @@
-SELECT ?f.title
-MATCH (?f :film)-[:actor]->(:Person {actor_name:"Nicolas Cage"}) ON "lmdb"
-//LIMIT 10
-// 62 results

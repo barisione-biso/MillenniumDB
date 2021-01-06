@@ -23,18 +23,14 @@ public:
          rhs (std::move(rhs)) { }
 
     virtual ~Comparison() = default;
-    virtual bool compare(GraphObject& lhs, GraphObject& rhs) = 0;
+    virtual bool compare(const GraphObject lhs, const GraphObject rhs) const = 0;
 
     ConditionType type() {
         return ConditionType::comparison;
     }
 
-
     bool eval(Binding& binding) {
-        auto left_value = lhs->get_value(binding);
-        auto right_value = rhs->get_value(binding);
-
-        return compare(left_value, right_value);
+        return compare(lhs->get_value(binding), rhs->get_value(binding));
     }
 };
 

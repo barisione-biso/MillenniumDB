@@ -28,7 +28,7 @@ public:
     std::map<VarId, std::pair<VarId, ObjectId>> property_map;
     std::size_t new_property_map_count;
 
-    Formula2ConditionVisitor(GraphModel& model, const std::map<std::string, VarId>& _var_names2var_ids);
+    Formula2ConditionVisitor(GraphModel& model, const std::map<std::string, VarId>& var_names2var_ids);
 
     std::unique_ptr<Condition> operator()(query::ast::Formula const& formula);
     std::unique_ptr<Condition> operator()(query::ast::Condition const& condition);
