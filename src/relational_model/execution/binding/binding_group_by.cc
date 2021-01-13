@@ -1,7 +1,6 @@
 #include "binding_group_by.h"
 
 #include <cassert>
-#include <iostream>
 
 #include "base/binding/binding.h"
 
@@ -12,12 +11,8 @@ BindingGroupBy::BindingGroupBy(GraphModel& model, vector<pair<string, VarId>> _g
     group_vars    (_group_vars),
     model         (model),
     binding_size  (binding_size),
-    child_binding (child_binding)
+    child_binding (child_binding) { }
 
-{ }
-
-
-BindingGroupBy::~BindingGroupBy() = default;
 
 std::ostream& BindingGroupBy::print_to_ostream(std::ostream& os) const {
     return os;
@@ -26,9 +21,10 @@ std::ostream& BindingGroupBy::print_to_ostream(std::ostream& os) const {
 
 GraphObject BindingGroupBy::operator[](const VarId var) {
     assert(var.id < binding_size);
-    return objects_vector[var.id];
+    return current_objects[var.id];
 }
 
+
 void BindingGroupBy::update_binding(std::vector<GraphObject> new_tuple) {
-    objects_vector = move(new_tuple);
+    current_objects = move(new_tuple);
 }

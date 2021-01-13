@@ -19,7 +19,7 @@ public:
     // empty vector means SELECT *
     const std::vector<query::ast::SelectItem> select_items;
 
-    OpSelect(std::vector<query::ast::SelectItem> select_items, std::unique_ptr<Op> op, uint_fast32_t limit) :
+    OpSelect(std::unique_ptr<Op> op, std::vector<query::ast::SelectItem> select_items, uint_fast32_t limit) :
         limit        (limit),
         op           (std::move(op)),
         select_items (std::move(select_items)) { }

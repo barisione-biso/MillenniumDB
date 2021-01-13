@@ -10,13 +10,17 @@
 class OpOrderBy : public Op {
 public:
     const std::unique_ptr<Op> op;
-    const bool ascending_order;
-    const std::vector<query::ast::SelectItem> items;
+    std::vector<query::ast::SelectItem> items;
+    std::vector<bool> ascending_order;
 
-    OpOrderBy(std::vector<query::ast::SelectItem> items, std::unique_ptr<Op> op, bool ascending_order) :
-        op              (std::move(op)),
-        ascending_order (ascending_order),
-        items           (items) { }
+    OpOrderBy(std::unique_ptr<Op> op, const std::vector<query::ast::OrderedSelectItem>& ordered_items) :
+        op (std::move(op))
+    {
+        for (auto& order_item : ordered_items) {
+            items.push_back(order_item.item);
+            ascending_order.push_back(order_item.order == query::ast::Order::Ascending);
+        }
+    }
 
     ~OpOrderBy() = default;
 

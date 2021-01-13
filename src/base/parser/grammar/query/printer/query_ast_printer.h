@@ -24,6 +24,7 @@ public:
 
     void operator() (query::ast::Root const&) const;
     void operator() (std::vector<query::ast::SelectItem> const&) const;
+    void operator() (std::vector<query::ast::OrderedSelectItem> const&) const;
     void operator() (std::vector<query::ast::LinearPattern> const&) const;
     void operator() (query::ast::LinearPattern const&) const;
     void operator() (query::ast::Node const&) const;

@@ -54,6 +54,16 @@ namespace query { namespace ast {
         Or
     };
 
+    enum class Order {
+        Ascending,
+        Descending
+    };
+
+    struct OrderedSelectItem {
+        SelectItem item;
+        Order order;
+    };
+
     enum class Comparator {
         EQ, // ==
         NE, // !=
@@ -90,13 +100,13 @@ namespace query { namespace ast {
     };
 
     struct Root {
-        bool                                      explain;
-        std::vector<SelectItem>                   selection;
-        std::vector<LinearPattern>                graph_pattern;
-        boost::optional<Formula>                  where;
-        boost::optional<std::vector<SelectItem>>  group_by;
-        boost::optional<std::vector<SelectItem>>  order_by;
-        boost::optional<uint_fast32_t>            limit;
+        bool                                             explain;
+        std::vector<SelectItem>                          selection;
+        std::vector<LinearPattern>                       graph_pattern;
+        boost::optional<Formula>                         where;
+        boost::optional<std::vector<OrderedSelectItem>>  group_by;
+        boost::optional<std::vector<OrderedSelectItem>>  order_by;
+        boost::optional<uint_fast32_t>                   limit;
     };
 }}
 

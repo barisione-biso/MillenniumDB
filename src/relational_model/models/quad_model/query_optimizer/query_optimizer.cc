@@ -435,8 +435,8 @@ void QueryOptimizer::visit(const OpGroupBy& op_group_by) {
         auto var_id = get_var_id(var_name);
         group_vars.push_back(make_pair(var_name, var_id));
     }
-    auto binding_size = id_map.size();
-    tmp = make_unique<GroupBy>(model, move(tmp), move(group_vars), binding_size);
+    // TODO: what to do with VarIds which won't be assigned?
+    tmp = make_unique<GroupBy>(model, move(tmp), id_map.size(), move(group_vars), op_group_by.ascending_order);
 }
 
 
@@ -452,8 +452,8 @@ void QueryOptimizer::visit(const OpOrderBy& order_by) {
         auto var_id = get_var_id(var_name);
         order_vars.push_back(make_pair(var_name, var_id));
     }
-    auto binding_size = id_map.size();
-    tmp = make_unique<OrderBy>(model, move(tmp), move(order_vars), binding_size, order_by.ascending_order);
+    // TODO: what to do with VarIds which won't be assigned?
+    tmp = make_unique<OrderBy>(model, move(tmp), id_map.size(), move(order_vars), order_by.ascending_order);
 }
 
 

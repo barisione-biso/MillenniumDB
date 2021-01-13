@@ -38,6 +38,12 @@ namespace query {
             formula = "formula";
         x3::rule<class step_formula, ast::StepFormula>
             step_formula = "step_formula";
+        x3::rule<class order, ast::Order>
+            order = "order";
+        x3::rule<class ordered_select_item, ast::OrderedSelectItem>
+            ordered_select_item = "ordered_select_item";
+        x3::rule<class ordered_select_items, std::vector<ast::OrderedSelectItem>>
+            ordered_select_items = "ordered_select_items";
 
 
         auto const comparator =
@@ -110,11 +116,22 @@ namespace query {
         auto const where_statement =
             no_case["where"] >> formula;
 
+        auto const order_def =
+            no_case["asc"]  >> -no_case["ending"] >> attr(ast::Order::Ascending)  |
+            no_case["desc"] >> -no_case["ending"] >> attr(ast::Order::Descending) |
+            attr(ast::Order::Ascending) ;
+
+        auto const ordered_select_item_def =
+            select_item >> order;
+
+        auto const ordered_select_items_def =
+            ordered_select_item % ',';
+
         auto const group_by_statement =
-            no_case["group by"] >> selection;
+            no_case["group by"] >> ordered_select_items;
 
         auto const order_by_statement =
-            no_case["order by"] >> selection;
+            no_case["order by"] >> ordered_select_items;
 
         auto const limit_statement =
             no_case["limit"] >> uint32;
@@ -139,7 +156,10 @@ namespace query {
             statement,
             formula,
             step_formula,
-            condition
+            condition,
+            order,
+            ordered_select_item,
+            ordered_select_items
         );
     }
 
