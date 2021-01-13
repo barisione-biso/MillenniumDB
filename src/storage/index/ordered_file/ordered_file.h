@@ -33,15 +33,15 @@ public:
     void append_record(const Record<N>& record);
     void order(std::array<uint_fast8_t, N> column_order);
 
-    void print();
-    void check_order();
+    void print() const;
+    void check_order() const;
 
     // begin() must be called before calling this method
-    uint64_t get_total_tuples();
+    uint64_t get_total_tuples() const;
 
     // BptLeafProvider methods
     void begin() override;
-    bool has_more_tuples() override;
+    bool has_more_tuples() const override;
     uint_fast32_t next_tuples(uint64_t* output, uint_fast32_t max_tuples) override;
 
     std::unique_ptr<Record<N>> next_record();

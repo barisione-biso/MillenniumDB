@@ -8,7 +8,7 @@ public:
     virtual ~BptLeafProvider() = default;
 
     virtual void begin() = 0;
-    virtual bool has_more_tuples() = 0;
+    virtual bool has_more_tuples() const = 0;
     virtual uint_fast32_t next_tuples(uint64_t* output, uint_fast32_t max_tuples) = 0;
 };
 

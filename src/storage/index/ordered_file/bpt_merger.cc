@@ -32,7 +32,7 @@ void BptMerger<N>::begin() {
 
 
 template <std::size_t N>
-bool BptMerger<N>::has_more_tuples() {
+bool BptMerger<N>::has_more_tuples() const {
     return ordered_file_record != nullptr || bpt_record != nullptr;
 }
 
