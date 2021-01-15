@@ -4,13 +4,15 @@
 #include <string>
 #include <fstream>
 #include <list>
-#include <map>
 #include <memory>
+#include <unordered_set>
 
 #include "base/parser/grammar/import/import_ast.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "relational_model/models/quad_model/quad_catalog.h"
+#include "storage/index/object_file/object_file.h"
 #include "storage/index/ordered_file/ordered_file.h"
+#include "storage/index/hash_table/extendible_hash.h"
 
 class BulkImport {
 public:
@@ -33,6 +35,8 @@ private:
     OrderedFile<3> equal_from_type;         // from/type, to, edge
     OrderedFile<3> equal_to_type;           // to/type, from, edge
     OrderedFile<2> equal_from_to_type;      // from/to/type,  edge
+
+    std::unordered_set<uint64_t> inlined_ids;
 
     uint64_t process_node(const import::ast::Node node);
     uint64_t process_edge(const import::ast::Edge edge);
