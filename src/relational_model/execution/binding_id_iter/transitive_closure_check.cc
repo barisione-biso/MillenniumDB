@@ -1,4 +1,4 @@
-#include "transitive_closure.h"
+#include "transitive_closure_check.h"
 
 #include <cassert>
 #include <iostream>
@@ -10,7 +10,7 @@
 
 using namespace std;
 
-TransitiveClosure::TransitiveClosure(std::size_t binding_size,
+TransitiveClosureCheck::TransitiveClosureCheck(std::size_t binding_size,
                                      BPlusTree<4>& bpt,
                                      Id start,
                                      Id end,
@@ -26,7 +26,7 @@ TransitiveClosure::TransitiveClosure(std::size_t binding_size,
     type_pos      (type_pos) { }
 
 
-BindingId& TransitiveClosure::begin(BindingId& input) {
+BindingId& TransitiveClosureCheck::begin(BindingId& input) {
     my_input = &input;
     min_ids[type_pos] = type.id;
     max_ids[type_pos] = type.id;
@@ -60,7 +60,7 @@ BindingId& TransitiveClosure::begin(BindingId& input) {
 }
 
 
-bool TransitiveClosure::next() {
+bool TransitiveClosureCheck::next() {
     while (open.size() > 0) {
         auto current = open.front();
         open.pop();
@@ -70,6 +70,8 @@ bool TransitiveClosure::next() {
             Record<4>(min_ids),
             Record<4>(max_ids)
         );
+        ++bpt_searches;
+
         auto child_record = it->next();
         while (child_record != nullptr){
             ObjectId child( child_record->ids[2] );
@@ -77,6 +79,7 @@ bool TransitiveClosure::next() {
                 queue<ObjectId> empty;
                 open.swap(empty);
                 my_binding.add_all(*my_input);
+                ++results_found;
                 return true;
             } else {
                 if (visited.find(child) == visited.end()) {
@@ -91,7 +94,7 @@ bool TransitiveClosure::next() {
 }
 
 
-void TransitiveClosure::reset() {
+void TransitiveClosureCheck::reset() {
     // Empty open and visited
     queue<ObjectId> empty;
     open.swap(empty);
@@ -117,5 +120,10 @@ void TransitiveClosure::reset() {
 }
 
 
-void TransitiveClosure::analyze(int) const {
+void TransitiveClosureCheck::analyze(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "TransitiveClosurCheck(bpt_searches: " << bpt_searches
+         << ", found: " << results_found <<")\n";
 }

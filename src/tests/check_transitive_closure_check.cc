@@ -12,7 +12,7 @@
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/query_parser.h"
-#include "relational_model/execution/binding_id_iter/transitive_closure.h"
+#include "relational_model/execution/binding_id_iter/transitive_closure_check.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
@@ -20,9 +20,6 @@
 using namespace std;
 namespace po = boost::program_options;
 
-// Antes de probar el test se espera que se cargó una base de datos en la carpeta correcta, ej:
-// build/Release/bin/create_db tests/dbs/db_name.txt tests/dbs/db_name
-// Test: build/Release/bin/check_transitive_closure_bool -d tests/dbs/transitive-db -s Q1 -e Q2 -t knows
 int main(int argc, char **argv) {
     int buffer_size;
     string db_folder;
@@ -50,7 +47,7 @@ int main(int argc, char **argv) {
         po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
 
         if (vm.count("help")) {
-            cout << "Usage: server [options] DB_FOLDER\n";
+            cout << "Usage: build/Release/bin/check_transitive_closure_enum -d [DATABASE_FOLDER] -s [START_NODE] -e [END_NODE] -t [TYPE]\n";
             cout << desc << "\n";
             return 0;
         }
@@ -59,18 +56,23 @@ int main(int argc, char **argv) {
         QuadModel model(db_folder, buffer_size);
 
         auto& bpt = *model.type_from_to_edge; // from: 1, to: 2, type: 0
-        auto start_id = ObjectId(model.get_identifiable_object_id(start_node)); // Start node
-        auto end_id   = ObjectId(model.get_identifiable_object_id(end_node)); // End node
-        auto type_id  = ObjectId(model.get_identifiable_object_id(connection_type)); // Connection type
-        auto op = TransitiveClosure(4, bpt, start_id, end_id, type_id, 1, 0); // Boolean case
+        auto start_id = ObjectId(model.get_identifiable_object_id(start_node));
+        auto end_id   = ObjectId(model.get_identifiable_object_id(end_node));
+        auto type_id  = ObjectId(model.get_identifiable_object_id(connection_type));
+        auto op = TransitiveClosureCheck(4, bpt, start_id, end_id, type_id, 1, 0);
 
         // Transitive Closure Test
         BindingId binding(4);
         op.begin(binding);
-        while (op.next()) {
-            cout << "Connected!\n";
+        if (op.next()) {
+            cout << "Path found\n";
+        } else {
+            cout << "Path not found\n";
         }
-        cout << "Fin\n";
+        if (op.next()) {
+            cerr << "Error: TransitiveClosureCheck shouldn't give more than 1 result unless reset() is called.\n";
+            return 1;
+        }
     }
     catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";
