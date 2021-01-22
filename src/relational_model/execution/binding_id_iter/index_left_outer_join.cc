@@ -7,7 +7,7 @@
 
 using namespace std;
 
-IndexLeftOuterJoin::IndexLeftOuterJoin(std::size_t binding_size,
+IndexLeftOuterJoin::IndexLeftOuterJoin(std::size_t /*binding_size*/,
                              unique_ptr<BindingIdIter> lhs,
                              unique_ptr<BindingIdIter> rhs) :
     lhs           (move(lhs)),

@@ -1,6 +1,6 @@
 #include "node_table_enum.h"
 
-NodeTableEnum::NodeTableEnum(std::size_t binding_size, const VarId var_id, RandomAccessTable<1>& table) :
+NodeTableEnum::NodeTableEnum(std::size_t /*binding_size*/, const VarId var_id, RandomAccessTable<1>& table) :
     var_id (var_id),
     table  (table) { }
 

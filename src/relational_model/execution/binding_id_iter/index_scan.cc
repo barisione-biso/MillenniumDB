@@ -19,7 +19,7 @@ template class std::unique_ptr<IndexScan<3>>;
 template class std::unique_ptr<IndexScan<4>>;
 
 template <std::size_t N>
-IndexScan<N>::IndexScan(std::size_t binding_size, BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges) :
+IndexScan<N>::IndexScan(std::size_t /*binding_size*/, BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges) :
     bpt    (bpt),
     ranges (move(ranges)) { }
 

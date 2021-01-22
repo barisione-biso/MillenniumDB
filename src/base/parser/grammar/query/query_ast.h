@@ -107,7 +107,7 @@ namespace query { namespace ast {
     struct Root {
         bool                                             explain;
         std::vector<SelectItem>                          selection;
-        std::vector<LinearPattern>                       graph_pattern;
+        GraphPattern                                     graph_pattern;
         boost::optional<Formula>                         where;
         boost::optional<std::vector<OrderedSelectItem>>  group_by;
         boost::optional<std::vector<OrderedSelectItem>>  order_by;

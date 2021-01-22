@@ -2,7 +2,7 @@
 
 using namespace std;
 
-ObjectEnum::ObjectEnum(std::size_t binding_size, VarId var_id, const uint64_t mask, const uint64_t max_count) :
+ObjectEnum::ObjectEnum(std::size_t /*binding_size*/, VarId var_id, const uint64_t mask, const uint64_t max_count) :
     var_id    (var_id),
     mask      (mask),
     max_count (max_count) { }

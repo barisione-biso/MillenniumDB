@@ -7,7 +7,7 @@
 
 using namespace std;
 
-IndexNestedLoopJoin::IndexNestedLoopJoin(std::size_t binding_size,
+IndexNestedLoopJoin::IndexNestedLoopJoin(std::size_t /*binding_size*/,
                                          unique_ptr<BindingIdIter> lhs,
                                          unique_ptr<BindingIdIter> rhs) :
     lhs (move(lhs)),
