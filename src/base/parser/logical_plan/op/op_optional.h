@@ -1,20 +1,15 @@
 #ifndef BASE__OP_OPTIONAL_H_
 #define BASE__OP_OPTIONAL_H_
 
+#include <map>
 #include <string>
 #include <vector>
 
-#include "base/parser/logical_plan/op/op.h"
-#include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/grammar/query/query_ast.h"
+#include "base/parser/logical_plan/op/op_match.h"
+#include "base/parser/logical_plan/op/op.h"
 
 
-// SELECT *
-// MATCH (?y) OPTIONAL{ (?y)->(?x {age:65}) } OPTIONAL { (?y)->(?x:age:42) } => no es well designed
-// MATCH (?y) OPTIONAL{ (?y)->(?x {age:65}) } OPTIONAL { (?y)->(?z:age:42) }
-// MATCH (?x :Person) OPTIONAL { (?x {age:65}) } // OJO
-// MATCH (?x {age:65}) OPTIONAL { (?x :Person) } // OJO
-// Tal vez opcionales deberían prohibir añadir restricciones de properties o labels al padre
 class OpOptional : public Op {
 public:
     std::unique_ptr<Op> op;
@@ -24,14 +19,14 @@ public:
         op        (std::move(op_optional.op)),
         optionals (std::move(op_optional.optionals)) { }
 
-    OpOptional(const query::ast::GraphPattern& graph_pattern) :
-        op ( std::make_unique<OpMatch>(graph_pattern.pattern) )
+    OpOptional(const query::ast::GraphPattern& graph_pattern, uint_fast32_t* anon_count) :
+        op ( std::make_unique<OpMatch>(graph_pattern.pattern, anon_count) )
     {
         for (auto& optional : graph_pattern.optionals) {
             if (optional.get().optionals.size() == 0) {
-                optionals.emplace_back( std::make_unique<OpMatch>(optional.get().pattern) );
+                optionals.emplace_back( std::make_unique<OpMatch>(optional.get().pattern, anon_count) );
             } else {
-                optionals.emplace_back( std::make_unique<OpOptional>(optional.get()) );
+                optionals.emplace_back( std::make_unique<OpOptional>(optional.get(), anon_count) );
             }
         }
     }
@@ -53,7 +48,7 @@ public:
             optional->print_to_ostream(os, indent + 4);
         }
         return os;
-    };
+    }
 
     std::set<std::string> get_var_names() const override {
         auto res = op->get_var_names();

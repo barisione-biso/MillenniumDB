@@ -16,7 +16,6 @@ public:
 
     ~OpConnectionType() = default;
 
-    // NEW
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
         os << "OpConnectionType(" << edge << ":" << type << ")\n";
@@ -28,6 +27,7 @@ public:
         visitor.visit(*this);
     }
 
+
     bool operator<(const OpConnectionType& other) const {
         if (edge < other.edge) {
             return true;
@@ -36,6 +36,7 @@ public:
         }
         return false;
     }
+
 
     std::set<std::string> get_var_names() const override {
         std::set<std::string> res;

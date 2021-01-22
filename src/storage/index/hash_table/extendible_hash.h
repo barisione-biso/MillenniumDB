@@ -2,8 +2,8 @@
 #define STORAGE__EXTENDIBLE_HASH_H_
 
 #include <cstdint>
-#include <string>
 #include <map>
+#include <string>
 
 #include "storage/file_id.h"
 #include "storage/index/object_file/object_file.h"

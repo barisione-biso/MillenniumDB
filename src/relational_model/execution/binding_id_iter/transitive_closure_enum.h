@@ -3,13 +3,13 @@
 
 #include <array>
 #include <memory>
-#include <set>
 #include <queue>
+#include <set>
 #include <variant>
 
 #include "base/binding/binding_id_iter.h"
-#include "storage/index/bplus_tree/bplus_tree.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
 
 
 class TransitiveClosureEnum : public BindingIdIter {

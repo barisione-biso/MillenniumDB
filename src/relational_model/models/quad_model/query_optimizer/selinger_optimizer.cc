@@ -1,7 +1,7 @@
 #include "selinger_optimizer.h"
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <limits>
 
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
@@ -52,9 +52,11 @@ struct CombinationEnumerator {
 };
 
 
-SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<JoinPlan>>&& base_plans, std::vector<std::string> _var_names) :
+SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<JoinPlan>>&& base_plans,
+                                     std::vector<std::string>& var_names,
+                                     uint64_t input_vars) :
     plans_size(base_plans.size()),
-    var_names(move(_var_names))
+    var_names(var_names)
 {
     optimal_plans = new unique_ptr<JoinPlan>*[plans_size];
 
@@ -64,8 +66,8 @@ SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<JoinPlan>>&& base_plans, 
 
         optimal_plans[i] = new unique_ptr<JoinPlan>[arr_size];
         optimal_plans[0][i] = move(base_plans[i]);
+        optimal_plans[0][i]->set_input_vars(input_vars);
         optimal_plans[0][i]->print(0, true, var_names);
-        // cout << ", cost:" << optimal_plans[0][i]->estimate_cost() << ". ";
         cout << "\n";
     }
 }
@@ -79,13 +81,12 @@ SelingerOptimizer::~SelingerOptimizer() {
 }
 
 
-unique_ptr<BindingIdIter> SelingerOptimizer::get_binding_id_iter(std::size_t binding_size) {
+unique_ptr<JoinPlan> SelingerOptimizer::get_plan() {
     for (size_t i = 2; i <= plans_size; ++i) {
         auto combination_enumerator = CombinationEnumerator(plans_size, i);
 
         // for each combination get its optimal sub plan
         auto total_combinations = nCr(plans_size, i);
-        // cout << "total_combinations: " << total_combinations << "\n";
 
         for (uint_fast32_t c = 0; c < total_combinations; ++c) {
             unique_ptr<JoinPlan> best_plan = nullptr;
@@ -97,11 +98,6 @@ unique_ptr<BindingIdIter> SelingerOptimizer::get_binding_id_iter(std::size_t bin
             //             0001010 and 0010000
             //             0010010 and 0001000
             //             0011000 and 0000010
-            // cout << "Analyzing ";
-            // for (unsigned x = 0; x < plans_size; x++) {
-            //     cout << (arr[x] ? "1" : "0");
-            // }
-            // cout << "\n";
 
             for (size_t bit_pos = 0; bit_pos < plans_size; ++bit_pos) {
                 if (arr[bit_pos]) {
@@ -111,18 +107,8 @@ unique_ptr<BindingIdIter> SelingerOptimizer::get_binding_id_iter(std::size_t bin
                         optimal_plans[i-2][get_index(arr, plans_size)]->duplicate(),
                         optimal_plans[0][bit_pos]->duplicate()
                     );
-                    // cout << "cost: ";
-                    // for (unsigned x = 0; x < plans_size; x++) {
-                    //     cout << (arr[x] ? "1" : "0");
-                    // }
-                    // cout << " and ";
-                    // for (unsigned x = 0; x < plans_size; x++) {
-                    //     cout << (x == bit_pos ? "1" : "0");
-                    // }
-                    // cout << ": ";
 
                     auto current_cost = current_plan->estimate_cost();
-                    // cout << std::fixed << current_cost << "\n";
 
                     if (current_cost < best_cost) {
                         best_cost = current_cost;
@@ -135,11 +121,7 @@ unique_ptr<BindingIdIter> SelingerOptimizer::get_binding_id_iter(std::size_t bin
             optimal_plans[i-1][get_index(arr, plans_size)] = move(best_plan);
         }
     }
-    cout << "\nPlan Generated:\n";
-
-    optimal_plans[plans_size-1][0]->print(2, true, var_names);
-    cout << "\nestimated cost: " << optimal_plans[plans_size-1][0]->estimate_cost() << "\n";
-    return optimal_plans[plans_size-1][0]->get_binding_id_iter(binding_size);
+    return move(optimal_plans[plans_size-1][0]);
 }
 
 

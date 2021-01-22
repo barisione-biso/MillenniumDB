@@ -1,23 +1,26 @@
 #include "binding_id_iter_visitor.h"
 
 #include <cassert>
-#include <iostream> // TODO: delete
+#include <iostream>
 
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/connection_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/connection_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/property_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
 
 using namespace std;
 
+constexpr auto MAX_SELINGER_PLANS = 0;
+
 BindingIdIterVisitor::BindingIdIterVisitor(QuadModel& model, const map<string, VarId>& var_name2var_id) :
     model           (model),
     var_name2var_id (var_name2var_id) { }
+
 
 VarId BindingIdIterVisitor::get_var_id(const std::string& var) {
     auto search = var_name2var_id.find(var);
@@ -25,18 +28,11 @@ VarId BindingIdIterVisitor::get_var_id(const std::string& var) {
         return (*search).second;
     } else {
         throw std::logic_error("variable " + var + " not present in var_name2var_id");
-        // VarId res(var_name2var_id.size());
-        // var_name2var_id.insert({ var, res });
-        // return res;
     }
 }
 
 
 void BindingIdIterVisitor::visit(const OpMatch& op_match) {
-    // assigned_vars
-
-    
-    // new_assigned_vars
     vector<unique_ptr<JoinPlan>> base_plans;
 
     // Process Labels
@@ -123,85 +119,77 @@ void BindingIdIterVisitor::visit(const OpMatch& op_match) {
             );
         }
     }
-    /*
-    if (base_plans.size() <= MAX_SELINGER_PLANS) {
-        // TODO: construir aca var_names
-        auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
-        binding_id_iter = selinger_optimizer.get_binding_id_iter(binding_size);
-    } else {
-        binding_id_iter = get_greedy_join_plan( move(base_plans), binding_size);
-    }
-    */
 
     assert(tmp == nullptr);
-    // TODO: use assigned_vars
 
-
-    printf("BINDING SIZE (greedy join plan): %d\n", var_name2var_id.size());
-    tmp = get_greedy_join_plan( move(base_plans), var_name2var_id.size() );
-}
-
-
-void BindingIdIterVisitor::visit(const OpOptional& op_optional) {
-    // TODO: puede venir assigned_vars no vacio
-    op_optional.op->accept_visitor(*this);
-    unique_ptr<BindingIdIter> binding_id_iter = move(tmp);
-    // TODO: al visitar el main pattern se asignan nuevas variables
-    // suponer que cada visitor deja asignado assigned_vars correctamente?
-
-    vector<unique_ptr<BindingIdIter>> optional_children;
-    // TODO: Verify this idea works testing with complex optionals patterns
-    auto current_scope_assigned_vars = assigned_vars; // TODO: maybe its not necesary if we only support well designed patterns
-    // TODO: DELETE
-    cout << "starting assigned vars from op_optional:\n";
-    for (auto assigned_var :assigned_vars)
-    {
-        // FIND KEY
-        string key = "";
-        for (auto &i : var_name2var_id) {
-            if (i.second.id == assigned_var.id) {
-                key = i.first;
-                break; // to stop searching
-            }
-        }
-        // END FIND KEY
-        cout << "assigned var: " << assigned_var.id << " (" << key << ")" << "\n";
-    }
-    // TODO: END DELETE
-    for (auto& optional : op_optional.optionals) {
-        optional->accept_visitor(*this); // P1 OPT {P2} OPT {P3} -> OpOptional(op: P1, optionals = {P2, P3})
-                                         // P1 OPT {P2 OPT {P3}} -> OpOptional(op: P1, optionals = {OpOptional(op: P2, optionals: {P3})})
-        optional_children.push_back(move(tmp));
-        assigned_vars = current_scope_assigned_vars;
-    }
-
-    // TODO: we have to know the final binding size?
-    auto binding_size = var_name2var_id.size();
-    assert(tmp == nullptr);
-    printf("optional node size: %d\n", optional_children.size());
-    tmp = make_unique<OptionalNode>(binding_size, move(binding_id_iter), move(optional_children));
-}
-
-
-unique_ptr<BindingIdIter> BindingIdIterVisitor::get_greedy_join_plan(
-    vector<unique_ptr<JoinPlan>> base_plans,
-    std::size_t binding_size)
-{
-    auto base_plans_size = base_plans.size();
-    assert(base_plans_size > 0);
-
+    // construct var names
     vector<string> var_names;
     var_names.resize(var_name2var_id.size());
     for (auto&& [var_name, var_id] : var_name2var_id) {
         var_names[var_id.id] = var_name;
     }
 
-    // construct input vars;
+    // construct input vars
     uint64_t input_vars = 0;
     assert(assigned_vars.size() <= 64 && "for now, a maximum of 64 variables is supported");
     for (auto var_id : assigned_vars) {
         input_vars |= 1UL << var_id.id;
     }
+
+    unique_ptr<JoinPlan> root_plan = nullptr;
+    if (base_plans.size() <= MAX_SELINGER_PLANS) {
+        SelingerOptimizer selinger_optimizer(move(base_plans), var_names, input_vars);
+        root_plan = selinger_optimizer.get_plan();
+    } else {
+        root_plan = get_greedy_join_plan(move(base_plans), var_names, input_vars);
+    }
+
+    auto binding_size = var_name2var_id.size();
+
+    // insert new assigned_vars
+    const auto new_assigned_vars = root_plan->get_vars();
+    for (std::size_t i = 0; i < binding_size; i++) {
+        if ((new_assigned_vars & (1UL << i)) != 0) {
+            assigned_vars.insert(VarId(i));
+        }
+    }
+
+    std::cout << "\nPlan Generated:\n";
+    root_plan->print(2, true, var_names);
+    std::cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
+
+    tmp = root_plan->get_binding_id_iter(binding_size);
+}
+
+
+void BindingIdIterVisitor::visit(const OpOptional& op_optional) {
+    op_optional.op->accept_visitor(*this);
+    unique_ptr<BindingIdIter> binding_id_iter = move(tmp);
+
+    vector<unique_ptr<BindingIdIter>> optional_children;
+    // TODO: its not necessary to remember assigned_vars and reassign them after visiting a child because we only
+    // support well designed patterns. If we want to support non well designed patterns this could change
+    // auto current_scope_assigned_vars = assigned_vars;
+
+    for (auto& optional : op_optional.optionals) {
+        optional->accept_visitor(*this);
+        optional_children.push_back(move(tmp));
+        // assigned_vars = current_scope_assigned_vars;
+    }
+
+    auto binding_size = var_name2var_id.size();
+    assert(tmp == nullptr);
+    tmp = make_unique<OptionalNode>(binding_size, move(binding_id_iter), move(optional_children));
+}
+
+
+unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
+    vector<unique_ptr<JoinPlan>> base_plans,
+    vector<string>& var_names,
+    uint64_t input_vars)
+{
+    auto base_plans_size = base_plans.size();
+    assert(base_plans_size > 0);
 
     // choose the first scan
     int best_index = 0;
@@ -209,7 +197,6 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::get_greedy_join_plan(
     for (size_t j = 0; j < base_plans_size; j++) {
         base_plans[j]->set_input_vars(input_vars);
         auto current_element_cost = base_plans[j]->estimate_cost();
-        // cout << j << ", cost:" << current_element_cost << ". ";
         base_plans[j]->print(0, true, var_names);
         std::cout << "\n";
         if (current_element_cost < best_cost) {
@@ -261,18 +248,8 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::get_greedy_join_plan(
         base_plans[best_index] = nullptr;
         root_plan = move(best_step_plan);
     }
-    std::cout << "\nPlan Generated:\n";
-    root_plan->print(2, true, var_names);
-    std::cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
 
-    const auto new_assigned_vars = root_plan->get_vars();
-    for (uint64_t i = 0; i < sizeof(uint64_t); i++) {
-        if ((new_assigned_vars & (1UL << i)) != 0) {
-            assigned_vars.insert(VarId(i));
-        }
-    }
-
-    return root_plan->get_binding_id_iter(binding_size);
+    return move(root_plan);
 }
 
 

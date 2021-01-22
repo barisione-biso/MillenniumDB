@@ -14,16 +14,11 @@
 #include "base/parser/grammar/query/query_ast.h"
 #include "base/parser/grammar/manual_plan/manual_plan_ast.h"
 #include "relational_model/models/quad_model/quad_model.h"
-
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "relational_model/execution/binding_id_iter/index_scan.h"
 #include "base/ids/object_id.h"
 #include "base/ids/var_id.h"
 
-//TODO: DELETE SOME OF THE FOLLOWING
-#include "relational_model/execution/binding_id_iter/scan_ranges/term.h"
-#include "relational_model/execution/binding_id_iter/scan_ranges/assigned_var.h"
-#include "relational_model/execution/binding_id_iter/scan_ranges/unassigned_var.h"
 using Id = std::variant<VarId, ObjectId>;
 
 class BindingIter;
@@ -63,9 +58,6 @@ public:
 
     VarId get_var_id(const std::string& var_name);
 
-    // std::unique_ptr<BindingIdIter> get_greedy_join_plan(
-    //     std::vector<std::unique_ptr<JoinPlan>> base_plans,
-    //     std::size_t binding_size);
     static std::map<std::string, VarId> construct_var_name2var_id(std::set<std::string>& var_names);
 };
 

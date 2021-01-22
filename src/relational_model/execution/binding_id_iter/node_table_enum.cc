@@ -14,7 +14,6 @@ void NodeTableEnum::begin(BindingId& parent_binding, bool) {
 bool NodeTableEnum::next() {
     auto record = table[current_pos++];
     if (record != nullptr) {
-        // parent_binding->add_all(*my_input);
         parent_binding->add(var_id, ObjectId(record->ids[0]));
         ++results;
         return true;

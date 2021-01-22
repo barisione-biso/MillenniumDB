@@ -3,9 +3,9 @@
 
 #include <memory>
 
-#include "storage/page.h"
-#include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree_split.h"
+#include "storage/index/record.h"
+#include "storage/page.h"
 
 // forward declarations for friend
 template <std::size_t N> class BPlusTreeDir;

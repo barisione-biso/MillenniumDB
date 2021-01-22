@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "base/parser/logical_plan/op/op.h"
 #include "base/parser/grammar/query/query_ast.h"
+#include "base/parser/logical_plan/op/op.h"
 
 class OpGroupBy : public Op {
 public:
@@ -58,7 +58,8 @@ public:
     }
 
     std::set<std::string> get_var_names() const override {
-        return op->get_var_names(); // TODO: pensar bien si se pueden añadir variables
+        // TODO: should add properties mentioned in the GROUP BY that are not present in the MATCH?
+        return op->get_var_names();
     }
 };
 

@@ -1,8 +1,6 @@
 #include "nested_loop_plan.h"
 
 #include "relational_model/execution/binding_id_iter/index_nested_loop_join.h"
-// TODO CRIS: Eliminar siguiente línea
-#include "relational_model/execution/binding_id_iter/left_outer_join.h"
 
 using namespace std;
 

@@ -1,5 +1,4 @@
-
-#include "left_outer_join.h"
+#include "index_left_outer_join.h"
 
 #include <algorithm>
 #include <iostream>
@@ -8,15 +7,14 @@
 
 using namespace std;
 
-LeftOuterJoin::LeftOuterJoin(std::size_t binding_size,
+IndexLeftOuterJoin::IndexLeftOuterJoin(std::size_t binding_size,
                              unique_ptr<BindingIdIter> lhs,
                              unique_ptr<BindingIdIter> rhs) :
-    // BindingIdIter(binding_size),
     lhs           (move(lhs)),
     rhs           (move(rhs)) { }
 
 
-void LeftOuterJoin::begin(BindingId& parent_binding, bool parent_has_next) {
+void IndexLeftOuterJoin::begin(BindingId& parent_binding, bool parent_has_next) {
     has_result = false;
     this->parent_binding = &parent_binding;
     if (!parent_has_next) {
@@ -36,18 +34,20 @@ void LeftOuterJoin::begin(BindingId& parent_binding, bool parent_has_next) {
 }
 
 
-bool LeftOuterJoin::next() {
+bool IndexLeftOuterJoin::next() {
     if (!has_left) {
         return false;
     }
     while (true) {
         if (rhs->next()) {
             has_result = true;
+            ++results_found;
             return true;
         } else {
             if (!has_result) {
                 rhs->assign_nulls();
                 has_result = true;
+                ++results_found;
                 return true;
             } else {
                 if (lhs->next()) {
@@ -62,7 +62,7 @@ bool LeftOuterJoin::next() {
 }
 
 
-void LeftOuterJoin::reset() {
+void IndexLeftOuterJoin::reset() {
     has_result = false;
     lhs->reset();
     if (lhs->next()) {
@@ -74,25 +74,25 @@ void LeftOuterJoin::reset() {
 }
 
 
-void LeftOuterJoin::assign_nulls() {
+void IndexLeftOuterJoin::assign_nulls() {
     lhs->assign_nulls();
     rhs->assign_nulls();
 }
 
 
-void LeftOuterJoin::analyze(int indent) const {
-    // for (int i = 0; i < indent; ++i) {
-    //     cout << ' ';
-    // }
-    // cout << "LeftOuterJoin(\n";
-    lhs->analyze(indent);
+void IndexLeftOuterJoin::analyze(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "IndexLeftOuterJoin(\n";
+    lhs->analyze(indent + 2);
     cout << ",\n";
-    rhs->analyze(indent);
-    // cout << "\n";
-    // for (int i = 0; i < indent; ++i) {
-    //     cout << ' ';
-    // }
-    // cout << ")";
+    rhs->analyze(indent + 2);
+    cout << "\n";
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << ") Results found: " << results_found;
 }
 
-template class std::unique_ptr<LeftOuterJoin>;
+template class std::unique_ptr<IndexLeftOuterJoin>;

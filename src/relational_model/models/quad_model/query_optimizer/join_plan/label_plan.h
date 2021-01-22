@@ -6,9 +6,9 @@
 
 #include "base/graph/graph_object.h"
 #include "base/ids/object_id.h"
+#include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
-#include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 
 class LabelPlan : public JoinPlan {
 public:

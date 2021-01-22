@@ -5,10 +5,9 @@
 #include <cstdlib>
 #include <cmath>
 
-
 #include "relational_model/execution/binding/binding_order_by.h"
-#include "storage/file_manager.h"
 #include "storage/buffer_manager.h"
+#include "storage/file_manager.h"
 #include "storage/tuple_collection/tuple_collection.h"
 
 using namespace std;

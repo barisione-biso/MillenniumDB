@@ -5,8 +5,8 @@
 #include "base/graph/anonymous_node.h"
 #include "base/graph/edge.h"
 #include "relational_model/models/quad_model/graph_object_visitor.h"
-#include "relational_model/models/quad_model/query_optimizer/query_optimizer.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_iter_visitor.h"
+#include "relational_model/models/quad_model/query_optimizer/query_optimizer.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 

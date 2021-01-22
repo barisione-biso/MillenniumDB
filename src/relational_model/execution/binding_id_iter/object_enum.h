@@ -4,8 +4,8 @@
 #include <memory>
 #include <vector>
 
-#include "base/ids/var_id.h"
 #include "base/binding/binding_id_iter.h"
+#include "base/ids/var_id.h"
 
 class ObjectEnum : public BindingIdIter {
 private:

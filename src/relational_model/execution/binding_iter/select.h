@@ -4,8 +4,8 @@
 #include <memory>
 #include <vector>
 
-#include "base/binding/binding_iter.h"
 #include "base/binding/binding_id_iter.h"
+#include "base/binding/binding_iter.h"
 #include "relational_model/execution/binding/binding_select.h"
 
 class Select : public BindingIter {

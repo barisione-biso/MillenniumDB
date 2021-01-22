@@ -6,8 +6,8 @@
 #include <vector>
 #include <memory>
 
-#include "base/parser/logical_plan/op/op.h"
 #include "base/parser/grammar/query/query_ast.h"
+#include "base/parser/logical_plan/op/op.h"
 
 
 class OpSelect : public Op {

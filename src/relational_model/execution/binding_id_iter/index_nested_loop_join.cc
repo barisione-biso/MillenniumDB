@@ -10,7 +10,6 @@ using namespace std;
 IndexNestedLoopJoin::IndexNestedLoopJoin(std::size_t binding_size,
                                          unique_ptr<BindingIdIter> lhs,
                                          unique_ptr<BindingIdIter> rhs) :
-    // BindingIdIter(binding_size),
     lhs (move(lhs)),
     rhs (move(rhs)) { }
 
@@ -33,9 +32,6 @@ void IndexNestedLoopJoin::begin(BindingId& parent_binding, bool parent_has_next)
 bool IndexNestedLoopJoin::next() {
     while (true) {
         if (rhs->next()) {
-            // construct binding
-            // my_binding.add_all(*current_left); // TODO: reduntante?
-            // my_binding.add_all(*current_right);
             return true;
         } else {
             if (lhs->next())
@@ -60,18 +56,18 @@ void IndexNestedLoopJoin::assign_nulls() {
 
 
 void IndexNestedLoopJoin::analyze(int indent) const {
-    // for (int i = 0; i < indent; ++i) {
-    //     cout << ' ';
-    // }
-    // cout << "IndexNestedLoopJoin(\n";
-    lhs->analyze(indent);
+    for (int i = 0; i < indent; ++i) {
+         cout << ' ';
+    }
+    cout << "IndexNestedLoopJoin(\n";
+    lhs->analyze(indent + 2);
     cout << ",\n";
-    rhs->analyze(indent);
-    // cout << "\n";
-    // for (int i = 0; i < indent; ++i) {
-    //     cout << ' ';
-    // }
-    // cout << ")";
+    rhs->analyze(indent + 2);
+    cout << "\n";
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << ")";
 }
 
 template class std::unique_ptr<IndexNestedLoopJoin>;

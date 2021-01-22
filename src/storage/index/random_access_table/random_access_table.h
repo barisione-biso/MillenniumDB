@@ -5,9 +5,9 @@
 #include <memory>
 #include <string>
 
+#include "storage/index/random_access_table/random_access_table_block.h"
 #include "storage/index/record.h"
 #include "storage/page.h"
-#include "storage/index/random_access_table/random_access_table_block.h"
 
 // N is the columns of the table
 template <std::size_t N> class RandomAccessTable {

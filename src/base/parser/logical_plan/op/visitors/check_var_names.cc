@@ -1,15 +1,15 @@
 #include "check_var_names.h"
 
-#include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/exceptions.h"
-#include "base/parser/logical_plan/op/op_filter.h"
-#include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_connection.h"
-#include "base/parser/logical_plan/op/op_group_by.h"
-#include "base/parser/logical_plan/op/op_order_by.h"
-#include "base/parser/logical_plan/op/op_optional.h"
+#include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
+#include "base/parser/logical_plan/op/op_group_by.h"
+#include "base/parser/logical_plan/op/op_match.h"
+#include "base/parser/logical_plan/op/op_optional.h"
+#include "base/parser/logical_plan/op/op_order_by.h"
+#include "base/parser/logical_plan/op/op_order_by.h"
+#include "base/parser/logical_plan/op/op_select.h"
 
 void CheckVarNames::visit(const OpSelect& op_select) {
     op_select.op->accept_visitor(*this);
@@ -22,6 +22,7 @@ void CheckVarNames::visit(const OpSelect& op_select) {
     }
 }
 
+
 void CheckVarNames::visit(const OpOptional& op_optional) {
     op_optional.op->accept_visitor(*this);
     for (auto& optional_child : op_optional.optionals) {
@@ -29,12 +30,12 @@ void CheckVarNames::visit(const OpOptional& op_optional) {
     }
 }
 
+
 void CheckVarNames::visit(const OpMatch& op_match) {
     auto var_names = move(op_match.var_names);
     for (auto& var_name : var_names) {
         declared_object_names.insert(var_name);
     }
-    // declared_object_names = move(op_match.var_names);
 }
 
 
@@ -43,17 +44,6 @@ void CheckVarNames::visit(const OpFilter& op_filter) {
     op_filter.check_var_names(declared_object_names);
 }
 
-/*
-void CheckVarNames::visit(OpOrderBy& op_order_by) {
-    op_order_by.child_op->accept_visitor(*this);
-    for(auto & order_item : op_order_by.order_items) {
-       if (declared_object_names.find(order_item.var) == declared_object_names.end()) {
-            throw QuerySemanticException("Variable \"" + order_item.var +
-                "\" used in ORDER_BY is not declared in MATCH");
-        }
-    }
-}
-*/
 
 void CheckVarNames::visit(const OpGroupBy& op_group_by) {
     op_group_by.op->accept_visitor(*this);
@@ -64,9 +54,11 @@ void CheckVarNames::visit(const OpOrderBy& op_order_by) {
     op_order_by.op->accept_visitor(*this);
 }
 
+
 void CheckVarNames::visit(const OpGraphPatternRoot& op_graph_pattern_root) {
      op_graph_pattern_root.op->accept_visitor(*this);
 }
+
 
 void CheckVarNames::visit(const OpTransitiveClosure&) { }
 void CheckVarNames::visit(const OpConnection&) { }

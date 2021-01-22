@@ -29,6 +29,7 @@ GraphObject BindingGroupBy::operator[](const VarId var) {
     return objects_vector[var.id];
 }
 
+
 void BindingGroupBy::update_binding(std::vector<GraphObject> new_tuple) {
     objects_vector = move(new_tuple);
 }

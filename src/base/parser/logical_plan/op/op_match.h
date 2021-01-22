@@ -8,13 +8,13 @@
 #include <vector>
 
 #include "base/parser/logical_plan/exceptions.h"
-#include "base/parser/logical_plan/op/op.h"
+#include "base/parser/logical_plan/op/op_connection_type.h"
+#include "base/parser/logical_plan/op/op_connection.h"
 #include "base/parser/logical_plan/op/op_label.h"
 #include "base/parser/logical_plan/op/op_property.h"
-#include "base/parser/logical_plan/op/op_connection.h"
-#include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op_transitive_closure.h"
-#include "base/parser/logical_plan/op/op_connection_type.h"
+#include "base/parser/logical_plan/op/op_unjoint_object.h"
+#include "base/parser/logical_plan/op/op.h"
 
 class OpMatch : public Op {
 public:
@@ -27,9 +27,11 @@ public:
 
     std::set<std::string> var_names; // only contains declared variables
 
-    int_fast32_t anonymous_var_count = 0;
+    uint_fast32_t* anon_count;
 
-    OpMatch(const std::vector<query::ast::LinearPattern>& graph_pattern) {
+    OpMatch(const std::vector<query::ast::LinearPattern>& graph_pattern, uint_fast32_t* anon_count) :
+        anon_count (anon_count)
+    {
         for (auto& linear_pattern : graph_pattern) {
             auto last_object_name = process_node(linear_pattern.root);
 
@@ -80,7 +82,7 @@ public:
         std::string node_name;
         if (node.var_or_id.empty()) {
             // anonymous variable
-            node_name = "?_" + std::to_string(anonymous_var_count++);
+            node_name = "?_" + std::to_string((*anon_count)++);
             var_names.insert(node_name);
         } else if (node.var_or_id[0] == '?') {
             // explicit variable
@@ -116,7 +118,7 @@ public:
         std::string edge_name;
         if (edge.var_or_id.empty()) {
             // anonymous variable
-            edge_name = "?_e" + std::to_string(anonymous_var_count++);
+            edge_name = "?_e" + std::to_string((*anon_count)++);
             var_names.insert(edge_name);
         } else if (edge.var_or_id[0] == '?') {
             // explicit variable

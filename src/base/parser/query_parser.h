@@ -1,9 +1,9 @@
 #ifndef BASE__QUERY_PARSER_H_
 #define BASE__QUERY_PARSER_H_
 
-#include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/grammar/query/query_ast.h"
 #include "base/parser/grammar/manual_plan/manual_plan_ast.h"
+#include "base/parser/grammar/query/query_ast.h"
+#include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 
 class QueryParser {

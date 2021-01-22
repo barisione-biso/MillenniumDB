@@ -1,12 +1,12 @@
-#include "storage/index/bplus_tree/bplus_tree.h"
+#include "bplus_tree.h"
 
 #include <iostream>
 
-#include "storage/file_manager.h"
 #include "storage/buffer_manager.h"
-#include "storage/index/record.h"
-#include "storage/index/ordered_file/ordered_file.h"
+#include "storage/file_manager.h"
 #include "storage/index/ordered_file/bpt_leaf_provider.h"
+#include "storage/index/ordered_file/ordered_file.h"
+#include "storage/index/record.h"
 
 template class BPlusTree<2>;
 template class BPlusTree<3>;

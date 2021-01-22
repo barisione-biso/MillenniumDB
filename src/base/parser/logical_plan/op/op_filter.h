@@ -22,11 +22,13 @@ public:
         visitor.visit(*this);
     }
 
+
     // checks filters only uses declared variables, throws QuerySemanticException if not
     void check_var_names(std::set<std::string>& declared_var_names) const {
         FormulaCheckVarNames visitor(declared_var_names);
         visitor(formula);
     }
+
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');
@@ -41,8 +43,10 @@ public:
         return op->print_to_ostream(os, indent + 2);
     };
 
+
     std::set<std::string> get_var_names() const override {
-        return op->get_var_names(); // TODO: should add properties mentioned in the WHERE that are not present in the MATCH
+        // TODO: should add properties mentioned in the WHERE that are not present in the MATCH?
+        return op->get_var_names();
     }
 };
 

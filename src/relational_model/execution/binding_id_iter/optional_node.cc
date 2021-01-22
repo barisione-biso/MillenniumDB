@@ -5,13 +5,9 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
-#include "left_outer_join.h"
+#include "index_left_outer_join.h"
 
 using namespace std;
-
-// TODO CRIS:
-// Add manual plan
-// Include Selinger
 
 OptionalNode::OptionalNode(std::size_t binding_size,
                            unique_ptr<BindingIdIter> _graph_pattern,
@@ -20,7 +16,7 @@ OptionalNode::OptionalNode(std::size_t binding_size,
     binding_size  (binding_size)
 {
     for (auto& child : children) {
-        graph_pattern = make_unique<LeftOuterJoin>(binding_size, move(graph_pattern), move(child));
+        graph_pattern = make_unique<IndexLeftOuterJoin>(binding_size, move(graph_pattern), move(child));
     }
 }
 
@@ -46,9 +42,18 @@ void OptionalNode::assign_nulls() {
 
 
 void OptionalNode::analyze(int indent) const {
+
+    //
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
     cout << "OptionalNode(\n";
-    graph_pattern->analyze(indent);
-    cout << ")\n";
+    graph_pattern->analyze(indent + 2);
+    cout << "\n";
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << ")";
 }
 
 template class std::unique_ptr<OptionalNode>;

@@ -6,23 +6,21 @@
 
 #include "base/binding/binding.h"
 #include "base/parser/logical_plan/op/op_filter.h"
+#include "base/parser/logical_plan/op/op_group_by.h"
 #include "base/parser/logical_plan/op/op_match.h"
+#include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
-#include "base/parser/logical_plan/op/op_order_by.h"
-#include "base/parser/logical_plan/op/op_group_by.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
-
+#include "relational_model/execution/binding_iter/group_by.h"
 #include "relational_model/execution/binding_iter/match.h"
+#include "relational_model/execution/binding_iter/order_by.h"
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
-#include "relational_model/execution/binding_iter/order_by.h"
-#include "relational_model/execution/binding_iter/group_by.h"
-
+#include "relational_model/models/quad_model/query_optimizer/join_plan/connection_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/connection_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/property_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
@@ -195,8 +193,8 @@ void QueryOptimizer::visit(const OpMatch& op_match) {
 
     auto binding_size = id_map.size();
     if (base_plans.size() <= MAX_SELINGER_PLANS) {
-        auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
-        tmp = make_unique<Match>(model, selinger_optimizer.get_binding_id_iter(binding_size), binding_size);
+        // auto selinger_optimizer = SelingerOptimizer(move(base_plans), move(var_names));
+        // tmp = make_unique<Match>(model, selinger_optimizer.get_binding_id_iter(binding_size), binding_size);
     } else {
         tmp = make_unique<Match>(model, get_greedy_join_plan(move(base_plans), binding_size), binding_size);
     }

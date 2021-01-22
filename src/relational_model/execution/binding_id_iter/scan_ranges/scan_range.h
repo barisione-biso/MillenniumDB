@@ -3,8 +3,8 @@
 
 #include <cstdint>
 
-#include "base/ids/object_id.h"
 #include "base/binding/binding_id.h"
+#include "base/ids/object_id.h"
 
 class ScanRange {
 public:

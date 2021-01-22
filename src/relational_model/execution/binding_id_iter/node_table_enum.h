@@ -4,8 +4,8 @@
 #include <memory>
 #include <vector>
 
-#include "base/ids/var_id.h"
 #include "base/binding/binding_id_iter.h"
+#include "base/ids/var_id.h"
 #include "storage/index/random_access_table/random_access_table.h"
 
 class NodeTableEnum : public BindingIdIter {
@@ -14,7 +14,6 @@ private:
     RandomAccessTable<1>& table;
     uint_fast32_t current_pos;
     uint64_t results = 0;
-
     BindingId* parent_binding;
 
 public:

@@ -6,10 +6,6 @@
 // Abstract class
 class BindingIdIter {
 public:
-    // BindingIdIter(std::size_t binding_size) :
-    //     my_binding(binding_size) { }
-
-    // BindingIdIter(const BindingIdIter& other) = delete;
 
     virtual ~BindingIdIter() = default;
 
@@ -21,9 +17,6 @@ public:
 
     // prints execution statistics
     virtual void analyze(int indent = 0) const = 0;
-
-// protected:
-//     BindingId my_binding;
 };
 
 #endif // BASE__BINDING_ID_ITER_H_

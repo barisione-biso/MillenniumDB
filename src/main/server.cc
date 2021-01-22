@@ -66,14 +66,13 @@ void execute_query(unique_ptr<BindingIter> root, std::ostream& os) {
 
     cout << "\n";
 
-    cout << "N results:" << std::to_string(count);
+    cout << "N results:" << std::to_string(count) << "\n";
 
     auto end = chrono::system_clock::now();
 
     chrono::duration<float, std::milli> duration = end - start;
     os << "Found " << std::to_string(count) << " results.\n";
     os << "Execution time: " << std::to_string(duration.count()) << " ms.\n";
-    cout<< "\nEnd!\n"; // TODO: delete
 }
 
 
@@ -138,6 +137,7 @@ void session(tcp::socket sock, GraphModel* model) {
 
 void server(boost::asio::io_service& io_service, unsigned short port, GraphModel* model) {
     tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), port));
+    cout << "Server running." << endl;
     while (true) {
         tcp::socket sock(io_service);
         a.accept(sock);

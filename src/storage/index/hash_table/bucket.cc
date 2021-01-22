@@ -2,8 +2,8 @@
 
 #include <bitset>
 #include <cstring>
-#include <memory>
 #include <iostream>
+#include <memory>
 
 #include "storage/buffer_manager.h"
 
