@@ -62,14 +62,16 @@ void QueryAstPrinter::operator()(Root const& r) const {
     out << ",\n";
 
     if (r.group_by) {
-        printer.indent("\"GROUP BY\":");
-        printer(r.group_by.get());
+        printer.indent("\"GROUP BY\": ");
+        auto item_list = r.group_by.get();
+        printer(item_list);
         out << ",\n";
     }
 
     if (r.order_by) {
-        printer.indent("\"ORDER BY\":");
-        printer(r.order_by.get());
+        printer.indent("\"ORDER BY\": ");
+        auto item_list = r.order_by.get();
+        printer(item_list);
         out << ",\n";
     }
 
@@ -105,6 +107,25 @@ void QueryAstPrinter::operator()(std::vector<SelectItem> const& select_items) co
             out << "\n";
         }
     }
+}
+
+
+void QueryAstPrinter::operator()(std::vector<query::ast::OrderedSelectItem> const& ordered_select_items) const {
+    out << "[ ";
+    auto it = ordered_select_items.begin();
+    while (it != ordered_select_items.end()) {
+        (*this)(it->item);
+        if (it->order == query::ast::Order::Ascending) {
+            out << " ASC";
+        } else {
+            out << " DESC";
+        }
+        ++it;
+        if (it != ordered_select_items.end()) {
+            out << ", ";
+        }
+    }
+    out << " ]";
 }
 
 

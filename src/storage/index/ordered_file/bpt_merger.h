@@ -12,7 +12,7 @@ public:
     ~BptMerger();
 
     void begin() override;
-    bool has_more_tuples() override;
+    bool has_more_tuples() const override;
     uint_fast32_t next_tuples(uint64_t* output, uint_fast32_t max_tuples) override;
 
 private:

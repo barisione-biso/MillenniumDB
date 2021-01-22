@@ -49,12 +49,12 @@ namespace manual_plan { namespace ast {
     using Relation = boost::variant<NodeLabel, ObjectProperty, TypedConnection>;
 
     struct ManualRoot {
-        std::vector<query::ast::SelectItem>                   selection;
-        std::vector<Relation>                                 relations;
-        boost::optional<query::ast::Formula>                  where;
-        boost::optional<std::vector<query::ast::SelectItem>>  group_by;
-        boost::optional<std::vector<query::ast::SelectItem>>  order_by;
-        boost::optional<uint_fast32_t>                        limit;
+        std::vector<query::ast::SelectItem>                          selection;
+        std::vector<Relation>                                        relations;
+        boost::optional<query::ast::Formula>                         where;
+        boost::optional<std::vector<query::ast::OrderedSelectItem>>  group_by;
+        boost::optional<std::vector<query::ast::OrderedSelectItem>>  order_by;
+        boost::optional<uint_fast32_t>                               limit;
     };
 }}
 

@@ -1,7 +1,6 @@
 #include "binding_order_by.h"
 
 #include <cassert>
-#include <iostream>
 
 #include "base/binding/binding.h"
 
@@ -10,12 +9,8 @@ using namespace std;
 
 BindingOrderBy::BindingOrderBy(GraphModel& model, size_t binding_size) :
     model         (model),
-    binding_size  (binding_size)
+    binding_size  (binding_size) { }
 
-{ }
-
-
-BindingOrderBy::~BindingOrderBy() = default;
 
 std::ostream& BindingOrderBy::print_to_ostream(std::ostream& os) const {
     return os;

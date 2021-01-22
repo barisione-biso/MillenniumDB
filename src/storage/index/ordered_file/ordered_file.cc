@@ -47,13 +47,13 @@ void OrderedFile<N>::begin() {
 
 
 template <std::size_t N>
-bool OrderedFile<N>::has_more_tuples() {
+bool OrderedFile<N>::has_more_tuples() const {
     return file.tellg() < filesize;
 }
 
 
 template <std::size_t N>
-uint64_t OrderedFile<N>::get_total_tuples() {
+uint64_t OrderedFile<N>::get_total_tuples() const {
     return filesize / bytes_per_tuple;
 }
 
@@ -106,7 +106,6 @@ void OrderedFile<N>::order(std::array<uint_fast8_t, N> column_order) {
         current_output_pos = 0;
     }
 
-    // auto start = std::chrono::system_clock::now();
     bool reading_orginal_file = true;
 
     file.seekg(0, ios::end);
@@ -125,10 +124,6 @@ void OrderedFile<N>::order(std::array<uint_fast8_t, N> column_order) {
     for (uint_fast32_t i = 0; i < total_blocks; /*i+= MAX_RUNS*/i++) {
         create_run(big_buffer, i, column_order, reorder);
     }
-
-    // auto end_phase0 = std::chrono::system_clock::now();
-    // std::chrono::duration<float,std::milli> duration = end_phase0 - start;
-    // std::cout << duration.count() << "ms " << "\n";
 
     uint_fast32_t buffer_size[MAX_RUNS];
     uint_fast32_t buffer_current_pos[MAX_RUNS];
@@ -216,24 +211,17 @@ void OrderedFile<N>::order(std::array<uint_fast8_t, N> column_order) {
     }
 
     if (!reading_orginal_file) {
-        // file_manager.remove(file_id);
         file_manager.close(file_id);
         std::remove( file_manager.get_absolute_path(file_id).c_str() );
 
-        // file_manager.rename(tmp_file_id, file_manager.get_absolute_path(file_id) );
         file_manager.close(tmp_file_id);
         experimental::filesystem::rename(file_manager.get_absolute_path(tmp_file_id), file_manager.get_absolute_path(file_id));
     }
     else {
-        // file_manager.remove(tmp_file_id);
         file_manager.close(file_id);
         std::remove( file_manager.get_absolute_path(tmp_file_id).c_str() );
     }
     file_manager.ensure_open(file_id);
-
-    // auto end = std::chrono::system_clock::now();
-    // duration = end - end_phase0;
-    // std::cout << duration.count() << "ms " << "\n";
 }
 
 
@@ -317,7 +305,7 @@ void OrderedFile<N>::assign_record(uint64_t* key, uint_fast32_t buffer_pos, uint
 
 
 template <std::size_t N>
-void OrderedFile<N>::print() {
+void OrderedFile<N>::print() const {
     std::cout << "printing\n";
     file.seekg(0, ios::beg);
     int count = 1;
@@ -341,7 +329,7 @@ void OrderedFile<N>::print() {
 
 
 template <std::size_t N>
-void OrderedFile<N>::check_order() {
+void OrderedFile<N>::check_order() const {
     std::cout << "checking order...\n";
     file.seekg(0, ios::beg);
 

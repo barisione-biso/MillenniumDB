@@ -10,51 +10,39 @@
 class OpGroupBy : public Op {
 public:
     const std::unique_ptr<Op> op;
-    const bool ascending_order;
-    const std::vector<query::ast::SelectItem> items;
+    std::vector<query::ast::SelectItem> items;
+    std::vector<bool> ascending_order;
+
+    OpGroupBy(std::unique_ptr<Op> op, const std::vector<query::ast::OrderedSelectItem>& ordered_items) :
+        op (std::move(op))
+    {
+        for (auto& order_item : ordered_items) {
+            items.push_back(order_item.item);
+            ascending_order.push_back(order_item.order == query::ast::Order::Ascending);
+        }
+    }
+
+    ~OpGroupBy() = default;
+
+    void accept_visitor(OpVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
         os << "OpGroupBy()";
-        if(items.size() == 0){
-            os << "*";
-        }else{
-            bool first = true;
-            for (auto & item : items) {
-                if (!first) os << ", ";
-                first = false;
-                if(item.key)
-                {
-                    os << item.var << "." << item.key.get();
-                }else{
-                    os << item.var;
-                }
+        bool first = true;
+        for (auto & item : items) {
+            if (!first) os << ", ";
+            first = false;
+            if (item.key) {
+                os << item.var << "." << item.key.get();
+            } else {
+                os << item.var;
             }
         }
-        os << ")";
-
-        if (ascending_order)
-        {
-            os << "  ASCENDING";
-        }
-        else
-        {
-            os << " DESCENDING";
-        }
-        os << "\n";
+        os << ")\n";
         return op->print_to_ostream(os, indent + 2);
-    };
-
-    OpGroupBy(std::vector<query::ast::SelectItem> items, std::unique_ptr<Op> op, bool ascending_order) :
-        op              (std::move(op)),
-        ascending_order (ascending_order),
-        items           (items) { }
-
-    ~OpGroupBy() = default;
-
-
-    void accept_visitor(OpVisitor& visitor) const override {
-        visitor.visit(*this);
     }
 
     std::set<std::string> get_var_names() const override {

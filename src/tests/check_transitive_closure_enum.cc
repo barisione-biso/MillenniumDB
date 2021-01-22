@@ -20,9 +20,6 @@
 using namespace std;
 namespace po = boost::program_options;
 
-// Antes de probar el test se espera que se cargó una base de datos en la carpeta correcta, ej:
-// build/Release/bin/create_db tests/dbs/db_name.txt tests/dbs/db_name
-// Test: build/Release/bin/check_transitive_closure_enum -d tests/dbs/transitive-db -s Q1 -t knows
 int main(int argc, char **argv) {
     int buffer_size;
     string db_folder;
@@ -50,7 +47,7 @@ int main(int argc, char **argv) {
         po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
 
         if (vm.count("help")) {
-            cout << "Usage: server [options] DB_FOLDER\n";
+            cout << "Usage: build/Release/bin/check_transitive_closure_enum -d [DATABASE_FOLDER] -s [START_NODE] -t [TYPE]\n";
             cout << desc << "\n";
             return 0;
         }
@@ -61,19 +58,19 @@ int main(int argc, char **argv) {
         auto& bpt = *model.type_from_to_edge; // from: 1, to: 2, type: 0
         auto start_id = ObjectId(model.get_identifiable_object_id(start_node)); // Start node
         auto type_id  = ObjectId(model.get_identifiable_object_id(connection_type)); // Connection type
-        auto op = TransitiveClosureEnum(4, bpt, start_id, VarId(2), type_id, 1, 0); // Enum case
+        VarId end_var_id(0);
+        auto op = TransitiveClosureEnum(4, bpt, start_id, end_var_id, type_id, 1, 0); // Enum case
 
         // Transitive Closure Test
         BindingId binding(4);
         op.begin(binding, true);
         while (op.next()) {
-            auto obj_id = binding[VarId(2)];
+            auto obj_id = result[end_var_id];
             auto obj = model.get_graph_object(obj_id);
             if (verbose) {
-                cout << "Resultado: " << obj << "\n";
+                cout << "result: " << obj << "\n";
             }
         }
-        cout << "Fin\n";
 
         // Check statistics
         op.analyze();

@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "base/binding/binding_id.h"
-#include "base/binding/binding_iter.h"
 #include "base/graph/graph_model.h"
 #include "base/ids/var_id.h"
 #include "relational_model/execution/binding_iter/order_by.h"
@@ -16,13 +15,13 @@
 
 class GroupBy : public BindingIter {
 public:
-    GroupBy(
-        GraphModel& model,
-        std::unique_ptr<BindingIter> child,
-        std::vector<std::pair<std::string,VarId>> _group_vars,
-        std::size_t binding_size
-        );
+    GroupBy(GraphModel& model,
+            std::unique_ptr<BindingIter> child,
+            std::size_t binding_size,
+            std::vector<std::pair<std::string,VarId>> _group_vars,
+            std::vector<bool> ascending);
     ~GroupBy() = default;
+
     Binding& get_binding() override;
     bool next() override;
     void analyze(int indent = 0) const override;

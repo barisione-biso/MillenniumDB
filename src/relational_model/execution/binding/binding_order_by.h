@@ -13,12 +13,11 @@ class BindingId;
 class BindingOrderBy : public Binding {
 public:
     BindingOrderBy(GraphModel& model, size_t binding_size);
-    ~BindingOrderBy();
+    ~BindingOrderBy() = default;
+
     std::ostream& print_to_ostream(std::ostream&) const override;
     GraphObject operator[](const VarId var_id) override;
-    void begin(BindingId&);
     void update_binding_object(std::vector<GraphObject> graph_object);
-
 
 private:
     GraphModel& model;

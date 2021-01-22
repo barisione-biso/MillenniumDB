@@ -37,6 +37,10 @@ BOOST_FUSION_ADAPT_STRUCT(query::ast::SelectItem,
     var, key
 )
 
+BOOST_FUSION_ADAPT_STRUCT(query::ast::OrderedSelectItem,
+    item, order
+)
+
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Statement,
     lhs, comparator, rhs
 )

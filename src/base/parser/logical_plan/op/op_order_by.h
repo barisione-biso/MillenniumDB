@@ -10,45 +10,19 @@
 class OpOrderBy : public Op {
 public:
     const std::unique_ptr<Op> op;
-    const bool ascending_order;
-    const std::vector<query::ast::SelectItem> items;
+    std::vector<query::ast::SelectItem> items;
+    std::vector<bool> ascending_order;
 
-    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
-        os << std::string(indent, ' ');
-        os << "OpOrderBy()";
-        if(items.size() == 0){
-            os << "*";
-        }else{
-            bool first = true;
-            for (auto & item : items) {
-                if (!first) os << ", ";
-                first = false;
-                if(item.key)
-                {
-                    os << item.var << "." << item.key.get();
-                }else{
-                    os << item.var;
-                }
-            }
+    OpOrderBy(std::unique_ptr<Op> op, const std::vector<query::ast::OrderedSelectItem>& ordered_items) :
+        op (std::move(op))
+    {
+        for (auto& order_item : ordered_items) {
+            items.push_back(order_item.item);
+            ascending_order.push_back(order_item.order == query::ast::Order::Ascending);
         }
-        os << ")";
-
-        if (ascending_order) {
-            os << " ASCENDING";
-        } else {
-            os << " DESCENDING";
-        }
-        os << "\n";
-        return op->print_to_ostream(os, indent + 2);
-    };
-
-    OpOrderBy(std::vector<query::ast::SelectItem> items, std::unique_ptr<Op> op, bool ascending_order) :
-        op              (std::move(op)),
-        ascending_order (ascending_order),
-        items           (items) { }
+    }
 
     ~OpOrderBy() = default;
-
 
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
@@ -57,6 +31,23 @@ public:
     std::set<std::string> get_var_names() const override {
         // TODO: should add properties mentioned in the GROUP BY that are not present in the MATCH?
         return op->get_var_names();
+    }
+
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+        os << std::string(indent, ' ');
+        os << "OpOrderBy()";
+        bool first = true;
+        for (auto & item : items) {
+            if (!first) os << ", ";
+            first = false;
+            if (item.key) {
+                os << item.var << "." << item.key.get();
+            } else {
+                os << item.var;
+            }
+        }
+        os << ")\n";
+        return op->print_to_ostream(os, indent + 2);
     }
 };
 

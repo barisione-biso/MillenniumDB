@@ -14,11 +14,10 @@
 #include "base/graph/string_external.h"
 
 struct NullGraphObject {
-    inline void operator=(const NullGraphObject&) {
-    }
+    inline void operator=(const NullGraphObject&) { }
 
     inline bool operator==(const NullGraphObject&) const noexcept {
-        return false;
+        return true;
     }
 
     inline bool operator!=(const NullGraphObject&) const noexcept {
@@ -26,11 +25,11 @@ struct NullGraphObject {
     }
 
     inline bool operator<=(const NullGraphObject&) const noexcept {
-        return false;
+        return true;
     }
 
     inline bool operator>=(const NullGraphObject&) const noexcept {
-        return false;
+        return true;
     }
 
     inline bool operator<(const NullGraphObject&) const noexcept {
@@ -43,8 +42,7 @@ struct NullGraphObject {
 };
 
 struct NotFoundObject {
-    inline void operator=(const NotFoundObject&) {
-    }
+    inline void operator=(const NotFoundObject&) { }
 
     inline bool operator==(const NotFoundObject&) const noexcept {
         return false;
@@ -72,17 +70,20 @@ struct NotFoundObject {
 };
 
 
+// int64_t and float needs to be contigous
+// StringInlined and StringExternal needs to be contigous
+// IdentifiableInlined and IdentifiableExternal needs to be contigous
 using GraphObjectVariant = std::variant<
+        NullGraphObject,
+        NotFoundObject,
         IdentifiableInlined,
         IdentifiableExternal,
         Edge,
         AnonymousNode,
+        bool,
         StringInlined,
         StringExternal,
-        NullGraphObject,
-        NotFoundObject,
         int64_t,
-        bool,
         float>;
 
 struct GraphObjectOstreamVisitor {
@@ -218,7 +219,25 @@ public:
     }
 
     inline bool operator<=(const GraphObject& rhs) const noexcept {
-        if (std::holds_alternative<StringExternal>(this->value)) {
+        if (std::holds_alternative<IdentifiableExternal>(this->value)) {
+            if (std::holds_alternative<IdentifiableInlined>(rhs.value)) {
+                return strcmp(
+                    std::get<IdentifiableExternal>(this->value).id,
+                    std::get<IdentifiableInlined>(rhs.value).id
+                ) <= 0;
+            }
+        }
+
+        else if (std::holds_alternative<IdentifiableInlined>(this->value)) {
+            if (std::holds_alternative<IdentifiableExternal>(rhs.value)) {
+                return strcmp(
+                    std::get<IdentifiableInlined>(this->value).id,
+                    std::get<IdentifiableExternal>(rhs.value).id
+                ) <= 0;
+            }
+        }
+
+        else if (std::holds_alternative<StringExternal>(this->value)) {
             if (std::holds_alternative<StringInlined>(rhs.value)) {
                 return strcmp(
                     std::get<StringExternal>(this->value).id,
@@ -251,7 +270,25 @@ public:
     }
 
     inline bool operator>=(const GraphObject& rhs) const noexcept {
-        if (std::holds_alternative<StringExternal>(this->value)) {
+        if (std::holds_alternative<IdentifiableExternal>(this->value)) {
+            if (std::holds_alternative<IdentifiableInlined>(rhs.value)) {
+                return strcmp(
+                    std::get<IdentifiableExternal>(this->value).id,
+                    std::get<IdentifiableInlined>(rhs.value).id
+                ) >= 0;
+            }
+        }
+
+        else if (std::holds_alternative<IdentifiableInlined>(this->value)) {
+            if (std::holds_alternative<IdentifiableExternal>(rhs.value)) {
+                return strcmp(
+                    std::get<IdentifiableInlined>(this->value).id,
+                    std::get<IdentifiableExternal>(rhs.value).id
+                ) >= 0;
+            }
+        }
+
+        else if (std::holds_alternative<StringExternal>(this->value)) {
             if (std::holds_alternative<StringInlined>(rhs.value)) {
                 return strcmp(
                     std::get<StringExternal>(this->value).id,
@@ -284,7 +321,25 @@ public:
     }
 
     inline bool operator<(const GraphObject& rhs)  const noexcept {
-        if (std::holds_alternative<StringExternal>(this->value)) {
+        if (std::holds_alternative<IdentifiableExternal>(this->value)) {
+            if (std::holds_alternative<IdentifiableInlined>(rhs.value)) {
+                return strcmp(
+                    std::get<IdentifiableExternal>(this->value).id,
+                    std::get<IdentifiableInlined>(rhs.value).id
+                ) < 0;
+            }
+        }
+
+        else if (std::holds_alternative<IdentifiableInlined>(this->value)) {
+            if (std::holds_alternative<IdentifiableExternal>(rhs.value)) {
+                return strcmp(
+                    std::get<IdentifiableInlined>(this->value).id,
+                    std::get<IdentifiableExternal>(rhs.value).id
+                ) < 0;
+            }
+        }
+
+        else if (std::holds_alternative<StringExternal>(this->value)) {
             if (std::holds_alternative<StringInlined>(rhs.value)) {
                 return strcmp(
                     std::get<StringExternal>(this->value).id,
@@ -317,7 +372,25 @@ public:
     }
 
     inline bool operator>(const GraphObject& rhs)  const noexcept {
-        if (std::holds_alternative<StringExternal>(this->value)) {
+        if (std::holds_alternative<IdentifiableExternal>(this->value)) {
+            if (std::holds_alternative<IdentifiableInlined>(rhs.value)) {
+                return strcmp(
+                    std::get<IdentifiableExternal>(this->value).id,
+                    std::get<IdentifiableInlined>(rhs.value).id
+                ) > 0;
+            }
+        }
+
+        else if (std::holds_alternative<IdentifiableInlined>(this->value)) {
+            if (std::holds_alternative<IdentifiableExternal>(rhs.value)) {
+                return strcmp(
+                    std::get<IdentifiableInlined>(this->value).id,
+                    std::get<IdentifiableExternal>(rhs.value).id
+                ) > 0;
+            }
+        }
+
+        else if (std::holds_alternative<StringExternal>(this->value)) {
             if (std::holds_alternative<StringInlined>(rhs.value)) {
                 return strcmp(
                     std::get<StringExternal>(this->value).id,

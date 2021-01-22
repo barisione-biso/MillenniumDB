@@ -21,6 +21,9 @@ private:
     Id type;
     uint64_t lookups = 0;
     uint64_t results = 0;
+
+    // because the interface will call next() until returns false, this variable prevent giving
+    // the same result multiple times
     bool already_looked;
 
     BindingId* parent_binding;

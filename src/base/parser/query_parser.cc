@@ -36,32 +36,19 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
     }
 
     if (ast.where) {
-        op = make_unique<OpFilter>(
-            move(op),
-            ast.where.get()
-        );
+        op = make_unique<OpFilter>(move(op), ast.where.get());
     }
 
     if (ast.group_by) {
-        auto group_by = ast.group_by.get();
-        op = make_unique<OpGroupBy>(
-            group_by,
-            move(op),
-            true // TODO: ascending from ast
-        );
+        op = make_unique<OpGroupBy>(move(op), ast.group_by.get());
     }
 
     // TODO: si viene group_by + order by solo debería haber 1 OpGroupBy que sepa como ordenar?
     if (ast.order_by) {
-        auto order_by = ast.order_by.get();
-        op = make_unique<OpOrderBy>(
-            order_by,
-            move(op),
-            true // TODO: ascending from ast
-        );
+        op = make_unique<OpOrderBy>(move(op), ast.order_by.get());
     }
 
-    return make_unique<OpSelect>(ast.selection, move(op), limit);
+    return make_unique<OpSelect>(move(op), ast.selection, limit);
 }
 
 

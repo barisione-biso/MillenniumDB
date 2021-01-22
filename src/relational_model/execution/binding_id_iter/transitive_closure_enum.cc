@@ -10,7 +10,7 @@
 
 using namespace std;
 
-TransitiveClosureEnum::TransitiveClosureEnum(std::size_t,
+TransitiveClosureEnum::TransitiveClosureEnum(std::size_t /*binding_size*/,
                                              BPlusTree<4>& bpt,
                                              Id start,
                                              VarId end,
@@ -36,11 +36,11 @@ void TransitiveClosureEnum::begin(BindingId& parent_binding, bool /* parent_has_
 
     // Set start_object_id and add it to `open`
     if (std::holds_alternative<ObjectId>(start)) {
-        auto start_object_id = std::get<ObjectId>(start);
+        start_object_id = std::get<ObjectId>(start);
         open.push(start_object_id);
     } else {
         auto start_var_id = std::get<VarId>(start);
-        auto start_object_id = (parent_binding)[start_var_id];
+        start_object_id = (parent_binding)[start_var_id];
         open.push(start_object_id);
     }
 
@@ -51,36 +51,32 @@ void TransitiveClosureEnum::begin(BindingId& parent_binding, bool /* parent_has_
 
 bool TransitiveClosureEnum::next() {
     while ((open.size() > 0) || self_reference) {
-        outer_while_count ++;
         // Change iterator to next root node
         if (child_record == nullptr) {
             auto current = open.front();
             open.pop();
-            // cout << "Open Size: " << open.size() << "\n";
             min_ids[start_pos] = current.id;
             max_ids[start_pos] = current.id;
             it = bpt.get_range(
                 Record<4>(min_ids),
                 Record<4>(max_ids)
             );
-            bpt_searches ++;
+            ++bpt_searches;
         }
         // Find next node
         self_reference = false;
         child_record = it->next();
         while (child_record != nullptr){
-            inner_while_count ++;
             ObjectId child( child_record->ids[2] );
             if (visited.find(child) == visited.end()) {
                 visited.insert(child);
-                // cout << "Visited Size: " << visited.size() << "\n";
                 parent_binding->add(end, child);
-                if (child != std::get<ObjectId>(start)) {
+                if (child != start_object_id) {
                     open.push(child);
-                    // cout << "Open Size: " << open.size() << "\n";
                 } else {
                     self_reference = true;
                 }
+                ++results_found;
                 return true;
             }
             child_record = it->next();
@@ -99,11 +95,11 @@ void TransitiveClosureEnum::reset() {
     self_reference = false;
 
     if (std::holds_alternative<ObjectId>(start)) {
-        auto start_object_id = std::get<ObjectId>(start);
+        start_object_id = std::get<ObjectId>(start);
         open.push(start_object_id);
     } else {
         auto start_var_id = std::get<VarId>(start);
-        auto start_object_id = (*parent_binding)[start_var_id];
+        start_object_id = (*parent_binding)[start_var_id];
         open.push(start_object_id);
     }
 }
@@ -114,8 +110,10 @@ void TransitiveClosureEnum::assign_nulls() {
 }
 
 
-void TransitiveClosureEnum::analyze(int) const {
-    cout << "Outer While Count: " << outer_while_count << "\n";
-    cout << "Inner While Count: " << inner_while_count << "\n";
-    cout << "BPT Searches: " << bpt_searches << "\n";
+void TransitiveClosureEnum::analyze(int indent) const {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "TransitiveClosurEnum(bpt_searches: " << bpt_searches
+         << ", found: " << results_found <<")\n";
 }

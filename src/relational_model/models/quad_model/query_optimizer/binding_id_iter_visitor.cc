@@ -10,6 +10,7 @@
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/property_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/transitive_closure_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
 
@@ -118,6 +119,23 @@ void BindingIdIterVisitor::visit(const OpMatch& op_match) {
                 make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
             );
         }
+    }
+
+    // TODO: property paths are only transitive closures for now
+    for (auto& property_path : op_match.property_paths) {
+        auto from_id = property_path.from[0] == '?'
+                        ? (JoinPlan::Id) get_var_id(property_path.from)
+                        : (JoinPlan::Id) model.get_identifiable_object_id(property_path.from);
+
+        auto to_id   = property_path.to[0] == '?'
+                        ? (JoinPlan::Id) get_var_id(property_path.to)
+                        : (JoinPlan::Id) model.get_identifiable_object_id(property_path.to);
+
+        auto type_id = model.get_identifiable_object_id(property_path.type);
+
+        base_plans.push_back(
+            make_unique<TransitiveClosurePlan>(model, from_id, to_id, type_id)
+        );
     }
 
     assert(tmp == nullptr);

@@ -2,16 +2,17 @@
 
 #include <chrono>
 #include <iostream>
+#include <map>
 #include <boost/spirit/include/support_istream_iterator.hpp>
 
-#include "base/parser/grammar/import/import_ast.h"
-#include "base/parser/grammar/import/import_ast_adapted.h"
-#include "base/parser/grammar/import/import.h"
-#include "base/parser/grammar/import/import_def.h"
 #include "base/parser/grammar/common/value_visitor.h"
-#include "storage/index/ordered_file/bpt_merger.h"
+#include "base/parser/grammar/import/import_ast_adapted.h"
+#include "base/parser/grammar/import/import_ast.h"
+#include "base/parser/grammar/import/import_def.h"
+#include "base/parser/grammar/import/import.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
+#include "storage/index/ordered_file/bpt_merger.h"
 
 using namespace std;
 
@@ -251,16 +252,10 @@ void BulkImport::start_import() {
     chrono::duration<float, milli> phase2_duration = finish_creating_index - finish_reading_files;
     std::cout << "Writing indexes: " << phase2_duration.count() << "ms\n";
 
-    if (catalog.identifiable_defined_count != catalog.identifiable_nodes_count) {
-        std::cout << "WARNING: defined identifiable nodes(" << catalog.identifiable_defined_count
-        << ") and used identifiable nodes (" << catalog.identifiable_nodes_count << ") are different.\n";
-    }
-
-    if (catalog.anonymous_defined_count != catalog.anonymous_nodes_count) {
-        std::cout << "WARNING: defined anonymous nodes(" << catalog.anonymous_defined_count
-        << ") and used anonymous nodes (" << catalog.anonymous_nodes_count << ") are different.\n";
-    }
-
+    // if (catalog.identifiable_defined_count != catalog.identifiable_nodes_count) {
+    //     std::cout << "WARNING: defined identifiable nodes(" << catalog.identifiable_defined_count
+    //     << ") and used identifiable nodes (" << catalog.identifiable_nodes_count << ") are different.\n";
+    // }
     catalog.save_changes();
 }
 
@@ -268,32 +263,32 @@ void BulkImport::start_import() {
 template <std::size_t N>
 void BulkImport::set_distinct_type_stats(OrderedFile<N>& ordered_file, std::map<uint64_t, uint64_t>& m)
 {
-        map<uint64_t, uint64_t> map;
-        uint64_t current_type = 0;
-        uint64_t count        = 0;
+    map<uint64_t, uint64_t> map;
+    uint64_t current_type = 0;
+    uint64_t count        = 0;
 
-        ordered_file.begin();
-        auto record = ordered_file.next_record();
-        while (record != nullptr) {
-            // check same key
-            if (record->ids[0] == current_type) {
-                ++count;
-            } else {
-                // save stats from last key
-                if (current_type != 0) {
-                    map.insert({ current_type, count });
-                }
-                current_type = record->ids[0];
-                count = 1;
+    ordered_file.begin();
+    auto record = ordered_file.next_record();
+    while (record != nullptr) {
+        // check same key
+        if (record->ids[0] == current_type) {
+            ++count;
+        } else {
+            // save stats from last key
+            if (current_type != 0) {
+                map.insert({ current_type, count });
             }
-            record = ordered_file.next_record();
+            current_type = record->ids[0];
+            count = 1;
         }
-        // save stats from last key
-        if (current_type != 0) {
-            map.insert({ current_type, count });
-        }
+        record = ordered_file.next_record();
+    }
+    // save stats from last key
+    if (current_type != 0) {
+        map.insert({ current_type, count });
+    }
 
-        m = move(map);
+    m = move(map);
 }
 
 
@@ -305,8 +300,9 @@ uint64_t BulkImport::get_node_id(const string& node_name) {
         ++catalog.identifiable_nodes_count;
     } else {
         if (node_name.size() < 8) {
-            // TODO: node table dont contain inline strings, use std::unordered_map?
-            if (false) {
+            auto inlined_ids_search = inlined_ids.find(obj_id);
+            if (inlined_ids_search == inlined_ids.end()) {
+                inlined_ids.insert(obj_id);
                 model.node_table->append_record(RecordFactory::get(obj_id));
                 ++catalog.identifiable_nodes_count;
             }
@@ -343,10 +339,8 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
     uint64_t node_id;
     if (node.anonymous()) {
         node_id = get_anonymous_node_id(node.name);
-        ++catalog.anonymous_defined_count;
     } else {
         node_id = get_node_id(node.name);
-        ++catalog.identifiable_defined_count;
     }
 
     for (auto& label : node.labels) {
@@ -365,7 +359,7 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
         auto key_id   = model.get_or_create_string_id(property.key);
         auto value_id = model.get_or_create_value_id(value);
 
-        ++catalog.properties_count; // TODO: more efficient to count it later?
+        ++catalog.properties_count;
 
         object_key_value.append_record(RecordFactory::get(node_id, key_id, value_id));
     }

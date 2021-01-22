@@ -15,17 +15,17 @@ std::ostream& BindingSelect::print_to_ostream(std::ostream& os) const {
     os << '{';
     auto it = projection_vars.cbegin();
 
-    while (true) {
+    if (it != projection_vars.cend()) {
         auto& var_varid_pair = *it;
         os << var_varid_pair.first << ':' << child_binding[var_varid_pair.second];
         ++it;
-        if (it != projection_vars.cend()) {
-            os << ',';
-        } else {
-            os << "}\n";
-            return os;
-        }
     }
+    while (it != projection_vars.cend()) {
+        auto& var_varid_pair = *it;
+        os << ", " << var_varid_pair.first << ':' << child_binding[var_varid_pair.second];
+        ++it;
+    }
+    return os << "}\n";
 }
 
 
