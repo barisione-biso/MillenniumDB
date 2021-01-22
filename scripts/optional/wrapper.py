@@ -202,6 +202,7 @@ class MilleniumDBWrapper(Wrapper):
             results[r] = results[r].split(",") # Separate variables
             for tup in results[r]:
                 var, value = tup.split(":") # Separate variable - value
+                var = var.strip()
                 if value != "null": # Supose no 'null' strings (although should work: null != 'null')
                     if "(" in value:
                         value = value.replace("(", "")

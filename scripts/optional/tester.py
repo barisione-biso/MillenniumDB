@@ -18,7 +18,6 @@ if len(sys.argv) < 2:
 """
 Constants
 """
-
 # Directory where all information will be stored
 OUTPUT_FOLDER = sys.argv[1]
 OUTPUT_FOLDER = os.path.abspath(OUTPUT_FOLDER)
@@ -36,7 +35,7 @@ VIRTUOSO_ENDPOINT = "http://localhost:1122/sparql"
 
 # Graph creation
 
-MIN_NODES = 1000000 # 1000000
+MIN_NODES = 100
 MAX_NODES = MIN_NODES
 N_NODES = random.randint(MIN_NODES, MAX_NODES)
 
@@ -44,8 +43,8 @@ MIN_EDGES = MIN_NODES * 10
 MAX_EDGES = MIN_NODES * 10
 N_EDGES = random.randint(MIN_EDGES, MAX_EDGES)
 
-MIN_RELATIONS = 40 # 3 # 20
-MAX_RELATIONS= 40 # 3 # 20
+MIN_RELATIONS = 3
+MAX_RELATIONS= 3
 N_RELATIONS = random.randint(MIN_RELATIONS, MAX_RELATIONS)
 
 # Query creation
@@ -127,6 +126,7 @@ try:
     dot_graph_path = f"{DBS_DIR}/sparql.ttl.graph"
 
     # if directory does not exist or is empty, we need to generate.
+    replace = False
     if not os.path.exists(DBS_DIR) or not os.listdir(DBS_DIR):
         replace = True
 
@@ -188,7 +188,6 @@ try:
                 # HOT RUN: Execute HOTRUN + 1 times, get average of 1 to HOTRUN+1
                 for i in range(HOTRUN + 1):
                     results[engine][q] = engines[engine].query(query_file=query_path)
-
                     if i > 0:
                         logger['query_time'][q][engine][i - 1] = engines[engine].time
                         times.append(engines[engine].time)
@@ -213,7 +212,7 @@ try:
     with open(f"{OUTPUT_FOLDER}/query_log.csv", 'w') as f:
         f.write("query,N Results (BlazeGraph),BlazeGraph,N Results (Jena),Jena,N Results (Virtuoso),Virtuoso,N Results (MDB),MDB,Correct results\n")
         for q in range(N_QUERIES):
-            correct_results = int(compare_results(results['milleniumdb'][q], results['jena'][q]))
+            correct_results = bool(compare_results(results['milleniumdb'][q], results['jena'][q]))
             for i in range(HOTRUN):
                 text = f"{q},"
                 for engine in engine_list:
