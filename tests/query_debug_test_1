@@ -1,2 +1,0 @@
-EXPLAIN SELECT ?x, ?x.K0
-MATCH (?x :L0)

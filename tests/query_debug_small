@@ -1,2 +1,0 @@
-SELECT ?x.age
-MATCH (?x :Person {age:20})

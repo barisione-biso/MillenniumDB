@@ -1,2 +1,0 @@
-SELECT ?x, ?x.age, ?x.name
-MATCH (?x :Animal)

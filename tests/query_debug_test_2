@@ -1,3 +1,0 @@
-EXPLAIN SELECT ?x, ?y
-MATCH (?x :L0)
-OPTIONAL {(?x)->(?y)}
