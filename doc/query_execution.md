@@ -120,7 +120,7 @@ Funciones:
 - Inicializador, que recibe model, child_binding, max_var_id_in_child, property_map.
 - to_string()
 - clear_cache(), que llama a cache.clear()
-- operator[], que recibe un var_id. Si este var_id es menor o igual que el máximo, se retorna child_binding[var_id], si no, se intenta encontrar en la caché. Si se encuentra (cache_find != cache.end), se retorna el second, y de caso contrario, se encuentra la var_id en el property_map. se obtiene el var_id y la llave de lo encontrado, se encuentra la variable con child_binding[property_var_id], y se obtiene el value desde get_property_value, insertándolo en la caché. Finalmente se retorna el valor. #TODO: opcional.
+- operator[], que recibe un var_id. Si este var_id es menor o igual que el máximo, se retorna child_binding[var_id], si no, se intenta encontrar en la caché. Si se encuentra (cache_find != cache.end), se retorna el second, y de caso contrario, se encuentra la var_id en el property_map. se obtiene el var_id y la llave de lo encontrado, se encuentra la variable con child_binding[property_var_id], y se obtiene el value desde get_property_value, insertándolo en la caché. Finalmente se retorna el valor.
 
 ## Binding Id Iter
 
