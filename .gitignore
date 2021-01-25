@@ -45,8 +45,6 @@ makefile_out
 # Testing
 tests/dbs/*.*
 tests/dbs/*
-# Delete following line
-!tests/optional
 tests/query_debug
 tests/manual_query_debug
 
