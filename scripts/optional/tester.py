@@ -18,18 +18,13 @@ if len(sys.argv) < 2:
 """
 Constants
 """
-# Directory where all information will be stored
-OUTPUT_FOLDER = sys.argv[1]
-OUTPUT_FOLDER = os.path.abspath(OUTPUT_FOLDER)
 
 # Execution of tests
 HOTRUN = 3
 N_QUERIES = 10
-DBS_DIR = f"{OUTPUT_FOLDER}/dbs"
-QUERIES_DIR = f"{OUTPUT_FOLDER}/queries"
 
 # Endpoints
-BG_ENDPOINT = "http://localhost:9999/blazegraph/namespace/kb/sparql"
+BLAZEGRAPH_ENDPOINT = "http://localhost:9999/blazegraph/namespace/kb/sparql"
 JENA_ENDPOINT = "http://localhost:3030/NAME/query"
 VIRTUOSO_ENDPOINT = "http://localhost:1122/sparql"
 
@@ -37,15 +32,11 @@ VIRTUOSO_ENDPOINT = "http://localhost:1122/sparql"
 
 MIN_NODES = 100
 MAX_NODES = MIN_NODES
-N_NODES = random.randint(MIN_NODES, MAX_NODES)
-
 MIN_EDGES = MIN_NODES * 10
 MAX_EDGES = MIN_NODES * 10
-N_EDGES = random.randint(MIN_EDGES, MAX_EDGES)
-
 MIN_RELATIONS = 3
 MAX_RELATIONS= 3
-N_RELATIONS = random.randint(MIN_RELATIONS, MAX_RELATIONS)
+
 
 # Query creation
 N_VARS = 6
@@ -53,13 +44,17 @@ MIN_CHILDS = 0
 MAX_CHILDS = 3
 MAX_DEPTH = 2
 
+# Get value of each parameter
+N_NODES = random.randint(MIN_NODES, MAX_NODES)
+N_EDGES = random.randint(MIN_EDGES, MAX_EDGES)
+N_RELATIONS = random.randint(MIN_RELATIONS, MAX_RELATIONS)
 
 def compare_results(r1, r2):
     if len(r1) != len(r2):
         return False
     return sorted(r1) == sorted(r2)
 
-def create_database(sparql_path, mdb_path, dot_graph_path):
+def create_database(sparql_path, mdb_path):
 
     print("-" * 80)
     print("Creating database...")
@@ -91,22 +86,31 @@ def create_query(sparql_query_path, mdb_query_path):
     n.export(mdb_query_path, "milleniumdb")
     n.export(sparql_query_path, "sparql")
 
+# Directory where all information will be stored
+output_folder = sys.argv[1]
+output_folder = os.path.abspath(output_folder)
+
+# Directory where the database and queries will be saved
+dbs_dir = f"{output_folder}/dbs"
+queries_dir = f"{output_folder}/queries"
+
+
 # Create the folders if they do not exist
-create_if_missing(OUTPUT_FOLDER)
-create_if_missing(DBS_DIR)
-create_if_missing(QUERIES_DIR)
+create_if_missing(output_folder)
+create_if_missing(dbs_dir)
+create_if_missing(queries_dir)
 
 # Save each engine in a dictionary
 engines = dict()
 engine_list = ['blazegraph', 'jena', 'virtuoso', 'milleniumdb']
-engines['blazegraph'] = BlazeGraphWrapper(BG_ENDPOINT)
+engines['blazegraph'] = BlazeGraphWrapper(BLAZEGRAPH_ENDPOINT)
 engines['milleniumdb'] = MilleniumDBWrapper(None)
 engines['jena'] = JenaWrapper(JENA_ENDPOINT)
 engines['virtuoso'] = VirtuosoWrapper(VIRTUOSO_ENDPOINT)
 
 # Set database path (e.g. <folder>/virtuoso, <folder>/blazegraph...)
 for engine in engines:
-    engines[engine].set_database_path(f"{OUTPUT_FOLDER}/{engine}")
+    engines[engine].set_database_path(f"{output_folder}/{engine}")
 
 # Save execution time of server start and query
 logger = dict()
@@ -121,25 +125,24 @@ for engine in engine_list:
 try:
 
     # Define database paths
-    sparql_db_path = f"{DBS_DIR}/sparql.ttl"
-    mdb_db_path = f"{DBS_DIR}/mdb"
-    dot_graph_path = f"{DBS_DIR}/sparql.ttl.graph"
+    sparql_db_path = f"{dbs_dir}/sparql.ttl"
+    mdb_db_path = f"{dbs_dir}/mdb"
 
     # if directory does not exist or is empty, we need to generate.
     replace = False
-    if not os.path.exists(DBS_DIR) or not os.listdir(DBS_DIR):
+    if not os.path.exists(dbs_dir) or not os.listdir(dbs_dir):
         replace = True
 
     # Create database if does not exist
     if replace:
-        g = create_database(sparql_db_path, mdb_db_path, dot_graph_path)
+        g = create_database(sparql_db_path, mdb_db_path)
 
     # Create queries
     for q in range(N_QUERIES):
 
         # Define query paths
-        sparql_query_path = f"{QUERIES_DIR}/sparql_{q}"
-        mdb_query_path = f"{QUERIES_DIR}/mdb_{q}"
+        sparql_query_path = f"{queries_dir}/sparql_{q}"
+        mdb_query_path = f"{queries_dir}/mdb_{q}"
 
         # Create queries if need be
         if replace:
@@ -176,15 +179,15 @@ try:
         while q < N_QUERIES:
 
             # Get path
-            query_path = f"{QUERIES_DIR}/sparql_{q}"
+            query_path = f"{queries_dir}/sparql_{q}"
             if engine == "milleniumdb":
-                query_path = f"{QUERIES_DIR}/mdb_{q}"
+                query_path = f"{queries_dir}/mdb_{q}"
 
             print("-" * 80)
             print(f"Executing query {q} on {engine}...")
             times = []
 
-            try:    # TODO: Check beforehand
+            try:
                 # HOT RUN: Execute HOTRUN + 1 times, get average of 1 to HOTRUN+1
                 for i in range(HOTRUN + 1):
                     results[engine][q] = engines[engine].query(query_file=query_path)
@@ -209,8 +212,12 @@ try:
         engines[engine].stop()
 
     # save query logs
-    with open(f"{OUTPUT_FOLDER}/query_log.csv", 'w') as f:
-        f.write("query,N Results (BlazeGraph),BlazeGraph,N Results (Jena),Jena,N Results (Virtuoso),Virtuoso,N Results (MDB),MDB,Correct results\n")
+    with open(f"{output_folder}/query_log.csv", 'w') as f:
+        text = "query,"
+        for engine in engine_list:
+            text += f"N Results ({engine}),{engine},"
+        text += "Correct results\n"
+        f.write(text)
         for q in range(N_QUERIES):
             correct_results = bool(compare_results(results['milleniumdb'][q], results['jena'][q]))
             for i in range(HOTRUN):
@@ -221,8 +228,12 @@ try:
                 f.write(text)
 
     # save mount logs
-    with open(f"{OUTPUT_FOLDER}/mount_log.csv", "w") as f:
-        f.write("N nodes, N relations, size, MDB, BlazeGraph, Virtuoso, Jena\n")
+    with open(f"{output_folder}/mount_log.csv", "w") as f:
+        text = "N nodes, N relations, size,"
+        for engine in engine_list:
+            text += f"{engine},"
+        text = text[:-1] + "\n"
+        f.write(text)
         size = round(os.path.getsize(mdb_db_path)/(1024*1024), 3)
         text = f"{N_NODES},{N_EDGES},{size},"
         for engine in engine_list:
@@ -230,14 +241,16 @@ try:
         f.write(text[:-1] + "\n")
 
     # Generate graphs
-    df = pd.read_csv(f"{OUTPUT_FOLDER}/query_log.csv")
-    df.drop(['N Results (BlazeGraph)', 'N Results (Jena)', 'N Results (Virtuoso)', 'N Results (MDB)', 'Correct results'], axis=1, inplace=True)
+    df = pd.read_csv(f"{output_folder}/query_log.csv")
+    df.drop(['Correct results'], axis=1, inplace=True)
+    for engine in engine_list:
+        df.drop([f'N Results ({engine})'], axis=1, inplace=True)
 
     # Average query runs
     ax = df.groupby(['query']).mean().plot(kind='bar', rot=90)
     ax.set_xlabel("Query")
     ax.set_ylabel("Average time (ms)")
-    plt.savefig(f'{OUTPUT_FOLDER}/average_query_time.png')
+    plt.savefig(f'{output_folder}/average_query_time.png')
     plt.clf()
 
     # All query runs
@@ -247,14 +260,14 @@ try:
     ax.set_ylabel("Time (ms)")
     x = [i for i in range(HOTRUN * N_QUERIES)]
     plt.xticks(x, [i//HOTRUN for i in range(N_QUERIES * HOTRUN)])
-    plt.savefig(f'{OUTPUT_FOLDER}/all_queries_time.png')
+    plt.savefig(f'{output_folder}/all_queries_time.png')
     plt.clf()
 
     # Average engine runs
     ax = df.mean().plot(kind='bar', rot=0)
     ax.set_xlabel("Engine")
     ax.set_ylabel("Average time (ms)")
-    plt.savefig(f'{OUTPUT_FOLDER}/average_engine_time.png')
+    plt.savefig(f'{output_folder}/average_engine_time.png')
     plt.clf()
     print("All finished.")
 
@@ -265,7 +278,7 @@ try:
     plt.xlabel("Query")
     plt.ylabel("Number of results")
     plt.xticks(x, x)
-    plt.savefig(f'{OUTPUT_FOLDER}/n_results_per_query.png')
+    plt.savefig(f'{output_folder}/n_results_per_query.png')
 
 
 except KeyboardInterrupt:
