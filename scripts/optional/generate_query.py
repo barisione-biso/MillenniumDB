@@ -45,7 +45,7 @@ class OptNode:
                 child_variables = set(random.sample(self.variables, random.randint(2, len(self.variables))))
             else:
                 child_variables = set(random.sample(self.used_variables, random.randint(2, len(self.used_variables))))
-            
+
             # Create child
             child = OptNode(child_variables, self.relations, root=False, parent=self)
 
@@ -113,19 +113,19 @@ class OptNode:
         print("\t"*spacing, self.variables)
         for child in self.children:
             child.display(spacing + 1)
-        
+
     def get_used_variables(self):
         variables = set(self.used_variables)
         for child in self.children:
             variables = variables.union(set(child.get_used_variables()))
         return variables
-    
+
     def get_used_variables_parent(self):
         if self.parent is None:
             return set(self.used_variables)
         else:
             return set(self.used_variables).union(self.parent.get_used_variables_parent())
-    
+
     def export(self, file, output="milleniumdb"):
         with open(file, 'w') as f:
             f.write(self.generate_query(output))

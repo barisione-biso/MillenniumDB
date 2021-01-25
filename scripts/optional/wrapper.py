@@ -302,6 +302,8 @@ class VirtuosoWrapper(Wrapper):
         self.server_pid = process.pid
 
 if __name__=="__main__":
+
+    # TODO: fix
     """
     mdb = MilleniumDBWrapper(None)
     mdb.start(input_file="./tests/optional/dbs/db_mdb_12", database_path = f"./{Wrapper.path}/milleniumdb/db")
@@ -336,4 +338,3 @@ if __name__=="__main__":
     print(sorted(virtuoso_r) == sorted(bg_r))
     print(sorted(bg_r) == sorted(jena_r))
     """
-    print("Hola")

@@ -22,7 +22,7 @@ class Graph:
             if t not in self.edges:
                 self.edges.add(t)
                 i += 1
-    
+
     def export(self, file, to="milleniumDB"):
         with open(file, 'w') as f:
             if to == "milleniumDB":
