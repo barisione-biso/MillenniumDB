@@ -2,8 +2,8 @@
 
 #include <algorithm>
 
-#include "relational_model/execution/binding_id_iter/index_scan.h"
 #include "relational_model/execution/binding_id_iter/edge_table_lookup.h"
+#include "relational_model/execution/binding_id_iter/index_scan.h"
 
 using namespace std;
 

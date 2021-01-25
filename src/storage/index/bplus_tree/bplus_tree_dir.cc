@@ -1,14 +1,14 @@
 #include "bplus_tree_dir.h"
 
-#include "storage/buffer_manager.h"
-#include "storage/index/record.h"
-#include "storage/index/bplus_tree/bplus_tree.h"
-#include "storage/index/bplus_tree/bplus_tree_leaf.h"
-
 #include <cassert>
 #include <iostream>
 #include <utility>
 #include <cstring>
+
+#include "storage/buffer_manager.h"
+#include "storage/index/bplus_tree/bplus_tree_leaf.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
+#include "storage/index/record.h"
 
 template class BPlusTreeDir<2>;
 template class BPlusTreeDir<3>;

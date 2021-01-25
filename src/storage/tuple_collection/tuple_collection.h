@@ -13,9 +13,9 @@
 #include <vector>
 
 #include "base/graph/graph_object.h"
-#include "storage/page.h"
-#include "storage/page_id.h"
 #include "storage/file_id.h"
+#include "storage/page_id.h"
+#include "storage/page.h"
 
 class MergeOrderedTupleCollection;
 

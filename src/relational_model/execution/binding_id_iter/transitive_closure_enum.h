@@ -3,13 +3,13 @@
 
 #include <array>
 #include <memory>
-#include <set>
 #include <queue>
+#include <set>
 #include <variant>
 
 #include "base/binding/binding_id_iter.h"
-#include "storage/index/bplus_tree/bplus_tree.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
 
 
 class TransitiveClosureEnum : public BindingIdIter {
@@ -25,7 +25,7 @@ private:
     uint_fast32_t type_pos;
 
     // Attributes determined in begin
-    BindingId* my_input;
+    BindingId* parent_binding;
     ObjectId start_object_id;
     std::unique_ptr<BptIter<4>> it;
 
@@ -53,9 +53,10 @@ public:
     ~TransitiveClosureEnum() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId& begin(BindingId& input) override;
+    void begin(BindingId& parent_binding, bool parent_has_next) override;
     void reset() override;
     bool next() override;
+    void assign_nulls() override;
 };
 
 #endif // RELATIONAL_MODEL__TRANSITIVE_CLOSURE_ENUM_H_

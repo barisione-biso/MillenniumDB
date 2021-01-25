@@ -2,12 +2,12 @@
 #define STORAGE__BUCKET_H_
 
 #include <cstdint>
-#include <string>
 #include <map>
+#include <string>
 
 #include "storage/file_id.h"
-#include "storage/page.h"
 #include "storage/index/object_file/object_file.h"
+#include "storage/page.h"
 
 class Bucket {
 friend class ExtendibleHash;

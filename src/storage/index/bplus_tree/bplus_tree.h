@@ -1,13 +1,13 @@
 #ifndef STORAGE__B_PLUS_TREE_H_
 #define STORAGE__B_PLUS_TREE_H_
 
-#include <string>
 #include <memory>
+#include <string>
 
 #include "storage/file_id.h"
-#include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree_dir.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
+#include "storage/index/record.h"
 
 class BptLeafProvider;
 

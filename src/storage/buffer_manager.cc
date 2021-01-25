@@ -5,8 +5,8 @@
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
 
-#include "storage/page.h"
 #include "storage/file_manager.h"
+#include "storage/page.h"
 
 using namespace std;
 

@@ -1,14 +1,14 @@
 #include "tuple_collection.h"
 
 #include <cassert>
-#include <iostream>
-#include <cstring>
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
 
+#include "storage/buffer_manager.h"
 #include "storage/file_id.h"
 #include "storage/file_manager.h"
-#include "storage/buffer_manager.h"
 
 using namespace std;
 

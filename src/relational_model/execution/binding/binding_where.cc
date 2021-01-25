@@ -40,8 +40,10 @@ GraphObject BindingWhere::operator[](VarId var_id) {
             auto property_key = find_property->second.second;
             auto var = child_binding[property_var_id];
 
-            // TODO: if optionals were allowed, should check is not null
-            auto value = model.get_property_value(var, property_key);
+            auto value = GraphObject::make_null();
+            if (!std::holds_alternative<NullGraphObject>(var.value)) {
+                value = model.get_property_value(var, property_key);
+            }
             cache.insert({ var_id, value });
             return value;
         }

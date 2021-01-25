@@ -2,25 +2,22 @@
 
 using namespace std;
 
-ObjectEnum::ObjectEnum(std::size_t binding_size, VarId var_id, const uint64_t mask, const uint64_t max_count) :
-    BindingIdIter(binding_size),
+ObjectEnum::ObjectEnum(std::size_t /*binding_size*/, VarId var_id, const uint64_t mask, const uint64_t max_count) :
     var_id    (var_id),
     mask      (mask),
     max_count (max_count) { }
 
 
-BindingId& ObjectEnum::begin(BindingId& input) {
-    my_input = &input;
+void ObjectEnum::begin(BindingId& parent_binding, bool /*parent_has_next*/) {
+    this->parent_binding = &parent_binding;
     current_node = 0;
-    return my_binding;
 }
 
 
 bool ObjectEnum::next() {
     ++current_node;
     if (current_node <= max_count) {
-        my_binding.add_all(*my_input);
-        my_binding.add(var_id, ObjectId(mask | current_node));
+        parent_binding->add(var_id, ObjectId(mask | current_node));
         return true;
     } else {
         return false;
@@ -30,6 +27,11 @@ bool ObjectEnum::next() {
 
 void ObjectEnum::reset() {
     current_node = 0;
+}
+
+
+void ObjectEnum::assign_nulls() {
+    parent_binding->add(var_id, ObjectId::get_null());
 }
 
 

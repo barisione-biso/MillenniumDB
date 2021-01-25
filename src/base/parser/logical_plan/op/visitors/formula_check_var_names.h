@@ -1,9 +1,9 @@
 #ifndef BASE__FORMULA_CHECK_VAR_NAMES_H_
 #define BASE__FORMULA_CHECK_VAR_NAMES_H_
 
-#include <set>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
+#include <set>
 
 #include "base/parser/grammar/query/query_ast.h"
 

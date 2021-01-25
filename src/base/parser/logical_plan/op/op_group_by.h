@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "base/parser/logical_plan/op/op.h"
 #include "base/parser/grammar/query/query_ast.h"
+#include "base/parser/logical_plan/op/op.h"
 
 class OpGroupBy : public Op {
 public:
@@ -26,6 +26,28 @@ public:
 
     void accept_visitor(OpVisitor& visitor) const override {
         visitor.visit(*this);
+    }
+
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+        os << std::string(indent, ' ');
+        os << "OpGroupBy()";
+        bool first = true;
+        for (auto & item : items) {
+            if (!first) os << ", ";
+            first = false;
+            if (item.key) {
+                os << item.var << "." << item.key.get();
+            } else {
+                os << item.var;
+            }
+        }
+        os << ")\n";
+        return op->print_to_ostream(os, indent + 2);
+    }
+
+    std::set<std::string> get_var_names() const override {
+        // TODO: should add properties mentioned in the GROUP BY that are not present in the MATCH?
+        return op->get_var_names();
     }
 };
 

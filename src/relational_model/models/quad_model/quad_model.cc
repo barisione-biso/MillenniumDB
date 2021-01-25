@@ -5,7 +5,7 @@
 #include "base/graph/anonymous_node.h"
 #include "base/graph/edge.h"
 #include "relational_model/models/quad_model/graph_object_visitor.h"
-#include "relational_model/models/quad_model/query_optimizer/query_optimizer.h"
+#include "relational_model/models/quad_model/query_optimizer/binding_iter_visitor.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 
@@ -80,14 +80,16 @@ QuadModel::~QuadModel() {
 
 
 std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select) {
-    auto query_optimizer = QueryOptimizer(*this);
+    auto query_optimizer = BindingIterVisitor(*this, op_select.get_var_names());
     return query_optimizer.exec(op_select);
 }
 
 
-std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& manual_plan) {
-    auto query_optimizer = QueryOptimizer(*this);
-    return query_optimizer.exec(manual_plan);
+std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& /*manual_plan*/) {
+    // TODO:
+    // auto query_optimizer = BindingIterVisitor(*this, op_select.get_var_names());
+    // return query_optimizer.exec(manual_plan);
+    return nullptr;
 }
 
 

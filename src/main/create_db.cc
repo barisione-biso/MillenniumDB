@@ -1,14 +1,13 @@
-﻿#include "base/ids/var_id.h"
-
-#include <chrono>
+﻿#include <chrono>
 #include <climits>
 #include <iostream>
 
 #include <boost/program_options.hpp>
 
 #include "base/binding/binding_id.h"
-#include "relational_model/execution/binding_id_iter/index_scan.h"
+#include "base/ids/var_id.h"
 #include "relational_model/execution/binding_id_iter/index_nested_loop_join.h"
+#include "relational_model/execution/binding_id_iter/index_scan.h"
 #include "relational_model/models/quad_model/import/bulk_import.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"

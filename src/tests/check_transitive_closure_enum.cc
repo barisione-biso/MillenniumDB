@@ -63,9 +63,9 @@ int main(int argc, char **argv) {
 
         // Transitive Closure Test
         BindingId binding(4);
-        auto& result = op.begin(binding);
+        op.begin(binding, true);
         while (op.next()) {
-            auto obj_id = result[end_var_id];
+            auto obj_id = binding[end_var_id];
             auto obj = model.get_graph_object(obj_id);
             if (verbose) {
                 cout << "result: " << obj << "\n";

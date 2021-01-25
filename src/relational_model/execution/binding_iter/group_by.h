@@ -5,12 +5,11 @@
 #include <memory>
 #include <vector>
 
-#include "base/binding/binding_iter.h"
 #include "base/binding/binding_id.h"
 #include "base/graph/graph_model.h"
 #include "base/ids/var_id.h"
-#include "relational_model/execution/binding/binding_group_by.h"
 #include "relational_model/execution/binding_iter/order_by.h"
+#include "relational_model/execution/binding/binding_group_by.h"
 #include "storage/file_id.h"
 #include "storage/tuple_collection/tuple_collection.h"
 

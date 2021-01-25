@@ -7,12 +7,13 @@ class OpFilter;
 class OpConnection;
 class OpConnectionType;
 class OpLabel;
+class OpOptional;
 class OpProperty;
 class OpTransitiveClosure;
 class OpOrderBy;
 class OpGroupBy;
 class OpUnjointObject;
-//class OpOrderBy;
+class OpGraphPatternRoot;
 
 class OpVisitor {
 public:
@@ -23,8 +24,10 @@ public:
     virtual void visit(const OpConnection&) = 0;
     virtual void visit(const OpConnectionType&) = 0;
     virtual void visit(const OpLabel&) = 0;
+    virtual void visit(const OpOptional&) = 0;
     virtual void visit(const OpProperty&) = 0;
     virtual void visit(const OpTransitiveClosure&) = 0;
+    virtual void visit(const OpGraphPatternRoot&) = 0;
     virtual void visit(const OpOrderBy&) = 0;
     virtual void visit(const OpGroupBy&) = 0;
     virtual void visit(const OpUnjointObject&) = 0;

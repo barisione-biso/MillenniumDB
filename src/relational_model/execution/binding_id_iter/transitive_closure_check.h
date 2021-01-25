@@ -30,7 +30,7 @@ private:
 
     // Attributes determined in begin
     ObjectId end_object_id;
-    BindingId* my_input;
+    BindingId* parent_binding;
     std::unique_ptr<BptIter<4>> it;
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
@@ -51,8 +51,9 @@ public:
     ~TransitiveClosureCheck() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId& begin(BindingId& input) override;
+    void begin(BindingId& parent_binding, bool parent_has_next) override;
     void reset() override;
+    void assign_nulls() override;
     bool next() override;
 };
 

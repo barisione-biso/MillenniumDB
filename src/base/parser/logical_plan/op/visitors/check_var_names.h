@@ -24,8 +24,10 @@ public:
     void visit(const OpProperty&) override;
     void visit(const OpOrderBy&) override;
     void visit(const OpGroupBy&) override;
+    void visit(const OpOptional&) override;
     void visit(const OpTransitiveClosure&) override;
     void visit(const OpUnjointObject&) override;
+    void visit(const OpGraphPatternRoot&) override;
 };
 
 #endif // BASE__CHECK_VAR_NAMES_EXISTS_H_

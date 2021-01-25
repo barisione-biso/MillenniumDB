@@ -16,8 +16,8 @@
 #include <vector>
 
 #include "storage/file_id.h"
-#include "storage/index/record.h"
 #include "storage/index/ordered_file/bpt_leaf_provider.h"
+#include "storage/index/record.h"
 
 template <std::size_t N>
 class OrderedFile : public BptLeafProvider {
