@@ -15,6 +15,7 @@
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/visitors/check_var_names.h"
 #include "base/parser/logical_plan/op/visitors/check_well_designed.h"
+#include "base/parser/logical_plan/op/visitors/optimize_tree.h"
 
 using namespace std;
 
@@ -82,6 +83,9 @@ void QueryParser::check_query_plan(OpSelect& op_select) {
 
     CheckWellDesigned check_well_designed;
     check_well_designed.visit(op_select);
+
+    OptimizeTree optimize_tree;
+    optimize_tree.visit(op_select);
 }
 
 

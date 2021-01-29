@@ -12,7 +12,7 @@ class Op {
 public:
     virtual ~Op() = default;
 
-    virtual void accept_visitor(OpVisitor&) const = 0;
+    virtual void accept_visitor(OpVisitor&) = 0;
     virtual std::set<std::string> get_var_names() const = 0;  // TODO: rename to get_match_var_names()?
                                                               // OpFilter, OpGroupBy and OpOrderBy are not adding their new variables (properties)
 

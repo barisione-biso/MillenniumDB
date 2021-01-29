@@ -13,7 +13,7 @@
 
 using namespace std;
 
-void CheckWellDesigned::visit(const OpOptional& op_optional) {
+void CheckWellDesigned::visit(OpOptional& op_optional) {
     auto local_vars = op_optional.op->get_var_names();
 
     for (const auto var : local_vars) {
@@ -31,7 +31,7 @@ void CheckWellDesigned::visit(const OpOptional& op_optional) {
 }
 
 
-void CheckWellDesigned::visit(const OpMatch& op_match) {
+void CheckWellDesigned::visit(OpMatch& op_match) {
     auto local_vars = op_match.get_var_names();
 
     for (const auto var : local_vars) {
@@ -43,35 +43,35 @@ void CheckWellDesigned::visit(const OpMatch& op_match) {
 }
 
 
-void CheckWellDesigned::visit(const OpGraphPatternRoot& op_graph_pattern_root) {
+void CheckWellDesigned::visit(OpGraphPatternRoot& op_graph_pattern_root) {
     op_graph_pattern_root.op->accept_visitor(*this);
 }
 
 
-void CheckWellDesigned::visit(const OpSelect& op_select) {
+void CheckWellDesigned::visit(OpSelect& op_select) {
     op_select.op->accept_visitor(*this);
 }
 
 
-void CheckWellDesigned::visit(const OpFilter& op_filter) {
+void CheckWellDesigned::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
 
 }
 
 
-void CheckWellDesigned::visit(const OpGroupBy& op_group_by) {
+void CheckWellDesigned::visit(OpGroupBy& op_group_by) {
     op_group_by.op->accept_visitor(*this);
 
 }
 
 
-void CheckWellDesigned::visit(const OpOrderBy& op_order_by) {
+void CheckWellDesigned::visit(OpOrderBy& op_order_by) {
     op_order_by.op->accept_visitor(*this);
 }
 
-void CheckWellDesigned::visit(const OpTransitiveClosure&) { }
-void CheckWellDesigned::visit(const OpConnection&)        { }
-void CheckWellDesigned::visit(const OpConnectionType&)    { }
-void CheckWellDesigned::visit(const OpLabel&)             { }
-void CheckWellDesigned::visit(const OpProperty&)          { }
-void CheckWellDesigned::visit(const OpUnjointObject&)     { }
+void CheckWellDesigned::visit(OpTransitiveClosure&) { }
+void CheckWellDesigned::visit(OpConnection&)        { }
+void CheckWellDesigned::visit(OpConnectionType&)    { }
+void CheckWellDesigned::visit(OpLabel&)             { }
+void CheckWellDesigned::visit(OpProperty&)          { }
+void CheckWellDesigned::visit(OpUnjointObject&)     { }

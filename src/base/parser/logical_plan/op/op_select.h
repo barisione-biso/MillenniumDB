@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <iostream>
 #include <memory>
 
 #include "base/parser/grammar/query/query_ast.h"
@@ -28,7 +29,7 @@ public:
     ~OpSelect() = default;
 
 
-    void accept_visitor(OpVisitor& visitor) const override {
+    void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
 
@@ -65,6 +66,10 @@ public:
             if (select_item.key) {
                 res.insert(select_item.var + '.' + select_item.key.get());
             }
+        }
+        std::cout << "printing var names:\n";
+        for (const auto& r : res) {
+            std::cout << r << "\n";
         }
         return res;
     }

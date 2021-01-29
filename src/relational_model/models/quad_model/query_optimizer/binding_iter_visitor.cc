@@ -58,7 +58,7 @@ std::unique_ptr<BindingIter> BindingIterVisitor::exec(manual_plan::ast::ManualRo
 }
 
 
-void BindingIterVisitor::visit(const OpSelect& op_select) {
+void BindingIterVisitor::visit(OpSelect& op_select) {
     // need to save the select items to be able to push optional properties from select to match in visit(OpGraphPatternRoot&)
     select_items = move(op_select.select_items);
 
@@ -85,7 +85,7 @@ void BindingIterVisitor::visit(const OpSelect& op_select) {
 }
 
 
-void BindingIterVisitor::visit(const OpFilter& op_filter) {
+void BindingIterVisitor::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
     auto match_binding_size = var_name2var_id.size();
 
@@ -103,7 +103,7 @@ void BindingIterVisitor::visit(const OpFilter& op_filter) {
 }
 
 
-void BindingIterVisitor::visit(const OpGraphPatternRoot& op_graph_pattern_root) {
+void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
 
     op_graph_pattern_root.op->get_var_names();
 
@@ -140,12 +140,12 @@ void BindingIterVisitor::visit(const OpGraphPatternRoot& op_graph_pattern_root) 
 }
 
 
-void BindingIterVisitor::visit(const OpOrderBy& op_order_by) {
+void BindingIterVisitor::visit(OpOrderBy& op_order_by) {
     op_order_by.op->accept_visitor(*this);
 }
 
 
-void BindingIterVisitor::visit(const OpGroupBy& op_group_by) {
+void BindingIterVisitor::visit(OpGroupBy& op_group_by) {
     op_group_by.op->accept_visitor(*this);
 }
 
@@ -160,11 +160,11 @@ VarId BindingIterVisitor::get_var_id(const std::string& var) {
     }
 }
 
-void BindingIterVisitor::visit(const OpMatch&) { }
-void BindingIterVisitor::visit(const OpOptional&) { }
-void BindingIterVisitor::visit(const OpConnection&) { }
-void BindingIterVisitor::visit(const OpTransitiveClosure&) { }
-void BindingIterVisitor::visit(const OpUnjointObject&) { }
-void BindingIterVisitor::visit(const OpConnectionType&) { }
-void BindingIterVisitor::visit(const OpLabel&) { }
-void BindingIterVisitor::visit(const OpProperty&) { }
+void BindingIterVisitor::visit(OpMatch&) { }
+void BindingIterVisitor::visit(OpOptional&) { }
+void BindingIterVisitor::visit(OpConnection&) { }
+void BindingIterVisitor::visit(OpTransitiveClosure&) { }
+void BindingIterVisitor::visit(OpUnjointObject&) { }
+void BindingIterVisitor::visit(OpConnectionType&) { }
+void BindingIterVisitor::visit(OpLabel&) { }
+void BindingIterVisitor::visit(OpProperty&) { }

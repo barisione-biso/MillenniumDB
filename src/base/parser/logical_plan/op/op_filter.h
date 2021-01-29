@@ -18,7 +18,7 @@ public:
         formula (formula) { }
 
 
-    void accept_visitor(OpVisitor& visitor) const override {
+    void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
 

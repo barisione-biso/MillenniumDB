@@ -11,7 +11,7 @@
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
 
-void CheckVarNames::visit(const OpSelect& op_select) {
+void CheckVarNames::visit(OpSelect& op_select) {
     op_select.op->accept_visitor(*this);
 
     for (auto& select_item : op_select.select_items) {
@@ -23,7 +23,7 @@ void CheckVarNames::visit(const OpSelect& op_select) {
 }
 
 
-void CheckVarNames::visit(const OpOptional& op_optional) {
+void CheckVarNames::visit(OpOptional& op_optional) {
     op_optional.op->accept_visitor(*this);
     for (auto& optional_child : op_optional.optionals) {
         optional_child->accept_visitor(*this);
@@ -31,38 +31,37 @@ void CheckVarNames::visit(const OpOptional& op_optional) {
 }
 
 
-void CheckVarNames::visit(const OpMatch& op_match) {
-    auto var_names = move(op_match.var_names);
-    for (auto& var_name : var_names) {
+void CheckVarNames::visit(OpMatch& op_match) {
+    for (const auto& var_name : op_match.var_names) {
         declared_object_names.insert(var_name);
     }
 }
 
 
-void CheckVarNames::visit(const OpFilter& op_filter) {
+void CheckVarNames::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
     op_filter.check_var_names(declared_object_names);
 }
 
 
-void CheckVarNames::visit(const OpGroupBy& op_group_by) {
+void CheckVarNames::visit(OpGroupBy& op_group_by) {
     op_group_by.op->accept_visitor(*this);
 }
 
 
-void CheckVarNames::visit(const OpOrderBy& op_order_by) {
+void CheckVarNames::visit(OpOrderBy& op_order_by) {
     op_order_by.op->accept_visitor(*this);
 }
 
 
-void CheckVarNames::visit(const OpGraphPatternRoot& op_graph_pattern_root) {
+void CheckVarNames::visit(OpGraphPatternRoot& op_graph_pattern_root) {
      op_graph_pattern_root.op->accept_visitor(*this);
 }
 
 
-void CheckVarNames::visit(const OpTransitiveClosure&) { }
-void CheckVarNames::visit(const OpConnection&) { }
-void CheckVarNames::visit(const OpConnectionType&) { }
-void CheckVarNames::visit(const OpLabel&) { }
-void CheckVarNames::visit(const OpProperty&) { }
-void CheckVarNames::visit(const OpUnjointObject&) { }
+void CheckVarNames::visit(OpTransitiveClosure&) { }
+void CheckVarNames::visit(OpConnection&) { }
+void CheckVarNames::visit(OpConnectionType&) { }
+void CheckVarNames::visit(OpLabel&) { }
+void CheckVarNames::visit(OpProperty&) { }
+void CheckVarNames::visit(OpUnjointObject&) { }

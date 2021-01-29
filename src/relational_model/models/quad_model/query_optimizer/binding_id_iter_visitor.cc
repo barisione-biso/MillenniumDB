@@ -33,7 +33,7 @@ VarId BindingIdIterVisitor::get_var_id(const std::string& var) {
 }
 
 
-void BindingIdIterVisitor::visit(const OpMatch& op_match) {
+void BindingIdIterVisitor::visit(OpMatch& op_match) {
     vector<unique_ptr<JoinPlan>> base_plans;
 
     // Process Labels
@@ -180,7 +180,7 @@ void BindingIdIterVisitor::visit(const OpMatch& op_match) {
 }
 
 
-void BindingIdIterVisitor::visit(const OpOptional& op_optional) {
+void BindingIdIterVisitor::visit(OpOptional& op_optional) {
     op_optional.op->accept_visitor(*this);
     unique_ptr<BindingIdIter> binding_id_iter = move(tmp);
 
@@ -291,14 +291,14 @@ ObjectId BindingIdIterVisitor::get_value_id(const common::ast::Value& value) {
 }
 
 
-void BindingIdIterVisitor::visit(const OpLabel&) { }
-void BindingIdIterVisitor::visit(const OpProperty&) { }
-void BindingIdIterVisitor::visit(const OpConnection&) { }
-void BindingIdIterVisitor::visit(const OpConnectionType&) { }
-void BindingIdIterVisitor::visit(const OpTransitiveClosure&) { }
-void BindingIdIterVisitor::visit(const OpUnjointObject&) { }
-void BindingIdIterVisitor::visit(const OpGraphPatternRoot&) { }
-void BindingIdIterVisitor::visit(const OpSelect&) { }
-void BindingIdIterVisitor::visit(const OpFilter&) { }
-void BindingIdIterVisitor::visit(const OpOrderBy&) { }
-void BindingIdIterVisitor::visit(const OpGroupBy&) { }
+void BindingIdIterVisitor::visit(OpLabel&) { }
+void BindingIdIterVisitor::visit(OpProperty&) { }
+void BindingIdIterVisitor::visit(OpConnection&) { }
+void BindingIdIterVisitor::visit(OpConnectionType&) { }
+void BindingIdIterVisitor::visit(OpTransitiveClosure&) { }
+void BindingIdIterVisitor::visit(OpUnjointObject&) { }
+void BindingIdIterVisitor::visit(OpGraphPatternRoot&) { }
+void BindingIdIterVisitor::visit(OpSelect&) { }
+void BindingIdIterVisitor::visit(OpFilter&) { }
+void BindingIdIterVisitor::visit(OpOrderBy&) { }
+void BindingIdIterVisitor::visit(OpGroupBy&) { }
