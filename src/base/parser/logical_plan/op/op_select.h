@@ -67,10 +67,6 @@ public:
                 res.insert(select_item.var + '.' + select_item.key.get());
             }
         }
-        std::cout << "printing var names:\n";
-        for (const auto& r : res) {
-            std::cout << r << "\n";
-        }
         return res;
     }
 };
