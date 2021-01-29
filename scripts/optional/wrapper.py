@@ -72,12 +72,6 @@ def run_command(command, output, stderr=None, wait_for="file"):
             if output in nextline.decode('utf-8'):
                 return process, time.time() - start
 
-
-BG_ENDPOINT = "http://localhost:9999/blazegraph/namespace/kb/sparql"
-JENA_ENDPOINT = "http://localhost:3030/NAME/query"
-VIRTUOSO_DB = "db"
-VIRTUOSO_ENDPOINT = "http://localhost:1122/sparql"
-
 def kill(pid):
     try:
         sp.run(["kill", str(pid)])
@@ -269,6 +263,10 @@ class VirtuosoWrapper(Wrapper):
         new_text = text[:idx_start] + f"DirsAllowed = {virtuoso_directory},{database_directory}" + text[idx_end:]
         with open(VIRTUOSO_INI, 'w') as f:
             f.write(new_text)
+        
+        # Stop server if being executed
+        command = f"{VIRTUOSO_ISQL} localhost:1111 -K"
+        sp.Popen(command.split())
 
         # Start server
         command = f"{VIRTUOSO_T} -c {VIRTUOSO_INI} -f"
@@ -303,32 +301,50 @@ class VirtuosoWrapper(Wrapper):
 
 if __name__=="__main__":
 
-    # TODO: fix
-    """
+    # Define endpoints
+    BLAZEGRAPH_ENDPOINT = "http://localhost:9999/blazegraph/namespace/kb/sparql"
+    JENA_ENDPOINT = "http://localhost:3030/NAME/query"
+    VIRTUOSO_ENDPOINT = "http://localhost:1122/sparql"
+
+    # define paths
+    db_path = "wrapper_test"
+    milleniumdb_db = os.path.abspath("doc/benchmarking/milleniumdb_db.txt")
+    milleniumdb_query = os.path.abspath("doc/benchmarking/milleniumdb_query.txt")
+    sparql_db = os.path.abspath("doc/benchmarking/sparql_db.ttl")
+    sparql_query = os.path.abspath("doc/benchmarking/sparql_query.txt")
+
     mdb = MilleniumDBWrapper(None)
-    mdb.start(input_file="./tests/optional/dbs/db_mdb_12", database_path = f"./{Wrapper.path}/milleniumdb/db")
-    results = mdb.query("./tests/optional/queries/12_mdb_q0")
+    mdb.set_database_path(db_path + "/milleniumdb")
+    mdb.bulk_import(milleniumdb_db)
+    mdb.start()
+    results = mdb.query(milleniumdb_query)
     print(len(results))
     mdb_r = results
     mdb.stop()
 
-
-    bg = BlazeGraphWrapper(BG_ENDPOINT)
-    bg.start(input_file="./tests/optional/dbs/db_sparql_12.ttl")
-    results = bg.query("./tests/optional/queries/12_sparql_q0")
+    bg = BlazeGraphWrapper(BLAZEGRAPH_ENDPOINT)
+    bg.set_database_path(db_path + "/blazegraph")
+    bg.bulk_import(sparql_db)
+    bg.start()
+    results = bg.query(sparql_query)
     print(len(results))
     bg_r = results
     bg.stop()
 
     jena = JenaWrapper(JENA_ENDPOINT)
-    jena.start(input_file="./tests/optional/dbs/db_sparql_12.ttl")
-    results = jena.query("./tests/optional/queries/12_sparql_q0")
+    jena.set_database_path(os.path.abspath(db_path + "/jena"))
+    jena.bulk_import(sparql_db)
+    jena.start()
+    results = jena.query(sparql_query)
     print(len(results))
     jena_r = results
     jena.stop()
+
     virtuoso = VirtuosoWrapper(VIRTUOSO_ENDPOINT)
-    virtuoso.start(input_file="./tests/optional/dbs/db_sparql_12.ttl")
-    results = virtuoso.query("./tests/optional/queries/12_sparql_q0")
+    virtuoso.set_database_path(db_path + "/virtuoso")
+    virtuoso.bulk_import(sparql_db)
+    virtuoso.start()
+    results = virtuoso.query(sparql_query)
     print(len(results))
     virtuoso_r = results
     virtuoso.stop()
@@ -337,4 +353,3 @@ if __name__=="__main__":
     print(sorted(virtuoso_r) == sorted(jena_r))
     print(sorted(virtuoso_r) == sorted(bg_r))
     print(sorted(bg_r) == sorted(jena_r))
-    """
