@@ -1,0 +1,9 @@
+Q1 :Person
+Q2 :Person
+Q3 :Person
+Q4 :Person
+Q1->Q2 :knows
+Q1->Q3 :knows
+Q2->Q4 :knows
+Q3->Q1 :knows
+Q4->Q1 :knows

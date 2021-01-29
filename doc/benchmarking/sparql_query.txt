@@ -1,0 +1,6 @@
+PREFIX : <http://www.example.com/>
+SELECT ?a  ?c
+WHERE {
+?a :knows ?b .
+?b :knows ?c .
+}
