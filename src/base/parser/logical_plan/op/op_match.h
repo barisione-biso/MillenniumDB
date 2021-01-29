@@ -104,7 +104,7 @@ public:
             if (property_search != properties.end()) {
                 auto old_property = *property_search;
                 if (old_property.value != property.value) {
-                    throw QuerySemanticException(node_name + "." + property.key + " its declared with different values.");
+                    throw QuerySemanticException(node_name + "." + property.key + " its declared with different values");
                 }
             } else {
                 properties.insert(new_property);
@@ -162,14 +162,7 @@ public:
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
         os << "OpMatch()\n";
-        /*
-            std::set<OpLabel>             labels;
-            std::set<OpProperty>          properties;
-            std::set<OpConnection>        connections;
-            std::set<OpTransitiveClosure> property_paths; // TODO: for now only supporting transitive closure
-            std::set<OpConnectionType>    connection_types;
-            std::set<OpUnjointObject>     unjoint_objects;
-        */
+
         for (auto& label : labels) {
             label.print_to_ostream(os, indent + 2);
         }
@@ -192,7 +185,7 @@ public:
         return os;
     };
 
-    void accept_visitor(OpVisitor& visitor) const override {
+    void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
 

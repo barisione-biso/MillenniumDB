@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <iostream>
 #include <memory>
 
 #include "base/parser/grammar/query/query_ast.h"
@@ -28,7 +29,7 @@ public:
     ~OpSelect() = default;
 
 
-    void accept_visitor(OpVisitor& visitor) const override {
+    void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
 

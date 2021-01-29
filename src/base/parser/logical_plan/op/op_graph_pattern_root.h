@@ -9,7 +9,7 @@
 
 class OpGraphPatternRoot : public Op {
 public:
-    const std::unique_ptr<Op> op;
+    std::unique_ptr<Op> op;
 
     OpGraphPatternRoot(std::unique_ptr<Op> op) :
         op              (std::move(op)) { }
@@ -24,7 +24,7 @@ public:
         return op->print_to_ostream(os, indent + 2);
     };
 
-    void accept_visitor(OpVisitor& visitor) const override {
+    void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
 

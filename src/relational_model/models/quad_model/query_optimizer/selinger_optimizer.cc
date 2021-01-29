@@ -1,5 +1,6 @@
 #include "selinger_optimizer.h"
 
+#include <cassert>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -58,6 +59,7 @@ SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<JoinPlan>>&& base_plans,
     plans_size(base_plans.size()),
     var_names(var_names)
 {
+    assert(plans_size > 0);
     optimal_plans = new unique_ptr<JoinPlan>*[plans_size];
 
     cout << "\nBase Plans:" << plans_size << "\n";

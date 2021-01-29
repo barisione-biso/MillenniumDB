@@ -44,16 +44,16 @@ void OptionalNode::assign_nulls() {
 void OptionalNode::analyze(int indent) const {
 
     //
+    /*for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "OptionalNode(\n";*/
+    graph_pattern->analyze(indent);
+    /*cout << "\n";
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "OptionalNode(\n";
-    graph_pattern->analyze(indent + 2);
-    cout << "\n";
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << ")";
+    cout << ")";*/
 }
 
 template class std::unique_ptr<OptionalNode>;
