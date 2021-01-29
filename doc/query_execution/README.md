@@ -23,9 +23,7 @@
 
 # 1. Parsing<a id="parsing"></a>
 
-The first step of any query execution is the parsing of the text. This text must comply with the current grammar established. If it meets the requirements, an Abstract Syntax Tree (AST) is generated, which is later used to create the logical plan.
-
-TODO: Describe grammar? (Nodes `(a)`, Edges `(a)->(b), (a)-[:type]->(b)`, Labels `(a :x)`, Properties `(a {p1: x})`)
+The first step of any query execution is the parsing of the text. This text must comply with the current grammar established. If it meets the requirements, an Abstract Syntax Tree (AST) is generated, which is later used to create the logical plan. This grammar is described in TODO: Add grammar documentation.
 
 # 2. Logical Plan<a id="logical-plan"></a>
 
@@ -41,25 +39,27 @@ Any member that inherits from the Op class must have a constructor which will as
 
 The following list shows the current classes that inherit from Op:
 
-- `OpLabel`: Used to define labeled nodes, with the attributes `node_name` and `label`. 
+- `OpLabel`: Used to define labeled nodes, with the attributes `node_name` and `label`.
 
   For example, in `(?x :Person)`, `node_name` is `?x` and `label` is `Person`.
 - `OpProperty`: Used to define properties of nodes or edges, with the attributes `obj_name`, `key`, `value`.
   For example, in `(?x {age: 15})`, `obj_name` is `?x`, `key` is `age` and `value` is `15`. Values may be numbers, booleans, strings or `null`.
 - `OpConnection`: Used to define connections with the attributes `from`, `to`, `type`.
 
-  For example: `(?x)-[:knows]->(?y)`. In this case, `from` is `?x`, `to` is `?y` and `type` is the variable that was assigned to the annonymous edge `knows` (possibly `?_e0`).
+  For example: `(?x)->(?y)`. In this case, `from` is `?x`, `to` is `?y` and `type` is the variable that was assigned to the annonymous edge (possibly `?_e0:type`).
 - `OpTransitiveClosure`: Used to define connections with the attributes `from`, `to`, `type`.
 
-  For example: `(?x)-[:knows]->(?y)`. In this case, `from` is `?x`, `to` is `?y` and `type` is the variable that was assigned to the annonymous edge `knows` (possibly `?_e0`). TODO: change?
+  For example: `(Q1)=[:knows*]=>(?y)`. In this case, `from` is `Q1`, `to` is `?y` and `type` is `knows`.
 - `OpConnectionType`: Used to define connection types, having the attributes `edge` and `type`.
 
   For example, `(?x)-[:knows]->(?y)` could have the edge `?_e0` and type `knows`.
-- `OpUnjointObject`: Used when a match clause specifies variable as a node without any other information.
+- `OpUnjointObject`: Used when a match clause specifies variable as a node without any other information. It stores the variable in `obj_name`
+
+  For example, `SELECT (?x) MATCH (?x)` will use the `OpUnjointObject` Op, and its `obj_name` is `?x`.
 - `OpMatch`: Used to describe any Graph Pattern that do not contain OPTIONAL clauses. In order to describe any Graph Pattern, it has the following attributes: `labels` (set of `OpLabel`), properties (set of `OpProperty`), connections (set of `OpConnection`), property_paths (set of `OpTransitiveClosure`), connection_types (set of `OpConnectionType`), unjoint_objects (set of `OpUnjointObject`). It is important to note that in the Graph Patterns that do not use OPTIONAL clause, the order of the join operations do not matter and that is the reason why sets are being used instead of lists. The results of `OpMatch` will be pipelined into its parent.
 
   For example, a possible pattern that uses `OpMatch` could be:
-  `(?x :Person {age: 20})-[:follows]->(?y :Person {age: 20}), (?y {age: 20})-[:follows]->(?y {age: 20})`.
+  `(?x :Person {age: 20})-[:follows]->(?y :Person {age: 20}), (?y)-[:follows]->(?y)`.
 
 - `OpOptional`: Used to describe any Graph Pattern that contain OPTIONAL clauses. In order to describe any Graph Pattern, it has the following attributes: `op` (The main pattern) and `optionals`, a list of Graph Patterns (which can either be `OpMatch` or `OpOptional`). The results of `OpOptional` will be pipelined to its parent (possibly an `OpOptional` or `OpGraphPatternRoot`).
 
@@ -68,8 +68,11 @@ The following list shows the current classes that inherit from Op:
 - `OpGraphPatternRoot`: Contains the main Graph Pattern (in its `op` attribute) which can be either an `OpMatch` or `OpOptional`. This pattern will always have as `op` either the `OpMatch` or `OpOptional` that comes after the SELECT clause. It pipelines its results to its parent.
 
 - `OpFilter`: Used to filter results by a criteria. Used with the WHERE clause, and has `op` as attribute, which is the op where the results will be pipelined from, and `formula` which will filter said results.
+  For Example,`SELECT (?x) MATCH (?x) WHERE ?x.age > 20`.
 - `OpGroupBy`: Used to group pipelined results by a certain variable.
+  For example, TODO: add example when it is working.
 - `OpOrderBy`: Used to order pipelined results by a certain variable.
+  For example, `SELECT (?x) MATCH (?x) ORDER BY ?x.age`
 - `OpSelect`: Used to select the desired results. It is the root node of every logical plan.
 
 ## 2.2. Visitor interface<a id="visitor-interface"></a>
@@ -103,7 +106,7 @@ There are two main groups of visitors: The first one (group 1) are used to check
 - `FormulaToCondition`: Transforms a given formula to a condition.
 - `OptimizeTree`: Simplifies the logical plan generated based on certain properties of the logical plan. This simplifications only happen if the query has an `OPTIONAL` clause. The simplifications are done by executing a DFS algorithm over the Optional Nodes, going through their children in order and saving the variables involved in each node. Since the query is well defined, once a variable is assigned it must not be assigned once again, so any node that does not assign any new variables is marked as useless and is eliminated. On section 4, examples, tree optimizations will be shown, describing the algorithm in more detail.
 
-The second group of visitors work over the **physical plan** and will be described in greater detail in section 3.2. and 3.3.
+The second group of visitors work over the **physical plan** and will be described in greater detail in section 3.3.1. and 3.3.2.
 
 ## 2.3. Generated logical plans<a id="generated-logical-plans"></a>
 
@@ -171,9 +174,9 @@ The following classes inherit from BindingIdIter:
 - `NodeTableEnum`: Creates an iterator that goes through the node table, enumerating the results.
 - `ObjectEnum`: Creates an iterator that iterates until a limit is reached.
 - `OptionalNode`: Creates an iterator that involves its main pattern iterator and its child patterns' iterators, joining them in order through the Index Left Outer Join algorithm.
-- `TransitiveClosureCheck`: TODO:
-- `TransitiveClosureEnum`: TODO:
-- `Union`: TODO:
+- `TransitiveClosureCheck`: Creates an iterator over a set pair of nodes, and returns any pair of nodes that are connected by a transitive closure.
+- `TransitiveClosureEnum`: Creates an iterator over a pair of nodes where one is set and the other is not, and iterates over the ingoing paths (if the `to` node is set) or outgoing paths (if the `from` node is set).
+- `Union`: Creates an iterator over a list of iterators (`iters`) and consumes each iterator of the list in order. It does not filter duplicates.
 
 ## 3.3. Generation<a id="physical-plan-generation"></a>
 
@@ -193,7 +196,7 @@ This visitor is part of the second group of visitors that are used over the phys
 
 This visitor is used inside the BindingIterVisitor when OpGraphPatternRoot is visited. Its main responsibilities is creating the physical plan based on the structure of the logical plan in order to iterate correctly over the binding ids. Therefore, it visits the following Ops:
 - `visit(OpOptional)`: Used to set the children and main pattern of the optional node, and to visit both.
-- `visit(OpMatch)` Used to get the physical plan of a given Graph Pattern of a Match clause. This plan is obtained by either using a greedy strategy or the Selinger Algorithm. It also uses different base plans to obtain each part of the base pattern. TODO: explain join plans?
+- `visit(OpMatch)` Used to get the physical plan of a given Graph Pattern of a Match clause. This plan is obtained by either using a greedy strategy or the Selinger Algorithm. It also uses different base plans to obtain each part of the base pattern.
 
   - Greedy Strategy: Choose the first plan to be the one with the lowest estimated cost. For every other plan, check which is the one with the lowest cost when executing an index nested loop join. Replace the first plan with the result of the join. Repeat until no more plans are left.
   - Selinger Optimization: For each pair of plans (A and B), we estimate its cost between A x B or B x A, registering the lowert cost. This is done recursively with already joined plans as A and B, using their lowest cost. Finally, the best plan given all the partitions is used.
@@ -387,7 +390,7 @@ The algorithm described in section 2.2. (Optimize tree) may remove nodes in four
     In this query, the nested optional node does not provide any additional information. The simplification is as follows:
 
     ![Query Optimization 3](query-optimization-example-3.svg "Query Optimization 3")
-  
+
 4. If an optional node does not provide useful information but its children do , the children are transfered to the parent. Example:
 
     ```
