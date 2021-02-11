@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <climits>
+#include <filesystem>
 #include <iostream>
 
 #include <boost/program_options.hpp>
@@ -17,7 +18,7 @@ using namespace std;
 namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
-    string filename;
+    string input_filename;
     string db_folder;
     int buffer_size;
 
@@ -29,7 +30,7 @@ int main(int argc, char **argv) {
             ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
             ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_BUFFER_POOL_SIZE),
                 "set buffer pool size")
-            ("filename,f", po::value<string>(&filename)->required(), "import file")
+            ("filename,f", po::value<string>(&input_filename)->required(), "import filename")
         ;
 
         po::positional_options_description p;
@@ -46,19 +47,32 @@ int main(int argc, char **argv) {
         }
         po::notify(vm);
 
-        cout << "filename: " << filename << "\n";
-        cout << "db_folder: " << db_folder << "\n";
-        cout << "buffer_size: " << buffer_size << "\n";
+        { // check db_folder is empty or does not exists
+            namespace fs = std::filesystem;
+            if (fs::exists(db_folder) && !fs::is_empty(db_folder)) {
+                cout << "Database folder already exists and it's not empty\n";
+                return 1;
+            }
+        }
 
-        auto model = QuadModel(db_folder, buffer_size);
+        cout << "Creating new database\n";
+        cout << "  input file:  " << input_filename << "\n";
+        cout << "  db folder:   " << db_folder << "\n";
+        cout << "  buffer size: " << buffer_size << "\n\n";
+
         auto start = chrono::system_clock::now();
+        cout << "Initializing system...\n";
+        auto model = QuadModel(db_folder, buffer_size);
+        auto end_model = chrono::system_clock::now();
+        chrono::duration<float, milli> model_duration = end_model - start;
+        cout << "  done in " << model_duration.count() << " ms\n\n";
 
-        auto import = BulkImport(filename, model);
+        auto import = BulkImport(input_filename, model);
         import.start_import();
 
         auto end = chrono::system_clock::now();
         chrono::duration<float, milli> duration = end - start;
-        cout << "Bulk Import duration: " << duration.count() << "ms\n";
+        cout << "Total duration: " << duration.count() << " ms\n";
     }
     catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";

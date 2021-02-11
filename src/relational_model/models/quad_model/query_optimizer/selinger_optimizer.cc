@@ -1,7 +1,6 @@
 #include "selinger_optimizer.h"
 
 #include <iostream>
-#include <iomanip>
 #include <limits>
 
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"

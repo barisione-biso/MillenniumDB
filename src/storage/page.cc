@@ -1,36 +1,31 @@
 #include "page.h"
 
 #include <cassert>
-#include <iostream>
 
 #include "storage/file_id.h"
 #include "storage/file_manager.h"
 
-Page::Page(PageId page_id, char* bytes) :
+Page::Page(PageId page_id, char* bytes) noexcept :
     page_id(page_id),
     pins(1),
     bytes(bytes),
     dirty(false) { }
 
 
-Page::Page() :
+Page::Page() noexcept :
     page_id(FileId(FileId::UNASSIGNED), 0),
     pins(0),
     bytes(nullptr),
     dirty(false) { }
 
 
-Page::~Page() = default;
-
-
-Page& Page::operator=(const Page& other) {
+void Page::operator=(const Page& other) noexcept {
     assert(pins == 0 && "Cannot reassign page if it is pinned");
     this->flush();
     this->page_id = other.page_id;
     this->pins    = other.pins;
     this->dirty   = other.dirty;
     this->bytes   = other.bytes;
-    return *this;
 }
 
 
@@ -40,11 +35,6 @@ void Page::reset() {
     this->pins    = 0;
     this->dirty   = false;
     this->bytes   = nullptr;
-}
-
-
-void Page::make_dirty() {
-    dirty = true;
 }
 
 

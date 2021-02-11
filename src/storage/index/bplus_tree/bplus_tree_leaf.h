@@ -37,12 +37,13 @@ class BPlusTreeLeaf {
 
         void create_new(const Record<N>& record);
 
-        bool is_leaf()             const { return true; }
-        uint32_t get_value_count() const { return value_count; }
+        uint32_t get_value_count() const { return *value_count; }
         int has_next()             const { return next_leaf != 0; }
 
         bool check() const;
         void print() const;
+
+        Page& get_page() const noexcept { return page; }
 
         std::unique_ptr<BPlusTreeLeaf> get_next_leaf() const;
         std::unique_ptr<Record<N>> get_record(uint_fast32_t pos) const;
@@ -50,9 +51,9 @@ class BPlusTreeLeaf {
     private:
         Page& page;
         FileId leaf_file_id;
-        uint32_t value_count;
-        uint32_t next_leaf;
-        uint64_t* records;
+        uint32_t* const value_count;
+        uint32_t* const next_leaf;
+        uint64_t* const records;
 
         uint_fast32_t search_index(int from, int to, const Record<N>& record) const;
         bool equal_record(const Record<N>& record, uint_fast32_t index);

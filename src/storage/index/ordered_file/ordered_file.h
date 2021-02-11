@@ -10,62 +10,56 @@
 #ifndef STORAGE__ORDERED_FILE_H_
 #define STORAGE__ORDERED_FILE_H_
 
-#include <fstream>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "storage/file_id.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/record.h"
-#include "storage/index/ordered_file/bpt_leaf_provider.h"
+#include "storage/index/ordered_file/ordered_file_page.h"
 
 template <std::size_t N>
-class OrderedFile : public BptLeafProvider {
+class OrderedFile {
 public:
-    static constexpr auto TUPLES_PER_BLOCK = 4096/8;
-    static constexpr auto MAX_RUNS = 8;
-    static constexpr uint_fast8_t bytes_per_tuple = sizeof(uint64_t)*N;
-    static constexpr uint_fast32_t block_size_in_bytes = TUPLES_PER_BLOCK*bytes_per_tuple;
+    static_assert(N <= UINT8_MAX);
 
     OrderedFile(const std::string& filename);
     ~OrderedFile();
 
-    void append_record(const Record<N>& record);
-    void order(std::array<uint_fast8_t, N> column_order);
+    void append_record(const std::array<uint64_t, N>& record) noexcept;
+    void order(const std::array<uint_fast8_t, N>& column_order) noexcept;
 
-    void print() const;
-    void check_order() const;
+    void begin_read() noexcept;
+    void copy_to_bpt_leaf(BPlusTreeLeaf<N>& leaf, uint_fast32_t page_number) const noexcept;
 
-    // begin() must be called before calling this method
-    uint64_t get_total_tuples() const;
+    // next_record() is used to get all the records one by one. begin_read() must be called at first.
+    // example:
+    // ordered_file.begin_read();
+    // for (auto record = ordered_file.next_record(); record != nullptr; record = ordered_file.next_record()) {
+    //     // do something with record
+    // }
+    std::unique_ptr<Record<N>> next_record() noexcept;
 
-    // BptLeafProvider methods
-    void begin() override;
-    bool has_more_tuples() const override;
-    uint_fast32_t next_tuples(uint64_t* output, uint_fast32_t max_tuples) override;
+    inline uint_fast32_t get_last_page() const noexcept { return last_page; }
 
-    std::unique_ptr<Record<N>> next_record();
+    // Only used to debug purposes
+    bool check_order();
 
 private:
-    FileId file_id;
-    FileId tmp_file_id;
-    std::fstream& file;
-    std::fstream& tmp_file;
+    const FileId file_id_a;
+    const FileId file_id_b;
 
-    uint_fast32_t current_output_pos;
-    uint64_t* output_buffer;
-    uint64_t* big_buffer;
-    uint64_t** buffer;
-    long filesize;
+    const FileId* file_id;
+    const FileId* helper_file_id;
 
-    void create_run(uint64_t* buffer, uint_fast32_t block_number, std::array<uint_fast8_t, N>& column_order, bool reorder);
-    bool record_less_than(uint_fast32_t buffer_pos, uint64_t* key, uint64_t* buffer);
-    void move_record_right(uint_fast32_t buffer_pos, uint64_t* buffer);
-    void assign_record(uint64_t* key, uint_fast32_t buffer_pos, uint64_t* buffer);
+    uint_fast32_t current_page;
+    uint_fast32_t current_pos_in_current_page;
+
+    uint_fast32_t last_page;
+    uint_fast32_t last_pos_in_last_page;
+
+    // used in append_record and next_record
+    std::unique_ptr<OrderedFilePage<N>> io_buffer;
 };
-
-template class OrderedFile<2>;
-template class OrderedFile<3>;
-template class OrderedFile<4>;
 
 #endif // STORAGE__ORDERED_FILE_H_

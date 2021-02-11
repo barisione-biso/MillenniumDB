@@ -1,10 +1,9 @@
 #include "tuple_collection.h"
 
 #include <cassert>
-#include <iostream>
-#include <cstring>
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "storage/file_id.h"
 #include "storage/file_manager.h"
@@ -49,13 +48,13 @@ void TupleCollection::add(std::vector<GraphObject> new_tuple) {
 
 
 std::vector<GraphObject> TupleCollection::get(uint_fast64_t id) const {
-    // Return the n- tuple of the page
-    std::vector<GraphObject> n_tuple(tuple_size);
+    // Return the n-th tuple of the page
+    std::vector<GraphObject> res(tuple_size);
     size_t tuple_position = id * tuple_size;
     for (size_t i = 0; i < tuple_size; i++) {
-        n_tuple[i] = tuples[tuple_position + i];
+        res[i] = tuples[tuple_position + i];
     }
-    return n_tuple;
+    return res;
 }
 
 

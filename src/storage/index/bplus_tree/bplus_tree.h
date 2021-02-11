@@ -9,7 +9,7 @@
 #include "storage/index/bplus_tree/bplus_tree_dir.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 
-class BptLeafProvider;
+template <std::size_t N> class OrderedFile;
 
 template <std::size_t N> class BptIter {
 public:
@@ -37,7 +37,7 @@ public:
     const FileId dir_file_id;
     const FileId leaf_file_id;
 
-    void bulk_import(BptLeafProvider&);
+    void bulk_import(OrderedFile<N>&);
     void insert(const Record<N>& record);
     // std::unique_ptr<Record<N>> get(const Record<N>& record);
 
@@ -47,7 +47,7 @@ public:
     std::unique_ptr<BptIter<N>> get_range(const Record<N>& min, const Record<N>& max) const noexcept;
 
 private:
-    bool is_empty;
+    // bool is_empty;
     BPlusTreeDir<N> root;
     void create_new(const Record<N>& record);
 };

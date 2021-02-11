@@ -1,7 +1,6 @@
 #ifndef BASE__COMPARISON_H_
 #define BASE__COMPARISON_H_
 
-#include <cassert>
 #include <memory>
 #include <set>
 

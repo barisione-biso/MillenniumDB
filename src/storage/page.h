@@ -7,9 +7,6 @@
 #ifndef STORAGE__PAGE_H_
 #define STORAGE__PAGE_H_
 
-#include <iostream>
-#include <string>
-
 #include "storage/page_id.h"
 
 class Page {
@@ -21,26 +18,26 @@ public:
     PageId page_id;
 
     // mark as dirty so when page is replaced it is written back to disk.
-    void make_dirty();
+    inline void make_dirty() noexcept { dirty = true; }
 
     // only meant for buffer_manager.remove()
     void reset();
 
     // get the start memory position of `PAGE_SIZE` allocated bytes
-    inline char* get_bytes() const { return bytes; };
+    inline char* get_bytes() const noexcept { return bytes; }
 
     // get page number
-    inline uint_fast32_t get_page_number() const { return page_id.page_number; };
+    inline uint_fast32_t get_page_number() const noexcept { return page_id.page_number; };
 
 private:
     uint_fast32_t pins;             // count of objects using this page, modified only by buffer_manager
     char* bytes;                    // start memory address of the page, of size `PAGE_SIZE`
     bool dirty;                     // true if data in memory is different from disk
 
-    Page();
-    Page(PageId page_id, char* bytes);
-    ~Page();
-    Page& operator=(const Page& other);
+    Page() noexcept;
+    Page(PageId page_id, char* bytes) noexcept;
+    ~Page() = default;
+    void operator=(const Page& other) noexcept;
 
     // write to disk if this page is dirty
     void flush();

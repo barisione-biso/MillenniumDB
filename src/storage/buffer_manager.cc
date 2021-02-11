@@ -16,8 +16,8 @@ static typename std::aligned_storage<sizeof(BufferManager), alignof(BufferManage
 BufferManager& buffer_manager = reinterpret_cast<BufferManager&>(buffer_manager_buf);
 
 
-BufferManager::BufferManager(int _buffer_pool_size) :
-    buffer_pool_size(_buffer_pool_size)
+BufferManager::BufferManager(uint_fast32_t buffer_pool_size) :
+    buffer_pool_size(buffer_pool_size)
 {
     buffer_pool = new Page[buffer_pool_size];
     clock_pos = 0;
@@ -37,13 +37,10 @@ void BufferManager::init(int buffer_pool_size) {
 
 
 void BufferManager::flush() {
-    // flush() is always called at FileManager destruction.
+    // flush() is always called at destruction.
     // this is important to check to avoid segfault when program terminates before calling init()
-    // for instance, when bad parameters are received
-    if (buffer_pool == nullptr) {
-        return;
-    }
-    for (int i = 0; i < buffer_pool_size; i++) {
+    assert(buffer_pool != nullptr);
+    for (uint_fast32_t i = 0; i < buffer_pool_size; i++) {
         buffer_pool[i].flush();
     }
 }
@@ -79,12 +76,11 @@ int BufferManager::get_buffer_available() {
 }
 
 
-Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) {
-
-    auto page_id = PageId(file_id, page_number);
-    auto it = pages.find(page_id);
+Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcept {
+    const PageId page_id(file_id, page_number);
 
     std::lock_guard<std::mutex> lck(pin_mutex);
+    auto it = pages.find(page_id);
 
     if (it == pages.end()) {
         int buffer_available = get_buffer_available();
@@ -113,10 +109,8 @@ void BufferManager::unpin(Page& page) {
 
 
 void BufferManager::remove(FileId file_id) {
-    if (buffer_pool == nullptr) {
-        return;
-    }
-    for (int i = 0; i < buffer_pool_size; i++) {
+    assert(buffer_pool != nullptr);
+    for (uint_fast32_t i = 0; i < buffer_pool_size; i++) {
         if (buffer_pool[i].page_id.file_id == file_id) {
             pages.erase(buffer_pool[i].page_id);
             buffer_pool[i].reset();

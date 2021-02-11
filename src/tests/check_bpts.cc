@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -45,6 +46,17 @@ int main(int argc, char **argv) {
     }
     po::notify(vm);
 
+    { // check if db_folder is empty or does not exists
+        namespace fs = std::filesystem;
+        if (!fs::exists(db_folder) ) {
+            cerr << "Database folder doesn't exists.\n";
+            return 1;
+        } else if (fs::is_empty(db_folder)) {
+            cerr << "Database folder is empty.\n";
+            return 1;
+        }
+    }
+
     auto model = QuadModel(db_folder, buffer_size);
 
     check("node_label", *model.node_label);
@@ -56,4 +68,13 @@ int main(int argc, char **argv) {
     check("from_to_type_edge", *model.from_to_type_edge);
     check("to_type_from_edge", *model.to_type_from_edge);
     check("type_from_to_edge", *model.type_from_to_edge);
+
+    check("equal_from_to",      *model.equal_from_to);
+    check("equal_from_type",    *model.equal_from_type);
+    check("equal_to_type",      *model.equal_to_type);
+    check("equal_from_to_type", *model.equal_from_to_type);
+
+    check("equal_from_to_inverted",   *model.equal_from_to_inverted);
+    check("equal_from_type_inverted", *model.equal_from_type_inverted);
+    check("equal_to_type_inverted",   *model.equal_to_type_inverted);
 }

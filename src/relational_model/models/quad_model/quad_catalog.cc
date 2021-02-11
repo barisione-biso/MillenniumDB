@@ -8,7 +8,6 @@ QuadCatalog::QuadCatalog(const std::string& filename) :
     Catalog(filename)
 {
     if (is_empty()) {
-        cout << "Initializing empty catalog.\n";
         identifiable_nodes_count = 0;
         anonymous_nodes_count    = 0;
         connections_count        = 0;
@@ -244,5 +243,3 @@ uint64_t QuadCatalog::equal_to_type_with_type(uint64_t type_id) {
         return search->second;
     }
 }
-
-

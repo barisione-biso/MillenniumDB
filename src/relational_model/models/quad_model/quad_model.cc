@@ -1,5 +1,6 @@
 #include "quad_model.h"
 
+#include <iostream>
 #include <new>
 
 #include "base/graph/anonymous_node.h"
@@ -41,8 +42,6 @@ QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size) {
     equal_from_to_inverted   = make_unique<BPlusTree<3>>("equal_from_to_inverted");
     equal_from_type_inverted = make_unique<BPlusTree<3>>("equal_from_type_inverted");
     equal_to_type_inverted   = make_unique<BPlusTree<3>>("equal_to_type_inverted");
-
-    catalog().print();
 }
 
 

@@ -1,12 +1,11 @@
 #include "storage/index/bplus_tree/bplus_tree.h"
 
-#include <iostream>
+#include <cassert>
 
-#include "storage/file_manager.h"
 #include "storage/buffer_manager.h"
-#include "storage/index/record.h"
+#include "storage/file_manager.h"
 #include "storage/index/ordered_file/ordered_file.h"
-#include "storage/index/ordered_file/bpt_leaf_provider.h"
+#include "storage/index/record.h"
 
 template class BPlusTree<2>;
 template class BPlusTree<3>;
@@ -22,58 +21,35 @@ template <std::size_t N>
 BPlusTree<N>::BPlusTree(const std::string& name) :
     dir_file_id  (file_manager.get_file_id(name + ".dir")),
     leaf_file_id (file_manager.get_file_id(name + ".leaf")),
-    root         (BPlusTreeDir<N>(leaf_file_id, buffer_manager.get_page(dir_file_id, 0)))
-{
-    // root = BPlusTreeDir<N>(leaf_file_id, buffer_manager.get_page(dir_file_id, 0));
-    // root = make_unique<BPlusTreeDir<N>>(leaf_file_id, buffer_manager.get_page(dir_file_id, 0));
-
-    // first leaf is readed just to see if BPT is empty
-    auto first_leaf = BPlusTreeLeaf<N>(buffer_manager.get_page(leaf_file_id, 0));
-    is_empty = first_leaf.value_count == 0;
-}
+    root         (BPlusTreeDir<N>(leaf_file_id, buffer_manager.get_page(dir_file_id, 0))) { }
 
 
 template <std::size_t N>
-void BPlusTree<N>::bulk_import(BptLeafProvider& leaf_provider) {
-    leaf_provider.begin();
+void BPlusTree<N>::bulk_import(OrderedFile<N>& leaf_provider) {
+    leaf_provider.begin_read();
 
-    if (is_empty) {
-        // first leaf
-        auto first_leaf = BPlusTreeLeaf<N>(buffer_manager.get_page(leaf_file_id, 0));
-        first_leaf.value_count = leaf_provider.next_tuples(first_leaf.records, leaf_max_records);
-        // root.dirs[0] = 0;
-        if (leaf_provider.has_more_tuples()) {
-            first_leaf.next_leaf = first_leaf.page.get_page_number() + 1;
-        }
-        first_leaf.page.make_dirty();
-        is_empty = false;
-    } else {
-        // fill last page
-        auto last_leaf = BPlusTreeLeaf<N>(buffer_manager.get_last_page(leaf_file_id));
-        if (last_leaf.value_count < leaf_max_records) {
-            auto new_tuples = leaf_provider.next_tuples(&last_leaf.records[last_leaf.value_count * N],
-                                                        leaf_max_records - last_leaf.value_count);
-            last_leaf.value_count += new_tuples;
-        }
-        if (leaf_provider.has_more_tuples()) {
-            last_leaf.next_leaf = last_leaf.page.get_page_number() + 1;
-        }
-        last_leaf.page.make_dirty();
+    BPlusTreeLeaf<N> first_leaf(buffer_manager.get_page(leaf_file_id, 0));
+    leaf_provider.copy_to_bpt_leaf(first_leaf, 0);
+    if (leaf_provider.get_last_page() > 0) {
+        *first_leaf.next_leaf = 1;
     }
+    first_leaf.page.make_dirty();
 
-    while (leaf_provider.has_more_tuples()) {
-        auto new_leaf = BPlusTreeLeaf<N>(buffer_manager.append_page(leaf_file_id));
-        new_leaf.value_count = leaf_provider.next_tuples(new_leaf.records, leaf_max_records);
+    uint_fast32_t current_page = 1;
+    while (current_page <= leaf_provider.get_last_page()) {
+        BPlusTreeLeaf<N> new_leaf(buffer_manager.get_page(leaf_file_id, current_page));
+        leaf_provider.copy_to_bpt_leaf(new_leaf, current_page);
 
-        if (new_leaf.value_count <= 0) {
-            cout << "Wrong new_leaf.value_count: " << new_leaf.value_count << "\n";
+        assert(*new_leaf.value_count > 0);
+
+        auto next_page = current_page + 1;
+        if (next_page <= leaf_provider.get_last_page()) {
+            *new_leaf.next_leaf = next_page;
         }
 
-        if (leaf_provider.has_more_tuples()) {
-            new_leaf.next_leaf = new_leaf.page.get_page_number() + 1;
-        }
         root.bulk_insert(new_leaf);
         new_leaf.page.make_dirty();
+        current_page = next_page;
     }
 }
 
@@ -87,11 +63,6 @@ unique_ptr<BptIter<N>> BPlusTree<N>::get_range(const Record<N>& min, const Recor
 
 template <std::size_t N>
 void BPlusTree<N>::insert(const Record<N>& record) {
-    if (is_empty) {
-        create_new(record);
-        is_empty = false;
-        return;
-    }
     root.insert(record);
 }
 
@@ -99,8 +70,7 @@ void BPlusTree<N>::insert(const Record<N>& record) {
 // Insert first key at root, create leaf
 template <std::size_t N>
 void BPlusTree<N>::create_new(const Record<N>& record) {
-    auto& leaf_page = buffer_manager.get_page(leaf_file_id, 0);
-    auto first_leaf = BPlusTreeLeaf<N>(leaf_page);
+    auto first_leaf = BPlusTreeLeaf<N>( buffer_manager.get_page(leaf_file_id, 0) );
     first_leaf.create_new(record);
 }
 

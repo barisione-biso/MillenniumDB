@@ -35,7 +35,7 @@ public:
     // Get a page. It will search in the buffer and if it is not on it, it will read from disk and put in the buffer.
     // Also it will pin the page, so calling buffer_manager.unpin(page) is expected when the caller doesn't need
     // the returned page anymore.
-    Page& get_page(FileId file_id, uint_fast32_t page_number);
+    Page& get_page(FileId file_id, uint_fast32_t page_number) noexcept;
 
     // Similar to get_page, but the page_number is the greatest number such that page number exist on disk.
     Page& get_last_page(FileId file_id);
@@ -53,11 +53,13 @@ public:
 
     // invalidates all pages using `file_id`
     void remove(FileId file_id);
+
+    constexpr auto get_buffer_pool_size() const noexcept { return buffer_pool_size; }
 private:
-    BufferManager(int _buffer_pool_size);
+    BufferManager(uint_fast32_t buffer_pool_size);
 
     // maximum pages the buffer can have
-    int buffer_pool_size;
+    uint_fast32_t buffer_pool_size;
 
     // map used to search the index in the `buffer_pool` of a certain page
     // std::map<PageId, int> pages;

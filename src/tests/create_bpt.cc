@@ -1,4 +1,6 @@
 #include <climits>
+#include <filesystem>
+#include <iostream>
 #include <memory>
 
 #include "storage/file_manager.h"
@@ -87,7 +89,17 @@ int main(int argc, char** argv) {
         exit(1);
     }
     int size = atoi(argv[1]);
-    FileManager::init("tests/dbs/test_bpt");
+
+    string db_folder = "tests/dbs/test_bpt";
+    { // check db_folder is empty or does not exists
+        namespace fs = std::filesystem;
+        if (fs::exists(db_folder) && !fs::is_empty(db_folder)) {
+            cerr << "Database folder is not empty.\n";
+            return 1;
+        }
+    }
+
+    FileManager::init(db_folder);
     BufferManager::init(BufferManager::DEFAULT_BUFFER_POOL_SIZE);
 
     try {
