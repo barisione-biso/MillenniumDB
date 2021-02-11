@@ -14,7 +14,7 @@ private:
     BPlusTree<N>& bpt;
     std::unique_ptr<BptIter<N>> it;
 
-    BindingId* my_input;
+    BindingId* parent_binding;
     std::array<std::unique_ptr<ScanRange>, N> ranges;
 
     // statistics
@@ -26,9 +26,10 @@ public:
     ~IndexScan() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId& begin(BindingId& input) override;
-    void reset() override;
+    void begin(BindingId& parent_binding, bool parent_has_next) override;
     bool next() override;
+    void reset() override;
+    void assign_nulls() override;
 };
 
 #endif // RELATIONAL_MODEL__GRAPH_SCAN_H_

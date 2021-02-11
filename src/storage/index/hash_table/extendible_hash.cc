@@ -1,14 +1,14 @@
 #include "extendible_hash.h"
 
 #include <bitset>
-#include <cmath>
 #include <cassert>
+#include <cmath>
 #include <cstring>
 #include <iostream>
 
 #include "storage/file_manager.h"
-#include "storage/index/hash_table/murmur3.h"
 #include "storage/index/hash_table/bucket.h"
+#include "storage/index/hash_table/murmur3.h"
 
 
 ExtendibleHash::ExtendibleHash(ObjectFile& object_file, const std::string& filename) :

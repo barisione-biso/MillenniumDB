@@ -18,7 +18,8 @@ public:
 
     ~OpTransitiveClosure() = default;
 
-    void accept_visitor(OpVisitor& visitor) const override {
+
+    void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
 
@@ -31,6 +32,26 @@ public:
             return true;
         }
         return false;
+    }
+
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+        os << std::string(indent, ' ');
+        os << "OpTransitiveClosure(" << from << "->" << to  << ":" << type << ")\n";
+        return os;
+    };
+
+    std::set<std::string> get_var_names() const override {
+        std::set<std::string> res;
+        if (from[0] == '?') {
+            res.insert(from);
+        }
+        if (to[0] == '?') {
+            res.insert(to);
+        }
+        if (type[0] == '?') {
+            res.insert(type);
+        }
+        return res;
     }
 };
 

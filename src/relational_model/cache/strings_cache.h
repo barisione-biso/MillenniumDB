@@ -1,12 +1,12 @@
 #ifndef RELATIONAL_MODEL__STRINGS_CACHE_H_
 #define RELATIONAL_MODEL__STRINGS_CACHE_H_
 
-#include <map>
-#include <list>
-#include <utility>
 #include <cstdint>
+#include <list>
+#include <map>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "base/graph/value/value_string.h"
 

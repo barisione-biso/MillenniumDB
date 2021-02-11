@@ -9,6 +9,10 @@ BOOST_FUSION_ADAPT_STRUCT(query::ast::Root,
     explain, selection, graph_pattern, where, group_by, order_by, limit
 )
 
+BOOST_FUSION_ADAPT_STRUCT(query::ast::GraphPattern,
+    pattern, optionals
+)
+
 BOOST_FUSION_ADAPT_STRUCT(query::ast::LinearPattern,
     root, path
 )

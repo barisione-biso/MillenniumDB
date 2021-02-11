@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "base/graph/condition/condition.h"
 #include "base/binding/binding.h"
+#include "base/graph/condition/condition.h"
 
 using namespace std;
 

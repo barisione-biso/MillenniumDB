@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 
         // Transitive Closure Test
         BindingId binding(4);
-        op.begin(binding);
+        op.begin(binding, true);
         if (op.next()) {
             cout << "Path found\n";
         } else {

@@ -1,4 +1,4 @@
-#include "storage/index/bplus_tree/bplus_tree.h"
+#include "bplus_tree.h"
 
 #include <cassert>
 

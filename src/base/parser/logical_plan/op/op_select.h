@@ -4,10 +4,12 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <iostream>
 #include <memory>
 
-#include "base/parser/logical_plan/op/op.h"
 #include "base/parser/grammar/query/query_ast.h"
+#include "base/parser/logical_plan/op/op.h"
+
 
 class OpSelect : public Op {
 public:
@@ -26,8 +28,46 @@ public:
 
     ~OpSelect() = default;
 
-    void accept_visitor(OpVisitor& visitor) const override {
+
+    void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
+    }
+
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+        os << std::string(indent, ' ');
+        os << "OpSelect(";
+        if (select_items.size() == 0) {
+            os << "*";
+        } else {
+            bool first = true;
+            for (auto & select_item : select_items) {
+                if (!first)
+                    os << ", ";
+                first = false;
+                if (select_item.key) {
+                    os << select_item.var << "." << select_item.key.get();
+                } else {
+                    os << select_item.var;
+                }
+            }
+        }
+        os << ")";
+
+        if (limit) {
+            os << " LIMIT " << limit;
+        }
+        os << "\n";
+        return op->print_to_ostream(os, indent + 2);
+    };
+
+    std::set<std::string> get_var_names() const override {
+        auto res = op->get_var_names();
+        for (const auto& select_item : select_items) {
+            if (select_item.key) {
+                res.insert(select_item.var + '.' + select_item.key.get());
+            }
+        }
+        return res;
     }
 };
 

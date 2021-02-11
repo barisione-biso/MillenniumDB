@@ -1,12 +1,12 @@
 #ifndef STORAGE__INDEX__B_PLUS_TREE_DIR_H_
 #define STORAGE__INDEX__B_PLUS_TREE_DIR_H_
 
-#include "storage/page.h"
-#include "storage/index/record.h"
+#include <memory>
+
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 #include "storage/index/bplus_tree/bplus_tree_split.h"
-
-#include <memory>
+#include "storage/index/record.h"
+#include "storage/page.h"
 
 template <std::size_t N>
 class BPlusTreeDir {

@@ -1,0 +1,2 @@
+SELECT ?a, ?c
+MATCH (?a)-[:knows]->(?b)-[:knows]->(?c)

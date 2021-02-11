@@ -5,9 +5,9 @@
 #include <vector>
 #include <variant>
 
+#include "base/binding/binding_id_iter.h"
 #include "base/ids/object_id.h"
 #include "base/ids/var_id.h"
-#include "base/binding/binding_id_iter.h"
 #include "storage/index/random_access_table/random_access_table.h"
 
 class EdgeTableLookup : public BindingIdIter {
@@ -26,16 +26,17 @@ private:
     // the same result multiple times
     bool already_looked;
 
-    BindingId* my_input;
+    BindingId* parent_binding;
 
 public:
     EdgeTableLookup(std::size_t binding_size, RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type);
     ~EdgeTableLookup() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId& begin(BindingId& input) override;
-    void reset() override;
+    void begin(BindingId& parent_binding, bool parent_has_next) override;
     bool next() override;
+    void reset() override;
+    void assign_nulls() override;
 };
 
 #endif // RELATIONAL_MODEL__NODE_TABLE_ENUM_H_

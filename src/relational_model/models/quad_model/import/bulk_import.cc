@@ -5,11 +5,11 @@
 #include <map>
 #include <boost/spirit/include/support_istream_iterator.hpp>
 
-#include "base/parser/grammar/import/import_ast.h"
-#include "base/parser/grammar/import/import_ast_adapted.h"
-#include "base/parser/grammar/import/import.h"
-#include "base/parser/grammar/import/import_def.h"
 #include "base/parser/grammar/common/value_visitor.h"
+#include "base/parser/grammar/import/import_ast_adapted.h"
+#include "base/parser/grammar/import/import_ast.h"
+#include "base/parser/grammar/import/import_def.h"
+#include "base/parser/grammar/import/import.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 

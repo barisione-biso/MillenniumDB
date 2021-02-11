@@ -10,6 +10,7 @@
 #include "storage/index/record.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
+#include "storage/index/record.h"
 
 template class OrderedFile<2>;
 template class OrderedFile<3>;

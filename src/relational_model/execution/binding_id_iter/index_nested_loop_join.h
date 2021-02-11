@@ -15,16 +15,18 @@ public:
     ~IndexNestedLoopJoin() = default;
 
     void analyze(int indent = 0) const override;
-    BindingId& begin(BindingId& input) override;
-    void reset() override;
+    void begin(BindingId& parent_binding, bool parent_has_next) override;
     bool next() override;
+    void reset() override;
+    void assign_nulls() override;
 
 private:
     std::unique_ptr<BindingIdIter> lhs;
     std::unique_ptr<BindingIdIter> rhs;
 
-    BindingId* current_left;
-    BindingId* current_right;
+    // BindingId* current_left;
+    // BindingId* current_right;
+    BindingId* parent_binding;
 };
 
 #endif // RELATIONAL_MODEL__INDEX_NESTED_LOOP_JOIN_H_

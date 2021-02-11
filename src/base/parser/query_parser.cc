@@ -2,21 +2,34 @@
 
 #include <iostream>
 
-#include "base/parser/grammar/query/query_def.h"
-#include "base/parser/grammar/query/printer/query_ast_printer.h"
 #include "base/parser/grammar/manual_plan/manual_plan_def.h"
+#include "base/parser/grammar/query/printer/query_ast_printer.h"
+#include "base/parser/grammar/query/query_def.h"
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_filter.h"
-#include "base/parser/logical_plan/op/op_match.h"
-#include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/logical_plan/op/op_order_by.h"
+#include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
+#include "base/parser/logical_plan/op/op_match.h"
+#include "base/parser/logical_plan/op/op_optional.h"
+#include "base/parser/logical_plan/op/op_order_by.h"
+#include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/visitors/check_var_names.h"
+#include "base/parser/logical_plan/op/visitors/check_well_designed.h"
+#include "base/parser/logical_plan/op/visitors/optimize_tree.h"
 
 using namespace std;
 
 unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
-    unique_ptr<Op> op = make_unique<OpMatch>(ast.graph_pattern);
+    unique_ptr<Op> op;
+
+    uint_fast32_t anon_count = 0;
+    if (ast.graph_pattern.optionals.size() > 0) {
+        op = make_unique<OpOptional>(ast.graph_pattern, &anon_count);
+    } else {
+        op = make_unique<OpMatch>(ast.graph_pattern.pattern, &anon_count);
+    }
+
+    op = make_unique<OpGraphPatternRoot>(std::move(op));
 
     uint_fast32_t limit = 0;
     if (ast.limit) {
@@ -52,6 +65,9 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(string& query) {
             printer(ast);
         }
         auto res = QueryParser::get_query_plan(ast);
+        if (ast.explain) {
+            cout << *res << "\n";
+        }
         check_query_plan(*res);
         return res;
     } else {
@@ -62,8 +78,14 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(string& query) {
 
 
 void QueryParser::check_query_plan(OpSelect& op_select) {
-    auto check_var_names = CheckVarNames();
+    CheckVarNames check_var_names;
     check_var_names.visit(op_select);
+
+    CheckWellDesigned check_well_designed;
+    check_well_designed.visit(op_select);
+
+    OptimizeTree optimize_tree;
+    optimize_tree.visit(op_select);
 }
 
 

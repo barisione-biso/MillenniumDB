@@ -68,3 +68,9 @@ _deps
 # TODO files
 TODO/*
 db/*
+
+# environment
+.env
+
+# python cache
+*__pycache__/

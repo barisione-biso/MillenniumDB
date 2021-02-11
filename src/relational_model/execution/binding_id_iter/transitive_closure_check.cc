@@ -10,14 +10,13 @@
 
 using namespace std;
 
-TransitiveClosureCheck::TransitiveClosureCheck(std::size_t binding_size,
-                                     BPlusTree<4>& bpt,
-                                     Id start,
-                                     Id end,
-                                     ObjectId type,
-                                     uint_fast32_t start_pos,
-                                     uint_fast32_t type_pos) :
-    BindingIdIter (binding_size),
+TransitiveClosureCheck::TransitiveClosureCheck(std::size_t /*binding_size*/,
+                                               BPlusTree<4>& bpt,
+                                               Id start,
+                                               Id end,
+                                               ObjectId type,
+                                               uint_fast32_t start_pos,
+                                               uint_fast32_t type_pos) :
     bpt           (bpt),
     start         (start),
     end           (end),
@@ -26,8 +25,8 @@ TransitiveClosureCheck::TransitiveClosureCheck(std::size_t binding_size,
     type_pos      (type_pos) { }
 
 
-BindingId& TransitiveClosureCheck::begin(BindingId& input) {
-    my_input = &input;
+void TransitiveClosureCheck::begin(BindingId& parent_binding, bool /* parent_has_next */) {
+    this->parent_binding = &parent_binding;
     min_ids[type_pos] = type.id;
     max_ids[type_pos] = type.id;
     min_ids[2] = 0;
@@ -43,7 +42,7 @@ BindingId& TransitiveClosureCheck::begin(BindingId& input) {
         open.push(start_object_id);
     } else {
         auto start_var_id = std::get<VarId>(start);
-        auto start_object_id = (*my_input)[start_var_id];
+        auto start_object_id = (parent_binding)[start_var_id];
         visited.insert(start_object_id);
         open.push(start_object_id);
     }
@@ -53,10 +52,8 @@ BindingId& TransitiveClosureCheck::begin(BindingId& input) {
         end_object_id = std::get<ObjectId>(end);
     } else {
         auto end_var_id = std::get<VarId>(end);
-        end_object_id = (*my_input)[end_var_id];
+        end_object_id = (parent_binding)[end_var_id];
     }
-
-    return my_binding;
 }
 
 
@@ -78,7 +75,6 @@ bool TransitiveClosureCheck::next() {
             if (child == end_object_id) {
                 queue<ObjectId> empty;
                 open.swap(empty);
-                my_binding.add_all(*my_input);
                 ++results_found;
                 return true;
             } else {
@@ -106,7 +102,7 @@ void TransitiveClosureCheck::reset() {
         open.push(start_object_id);
     } else {
         auto start_var_id = std::get<VarId>(start);
-        auto start_object_id = (*my_input)[start_var_id];
+        auto start_object_id = (*parent_binding)[start_var_id];
         visited.insert(start_object_id);
         open.push(start_object_id);
     }
@@ -115,9 +111,12 @@ void TransitiveClosureCheck::reset() {
         end_object_id = std::get<ObjectId>(end);
     } else {
         auto end_var_id = std::get<VarId>(end);
-        end_object_id = (*my_input)[end_var_id];
+        end_object_id = (*parent_binding)[end_var_id];
     }
 }
+
+
+void TransitiveClosureCheck::assign_nulls() { }
 
 
 void TransitiveClosureCheck::analyze(int indent) const {

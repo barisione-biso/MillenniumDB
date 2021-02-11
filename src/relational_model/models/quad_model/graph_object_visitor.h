@@ -1,8 +1,8 @@
 #ifndef RELATIONAL_MODEL__GRAPH_OBJECT_VISITOR_H_
 #define RELATIONAL_MODEL__GRAPH_OBJECT_VISITOR_H_
 
-#include "base/ids/object_id.h"
 #include "base/graph/graph_object.h"
+#include "base/ids/object_id.h"
 #include "relational_model/models/quad_model/quad_model.h"
 
 struct GraphObjectVisitor {

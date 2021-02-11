@@ -10,14 +10,13 @@
 
 using namespace std;
 
-TransitiveClosureEnum::TransitiveClosureEnum(std::size_t binding_size,
+TransitiveClosureEnum::TransitiveClosureEnum(std::size_t /*binding_size*/,
                                              BPlusTree<4>& bpt,
                                              Id start,
                                              VarId end,
                                              ObjectId type,
                                              uint_fast32_t start_pos,
                                              uint_fast32_t type_pos) :
-    BindingIdIter (binding_size),
     bpt           (bpt),
     start         (start),
     end           (end),
@@ -26,8 +25,8 @@ TransitiveClosureEnum::TransitiveClosureEnum(std::size_t binding_size,
     type_pos      (type_pos) { }
 
 
-BindingId& TransitiveClosureEnum::begin(BindingId& input) {
-    my_input = &input;
+void TransitiveClosureEnum::begin(BindingId& parent_binding, bool /* parent_has_next */) {
+    this->parent_binding = &parent_binding;
     min_ids[type_pos] = type.id;
     max_ids[type_pos] = type.id;
     min_ids[2] = 0;
@@ -41,13 +40,12 @@ BindingId& TransitiveClosureEnum::begin(BindingId& input) {
         open.push(start_object_id);
     } else {
         auto start_var_id = std::get<VarId>(start);
-        start_object_id = (*my_input)[start_var_id];
+        start_object_id = (parent_binding)[start_var_id];
         open.push(start_object_id);
     }
 
     child_record = nullptr;
     self_reference = false;
-    return my_binding;
 }
 
 
@@ -72,8 +70,7 @@ bool TransitiveClosureEnum::next() {
             ObjectId child( child_record->ids[2] );
             if (visited.find(child) == visited.end()) {
                 visited.insert(child);
-                my_binding.add_all(*my_input);
-                my_binding.add(end, child);
+                parent_binding->add(end, child);
                 if (child != start_object_id) {
                     open.push(child);
                 } else {
@@ -102,9 +99,14 @@ void TransitiveClosureEnum::reset() {
         open.push(start_object_id);
     } else {
         auto start_var_id = std::get<VarId>(start);
-        start_object_id = (*my_input)[start_var_id];
+        start_object_id = (*parent_binding)[start_var_id];
         open.push(start_object_id);
     }
+}
+
+
+void TransitiveClosureEnum::assign_nulls() {
+    parent_binding->add(end, ObjectId::get_null());
 }
 
 

@@ -47,12 +47,16 @@ void QueryAstPrinter::indent(std::string str, int_fast32_t extra_indent) const {
 void QueryAstPrinter::operator()(Root const& r) const {
     indent("{\n");
     auto printer = QueryAstPrinter(out, base_indent+1);
-    printer.indent("\"SELECT\":");
-    printer(r.selection);
-    out << ",\n";
-    printer.indent();
-    printer(r.graph_pattern);
-    out << ",\n";
+    auto printer2 = QueryAstPrinter(out, base_indent+2);
+
+    printer.indent("\"SELECT\": [\n");
+    printer2(r.selection);
+    printer.indent("],\n");
+
+    printer.indent("\"MATCH\": [\n");
+    printer2(r.graph_pattern);
+    printer.indent("],\n");
+
     printer.indent();
     printer(r.where);
     out << ",\n";
@@ -91,12 +95,10 @@ void QueryAstPrinter::operator()(SelectItem const& select_item) const {
 
 
 void QueryAstPrinter::operator()(std::vector<SelectItem> const& select_items) const {
-    auto printer = QueryAstPrinter(out, base_indent+1);
     auto it = select_items.begin();
-    out << "[\n";
     while (it != select_items.end()) {
-        printer.indent();
-        printer(*it);
+        indent();
+        (*this)(*it);
         ++it;
         if (it != select_items.end()) {
             out << ",\n";
@@ -105,7 +107,6 @@ void QueryAstPrinter::operator()(std::vector<SelectItem> const& select_items) co
             out << "\n";
         }
     }
-    indent("]");
 }
 
 
@@ -129,7 +130,6 @@ void QueryAstPrinter::operator()(std::vector<query::ast::OrderedSelectItem> cons
 
 
 void QueryAstPrinter::operator() (std::vector<LinearPattern> const& graph_pattern) const {
-    out << "\"MATCH\": [\n";
     auto printer = QueryAstPrinter(out, base_indent+1);
     auto it = graph_pattern.begin();
     while (it != graph_pattern.end()) {
@@ -143,7 +143,27 @@ void QueryAstPrinter::operator() (std::vector<LinearPattern> const& graph_patter
             out << "\n";
         }
     }
-    indent("]");
+}
+
+
+void QueryAstPrinter::operator() (GraphPattern const& graph_pattern) const {
+    indent("\"MainPattern\": [\n");
+    (*this)(graph_pattern.pattern);
+    indent("],\n");
+
+    auto printer = QueryAstPrinter(out, base_indent+1);
+    auto printer2 = QueryAstPrinter(out, base_indent+2);
+    if (graph_pattern.optionals.size() > 0) {
+        indent("\"OptionalPatterns\": [\n");\
+        for (auto const& optional_pattern : graph_pattern.optionals) {
+            printer.indent("{\n");
+            printer2(optional_pattern.get());
+            printer.indent("}\n");
+        }
+        indent("]\n");
+    } else {
+        indent("\"OptionalPatterns\": [ ]\n");
+    }
 }
 
 
@@ -366,9 +386,8 @@ void QueryAstPrinter::operator() (BinaryOp const& b) const {
 }
 
 
-void QueryAstPrinter::operator() (VarId const& var_id) const {out << "VarId(" << var_id.id << ")"; }
-void QueryAstPrinter::operator() (int64_t const& n)    const {out << "(int)" << n; }
-void QueryAstPrinter::operator() (float const& n)      const {out << "(float)" << n; }
+void QueryAstPrinter::operator() (int64_t const& n) const {out << n; }
+void QueryAstPrinter::operator() (float const& n)   const {out << n; }
 
 void QueryAstPrinter::operator() (bool const& b) const {
     if (b)
