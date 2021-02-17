@@ -1,7 +1,6 @@
 #include "buffer_manager.h"
 
 #include <cassert>
-#include <iostream>
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
 
@@ -17,21 +16,19 @@ BufferManager& buffer_manager = reinterpret_cast<BufferManager&>(buffer_manager_
 
 
 BufferManager::BufferManager(uint_fast32_t buffer_pool_size) :
-    buffer_pool_size(buffer_pool_size)
-{
-    buffer_pool = new Page[buffer_pool_size];
-    clock_pos = 0;
-    bytes = new char[buffer_pool_size*Page::PAGE_SIZE];
-}
+    buffer_pool_size (buffer_pool_size),
+    buffer_pool      (new Page[buffer_pool_size]),
+    bytes            (new char[buffer_pool_size*Page::PAGE_SIZE]),
+    clock_pos        (0) { }
 
 
 BufferManager::~BufferManager() {
-    // It's not necessary to delete buffer_pool or bytes,
-    // this destructor should be called only on program exit.
     flush();
+    delete[](bytes);
+    delete[](buffer_pool);
 }
 
-void BufferManager::init(int buffer_pool_size) {
+void BufferManager::init(uint_fast32_t buffer_pool_size) {
     new (&buffer_manager) BufferManager(buffer_pool_size); // placement new
 }
 
@@ -61,8 +58,8 @@ Page& BufferManager::append_page(FileId file_id) {
 }
 
 
-int BufferManager::get_buffer_available() {
-    int first_lookup = clock_pos;
+uint_fast32_t BufferManager::get_buffer_available() {
+    auto first_lookup = clock_pos;
 
     while (buffer_pool[clock_pos].pins != 0) {
         clock_pos = (clock_pos+1)%buffer_pool_size;
@@ -70,7 +67,7 @@ int BufferManager::get_buffer_available() {
             throw std::runtime_error("No buffer available in buffer pool.");
         }
     }
-    int res = clock_pos;
+    auto res = clock_pos;
     clock_pos = (clock_pos+1)%buffer_pool_size;
     return res;
 }
@@ -83,7 +80,7 @@ Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcep
     auto it = pages.find(page_id);
 
     if (it == pages.end()) {
-        int buffer_available = get_buffer_available();
+        const auto buffer_available = get_buffer_available();
         if (buffer_pool[buffer_available].page_id.file_id.id != FileId::UNASSIGNED) {
             auto old_page_id = buffer_pool[buffer_available].page_id;
             pages.erase(old_page_id);
@@ -93,7 +90,7 @@ Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcep
         file_manager.read_page(page_id, buffer_pool[buffer_available].get_bytes());
         pages.insert(pair<PageId, int>(page_id, buffer_available));
         return buffer_pool[buffer_available];
-    } else { // file is already open
+    } else { // page is the buffer
         buffer_pool[it->second].pins++;
         return buffer_pool[it->second];
     }

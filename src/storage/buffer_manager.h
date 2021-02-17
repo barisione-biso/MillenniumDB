@@ -3,17 +3,16 @@
  * already in memory or needs to be readed from disk.
  *
  * `buffer_manager` is a global object and is available when this file is included. Before using it, somebody
- * must call the method BufferManager::init(), usually is the responsability of the model (e.g. RelationalModel)
+ * must call the method BufferManager::init(), usually is the responsability of the model (e.g. QuadModel)
  * to call it.
  *
- * A mutex object is used to prevent conflict between different threads when asking for page and
+ * A mutex object is used to prevent conflict between different threads when asking for a page or
  * unpining a page.
  */
 
 #ifndef STORAGE__BUFFER_MANAGER_H_
 #define STORAGE__BUFFER_MANAGER_H_
 
-#include <map>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -25,12 +24,12 @@ class Page;
 
 class BufferManager {
 public:
-    static constexpr int DEFAULT_BUFFER_POOL_SIZE = 1024 * 256;
+    static constexpr uint_fast32_t DEFAULT_BUFFER_POOL_SIZE = 1024 * 256;
 
     ~BufferManager();
 
     // necesary to be called before first usage
-    static void init(int buffer_pool_size);
+    static void init(uint_fast32_t buffer_pool_size);
 
     // Get a page. It will search in the buffer and if it is not on it, it will read from disk and put in the buffer.
     // Also it will pin the page, so calling buffer_manager.unpin(page) is expected when the caller doesn't need
@@ -59,26 +58,25 @@ private:
     BufferManager(uint_fast32_t buffer_pool_size);
 
     // maximum pages the buffer can have
-    uint_fast32_t buffer_pool_size;
+    const uint_fast32_t buffer_pool_size;
 
-    // map used to search the index in the `buffer_pool` of a certain page
-    // std::map<PageId, int> pages;
-    std::unordered_map<PageId, int, PageIdHasher> pages;
+    // used to search the index in the `buffer_pool` of a certain page
+    std::unordered_map<PageId, uint_fast32_t, PageIdHasher> pages;
 
-    // array of `BUFFER_POOL_SIZE` pages
-    Page* buffer_pool;
+    // array of `buffer_pool_size` pages
+    Page* const buffer_pool;
 
     // begining of the allocated memory for the pages
-    char* bytes;
+    char* const bytes;
 
     // simple clock used to page replacement
-    int clock_pos;
+    uint_fast32_t clock_pos;
 
     // to avoid pin/unpin synchronization problems
     std::mutex pin_mutex;
 
     // returns the index of an unpined page from `buffer_pool`
-    int get_buffer_available();
+    uint_fast32_t get_buffer_available();
 };
 
 extern BufferManager& buffer_manager; // global object
