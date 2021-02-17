@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
 
     uint64_t correct = 0;
     uint64_t wrong = 0;
+    uint64_t not_found = 0;
     try {
         while (true) {
             auto c_str = object_file.read(current_id);
@@ -56,10 +57,16 @@ int main(int argc, char **argv) {
 
             auto id_found = strings_hash.get_id(str);
             if (current_id != id_found) {
-                ++wrong;
-                auto diff = current_id - id_found;
-                cerr << "Wrong ID for string \"" << str << "\", real id: " << current_id
-                    << ", found: " << id_found << ", diff: " << diff << "\n";
+                if (id_found == ObjectId::OBJECT_ID_NOT_FOUND) {
+                    ++not_found;
+                     cerr << "string \"" << str << "\", real id: " << current_id
+                        << ", not found\n";
+                } else {
+                    ++wrong;
+                    auto diff = current_id - id_found;
+                    cerr << "Wrong ID for string \"" << str << "\", real id: " << current_id
+                        << ", found: " << id_found << ", diff: " << diff << "\n";
+                }
             } else {
                 ++correct;
             }
@@ -74,5 +81,6 @@ int main(int argc, char **argv) {
         cerr << "Exception: " << e.what() << "\n";
     }
     cout << "Wrong:   " << wrong << "\n";
+    cout << "Not found: " << not_found << "\n";
     cout << "Correct: " << correct << "\n";
 }

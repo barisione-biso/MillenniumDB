@@ -97,12 +97,12 @@ uint64_t QuadModel::get_external_id(const string& str) {
 }
 
 
-uint64_t QuadModel::get_or_create_external_id(const string& str, bool* created) {
+uint64_t QuadModel::get_or_create_external_id(const string& str, bool* const created) {
     return strings_hash().get_or_create_id(str, created);
 }
 
 
-uint64_t QuadModel::get_or_create_identifiable_object_id(const std::string& str, bool* created) {
+uint64_t QuadModel::get_or_create_identifiable_object_id(const std::string& str, bool* const created) {
     if (str.size() < 8) {
         uint64_t res = 0;
         int shift_size = 0;

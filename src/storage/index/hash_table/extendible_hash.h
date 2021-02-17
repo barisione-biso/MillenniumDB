@@ -15,13 +15,13 @@ public:
     ExtendibleHash(ObjectFile& object_file, const std::string& filename);
     ~ExtendibleHash();
 
-    uint64_t get_id(const std::string& str);
-    uint64_t get_or_create_id(const std::string& str, bool* created);
+    uint64_t get_id(const std::string& str) const;
+    uint64_t get_or_create_id(const std::string& str, bool* const created);
 
 private:
     ObjectFile& object_file;
-    FileId dir_file_id;
-    FileId buckets_file_id;
+    const FileId dir_file_id;
+    const FileId buckets_file_id;
 
     uint_fast8_t global_depth;
 

@@ -26,10 +26,10 @@ public:
 
     ObjectId get_identifiable_object_id(const std::string& str);
     uint64_t get_external_id(const std::string& str);
-    uint64_t get_or_create_external_id(const std::string& str, bool* created);
+    uint64_t get_or_create_external_id(const std::string& str, bool* const created);
 
     // Methods used by bulk_import
-    uint64_t get_or_create_identifiable_object_id(const std::string& obj_name, bool* created);
+    uint64_t get_or_create_identifiable_object_id(const std::string& obj_name, bool* const created);
     uint64_t get_or_create_string_id(const std::string& str);
     uint64_t get_or_create_value_id(const GraphObject& value);
 

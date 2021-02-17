@@ -347,10 +347,10 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
     for (auto& property : node.properties) {
         ValueVisitor visitor;
         auto v = property.value;
-        auto value = visitor(v);
+        const auto value = visitor(v);
 
-        auto key_id   = model.get_or_create_string_id(property.key);
-        auto value_id = model.get_or_create_value_id(value);
+        const auto key_id   = model.get_or_create_string_id(property.key);
+        const auto value_id = model.get_or_create_value_id(value);
 
         ++catalog.properties_count;
 
@@ -393,10 +393,10 @@ uint64_t BulkImport::process_edge(const import::ast::Edge edge) {
     for (auto& property : edge.properties) {
         ValueVisitor visitor;
         auto v = property.value;
-        auto value = visitor(v);
+        const auto value = visitor(v);
 
-        auto key_id   = model.get_or_create_string_id(property.key);
-        auto value_id = model.get_or_create_value_id(value);
+        const auto key_id   = model.get_or_create_string_id(property.key);
+        const auto value_id = model.get_or_create_value_id(value);
 
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];
@@ -439,8 +439,8 @@ uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge edge,
         auto v = property.value;
         auto value = visitor(v);
 
-        auto key_id   = model.get_or_create_string_id(property.key);
-        auto value_id = model.get_or_create_value_id(value);
+        const auto key_id   = model.get_or_create_string_id(property.key);
+        const auto value_id = model.get_or_create_value_id(value);
 
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];
