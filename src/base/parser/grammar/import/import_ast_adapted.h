@@ -14,7 +14,7 @@ BOOST_FUSION_ADAPT_STRUCT(import::ast::Edge,
 )
 
 BOOST_FUSION_ADAPT_STRUCT(import::ast::ImplicitEdge,
-    nesting, direction, right_name, labels, properties, dummy
+    nesting, direction, right_name, labels, properties
 )
 
 #endif // BASE__IMPORT_AST_ADAPTED_H_

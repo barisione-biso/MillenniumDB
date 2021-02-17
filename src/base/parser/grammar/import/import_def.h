@@ -26,11 +26,13 @@ namespace import {
         x3::rule<class import_line, ast::ImportLine> import_line = "import_line";
 
         // Grammar
+        auto const end = (eol|eoi);
+
         auto const node_def =
             node_name
             >> *label
             >> *property
-            >> (eol|eoi);
+            >> end;
 
         auto const edge_dir =
         lexeme[
@@ -44,7 +46,7 @@ namespace import {
             >> node_name
             >> *label
             >> *property
-            >> (eol|eoi);
+            >> end;
 
         auto const implicit_edge_def =
             lexeme[+char_('@')]
@@ -52,8 +54,7 @@ namespace import {
             >> node_name
             >> *label
             >> *property
-            >> attr(true)
-            >> (eol|eoi);
+            >> end;
 
         auto import_line_def =
             (node_def | edge_def | implicit_edge_def);

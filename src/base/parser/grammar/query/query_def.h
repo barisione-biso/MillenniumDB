@@ -119,7 +119,6 @@ namespace query {
             no_case["select"] >> ((lit('*') >> attr(std::vector<ast::SelectItem>()) ) | selection);
 
         auto const match_statement =
-            // no_case["match"] >> (linear_pattern % ',');
             no_case["match"] >> graph_pattern;
 
         auto const linear_pattern_list =

@@ -48,7 +48,6 @@ namespace import { namespace ast {
 
 
     struct ImplicitEdge {
-        bool dummy; // unused variable to avoid a weird bug with spirit x3
         EdgeDirection direction;
 
         // nesting_level = 1: left is the implicit node
