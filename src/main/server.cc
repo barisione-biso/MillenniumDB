@@ -177,6 +177,9 @@ int main(int argc, char **argv) {
 
         unique_ptr<GraphModel> model = make_unique<QuadModel>(db_folder, buffer_size);
 
+        cout << "Initializign server...\n";
+        reinterpret_cast<QuadModel*>(model.get())->catalog().print();
+
         boost::asio::io_service io_service;
         boost::asio::deadline_timer t(io_service, boost::posix_time::seconds(5));
 
