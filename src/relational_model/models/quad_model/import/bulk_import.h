@@ -37,6 +37,7 @@ private:
     OrderedFile<2> equal_from_to_type;      // from/to/type,  edge
 
     std::unordered_set<uint64_t> inlined_ids;
+    std::unordered_set<uint64_t> external_ids;
 
     uint64_t process_node(const import::ast::Node node);
     uint64_t process_edge(const import::ast::Edge edge);

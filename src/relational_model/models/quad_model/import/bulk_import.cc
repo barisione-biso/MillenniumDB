@@ -296,22 +296,26 @@ void BulkImport::set_distinct_type_stats(OrderedFile<N>& ordered_file, std::map<
 
 
 uint64_t BulkImport::get_node_id(const string& node_name) {
-    bool created;
-    auto obj_id = model.get_or_create_identifiable_object_id(node_name, &created);
-    if (created) {
-        model.node_table->append_record(RecordFactory::get(obj_id));
-        ++catalog.identifiable_nodes_count;
-    } else {
-        if (node_name.size() < 8) {
-            auto inlined_ids_search = inlined_ids.find(obj_id);
-            if (inlined_ids_search == inlined_ids.end()) {
-                inlined_ids.insert(obj_id);
-                model.node_table->append_record(RecordFactory::get(obj_id));
-                ++catalog.identifiable_nodes_count;
-            }
+    if (node_name.size() < 8) {
+        auto obj_id = model.get_inlined_identifiable_object_id(node_name);
+        auto inlined_ids_search = inlined_ids.find(obj_id);
+        if (inlined_ids_search == inlined_ids.end()) {
+            inlined_ids.insert(obj_id);
+            model.node_table->append_record(RecordFactory::get(obj_id));
+            ++catalog.identifiable_nodes_count;
         }
+        return obj_id;
+    } else {
+        // bool created;
+        auto obj_id = model.get_or_create_external_identifiable_object_id(node_name);
+        auto external_ids_search = external_ids.find(obj_id);
+        if (external_ids_search == external_ids.end()) {
+            external_ids.insert(obj_id);
+            model.node_table->append_record(RecordFactory::get(obj_id));
+            ++catalog.identifiable_nodes_count;
+        }
+        return obj_id;
     }
-    return obj_id;
 }
 
 

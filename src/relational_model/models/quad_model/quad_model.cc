@@ -92,7 +92,7 @@ std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& /*man
 }
 
 
-uint64_t QuadModel::get_external_id(const string& str) {
+uint64_t QuadModel::get_external_id(const string& str) const {
     return strings_hash().get_id(str);
 }
 
@@ -102,22 +102,24 @@ uint64_t QuadModel::get_or_create_external_id(const string& str, bool* const cre
 }
 
 
-uint64_t QuadModel::get_or_create_identifiable_object_id(const std::string& str, bool* const created) {
-    if (str.size() < 8) {
-        uint64_t res = 0;
-        int shift_size = 0;
-        // MUST convert to uint8_t and then to uint64_t.
-        // Shift with shift_size >=32 is undefined behaviour.
-        for (uint8_t byte : str) {
-            uint64_t byte64 = static_cast<uint64_t>(byte);
-            res |= byte64 << shift_size;
-            shift_size += 8;
-        }
-        return res | GraphModel::IDENTIFIABLE_INLINED_MASK;
-    } else {
-        auto external_id = get_or_create_external_id(str, created);
-        return external_id | GraphModel::IDENTIFIABLE_EXTERNAL_MASK;
+uint64_t QuadModel::get_inlined_identifiable_object_id(const std::string& str) const {
+    uint64_t res = 0;
+    int shift_size = 0;
+    // MUST convert to uint8_t and then to uint64_t.
+    // Shift with shift_size >=32 is undefined behaviour.
+    for (uint8_t byte : str) {
+        uint64_t byte64 = static_cast<uint64_t>(byte);
+        res |= byte64 << shift_size;
+        shift_size += 8;
     }
+    return res | GraphModel::IDENTIFIABLE_INLINED_MASK;
+}
+
+
+uint64_t QuadModel::get_or_create_external_identifiable_object_id(const std::string& str) {
+    bool created;
+    const auto external_id = get_or_create_external_id(str, &created);
+    return external_id | GraphModel::IDENTIFIABLE_EXTERNAL_MASK;
 }
 
 
@@ -191,7 +193,7 @@ ObjectId QuadModel::get_string_id(const string& str) {
 }
 
 
-ObjectId QuadModel::get_identifiable_object_id(const string& str) {
+ObjectId QuadModel::get_identifiable_object_id(const string& str) const {
     if (str.size() < 8) {
         uint64_t res = 0;
         int shift_size = 0;

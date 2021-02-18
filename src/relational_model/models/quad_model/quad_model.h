@@ -24,18 +24,28 @@ public:
     GraphObject get_graph_object(ObjectId) override;
     GraphObject get_property_value(GraphObject& var, const ObjectId key) override;
 
-    ObjectId get_identifiable_object_id(const std::string& str);
-    uint64_t get_external_id(const std::string& str);
-    uint64_t get_or_create_external_id(const std::string& str, bool* const created);
+    // Doesn't create an object_id if the string doesn't exists
+    ObjectId get_identifiable_object_id(const std::string& str) const;
+    uint64_t get_external_id(const std::string& str) const;
 
     // Methods used by bulk_import
-    uint64_t get_or_create_identifiable_object_id(const std::string& obj_name, bool* const created);
+    uint64_t get_inlined_identifiable_object_id(const std::string& obj_name) const;
+    uint64_t get_or_create_external_identifiable_object_id(const std::string& obj_name);
+
     uint64_t get_or_create_string_id(const std::string& str);
     uint64_t get_or_create_value_id(const GraphObject& value);
 
-    inline QuadCatalog&    catalog()      noexcept { return reinterpret_cast<QuadCatalog&>(catalog_buf); }
-    inline ObjectFile&     object_file()  noexcept { return reinterpret_cast<ObjectFile&>(object_file_buf); }
-    inline ExtendibleHash& strings_hash() noexcept { return reinterpret_cast<ExtendibleHash&>(strings_cache_buf); }
+    inline QuadCatalog& catalog() const noexcept {
+        return const_cast<QuadCatalog&>(reinterpret_cast<const QuadCatalog&>(catalog_buf));
+    }
+
+    inline ObjectFile& object_file()  const noexcept {
+        return const_cast<ObjectFile&>(reinterpret_cast<const ObjectFile&>(object_file_buf));
+    }
+
+    inline ExtendibleHash& strings_hash() const noexcept {
+        return const_cast<ExtendibleHash&>(reinterpret_cast<const ExtendibleHash&>(strings_cache_buf));
+    }
 
     std::unique_ptr<RandomAccessTable<1>> node_table;
     std::unique_ptr<RandomAccessTable<3>> edge_table;
@@ -64,6 +74,8 @@ private:
     typename std::aligned_storage<sizeof(QuadCatalog), alignof(QuadCatalog)>::type       catalog_buf;
     typename std::aligned_storage<sizeof(ObjectFile), alignof(ObjectFile)>::type         object_file_buf;
     typename std::aligned_storage<sizeof(ExtendibleHash), alignof(ExtendibleHash)>::type strings_cache_buf;
+
+    uint64_t get_or_create_external_id(const std::string& str, bool* const created);
 };
 
 #endif // RELATIONAL_MODEL__QUAD_MODEL_H_
