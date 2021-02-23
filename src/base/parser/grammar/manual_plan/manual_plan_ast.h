@@ -49,7 +49,7 @@ namespace manual_plan { namespace ast {
     using Relation = boost::variant<NodeLabel, ObjectProperty, TypedConnection>;
 
     struct ManualRoot {
-        std::vector<query::ast::SelectItem>                          selection;
+        query::ast::SelectStatement                                  select;
         std::vector<Relation>                                        relations;
         boost::optional<query::ast::Formula>                         where;
         boost::optional<std::vector<query::ast::OrderedSelectItem>>  group_by;

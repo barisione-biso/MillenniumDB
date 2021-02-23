@@ -104,9 +104,14 @@ namespace query { namespace ast {
         std::vector<StepFormula> path;
     };
 
+    struct SelectStatement {
+        bool distinct;
+        std::vector<SelectItem> selection;
+    };
+
     struct Root {
         bool                                             explain;
-        std::vector<SelectItem>                          selection;
+        SelectStatement                                  select;
         GraphPattern                                     graph_pattern;
         boost::optional<Formula>                         where;
         boost::optional<std::vector<OrderedSelectItem>>  group_by;

@@ -6,7 +6,7 @@
 #include "base/parser/grammar/manual_plan/manual_plan_ast.h"
 
 BOOST_FUSION_ADAPT_STRUCT(manual_plan::ast::ManualRoot,
-    selection, relations, where, group_by, order_by, limit
+    select, relations, where, group_by, order_by, limit
 )
 
 BOOST_FUSION_ADAPT_STRUCT(manual_plan::ast::NodeLabel,

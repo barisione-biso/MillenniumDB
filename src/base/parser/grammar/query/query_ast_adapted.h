@@ -6,7 +6,7 @@
 #include "base/parser/grammar/query/query_ast.h"
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Root,
-    explain, selection, graph_pattern, where, group_by, order_by, limit
+    explain, select, graph_pattern, where, group_by, order_by, limit
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::GraphPattern,
@@ -56,5 +56,10 @@ BOOST_FUSION_ADAPT_STRUCT(query::ast::Formula,
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Condition,
     negation, content
 )
+
+BOOST_FUSION_ADAPT_STRUCT(query::ast::SelectStatement,
+    distinct, selection
+)
+
 
 #endif // BASE__QUERY_AST_ADAPTED_H_

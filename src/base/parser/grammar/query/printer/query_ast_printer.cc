@@ -49,8 +49,12 @@ void QueryAstPrinter::operator()(Root const& r) const {
     auto printer = QueryAstPrinter(out, base_indent+1);
     auto printer2 = QueryAstPrinter(out, base_indent+2);
 
-    printer.indent("\"SELECT\": [\n");
-    printer2(r.selection);
+    if (r.select.distinct) {
+        printer.indent("\"SELECT DISTINCT\": [\n");
+    } else {
+        printer.indent("\"SELECT\": [\n");
+    }
+    printer2(r.select.selection);
     printer.indent("],\n");
 
     printer.indent("\"MATCH\": [\n");

@@ -18,10 +18,13 @@ namespace query {
         // Declare rules
         x3::rule<class root, ast::Root>
             root = "root";
+
         x3::rule<class select_item, ast::SelectItem>
             select_item = "select_item";
-        x3::rule<class selection, std::vector<ast::SelectItem>>
-            selection = "selection";
+        x3::rule<class select_items, std::vector<ast::SelectItem>>
+            select_items = "select_items";
+        x3::rule<class select_statement, ast::SelectStatement>
+            select_statement = "select_statement";
 
         x3::rule<class graph_pattern, ast::GraphPattern>
             graph_pattern = "graph_pattern";
@@ -29,8 +32,6 @@ namespace query {
             optional_pattern = "optional_pattern";
         x3::rule<class linear_pattern, ast::LinearPattern>
             linear_pattern = "linear_pattern";
-        // x3::rule<class linear_pattern_list, std::vector<ast::LinearPattern>>
-        //     linear_pattern_list = "linear_pattern_list";
 
         x3::rule<class node, ast::Node>
             node = "node";
@@ -38,6 +39,7 @@ namespace query {
             edge = "edge";
         x3::rule<class property_path, ast::PropertyPath>
             property_path = "property_path";
+
         x3::rule<class condition, ast::Condition>
             condition = "condition";
         x3::rule<class statement, ast::Statement>
@@ -46,6 +48,7 @@ namespace query {
             formula = "formula";
         x3::rule<class step_formula, ast::StepFormula>
             step_formula = "step_formula";
+
         x3::rule<class order, ast::Order>
             order = "order";
         x3::rule<class ordered_select_item, ast::OrderedSelectItem>
@@ -105,18 +108,23 @@ namespace query {
         auto const formula_def =
             condition >> *step_formula;
 
-        auto const select_item_def =
-            var >> -("." >> key);
-
-        auto const selection_def =
-            select_item % ',';
-
         auto explain_statement =
             no_case["explain"] >> attr(true) |
             attr(false);
 
-        auto const select_statement =
-            no_case["select"] >> ((lit('*') >> attr(std::vector<ast::SelectItem>()) ) | selection);
+        auto distinct_statement =
+            no_case["distinct"] >> attr(true) |
+            attr(false);
+
+        auto const select_item_def =
+            var >> -("." >> key);
+
+        auto const select_items_def =
+            ( lit('*') >> attr(std::vector<ast::SelectItem>()) ) |
+            select_item % ',';
+
+        auto const select_statement_def =
+            no_case["select"] >> distinct_statement >> select_items;
 
         auto const match_statement =
             no_case["match"] >> graph_pattern;
@@ -164,8 +172,10 @@ namespace query {
 
         BOOST_SPIRIT_DEFINE(
             root,
-            selection,
             select_item,
+            select_items,
+            // selection,
+            select_statement,
             node,
             edge,
             property_path,

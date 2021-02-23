@@ -49,7 +49,7 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
         op = make_unique<OpOrderBy>(move(op), ast.order_by.get());
     }
 
-    return make_unique<OpSelect>(move(op), ast.selection, limit);
+    return make_unique<OpSelect>(move(op), ast.select.selection, limit);
 }
 
 
