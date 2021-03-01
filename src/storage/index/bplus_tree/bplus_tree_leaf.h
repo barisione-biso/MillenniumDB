@@ -38,7 +38,7 @@ class BPlusTreeLeaf {
         void create_new(const Record<N>& record);
 
         uint32_t get_value_count() const { return *value_count; }
-        int has_next()             const { return next_leaf != 0; }
+        bool has_next()            const { return *next_leaf != 0; }
 
         bool check() const;
         void print() const;
