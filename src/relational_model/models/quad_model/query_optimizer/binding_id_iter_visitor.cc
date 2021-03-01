@@ -155,6 +155,10 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     }
 
     unique_ptr<JoinPlan> root_plan = nullptr;
+    if (base_plans.size() == 0) {
+        throw QuerySemanticException("Empty plan");
+    }
+
     if (base_plans.size() <= MAX_SELINGER_PLANS) {
         SelingerOptimizer selinger_optimizer(move(base_plans), var_names, input_vars);
         root_plan = selinger_optimizer.get_plan();

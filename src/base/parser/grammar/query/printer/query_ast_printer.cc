@@ -286,9 +286,67 @@ void QueryAstPrinter::operator() (PropertyPath const& property_path) const {
     } else {
         out << "\"LEFT\",\n";
     }
-    indent("\"TYPE\": ", 1);
-    out << "\"" << property_path.type << "\"\n";
+    indent("\"PATH\": \"", 1);
+    (*this)(property_path.path_alternatives);
+    out << "\"\n";
     indent("}");
+}
+
+
+void QueryAstPrinter::operator() (PropertyPathAlternatives const& path) const {
+    if (path.alternatives.size() > 1)
+        out << "(";
+    (*this)(path.alternatives[0]);
+    for (unsigned i = 1; i < path.alternatives.size(); i++) {
+        out << " | ";
+        (*this)(path.alternatives[i]);
+    }
+    if (path.alternatives.size() > 1)
+        out << ")";
+}
+
+
+void QueryAstPrinter::operator() (PropertyPathSequence const& path) const {
+    if (path.atoms.size() > 1)
+        out << "(";
+    (*this)(path.atoms[0]);
+    for (unsigned i = 1; i < path.atoms.size(); i++) {
+        out << " / ";
+        (*this)(path.atoms[i]);
+    }
+    if (path.atoms.size() > 1)
+        out << ")";
+}
+
+
+void QueryAstPrinter::operator() (PropertyPathAtom const& atom) const {
+    if (atom.inverse) {
+        out << "^";
+    }
+    boost::apply_visitor(*this, atom.atom);
+    boost::apply_visitor(*this, atom.suffix);
+}
+
+
+void QueryAstPrinter::operator() (PropertyPathSuffix const& suffix) const {
+    switch (suffix) {
+    case PropertyPathSuffix::ONE_OR_MORE :
+        out << "+";
+        break;
+    case PropertyPathSuffix::ZERO_OR_ONE :
+        out << "?";
+        break;
+    case PropertyPathSuffix::ZERO_OR_MORE :
+        out << "*";
+        break;
+    case PropertyPathSuffix::NONE :
+        break;
+    }
+}
+
+
+void QueryAstPrinter::operator() (query::ast::PropertyPathBoundSuffix const& suffix) const{
+    out << "{" << suffix.min << ", " << suffix.max << "}";
 }
 
 
