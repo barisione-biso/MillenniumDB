@@ -103,7 +103,6 @@ QuadCatalog::QuadCatalog(const std::string& filename) :
 
 
 void QuadCatalog::save_changes() {
-    print();
     start_io();
 
     write_uint64(identifiable_nodes_count);

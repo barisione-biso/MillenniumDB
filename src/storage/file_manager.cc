@@ -38,6 +38,7 @@ void FileManager::init(const std::string& db_folder) {
 
 
 uint_fast32_t FileManager::count_pages(const FileId file_id) const {
+    // TODO: need mutex?
     return filesystem::file_size(file_paths[file_id.id])/Page::PAGE_SIZE;
 }
 
@@ -54,11 +55,12 @@ void FileManager::read_page(const PageId page_id, char* bytes) const {
     file.seekg(0, file.end);
     uint_fast32_t file_pos = file.tellg();
     if (file_pos/Page::PAGE_SIZE <= page_id.page_number) {
-        // new file block
+        // new file page
+        // TODO: need mutex?
         memset(bytes, 0, Page::PAGE_SIZE);
         file.write(bytes, Page::PAGE_SIZE);
     } else {
-        // reading existing file block
+        // reading existing file page
         file.seekg(page_id.page_number*Page::PAGE_SIZE);
         file.read(bytes, Page::PAGE_SIZE);
     }
