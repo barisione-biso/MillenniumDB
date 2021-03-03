@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <cstring>
-#include <filesystem>
+#include <experimental/filesystem>
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
 
@@ -21,13 +21,13 @@ FileManager& file_manager = reinterpret_cast<FileManager&>(file_manager_buf);
 FileManager::FileManager(const std::string& db_folder) :
     db_folder(db_folder)
 {
-    if (filesystem::exists(db_folder)) {
-        if (!filesystem::is_directory(db_folder)) {
+    if (experimental::filesystem::exists(db_folder)) {
+        if (!experimental::filesystem::is_directory(db_folder)) {
             throw std::runtime_error("Cannot create database directory: \"" + db_folder +
                                      "\", a file with that name already exists.");
         }
     } else {
-        filesystem::create_directories(db_folder);
+        experimental::filesystem::create_directories(db_folder);
     }
 }
 
@@ -39,7 +39,7 @@ void FileManager::init(const std::string& db_folder) {
 
 uint_fast32_t FileManager::count_pages(const FileId file_id) const {
     // TODO: need mutex?
-    return filesystem::file_size(file_paths[file_id.id])/Page::PAGE_SIZE;
+    return experimental::filesystem::file_size(file_paths[file_id.id])/Page::PAGE_SIZE;
 }
 
 
@@ -95,7 +95,7 @@ FileId FileManager::get_file_id(const string& filename) {
         file_paths[res.id] = file_path;
         filename2file_id.insert({ filename, res });
         auto file = make_unique<fstream>();
-        if (!filesystem::exists(file_path)) {
+        if (!experimental::filesystem::exists(file_path)) {
             // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
             // so we close it and open it again without append mode
             file->open(file_path, ios::out|ios::app);
@@ -116,7 +116,7 @@ FileId FileManager::get_file_id(const string& filename) {
         file_paths.push_back(file_path);
         filename2file_id.insert({ filename, res });
         auto file = make_unique<fstream>();
-        if (!filesystem::exists(file_path)) {
+        if (!experimental::filesystem::exists(file_path)) {
             // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
             // so we close it and open it again without append mode
             file->open(file_path, ios::out|ios::app);
