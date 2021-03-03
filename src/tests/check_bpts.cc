@@ -1,4 +1,4 @@
-#include <filesystem>
+#include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     po::notify(vm);
 
     { // check if db_folder is empty or does not exists
-        namespace fs = std::filesystem;
+        namespace fs = std::experimental::filesystem;
         if (!fs::exists(db_folder) ) {
             cerr << "Database folder doesn't exists.\n";
             return 1;
