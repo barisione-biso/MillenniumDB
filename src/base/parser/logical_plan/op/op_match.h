@@ -60,17 +60,18 @@ public:
                         );
                     }
                 } else {
-                    // PROPERTY PATH
-                    auto property_path = boost::get<query::ast::PropertyPath>(linear_pattern_step.path);
-                    if (property_path.direction == query::ast::EdgeDirection::right) {
-                        property_paths.insert(
-                            OpTransitiveClosure(last_object_name, current_node_name, property_path.type)
-                        );
-                    } else {
-                        property_paths.insert(
-                            OpTransitiveClosure(current_node_name, last_object_name, property_path.type)
-                        );
-                    }
+                    // PROPERTY PATHS
+                    // TODO: REMAKE PROPERTY PATHS
+                    // auto property_path = boost::get<query::ast::PropertyPath>(linear_pattern_step.path);
+                    // if (property_path.direction == query::ast::EdgeDirection::right) {
+                    //     property_paths.insert(
+                    //         OpTransitiveClosure(last_object_name, current_node_name, property_path.type)
+                    //     );
+                    // } else {
+                    //     property_paths.insert(
+                    //         OpTransitiveClosure(current_node_name, last_object_name, property_path.type)
+                    //     );
+                    // }
                 }
                 last_object_name = std::move(current_node_name);
             }

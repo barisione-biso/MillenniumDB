@@ -1,6 +1,7 @@
 /*
- * FileManager mantains a list (`opened_files`) with all files that were opened (even if the file is closed),
- * and another list (`filenames`) with the string of the file paths. Both list must have the same size
+ * FileManager mantains a list (`opened_files`) with all files that are opened,
+ * and another list (`file_paths`) with the string of the file paths.
+ * The FileId its just the index, so both lists must have the same size
  * and objects at the same index are related to each other.
  *
  * All the other clases that need to work with files should use the FileManager to obtain a reference to a
@@ -11,8 +12,7 @@
  * to call it.
  *
  * The instance `file_manager` cannot be destroyed before the BufferManager flushes its dirty pages on exit
- * because BufferManager needs to access the file paths from FileManager. Nifty counter trick should handle this
- * automagically.
+ * because BufferManager needs to access the file paths from FileManager.
  */
 
 #ifndef STORAGE__FILE_MANAGER_H_
@@ -42,7 +42,7 @@ public:
     FileId get_file_id(const std::string& filename);
 
     // get the file stream assignated to `file_id` as a reference. Only use this when not accessing via BufferManager
-    std::fstream& get_file(const FileId file_path) const;
+    std::fstream& get_file(const FileId file_id) const;
 
     // count how many pages a file have
     uint_fast32_t count_pages(const FileId file_id) const;
@@ -54,7 +54,7 @@ private:
     // folder where all the used files will be
     const std::string db_folder;
 
-    // contains all file streams that have been opened, including closed ones
+    // contains all file streams that have been opened, except for these that were removed
     std::vector< std::unique_ptr<std::fstream> > opened_files;
 
     std::queue<FileId> available_file_ids;

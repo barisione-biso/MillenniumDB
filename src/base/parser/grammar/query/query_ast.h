@@ -15,15 +15,75 @@ namespace query { namespace ast {
     namespace x3 = boost::spirit::x3;
     using namespace common::ast;
 
+    enum class BinaryOp {
+        And,
+        Or
+    };
+
+    enum class Order {
+        Ascending,
+        Descending
+    };
+
     struct SelectItem {
         std::string var;
         boost::optional<std::string> key;
     };
 
-    // TODO: for now only accepting kleene star, e.g. `:P123*`
+    struct OrderedSelectItem {
+        SelectItem item;
+        Order order;
+    };
+
+    enum class Comparator {
+        EQ, // ==
+        NE, // !=
+        GT, // >
+        LT, // <
+        GE, // >=
+        LE, // <=
+    };
+
+    enum class PropertyPathSuffix {
+        NONE,
+        ZERO_OR_MORE, // *
+        ONE_OR_MORE,  // +
+        ZERO_OR_ONE   // ?
+    };
+
+    struct PropertyPathBoundSuffix {
+        uint_fast32_t min;
+        uint_fast32_t max;
+    };
+
+    struct PropertyPathAtom; // TODO: change name?
+
+    // using PropertyPathSequence     = std::vector<PropertyPathAtom>;
+    // using PropertyPathAlternatives = std::vector<PropertyPathSequence>;
+    struct PropertyPathSequence {
+        std::vector<PropertyPathAtom> atoms;
+    };
+
+    struct PropertyPathAlternatives {
+        std::vector<PropertyPathSequence> alternatives;
+    };
+
+    struct PropertyPathAtom {
+        bool inverse;
+        boost::variant<PropertyPathSuffix, PropertyPathBoundSuffix> suffix;
+
+        boost::variant<
+            std::string,
+            boost::recursive_wrapper<PropertyPathAlternatives>
+        > atom;
+
+        PropertyPathAtom() :
+            inverse(false) { }
+    };
+
     struct PropertyPath {
-        std::string type;
         EdgeDirection direction;
+        PropertyPathAlternatives path_alternatives;
     };
 
     struct Edge {
@@ -52,30 +112,6 @@ namespace query { namespace ast {
     struct GraphPattern {
         std::vector<LinearPattern> pattern;
         std::vector<boost::recursive_wrapper<GraphPattern>> optionals;
-    };
-
-    enum class BinaryOp {
-        And,
-        Or
-    };
-
-    enum class Order {
-        Ascending,
-        Descending
-    };
-
-    struct OrderedSelectItem {
-        SelectItem item;
-        Order order;
-    };
-
-    enum class Comparator {
-        EQ, // ==
-        NE, // !=
-        GT, // >
-        LT, // <
-        GE, // >=
-        LE, // <=
     };
 
     struct Statement {

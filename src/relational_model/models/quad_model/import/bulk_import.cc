@@ -3,6 +3,7 @@
 #include <chrono>
 #include <iostream>
 #include <map>
+#include <thread>
 #include <boost/spirit/include/support_istream_iterator.hpp>
 
 #include "base/parser/grammar/common/value_visitor.h"
@@ -108,65 +109,33 @@ void BulkImport::start_import() {
 
     std::cout << "Creating indexes...\n";
 
-    // NODE - LABEL
-    node_labels.order(std::array<uint_fast8_t, 2> { 0, 1 });
-    model.node_label->bulk_import(node_labels);
+    std::vector<thread> threads;
 
-    // LABEL - NODE
-    node_labels.order(std::array<uint_fast8_t, 2> { 1, 0 });
-    model.label_node->bulk_import(node_labels);
+    // // We can paralelize the indexing if they use different OrderedFiles
+    // threads.push_back( thread(&BulkImport::index_labels, this) );
+    // threads.push_back( thread(&BulkImport::index_properties, this) );
+    // threads.push_back( thread(&BulkImport::index_connections, this) );
+    // threads.push_back( thread(&BulkImport::index_special_cases, this) );
 
-    // OBJECT - KEY - VALUE
-    object_key_value.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
-    model.object_key_value->bulk_import(object_key_value);
+    // for (auto& thread : threads) {
+    //     thread.join();
+    // }
+    index_labels();
+    index_properties();
+    index_connections();
+    index_special_cases();
 
-    // KEY - VALUE - OBJECT
-    object_key_value.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });
-    model.key_value_object->bulk_import(object_key_value);
+    catalog.save_changes();
 
-    { // count total properties and distinct values
-        map<uint64_t, uint64_t> map_key_count;
-        map<uint64_t, uint64_t> map_distinct_values;
-        uint64_t current_key     = 0;
-        uint64_t current_value   = 0;
-        uint64_t key_count       = 0;
-        uint64_t distinct_values = 0;
+    auto finish_creating_index = chrono::system_clock::now();
+    chrono::duration<float, milli> phase2_duration = finish_creating_index - finish_reading_files;
+    std::cout << "  done in " << phase2_duration.count() << " ms\n\n";
 
-        object_key_value.begin_read();
-        auto record = object_key_value.next_record();
-        while (record != nullptr) {
-            // check same key
-            if (record->ids[0] == current_key) {
-                ++key_count;
-                // check if value changed
-                if (record->ids[1] != current_value) {
-                    ++distinct_values;
-                    current_value = record->ids[1];
-                }
-            } else {
-                // save stats from last key
-                if (current_key != 0) {
-                    map_key_count.insert({ current_key, key_count });
-                    map_distinct_values.insert({ current_key, distinct_values });
-                }
-                current_key   = record->ids[0];
-                current_value = record->ids[1];
+    catalog.print();
+}
 
-                key_count       = 1;
-                distinct_values = 1;
-            }
-            record = object_key_value.next_record();
-        }
-        // save stats from last key
-        if (current_key != 0) {
-            map_key_count.insert({ current_key, key_count });
-            map_distinct_values.insert({ current_key, distinct_values });
-        }
 
-        catalog.key2distinct    = move(map_distinct_values);
-        catalog.key2total_count = move(map_key_count);
-    }
-
+void BulkImport::index_connections() {
     // CONNECTIONS
     from_to_type_edge.order(std::array<uint_fast8_t, 4> { 0, 1, 2, 3 });
     model.from_to_type_edge->bulk_import(from_to_type_edge);
@@ -191,30 +160,30 @@ void BulkImport::start_import() {
     from_to_type_edge.order(std::array<uint_fast8_t, 4> { 2, 0, 1, 3 });
     model.to_type_from_edge->bulk_import(from_to_type_edge);
 
-    // set catalog.distinct_to
-    {
-        uint64_t distinct_to = 0;
-        uint64_t current_to  = 0;
+    //set catalog.distinct_to
+    uint64_t distinct_to = 0;
+    uint64_t current_to  = 0;
 
-        from_to_type_edge.begin_read();
-        auto record = from_to_type_edge.next_record();
-        while (record != nullptr) {
-            if (record->ids[0] != current_to) {
-                ++distinct_to;
-                current_to = record->ids[0];
-            }
-            record = from_to_type_edge.next_record();
+    from_to_type_edge.begin_read();
+    auto record = from_to_type_edge.next_record();
+    while (record != nullptr) {
+        if (record->ids[0] != current_to) {
+            ++distinct_to;
+            current_to = record->ids[0];
         }
-        catalog.distinct_to = distinct_to;
+        record = from_to_type_edge.next_record();
     }
-
+    catalog.distinct_to = distinct_to;
 
     from_to_type_edge.order(std::array<uint_fast8_t, 4> { 2, 0, 1, 3 });
     model.type_from_to_edge->bulk_import(from_to_type_edge);
 
-    // SPECIAL CASES
+    catalog.distinct_type   = catalog.type2total_count.size();
+}
 
-    // Equal from to
+
+void BulkImport::index_special_cases() {
+    // FROM=TO
     equal_from_to.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
     model.equal_from_to->bulk_import(equal_from_to);
 
@@ -224,7 +193,7 @@ void BulkImport::start_import() {
     // calling this after inverted, so type is at pos 0
     set_distinct_type_stats(equal_from_to, catalog.type2equal_from_to_count);
 
-    // Equal from type
+    // FROM=TYPE
     equal_from_type.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
     model.equal_from_type->bulk_import(equal_from_type);
 
@@ -234,7 +203,7 @@ void BulkImport::start_import() {
     equal_from_type.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
     model.equal_from_type_inverted->bulk_import(equal_from_type);
 
-    // Equal to type
+    // TO=TYPE
     equal_to_type.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
     model.equal_to_type->bulk_import(equal_to_type);
 
@@ -244,27 +213,80 @@ void BulkImport::start_import() {
     equal_to_type.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
     model.equal_to_type_inverted->bulk_import(equal_to_type);
 
-    // Equal from to type
+    // FROM=TO=TYPE
     equal_from_to_type.order(std::array<uint_fast8_t, 2> { 0, 1 });
     model.equal_from_to_type->bulk_import(equal_from_to_type);
 
     set_distinct_type_stats(equal_from_to_type, catalog.type2equal_from_to_type_count);
 
-    catalog.distinct_labels = catalog.label2total_count.size();
-    catalog.distinct_keys   = catalog.key2total_count.size();
-    catalog.distinct_type   = catalog.type2total_count.size();
-
-    auto finish_creating_index = chrono::system_clock::now();
-    chrono::duration<float, milli> phase2_duration = finish_creating_index - finish_reading_files;
-    std::cout << "  done in " << phase2_duration.count() << " ms\n\n";
-
-    // if (catalog.identifiable_defined_count != catalog.identifiable_nodes_count) {
-    //     std::cout << "WARNING: defined identifiable nodes(" << catalog.identifiable_defined_count
-    //     << ") and used identifiable nodes (" << catalog.identifiable_nodes_count << ") are different.\n";
-    // }
-    catalog.save_changes();
 }
 
+void BulkImport::index_labels() {
+    // NODE - LABEL
+    node_labels.order(std::array<uint_fast8_t, 2> { 0, 1 });
+    model.node_label->bulk_import(node_labels);
+
+    // LABEL - NODE
+    node_labels.order(std::array<uint_fast8_t, 2> { 1, 0 });
+    model.label_node->bulk_import(node_labels);
+
+    catalog.distinct_labels = catalog.label2total_count.size();
+}
+
+
+void BulkImport::index_properties() {
+    // OBJECT - KEY - VALUE
+    object_key_value.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
+    model.object_key_value->bulk_import(object_key_value);
+
+    // KEY - VALUE - OBJECT
+    object_key_value.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });
+    model.key_value_object->bulk_import(object_key_value);
+
+    // count total properties and distinct values
+    map<uint64_t, uint64_t> map_key_count;
+    map<uint64_t, uint64_t> map_distinct_values;
+    uint64_t current_key     = 0;
+    uint64_t current_value   = 0;
+    uint64_t key_count       = 0;
+    uint64_t distinct_values = 0;
+
+    object_key_value.begin_read();
+    auto record = object_key_value.next_record();
+    while (record != nullptr) {
+        // check same key
+        if (record->ids[0] == current_key) {
+            ++key_count;
+            // check if value changed
+            if (record->ids[1] != current_value) {
+                ++distinct_values;
+                current_value = record->ids[1];
+            }
+        } else {
+            // save stats from last key
+            if (current_key != 0) {
+                map_key_count.insert({ current_key, key_count });
+                map_distinct_values.insert({ current_key, distinct_values });
+            }
+            current_key   = record->ids[0];
+            current_value = record->ids[1];
+
+            key_count       = 1;
+            distinct_values = 1;
+        }
+        record = object_key_value.next_record();
+    }
+    // save stats from last key
+    if (current_key != 0) {
+        map_key_count.insert({ current_key, key_count });
+        map_distinct_values.insert({ current_key, distinct_values });
+    }
+
+    catalog.key2distinct    = move(map_distinct_values);
+    catalog.key2total_count = move(map_key_count);
+    catalog.distinct_keys   = catalog.key2total_count.size();
+
+}
 
 template <std::size_t N>
 void BulkImport::set_distinct_type_stats(OrderedFile<N>& ordered_file, std::map<uint64_t, uint64_t>& map) {

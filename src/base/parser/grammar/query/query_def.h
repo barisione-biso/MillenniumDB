@@ -37,9 +37,20 @@ namespace query {
             node = "node";
         x3::rule<class edge, ast::Edge>
             edge = "edge";
+
+        // PROPERTY PATHS
         x3::rule<class property_path, ast::PropertyPath>
             property_path = "property_path";
+        x3::rule<class property_path_atom, ast::PropertyPathAtom>
+            property_path_atom = "property_path_atom";
+        x3::rule<class property_path_alternatives, ast::PropertyPathAlternatives>
+            property_path_alternatives = "property_path_alternatives";
+        x3::rule<class property_path_sequence, ast::PropertyPathSequence>
+            property_path_sequence = "property_path_sequence";
+        x3::rule<class property_path_bound_suffix, ast::PropertyPathBoundSuffix>
+            property_path_bound_suffix = "property_path_bound_suffix";
 
+        // WHERE CONDITIONS
         x3::rule<class condition, ast::Condition>
             condition = "condition";
         x3::rule<class statement, ast::Statement>
@@ -85,9 +96,30 @@ namespace query {
             (-("-[" >> edge_inside >> ']') >> "->" >> attr(ast::EdgeDirection::right)) |
             ("<-" >> -('[' >> edge_inside >> "]-") >> attr(ast::EdgeDirection::left));
 
+        auto const property_path_alternatives_def =
+            property_path_sequence % "|";
+
+        auto const property_path_sequence_def =
+            property_path_atom % "/";
+
         auto const property_path_def =
-            "=["  >> label >> "*]=>" >> attr(ast::EdgeDirection::right) |
-            "<=[" >> label >> "*]="  >> attr(ast::EdgeDirection::left);
+            "=["  >> property_path_alternatives >> "]=>" >> attr(ast::EdgeDirection::right) |
+            "<=[" >> property_path_alternatives >> "]="  >> attr(ast::EdgeDirection::left);
+
+        auto const property_path_bound_suffix_def =
+            "{" >> uint32 >> "," >> uint32 >> "}";
+
+        auto const property_path_suffix =
+            property_path_bound_suffix                              |
+            lit("*") >> attr(ast::PropertyPathSuffix::ZERO_OR_MORE) |
+            lit('+') >> attr(ast::PropertyPathSuffix::ONE_OR_MORE)  |
+            lit('?') >> attr(ast::PropertyPathSuffix::ZERO_OR_ONE)  |
+            attr(ast::PropertyPathSuffix::NONE) ;
+
+        auto const property_path_atom_def =
+            ( ("^" >> attr(true)) | attr(false) )
+            >> ( label | ('(' >> property_path_alternatives >> ')') )
+            >> property_path_suffix;
 
         auto const linear_pattern_def =
             node >> *((edge | property_path) >> node);
@@ -178,7 +210,13 @@ namespace query {
             select_statement,
             node,
             edge,
+
             property_path,
+            property_path_atom,
+            property_path_alternatives,
+            property_path_sequence,
+            property_path_bound_suffix,
+            // property_path_atoms,
 
             graph_pattern,
             optional_pattern,

@@ -56,6 +56,10 @@ private:
 
     // void set_property_stats(std::map<uint64_t, std::pair<uint64_t, uint64_t>>& m,
     //                         OrderedFile<3>& ordered_properties);
+    void index_labels();
+    void index_properties();
+    void index_connections();
+    void index_special_cases();
 };
 
 #endif // RELATIONAL_MODEL__QUAD_BULK_IMPORT_H_

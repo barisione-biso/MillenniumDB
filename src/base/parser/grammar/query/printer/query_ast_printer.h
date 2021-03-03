@@ -31,6 +31,11 @@ public:
     void operator() (query::ast::Node const&) const;
     void operator() (query::ast::Edge const&) const;
     void operator() (query::ast::PropertyPath const&) const;
+    void operator() (query::ast::PropertyPathAlternatives const&) const;
+    void operator() (query::ast::PropertyPathSequence const&) const;
+    void operator() (query::ast::PropertyPathAtom const&) const;
+    void operator() (query::ast::PropertyPathSuffix const&) const;
+    void operator() (query::ast::PropertyPathBoundSuffix const&) const;
     void operator() (query::ast::LinearPatternStep const&) const;
     void operator() (boost::optional<query::ast::Formula> const&) const;
     void operator() (query::ast::Condition const&) const;
