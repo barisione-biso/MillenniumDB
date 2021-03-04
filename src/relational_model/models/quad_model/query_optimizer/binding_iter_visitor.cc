@@ -54,7 +54,7 @@ std::unique_ptr<BindingIter> BindingIterVisitor::exec(OpSelect& op_select) {
 
 std::unique_ptr<BindingIter> BindingIterVisitor::exec(manual_plan::ast::ManualRoot&) {
     // TODO:
-    return NULL;
+    return nullptr;
 }
 
 
@@ -90,7 +90,7 @@ void BindingIterVisitor::visit(OpFilter& op_filter) {
     auto match_binding_size = var_name2var_id.size();
 
     Formula2ConditionVisitor visitor(model, var_name2var_id);
-    auto condition = visitor(op_filter.formula);
+    auto condition = visitor(op_filter.formula_disjunction);
     auto new_property_var_id = move(visitor.property_map);
 
     tmp = make_unique<Where>(

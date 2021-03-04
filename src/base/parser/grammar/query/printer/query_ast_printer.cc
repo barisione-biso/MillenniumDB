@@ -61,9 +61,11 @@ void QueryAstPrinter::operator()(Root const& r) const {
     printer2(r.graph_pattern);
     printer.indent("],\n");
 
-    printer.indent();
-    printer(r.where);
-    out << ",\n";
+    if (r.where) {
+        printer.indent("\"WHERE\": ");
+        printer(r.where.get());
+        out << ",\n";
+    }
 
     if (r.group_by) {
         printer.indent("\"GROUP BY\": ");
@@ -345,40 +347,8 @@ void QueryAstPrinter::operator() (PropertyPathSuffix const& suffix) const {
 }
 
 
-void QueryAstPrinter::operator() (query::ast::PropertyPathBoundSuffix const& suffix) const{
+void QueryAstPrinter::operator() (PropertyPathBoundSuffix const& suffix) const{
     out << "{" << suffix.min << ", " << suffix.max << "}";
-}
-
-
-void QueryAstPrinter::operator()(boost::optional<Formula> const& where) const {
-    out << "\"FORMULA\": {\n";
-    if (where) {
-        Formula formula = static_cast<Formula>(where.get());
-        auto printer = QueryAstPrinter(out, base_indent+1);
-        printer.indent();
-        printer(formula.root);
-        for (const auto& step_formula : formula.path) {
-            out << ",\n";
-            printer.indent();
-            printer(step_formula);
-        }
-        out << "\n";
-    }
-    indent("}");
-}
-
-
-void QueryAstPrinter::operator()(Condition const& condition) const {
-    if (condition.negation) {
-        out << "\"NOT CONDITION\": {\n";
-    } else {
-        out << "\"CONDITION\": {\n";
-    }
-    auto printer = QueryAstPrinter(out, base_indent+1);
-    printer.indent();
-    boost::apply_visitor(printer, condition.content);
-    out << "\n";
-    indent("}");
 }
 
 
@@ -394,12 +364,41 @@ void QueryAstPrinter::operator()(Statement const& statement) const {
 }
 
 
-void QueryAstPrinter::operator()(StepFormula const& step_formula) const {
-    out << "\"CONNECTOR\": ";
-    (*this)(step_formula.op);
-    out << ",\n";
-    indent();
-    (*this)(step_formula.condition);
+void QueryAstPrinter::operator()(FormulaDisjunction const& f) const {
+    if (f.formula_conjunctions.size() == 1) {
+        (*this)(f.formula_conjunctions[0]);
+    } else {
+        out << "(";
+        (*this)(f.formula_conjunctions[0]);
+        for (unsigned i = 1; i < f.formula_conjunctions.size(); i++) {
+            out << " OR ";
+            (*this)(f.formula_conjunctions[i]);
+        }
+        out << ")";
+    }
+}
+
+
+void QueryAstPrinter::operator()(FormulaConjunction const& f) const {
+    if (f.formulas.size() == 1) {
+        (*this)(f.formulas[0]);
+    } else {
+        out << "(";
+        (*this)(f.formulas[0]);
+        for (unsigned i = 1; i < f.formulas.size(); i++) {
+            out << " AND ";
+            (*this)(f.formulas[i]);
+        }
+        out << ")";
+    }
+}
+
+
+void QueryAstPrinter::operator()(AtomicFormula const& f) const {
+    if (f.negation) {
+        out << "NOT ";
+    }
+    boost::apply_visitor(*this, f.content);
 }
 
 
@@ -431,18 +430,6 @@ void QueryAstPrinter::operator() (Comparator const& c) const {
             break;
         case Comparator::LE :
             out << "\"<=\"";
-            break;
-    };
-}
-
-
-void QueryAstPrinter::operator() (BinaryOp const& b) const {
-    switch(b) {
-        case BinaryOp::And :
-            out << "AND";
-            break;
-        case BinaryOp::Or :
-            out << "OR";
             break;
     };
 }

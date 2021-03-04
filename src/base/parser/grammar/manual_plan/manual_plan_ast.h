@@ -51,7 +51,7 @@ namespace manual_plan { namespace ast {
     struct ManualRoot {
         query::ast::SelectStatement                                  select;
         std::vector<Relation>                                        relations;
-        boost::optional<query::ast::Formula>                         where;
+        boost::optional<query::ast::FormulaDisjunction>              where;
         boost::optional<std::vector<query::ast::OrderedSelectItem>>  group_by;
         boost::optional<std::vector<query::ast::OrderedSelectItem>>  order_by;
         boost::optional<uint_fast32_t>                               limit;

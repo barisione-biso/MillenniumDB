@@ -37,10 +37,10 @@ public:
     void operator() (query::ast::PropertyPathSuffix const&) const;
     void operator() (query::ast::PropertyPathBoundSuffix const&) const;
     void operator() (query::ast::LinearPatternStep const&) const;
-    void operator() (boost::optional<query::ast::Formula> const&) const;
-    void operator() (query::ast::Condition const&) const;
     void operator() (query::ast::Statement const&) const;
-    void operator() (query::ast::StepFormula const&) const;
+    void operator() (query::ast::FormulaDisjunction const&) const;
+    void operator() (query::ast::FormulaConjunction const&) const;
+    void operator() (query::ast::AtomicFormula const&) const;
     void operator() (query::ast::Value const&) const;
     void operator() (query::ast::SelectItem const&) const;
 
@@ -49,7 +49,6 @@ public:
     void operator() (bool            const&) const;
     void operator() (std::string     const&) const;
 
-    void operator() (query::ast::BinaryOp   const&) const;
     void operator() (query::ast::Comparator const&) const;
 
 };

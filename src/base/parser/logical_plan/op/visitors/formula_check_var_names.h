@@ -13,11 +13,12 @@ public:
 
     FormulaCheckVarNames(const std::set<std::string>& declared_var_names);
 
-    void operator()(query::ast::Formula const& formula) const;
-    void operator()(boost::optional<query::ast::Formula> const& formula) const;
-    void operator()(query::ast::Condition const& condition) const;
-    void operator()(query::ast::Statement const& statement) const;
-    void operator()(query::ast::SelectItem const& select_item) const;
+    void operator()(boost::optional<query::ast::FormulaDisjunction> const&) const;
+    void operator()(query::ast::AtomicFormula const&) const;
+    void operator()(query::ast::FormulaConjunction const&) const;
+    void operator()(query::ast::FormulaDisjunction const&) const;
+    void operator()(query::ast::Statement const&) const;
+    void operator()(query::ast::SelectItem const&) const;
     void operator()(common::ast::Value const&) const;
 };
 

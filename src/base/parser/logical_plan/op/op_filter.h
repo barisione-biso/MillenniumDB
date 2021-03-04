@@ -11,11 +11,11 @@
 class OpFilter : public Op {
 public:
     std::unique_ptr<Op> op;
-    const query::ast::Formula formula;
+    const query::ast::FormulaDisjunction formula_disjunction;
 
-    OpFilter(std::unique_ptr<Op> op, const query::ast::Formula formula) :
-        op      (std::move(op)),
-        formula (formula) { }
+    OpFilter(std::unique_ptr<Op> op, const query::ast::FormulaDisjunction formula_disjunction) :
+        op                  (std::move(op)),
+        formula_disjunction (formula_disjunction) { }
 
 
     void accept_visitor(OpVisitor& visitor) override {
@@ -26,7 +26,7 @@ public:
     // checks filters only uses declared variables, throws QuerySemanticException if not
     void check_var_names(std::set<std::string>& declared_var_names) const {
         FormulaCheckVarNames visitor(declared_var_names);
-        visitor(formula);
+        visitor(formula_disjunction);
     }
 
 
