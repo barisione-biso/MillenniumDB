@@ -168,3 +168,7 @@ void BindingIterVisitor::visit(OpUnjointObject&) { }
 void BindingIterVisitor::visit(OpConnectionType&) { }
 void BindingIterVisitor::visit(OpLabel&) { }
 void BindingIterVisitor::visit(OpProperty&) { }
+void BindingIterVisitor::visit(OpPredicatePath&)     { }
+void BindingIterVisitor::visit(OpInversePath&)       { }
+void BindingIterVisitor::visit(OpSequencePath&)      { }
+void BindingIterVisitor::visit(OpAlternativePath&)   { }

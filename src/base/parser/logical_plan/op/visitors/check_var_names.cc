@@ -10,6 +10,10 @@
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/op_predicate_path.h"
+#include "base/parser/logical_plan/op/op_inverse_path.h"
+#include "base/parser/logical_plan/op/op_sequence_path.h"
+#include "base/parser/logical_plan/op/op_alternative_path.h"
 
 void CheckVarNames::visit(OpSelect& op_select) {
     op_select.op->accept_visitor(*this);
@@ -59,9 +63,13 @@ void CheckVarNames::visit(OpGraphPatternRoot& op_graph_pattern_root) {
 }
 
 
-void CheckVarNames::visit(OpTransitiveClosure&) { }
-void CheckVarNames::visit(OpConnection&) { }
-void CheckVarNames::visit(OpConnectionType&) { }
-void CheckVarNames::visit(OpLabel&) { }
-void CheckVarNames::visit(OpProperty&) { }
-void CheckVarNames::visit(OpUnjointObject&) { }
+void CheckVarNames::visit(OpTransitiveClosure&)   { }
+void CheckVarNames::visit(OpConnection&)          { }
+void CheckVarNames::visit(OpConnectionType&)      { }
+void CheckVarNames::visit(OpLabel&)               { }
+void CheckVarNames::visit(OpProperty&)            { }
+void CheckVarNames::visit(OpUnjointObject&)       { }
+void CheckVarNames::visit(OpPredicatePath&)       { }
+void CheckVarNames::visit(OpInversePath&)         { }
+void CheckVarNames::visit(OpSequencePath&)        { }
+void CheckVarNames::visit(OpAlternativePath&)     { }

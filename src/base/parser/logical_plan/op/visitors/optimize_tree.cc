@@ -167,3 +167,7 @@ void OptimizeTree::visit(OpUnjointObject&)     { }
 void OptimizeTree::visit(OpTransitiveClosure&) { }
 void OptimizeTree::visit(OpConnection&)        { }
 void OptimizeTree::visit(OpConnectionType&)    { }
+void OptimizeTree::visit(OpPredicatePath&)     { }
+void OptimizeTree::visit(OpInversePath&)       { }
+void OptimizeTree::visit(OpSequencePath&)      { }
+void OptimizeTree::visit(OpAlternativePath&)   { }

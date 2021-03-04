@@ -75,3 +75,7 @@ void CheckWellDesigned::visit(OpConnectionType&)    { }
 void CheckWellDesigned::visit(OpLabel&)             { }
 void CheckWellDesigned::visit(OpProperty&)          { }
 void CheckWellDesigned::visit(OpUnjointObject&)     { }
+void CheckWellDesigned::visit(OpPredicatePath&)     { }
+void CheckWellDesigned::visit(OpInversePath&)       { }
+void CheckWellDesigned::visit(OpSequencePath&)      { }
+void CheckWellDesigned::visit(OpAlternativePath&)   { }

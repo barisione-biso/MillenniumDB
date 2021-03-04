@@ -306,3 +306,7 @@ void BindingIdIterVisitor::visit(OpSelect&) { }
 void BindingIdIterVisitor::visit(OpFilter&) { }
 void BindingIdIterVisitor::visit(OpOrderBy&) { }
 void BindingIdIterVisitor::visit(OpGroupBy&) { }
+void BindingIdIterVisitor::visit(OpPredicatePath&)     { }
+void BindingIdIterVisitor::visit(OpInversePath&)       { }
+void BindingIdIterVisitor::visit(OpSequencePath&)      { }
+void BindingIdIterVisitor::visit(OpAlternativePath&)   { }
