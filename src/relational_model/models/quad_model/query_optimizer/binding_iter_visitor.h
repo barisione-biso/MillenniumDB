@@ -35,7 +35,6 @@ public:
 
     std::unique_ptr<BindingIter> exec(OpSelect&);
     std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&);
-    std::unique_ptr<ScanRange> get_scan_range(Id id, bool assigned);
 
     void visit(OpSelect&) override;
     void visit(OpMatch&) override;

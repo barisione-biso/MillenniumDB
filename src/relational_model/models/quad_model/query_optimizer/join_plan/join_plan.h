@@ -27,18 +27,6 @@ public:
         return (get_vars() & other.get_vars()) == 0;
     }
 
-    // TODO: pensar caso de rangos que vendran por optimización del where con un rango
-    // maximo y minimo
-    std::unique_ptr<ScanRange> get_scan_range(Id id, bool assigned) {
-        if ( std::holds_alternative<ObjectId>(id) ) {
-            return std::make_unique<Term>(std::get<ObjectId>(id));
-        } else if (assigned) {
-            return std::make_unique<AssignedVar>(std::get<VarId>(id));
-        } else {
-            return std::make_unique<UnassignedVar>(std::get<VarId>(id));
-        }
-    }
-
     // TODO: using 64 bits limits the number of variables up to 64
     // TODO: Change uint64_t to std::set<VarId>
     // virtual void set_input_vars(const std::set<VarId>& input_vars) = 0;

@@ -34,18 +34,6 @@ map<string, VarId> BindingIterVisitor::construct_var_name2var_id(std::set<std::s
 }
 
 
-// TODO: ScanRange::get
-std::unique_ptr<ScanRange> BindingIterVisitor::get_scan_range(Id id, bool assigned) {
-    if ( std::holds_alternative<ObjectId>(id) ) {
-        return std::make_unique<Term>(std::get<ObjectId>(id));
-    } else if (assigned) {
-        return std::make_unique<AssignedVar>(std::get<VarId>(id));
-    } else {
-        return std::make_unique<UnassignedVar>(std::get<VarId>(id));
-    }
-}
-
-
 std::unique_ptr<BindingIter> BindingIterVisitor::exec(OpSelect& op_select) {
     op_select.accept_visitor(*this);
     return move(tmp);
@@ -124,9 +112,9 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
             auto key_id     = model.get_string_id(select_item.key.get());
 
             array<unique_ptr<ScanRange>, 3> ranges {
-                get_scan_range(obj_var_id, true),
-                get_scan_range(key_id, true),
-                get_scan_range(value_var, false)
+                ScanRange::get(obj_var_id, true),
+                ScanRange::get(key_id, true),
+                ScanRange::get(value_var, false)
             };
             auto index_scan = make_unique<IndexScan<3>>(binding_size, *model.object_key_value, move(ranges));
             optional_children.push_back(move(index_scan));
