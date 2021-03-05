@@ -6,28 +6,30 @@ FormulaCheckVarNames::FormulaCheckVarNames(const std::set<std::string>& declared
     declared_var_names(declared_var_names) { }
 
 
-void FormulaCheckVarNames::operator()(query::ast::Formula const& formula) const {
-    (*this)(formula.root);
-
-    for (auto const& step_formula : formula.path) {
-        (*this)(step_formula.condition);
-    }
+void FormulaCheckVarNames::operator()(query::ast::AtomicFormula const& atomic_formula) const {
+    boost::apply_visitor(*this, atomic_formula.content);
 }
 
 
-void FormulaCheckVarNames::operator()(boost::optional<query::ast::Formula> const& optional_formula) const {
+void FormulaCheckVarNames::operator()(boost::optional<query::ast::FormulaDisjunction> const& optional_formula) const {
     if (optional_formula) {
-        auto formula = static_cast<query::ast::Formula>(optional_formula.get());
-        (*this)(formula.root);
-        for (auto const& step_formula : formula.path) {
-            (*this)(step_formula.condition);
-        }
+        auto formula = static_cast<query::ast::FormulaDisjunction>(optional_formula.get());
+        (*this)(formula);
     }
 }
 
 
-void FormulaCheckVarNames::operator()(query::ast::Condition const& condition) const {
-    boost::apply_visitor(*this, condition.content);
+void FormulaCheckVarNames::operator()(query::ast::FormulaDisjunction const& disjunction) const {
+    for (auto& f : disjunction.formula_conjunctions) {
+        (*this)(f);
+    }
+}
+
+
+void FormulaCheckVarNames::operator()(query::ast::FormulaConjunction const& conjunction) const {
+    for (auto& f : conjunction.formulas) {
+        (*this)(f);
+    }
 }
 
 

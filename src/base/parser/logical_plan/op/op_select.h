@@ -51,11 +51,11 @@ public:
                 }
             }
         }
-        os << ")";
 
         if (limit) {
-            os << " LIMIT " << limit;
+            os << "; LIMIT " << limit;
         }
+        os << ")";
         os << "\n";
         return op->print_to_ostream(os, indent + 2);
     };

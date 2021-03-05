@@ -137,6 +137,33 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "name": "Check Transitive Closure",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/bin/check_transitive_closure",
+            "args": [
+                "${workspaceFolder}/tests/dbs/wikidata"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "windows": {
+                "miDebuggerPath": "C:\\tools\\msys64\\mingw64\\bin\\gdb.exe",
+            },
+            "linux": {
+                "miDebuggerPath": "/usr/bin/gdb",
+            },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

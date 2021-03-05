@@ -15,8 +15,8 @@ Select::Select(unique_ptr<BindingIter> _child_iter,
 Select::~Select() = default;
 
 
-Binding& Select::get_binding() {
-    return my_binding;
+void Select::begin() {
+    child_iter->begin();
 }
 
 

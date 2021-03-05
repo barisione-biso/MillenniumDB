@@ -16,9 +16,9 @@ public:
 
     ~OpConnectionType() = default;
 
-    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');
-        os << "OpConnectionType(" << edge << ":" << type << ")\n";
+        os << "OpConnectionType(" << edge << ": " << type << ")\n";
         return os;
     };
 

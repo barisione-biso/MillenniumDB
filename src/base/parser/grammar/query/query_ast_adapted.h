@@ -61,16 +61,16 @@ BOOST_FUSION_ADAPT_STRUCT(query::ast::Statement,
     lhs, comparator, rhs
 )
 
-BOOST_FUSION_ADAPT_STRUCT(query::ast::StepFormula,
-    op, condition
-)
-
-BOOST_FUSION_ADAPT_STRUCT(query::ast::Formula,
-    root, path
-)
-
-BOOST_FUSION_ADAPT_STRUCT(query::ast::Condition,
+BOOST_FUSION_ADAPT_STRUCT(query::ast::AtomicFormula,
     negation, content
+)
+
+BOOST_FUSION_ADAPT_STRUCT(query::ast::FormulaDisjunction,
+    formula_conjunctions
+)
+
+BOOST_FUSION_ADAPT_STRUCT(query::ast::FormulaConjunction,
+    formulas
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::SelectStatement,

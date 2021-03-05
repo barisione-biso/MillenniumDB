@@ -15,11 +15,6 @@ namespace query { namespace ast {
     namespace x3 = boost::spirit::x3;
     using namespace common::ast;
 
-    enum class BinaryOp {
-        And,
-        Or
-    };
-
     enum class Order {
         Ascending,
         Descending
@@ -56,10 +51,8 @@ namespace query { namespace ast {
         uint_fast32_t max;
     };
 
-    struct PropertyPathAtom; // TODO: change name?
+    struct PropertyPathAtom;
 
-    // using PropertyPathSequence     = std::vector<PropertyPathAtom>;
-    // using PropertyPathAlternatives = std::vector<PropertyPathSequence>;
     struct PropertyPathSequence {
         std::vector<PropertyPathAtom> atoms;
     };
@@ -69,16 +62,13 @@ namespace query { namespace ast {
     };
 
     struct PropertyPathAtom {
-        bool inverse;
+        bool inverse = false;
         boost::variant<PropertyPathSuffix, PropertyPathBoundSuffix> suffix;
 
         boost::variant<
             std::string,
             boost::recursive_wrapper<PropertyPathAlternatives>
         > atom;
-
-        PropertyPathAtom() :
-            inverse(false) { }
     };
 
     struct PropertyPath {
@@ -120,24 +110,21 @@ namespace query { namespace ast {
         boost::variant<SelectItem, ast::Value> rhs;
     };
 
-    struct Formula;
+    struct FormulaDisjunction;
 
-    struct Condition {
-        bool negation;
-        boost::variant <Statement, boost::recursive_wrapper<Formula>> content;
-
-        Condition() :
-            negation(false) { }
+    struct AtomicFormula {
+        bool negation = false;
+        boost::variant <Statement, boost::recursive_wrapper<FormulaDisjunction>> content;
     };
 
-    struct StepFormula {
-        BinaryOp op;
-        Condition condition;
+    // ANDs
+    struct FormulaConjunction {
+        std::vector<AtomicFormula> formulas;
     };
 
-    struct Formula {
-        Condition root;
-        std::vector<StepFormula> path;
+    // ORs
+    struct FormulaDisjunction {
+        std::vector<FormulaConjunction> formula_conjunctions;
     };
 
     struct SelectStatement {
@@ -149,7 +136,7 @@ namespace query { namespace ast {
         bool                                             explain;
         SelectStatement                                  select;
         GraphPattern                                     graph_pattern;
-        boost::optional<Formula>                         where;
+        boost::optional<FormulaDisjunction>              where;
         boost::optional<std::vector<OrderedSelectItem>>  group_by;
         boost::optional<std::vector<OrderedSelectItem>>  order_by;
         boost::optional<uint_fast32_t>                   limit;

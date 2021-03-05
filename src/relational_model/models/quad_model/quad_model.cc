@@ -84,11 +84,10 @@ std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select) {
 }
 
 
-std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& /*manual_plan*/) {
-    // TODO:
-    // auto query_optimizer = BindingIterVisitor(*this, op_select.get_var_names());
-    // return query_optimizer.exec(manual_plan);
-    return nullptr;
+std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& manual_plan) {
+    std::set<std::string> var_names; // TODO: fill the set
+    auto query_optimizer = BindingIterVisitor(*this, var_names);
+    return query_optimizer.exec(manual_plan);
 }
 
 

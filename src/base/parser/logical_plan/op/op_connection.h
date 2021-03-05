@@ -11,9 +11,9 @@ public:
     const std::string to;
     const std::string edge;
 
-    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');
-        os << "OpConnection((" << from << ")-[" << edge << "]->(" << to <<"))\n";
+        os << "OpConnection( (" << from << ")-[" << edge << "]->(" << to <<") )\n";
         return os;
     };
 
@@ -29,7 +29,6 @@ public:
 
 
     bool operator<(const OpConnection& other) const {
-        // return from < other.from && to < other.to && edge < other.edge;
         if (from < other.from) {
             return true;
         } else if (to < other.to) {

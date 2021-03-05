@@ -1,11 +1,5 @@
 #include "query_ast_printer.h"
 
-/*
- * Each operator() overload should not begin nor end with whitespaces
- * the caller has the responsability to indent before calling and insert
- * new line (if necesary) after the call.
- */
-
 using namespace query::ast;
 
 QueryAstPrinter::QueryAstPrinter(std::ostream& out) :
@@ -52,18 +46,20 @@ void QueryAstPrinter::operator()(Root const& r) const {
     if (r.select.distinct) {
         printer.indent("\"SELECT DISTINCT\": [\n");
     } else {
-        printer.indent("\"SELECT\": [\n");
+        printer.indent("\"SELECT\": \"");
     }
     printer2(r.select.selection);
-    printer.indent("],\n");
+    out << "\",\n";
 
     printer.indent("\"MATCH\": [\n");
     printer2(r.graph_pattern);
     printer.indent("],\n");
 
-    printer.indent();
-    printer(r.where);
-    out << ",\n";
+    if (r.where) {
+        printer.indent("\"WHERE\": \"");
+        printer(r.where.get());
+        out << "\",\n";
+    }
 
     if (r.group_by) {
         printer.indent("\"GROUP BY\": ");
@@ -90,32 +86,27 @@ void QueryAstPrinter::operator()(Root const& r) const {
 
 
 void QueryAstPrinter::operator()(SelectItem const& select_item) const {
-    out << "{\"var\": \"" << select_item.var << "\"";
+    out << select_item.var;
     if (select_item.key) {
-        out << ", \"key\":\"" << select_item.key.get() << "\"";
+        out << "." << select_item.key.get();
     }
-    out << "}";
 }
 
 
 void QueryAstPrinter::operator()(std::vector<SelectItem> const& select_items) const {
     auto it = select_items.begin();
     while (it != select_items.end()) {
-        indent();
         (*this)(*it);
         ++it;
         if (it != select_items.end()) {
-            out << ",\n";
-        }
-        else {
-            out << "\n";
+            out << ", ";
         }
     }
 }
 
 
 void QueryAstPrinter::operator()(std::vector<query::ast::OrderedSelectItem> const& ordered_select_items) const {
-    out << "[ ";
+    out << "\"";
     auto it = ordered_select_items.begin();
     while (it != ordered_select_items.end()) {
         (*this)(it->item);
@@ -129,7 +120,7 @@ void QueryAstPrinter::operator()(std::vector<query::ast::OrderedSelectItem> cons
             out << ", ";
         }
     }
-    out << " ]";
+    out << "\"";
 }
 
 
@@ -345,61 +336,53 @@ void QueryAstPrinter::operator() (PropertyPathSuffix const& suffix) const {
 }
 
 
-void QueryAstPrinter::operator() (query::ast::PropertyPathBoundSuffix const& suffix) const{
+void QueryAstPrinter::operator() (PropertyPathBoundSuffix const& suffix) const{
     out << "{" << suffix.min << ", " << suffix.max << "}";
 }
 
 
-void QueryAstPrinter::operator()(boost::optional<Formula> const& where) const {
-    out << "\"FORMULA\": {\n";
-    if (where) {
-        Formula formula = static_cast<Formula>(where.get());
-        auto printer = QueryAstPrinter(out, base_indent+1);
-        printer.indent();
-        printer(formula.root);
-        for (const auto& step_formula : formula.path) {
-            out << ",\n";
-            printer.indent();
-            printer(step_formula);
-        }
-        out << "\n";
-    }
-    indent("}");
-}
-
-
-void QueryAstPrinter::operator()(Condition const& condition) const {
-    if (condition.negation) {
-        out << "\"NOT CONDITION\": {\n";
-    } else {
-        out << "\"CONDITION\": {\n";
-    }
-    auto printer = QueryAstPrinter(out, base_indent+1);
-    printer.indent();
-    boost::apply_visitor(printer, condition.content);
-    out << "\n";
-    indent("}");
-}
-
-
 void QueryAstPrinter::operator()(Statement const& statement) const {
-    out << "\"LEFT\": ";
     (*this)(statement.lhs);
-    out << ",\n";
-    indent("\"COMPARATOR\": ");
     (*this)(statement.comparator);
-    out << ",\n";
-    indent("\"RIGHT\": ");
     boost::apply_visitor(*this, statement.rhs);
 }
 
 
-void QueryAstPrinter::operator()(StepFormula const& step_formula) const {
-    out << "\"CONNECTOR\": ";
-    (*this)(step_formula.op);
-    out << ",\n";
-    indent();
-    (*this)(step_formula.condition);
+void QueryAstPrinter::operator()(FormulaDisjunction const& f) const {
+    if (f.formula_conjunctions.size() == 1) {
+        (*this)(f.formula_conjunctions[0]);
+    } else {
+        out << "(";
+        (*this)(f.formula_conjunctions[0]);
+        for (unsigned i = 1; i < f.formula_conjunctions.size(); i++) {
+            out << " OR ";
+            (*this)(f.formula_conjunctions[i]);
+        }
+        out << ")";
+    }
+}
+
+
+void QueryAstPrinter::operator()(FormulaConjunction const& f) const {
+    if (f.formulas.size() == 1) {
+        (*this)(f.formulas[0]);
+    } else {
+        out << "(";
+        (*this)(f.formulas[0]);
+        for (unsigned i = 1; i < f.formulas.size(); i++) {
+            out << " AND ";
+            (*this)(f.formulas[i]);
+        }
+        out << ")";
+    }
+}
+
+
+void QueryAstPrinter::operator()(AtomicFormula const& f) const {
+    if (f.negation) {
+        out << "NOT ";
+    }
+    boost::apply_visitor(*this, f.content);
 }
 
 
@@ -415,34 +398,22 @@ void QueryAstPrinter::operator()(std::string const& text) const {
 void QueryAstPrinter::operator() (Comparator const& c) const {
     switch(c) {
         case Comparator::EQ :
-            out << "\"==\"";
+            out << " == ";
             break;
         case Comparator::NE :
-            out << "\"!=\"";
+            out << " != ";
             break;
         case Comparator::GT :
-            out << "\">\"";
+            out << " > ";
             break;
         case Comparator::GE :
-            out << "\">=\"";
+            out << " >= ";
             break;
         case Comparator::LT :
-            out << "\"<\"";
+            out << " < ";
             break;
         case Comparator::LE :
-            out << "\"<=\"";
-            break;
-    };
-}
-
-
-void QueryAstPrinter::operator() (BinaryOp const& b) const {
-    switch(b) {
-        case BinaryOp::And :
-            out << "AND";
-            break;
-        case BinaryOp::Or :
-            out << "OR";
+            out << " <= ";
             break;
     };
 }

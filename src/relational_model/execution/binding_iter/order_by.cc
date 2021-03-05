@@ -13,18 +13,24 @@
 using namespace std;
 
 OrderBy::OrderBy(GraphModel& model,
-                 unique_ptr<BindingIter> _child,
+                 unique_ptr<BindingIter> child,
                  size_t binding_size,
                  vector<pair<string, VarId>> order_vars,
                  vector<bool> ascending) :
-    child          (move(_child)),
+    child          (move(child)),
+    order_vars     (move(order_vars)),
+    ascending      (move(ascending)),
     binding_size   (binding_size),
     my_binding     (BindingOrderBy(model, binding_size)),
     first_file_id  (file_manager.get_file_id("temp0.txt")),
     second_file_id (file_manager.get_file_id("temp1.txt"))
     // first_file_id  (file_manager.get_tmp_file_id(query_id)), // TODO:
     // second_file_id (file_manager.get_tmp_file_id(query_id))  // TODO:
-{
+    { }
+
+
+void OrderBy::begin() {
+    child->begin();
     std::vector<uint64_t> order_ids(order_vars.size());
     for (size_t i = 0; i < order_vars.size(); i++) {
         order_ids[i] = order_vars[i].second.id;
@@ -55,11 +61,6 @@ OrderBy::OrderBy(GraphModel& model,
     run = nullptr;
     merge_sort();
     run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, 0), binding_size);
-}
-
-
-Binding& OrderBy::get_binding() {
-    return my_binding;
 }
 
 

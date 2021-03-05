@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "base/parser/grammar/manual_plan/manual_plan_def.h"
-#include "base/parser/grammar/query/printer/query_ast_printer.h"
 #include "base/parser/grammar/query/query_def.h"
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_filter.h"
