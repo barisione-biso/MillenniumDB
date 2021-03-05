@@ -16,10 +16,10 @@ public:
     Match(GraphModel& model, std::unique_ptr<BindingIdIter> root, size_t binding_size);
     ~Match() = default;
 
-    Binding& get_binding() override;
-    bool next() override;
+    inline Binding& get_binding() noexcept override { return my_binding; }
 
-    // prints execution statistics
+    void begin() override;
+    bool next() override;
     void analyze(int indent = 0) const override;
 
 private:

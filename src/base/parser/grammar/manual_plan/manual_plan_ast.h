@@ -9,13 +9,11 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
-// #include "base/parser/grammar/common/common_ast.h"
 #include "base/parser/grammar/query/query_ast.h"
 
 namespace manual_plan { namespace ast {
     namespace x3 = boost::spirit::x3;
     using namespace common::ast;
-    // using namespace query::ast;
 
     struct NodeLabel {
         std::string var_or_id;

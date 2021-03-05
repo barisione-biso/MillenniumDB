@@ -1,11 +1,5 @@
 #include "query_ast_printer.h"
 
-/*
- * Each operator() overload should not begin nor end with whitespaces
- * the caller has the responsability to indent before calling and insert
- * new line (if necesary) after the call.
- */
-
 using namespace query::ast;
 
 QueryAstPrinter::QueryAstPrinter(std::ostream& out) :
@@ -52,19 +46,19 @@ void QueryAstPrinter::operator()(Root const& r) const {
     if (r.select.distinct) {
         printer.indent("\"SELECT DISTINCT\": [\n");
     } else {
-        printer.indent("\"SELECT\": [\n");
+        printer.indent("\"SELECT\": \"");
     }
     printer2(r.select.selection);
-    printer.indent("],\n");
+    out << "\",\n";
 
     printer.indent("\"MATCH\": [\n");
     printer2(r.graph_pattern);
     printer.indent("],\n");
 
     if (r.where) {
-        printer.indent("\"WHERE\": ");
+        printer.indent("\"WHERE\": \"");
         printer(r.where.get());
-        out << ",\n";
+        out << "\",\n";
     }
 
     if (r.group_by) {
@@ -92,32 +86,27 @@ void QueryAstPrinter::operator()(Root const& r) const {
 
 
 void QueryAstPrinter::operator()(SelectItem const& select_item) const {
-    out << "{\"var\": \"" << select_item.var << "\"";
+    out << select_item.var;
     if (select_item.key) {
-        out << ", \"key\":\"" << select_item.key.get() << "\"";
+        out << "." << select_item.key.get();
     }
-    out << "}";
 }
 
 
 void QueryAstPrinter::operator()(std::vector<SelectItem> const& select_items) const {
     auto it = select_items.begin();
     while (it != select_items.end()) {
-        indent();
         (*this)(*it);
         ++it;
         if (it != select_items.end()) {
-            out << ",\n";
-        }
-        else {
-            out << "\n";
+            out << ", ";
         }
     }
 }
 
 
 void QueryAstPrinter::operator()(std::vector<query::ast::OrderedSelectItem> const& ordered_select_items) const {
-    out << "[ ";
+    out << "\"";
     auto it = ordered_select_items.begin();
     while (it != ordered_select_items.end()) {
         (*this)(it->item);
@@ -131,7 +120,7 @@ void QueryAstPrinter::operator()(std::vector<query::ast::OrderedSelectItem> cons
             out << ", ";
         }
     }
-    out << " ]";
+    out << "\"";
 }
 
 
@@ -353,13 +342,8 @@ void QueryAstPrinter::operator() (PropertyPathBoundSuffix const& suffix) const{
 
 
 void QueryAstPrinter::operator()(Statement const& statement) const {
-    out << "\"LEFT\": ";
     (*this)(statement.lhs);
-    out << ",\n";
-    indent("\"COMPARATOR\": ");
     (*this)(statement.comparator);
-    out << ",\n";
-    indent("\"RIGHT\": ");
     boost::apply_visitor(*this, statement.rhs);
 }
 
@@ -414,22 +398,22 @@ void QueryAstPrinter::operator()(std::string const& text) const {
 void QueryAstPrinter::operator() (Comparator const& c) const {
     switch(c) {
         case Comparator::EQ :
-            out << "\"==\"";
+            out << " == ";
             break;
         case Comparator::NE :
-            out << "\"!=\"";
+            out << " != ";
             break;
         case Comparator::GT :
-            out << "\">\"";
+            out << " > ";
             break;
         case Comparator::GE :
-            out << "\">=\"";
+            out << " >= ";
             break;
         case Comparator::LT :
-            out << "\"<\"";
+            out << " < ";
             break;
         case Comparator::LE :
-            out << "\"<=\"";
+            out << " <= ";
             break;
     };
 }

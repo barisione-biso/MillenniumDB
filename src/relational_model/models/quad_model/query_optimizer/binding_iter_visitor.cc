@@ -13,6 +13,7 @@
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
 #include "relational_model/execution/binding_iter/match.h"
+#include "relational_model/execution/binding_iter/order_by.h"
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_id_iter_visitor.h"
@@ -92,7 +93,6 @@ void BindingIterVisitor::visit(OpFilter& op_filter) {
 
 
 void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
-
     op_graph_pattern_root.op->get_var_names();
 
     BindingIdIterVisitor id_visitor(model, var_name2var_id);
@@ -130,10 +130,24 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
 
 void BindingIterVisitor::visit(OpOrderBy& op_order_by) {
     op_order_by.op->accept_visitor(*this);
+
+    std::vector<std::pair<std::string, VarId>> order_vars;
+    for (const auto& order_item : op_order_by.items) {
+        string var_name = order_item.var;
+        if (order_item.key) {
+            var_name += '.';
+            var_name += order_item.key.get();
+        }
+        auto var_id = get_var_id(var_name);
+        order_vars.push_back(make_pair(var_name, var_id));
+    }
+    auto binding_size = var_name2var_id.size();
+    tmp = make_unique<OrderBy>(model, move(tmp), binding_size, order_vars, op_order_by.ascending_order);
 }
 
 
 void BindingIterVisitor::visit(OpGroupBy& op_group_by) {
+    // TODO:
     op_group_by.op->accept_visitor(*this);
 }
 

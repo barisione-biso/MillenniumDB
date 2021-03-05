@@ -6,8 +6,7 @@
 
 #include "base/parser/grammar/query/query_ast.h"
 
-// Prints the AST generated at parsing in a JSON-like
-// format to a given stream.
+// Prints the AST generated at parsing to a given stream.
 class QueryAstPrinter : public boost::static_visitor<void> {
 private:
     std::ostream& out;
@@ -50,7 +49,6 @@ public:
     void operator() (std::string     const&) const;
 
     void operator() (query::ast::Comparator const&) const;
-
 };
 
 #endif  // BASE__QUERY_AST_PRINTER_H_

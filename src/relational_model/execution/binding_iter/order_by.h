@@ -21,14 +21,20 @@ public:
             std::vector<bool> ascending);
     ~OrderBy() = default;
 
-    Binding& get_binding() override;
+    inline Binding& get_binding() noexcept override { return my_binding; }
+
+    void begin() override;
     bool next() override;
     void analyze(int indent = 0) const override;
 
 private:
     std::unique_ptr<BindingIter> child;
+    std::vector<std::pair<std::string, VarId>> order_vars;
+    std::vector<bool> ascending;
+
     std::size_t binding_size;
     BindingOrderBy my_binding;
+
     FileId first_file_id;
     FileId second_file_id;
 
