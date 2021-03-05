@@ -13,9 +13,10 @@ public:
     Distinct(GraphModel& model, std::unique_ptr<BindingIter> child_iter);
     ~Distinct() = default;
 
-    Binding& get_binding() override;
-    bool next() override;
+    inline Binding& get_binding() noexcept override { return my_binding; }
 
+    void begin() override;
+    bool next() override;
     void analyze(int indent = 0) const override;
 
 private:

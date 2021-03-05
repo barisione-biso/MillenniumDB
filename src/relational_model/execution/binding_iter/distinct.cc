@@ -4,12 +4,12 @@ using namespace std;
 
 Distinct::Distinct(GraphModel& model, unique_ptr<BindingIter> _child_iter) :
     model      (model),
-    child_iter (move(_child_iter)), 
+    child_iter (move(_child_iter)),
     my_binding (BindingDistinct(model)) { }
 
 
-Binding& Distinct::get_binding() {
-    return my_binding;
+void Distinct::begin() {
+    child_iter->begin();
 }
 
 
