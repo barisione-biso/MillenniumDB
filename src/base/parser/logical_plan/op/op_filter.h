@@ -7,15 +7,16 @@
 
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/op/visitors/formula_check_var_names.h"
+#include "base/parser/grammar/query/printer/query_ast_printer.h"
 
 class OpFilter : public Op {
 public:
     std::unique_ptr<Op> op;
-    const query::ast::Formula formula;
+    const query::ast::FormulaDisjunction formula_disjunction;
 
-    OpFilter(std::unique_ptr<Op> op, const query::ast::Formula formula) :
-        op      (std::move(op)),
-        formula (formula) { }
+    OpFilter(std::unique_ptr<Op> op, const query::ast::FormulaDisjunction formula_disjunction) :
+        op                  (std::move(op)),
+        formula_disjunction (formula_disjunction) { }
 
 
     void accept_visitor(OpVisitor& visitor) override {
@@ -26,19 +27,15 @@ public:
     // checks filters only uses declared variables, throws QuerySemanticException if not
     void check_var_names(std::set<std::string>& declared_var_names) const {
         FormulaCheckVarNames visitor(declared_var_names);
-        visitor(formula);
+        visitor(formula_disjunction);
     }
 
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');
         os << "OpFilter(";
-        // TODO: print formulas
-        // for (auto const& step_formula : formula.path) {
-            // if (step_formula.condition.negation) {
-                // os << "!" << step_formula.condition.content;
-            // }
-        // };
+        QueryAstPrinter printer(os, 0);
+        printer(formula_disjunction);
         os << ")\n";
         return op->print_to_ostream(os, indent + 2);
     };

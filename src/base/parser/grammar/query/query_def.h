@@ -51,14 +51,14 @@ namespace query {
             property_path_bound_suffix = "property_path_bound_suffix";
 
         // WHERE CONDITIONS
-        x3::rule<class condition, ast::Condition>
-            condition = "condition";
         x3::rule<class statement, ast::Statement>
             statement = "statement";
-        x3::rule<class formula, ast::Formula>
-            formula = "formula";
-        x3::rule<class step_formula, ast::StepFormula>
-            step_formula = "step_formula";
+        x3::rule<class atomic_formula, ast::AtomicFormula>
+            atomic_formula = "atomic_formula";
+        x3::rule<class formula_conjunction, ast::FormulaConjunction>
+            formula_conjunction = "formula_conjunction";
+        x3::rule<class formula_disjunction, ast::FormulaDisjunction>
+            formula_disjunction = "formula_disjunction";
 
         x3::rule<class order, ast::Order>
             order = "order";
@@ -75,10 +75,6 @@ namespace query {
             lit("!=") >> attr(ast::Comparator::NE) |
             lit('<')  >> attr(ast::Comparator::LT) |
             lit('>')  >> attr(ast::Comparator::GT);
-
-        auto const connector =
-            lexeme[no_case["or"]]  >> attr(ast::BinaryOp::Or) |
-            lexeme[no_case["and"]] >> attr(ast::BinaryOp::And);
 
         auto const node_inside =
             -(var | node_name) >> *label >> -("{" >> -(property % ',') >> "}");
@@ -127,18 +123,25 @@ namespace query {
         auto const statement_def =
             select_item >> comparator >> (select_item | value);
 
-        auto const condition_def =
-            -(no_case["NOT"] >> attr(true)) >>
+        auto optional_not =
+            no_case["NOT"] >> attr(true) |
+            attr(false);
+
+        auto const atomic_formula_def =
+            optional_not >>
             (
                 statement |
-                ('(' >> formula >> ')')
+                '(' >> formula_disjunction >> ')'
             );
 
-        auto const step_formula_def =
-            connector >> condition;
+        auto const formula_disjunction_def =
+            formula_conjunction % no_case["OR"];
+
+        auto const formula_conjunction_def =
+            atomic_formula % no_case["AND"];
 
         auto const formula_def =
-            condition >> *step_formula;
+            formula_conjunction;
 
         auto explain_statement =
             no_case["explain"] >> attr(true) |
@@ -171,7 +174,7 @@ namespace query {
             linear_pattern_list >> *optional_pattern;
 
         auto const where_statement =
-            no_case["where"] >> formula;
+            no_case["where"] >> formula_disjunction;
 
         auto const order_def =
             no_case["asc"]  >> -no_case["ending"] >> attr(ast::Order::Ascending)  |
@@ -206,7 +209,6 @@ namespace query {
             root,
             select_item,
             select_items,
-            // selection,
             select_statement,
             node,
             edge,
@@ -216,16 +218,15 @@ namespace query {
             property_path_alternatives,
             property_path_sequence,
             property_path_bound_suffix,
-            // property_path_atoms,
 
             graph_pattern,
             optional_pattern,
             linear_pattern,
 
             statement,
-            formula,
-            step_formula,
-            condition,
+            atomic_formula,
+            formula_conjunction,
+            formula_disjunction,
             order,
             ordered_select_item,
             ordered_select_items

@@ -22,7 +22,9 @@ public:
             std::vector<bool> ascending);
     ~GroupBy() = default;
 
-    Binding& get_binding() override;
+    inline Binding& get_binding() noexcept override { return my_binding; }
+
+    void begin() override;
     bool next() override;
     void analyze(int indent = 0) const override;
 

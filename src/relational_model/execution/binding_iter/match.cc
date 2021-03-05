@@ -6,18 +6,16 @@
 
 using namespace std;
 
-Match::Match(GraphModel& model, unique_ptr<BindingIdIter> _root, size_t binding_size) :
+Match::Match(GraphModel& model, unique_ptr<BindingIdIter> root, size_t binding_size) :
     model      (model),
-    root       (move(_root)),
+    root       (move(root)),
     input      (binding_size),
-    my_binding (BindingMaterializeId(model, binding_size, input) )
-{
+    my_binding (BindingMaterializeId(model, binding_size, input))
+    { }
+
+
+void Match::begin() {
     root->begin(input, true);
-}
-
-
-Binding& Match::get_binding() {
-    return my_binding;
 }
 
 

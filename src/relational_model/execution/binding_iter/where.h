@@ -20,10 +20,10 @@ public:
           std::size_t child_binding_size, std::map<VarId, std::pair<VarId, ObjectId>> property_map);
     ~Where() = default;
 
-    Binding& get_binding() override;
-    bool next() override;
+    inline Binding& get_binding() noexcept override { return my_binding; }
 
-    // prints execution statistics
+    void begin() override;
+    bool next() override;
     void analyze(int indent = 0) const override;
 
 private:

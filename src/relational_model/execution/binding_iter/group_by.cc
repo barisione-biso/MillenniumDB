@@ -12,16 +12,20 @@
 using namespace std;
 
 GroupBy::GroupBy(GraphModel& model,
-                 std::unique_ptr<BindingIter> _child,
-                 size_t _binding_size,
+                 std::unique_ptr<BindingIter> child,
+                 size_t binding_size,
                  vector<pair<string, VarId>> _group_vars,
                  vector<bool> ascending) :
-    order_child    (OrderBy(model, move(_child), _binding_size, _group_vars, ascending)),
-    binding_size   (_binding_size),
-    group_vars     (_group_vars),
-    my_binding     (BindingGroupBy(model, group_vars, order_child.get_binding(), _binding_size)),
-    group_file_id  (file_manager.get_file_id("group_file.txt")) // TODO:
-{
+    order_child    (OrderBy(model, move(child), binding_size, _group_vars, ascending)),
+    binding_size   (binding_size),
+    group_vars     (move(_group_vars)),
+    my_binding     (BindingGroupBy(model, group_vars, order_child.get_binding(), binding_size)),
+    group_file_id  (file_manager.get_file_id("group_file.txt")) // TODO: use temp file
+    { }
+
+
+void GroupBy::begin() {
+    order_child.begin();
     auto& child_binding = order_child.get_binding();
     group_run = make_unique<TupleCollection>(buffer_manager.get_page(group_file_id, n_pages), binding_size);
     group_run->reset();
@@ -36,11 +40,6 @@ GroupBy::GroupBy(GraphModel& model,
         }
         add_tuple_to_group();
     }
-}
-
-
-Binding& GroupBy::get_binding() {
-    return my_binding;
 }
 
 

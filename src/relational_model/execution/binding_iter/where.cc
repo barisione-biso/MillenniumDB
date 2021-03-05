@@ -7,16 +7,16 @@
 
 using namespace std;
 
-Where::Where(GraphModel& model, unique_ptr<BindingIter> _child_iter, unique_ptr<Condition> _condition,
+Where::Where(GraphModel& model, unique_ptr<BindingIter> _child_iter, unique_ptr<Condition> condition,
              std::size_t child_binding_size, std::map<VarId, std::pair<VarId, ObjectId>> property_map) :
     model      (model),
     child_iter (move(_child_iter)),
-    condition  (move(_condition)),
+    condition  (move(condition)),
     my_binding (BindingWhere(model, child_iter->get_binding(), VarId(child_binding_size-1), move(property_map))) { }
 
 
-Binding& Where::get_binding() {
-    return my_binding;
+void Where::begin() {
+    child_iter->begin();
 }
 
 

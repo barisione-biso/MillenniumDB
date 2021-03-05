@@ -30,9 +30,10 @@ public:
 
     Formula2ConditionVisitor(GraphModel& model, const std::map<std::string, VarId>& var_names2var_ids);
 
-    std::unique_ptr<Condition> operator()(query::ast::Formula const& formula);
-    std::unique_ptr<Condition> operator()(query::ast::Condition const& condition);
-    std::unique_ptr<Condition> operator()(query::ast::Statement const& statement);
+    std::unique_ptr<Condition> operator()(query::ast::AtomicFormula const&);
+    std::unique_ptr<Condition> operator()(query::ast::FormulaDisjunction const&);
+    std::unique_ptr<Condition> operator()(query::ast::FormulaConjunction const&);
+    std::unique_ptr<Condition> operator()(query::ast::Statement const&);
 
     std::unique_ptr<ValueAssign> get_value_assignator(boost::variant<query::ast::SelectItem, common::ast::Value> item);
 

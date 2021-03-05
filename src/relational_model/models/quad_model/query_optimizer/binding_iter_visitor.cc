@@ -14,6 +14,7 @@
 #include "base/parser/logical_plan/op/op_distinct.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
 #include "relational_model/execution/binding_iter/match.h"
+#include "relational_model/execution/binding_iter/order_by.h"
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_id_iter_visitor.h"
@@ -36,18 +37,6 @@ map<string, VarId> BindingIterVisitor::construct_var_name2var_id(std::set<std::s
 }
 
 
-// TODO: ScanRange::get
-std::unique_ptr<ScanRange> BindingIterVisitor::get_scan_range(Id id, bool assigned) {
-    if ( std::holds_alternative<ObjectId>(id) ) {
-        return std::make_unique<Term>(std::get<ObjectId>(id));
-    } else if (assigned) {
-        return std::make_unique<AssignedVar>(std::get<VarId>(id));
-    } else {
-        return std::make_unique<UnassignedVar>(std::get<VarId>(id));
-    }
-}
-
-
 std::unique_ptr<BindingIter> BindingIterVisitor::exec(OpSelect& op_select) {
     op_select.accept_visitor(*this);
     return move(tmp);
@@ -56,7 +45,7 @@ std::unique_ptr<BindingIter> BindingIterVisitor::exec(OpSelect& op_select) {
 
 std::unique_ptr<BindingIter> BindingIterVisitor::exec(manual_plan::ast::ManualRoot&) {
     // TODO:
-    return NULL;
+    return nullptr;
 }
 
 
@@ -92,7 +81,7 @@ void BindingIterVisitor::visit(OpFilter& op_filter) {
     auto match_binding_size = var_name2var_id.size();
 
     Formula2ConditionVisitor visitor(model, var_name2var_id);
-    auto condition = visitor(op_filter.formula);
+    auto condition = visitor(op_filter.formula_disjunction);
     auto new_property_var_id = move(visitor.property_map);
 
     tmp = make_unique<Where>(
@@ -106,7 +95,6 @@ void BindingIterVisitor::visit(OpFilter& op_filter) {
 
 
 void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
-
     op_graph_pattern_root.op->get_var_names();
 
     BindingIdIterVisitor id_visitor(model, var_name2var_id);
@@ -126,9 +114,9 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
             auto key_id     = model.get_string_id(select_item.key.get());
 
             array<unique_ptr<ScanRange>, 3> ranges {
-                get_scan_range(obj_var_id, true),
-                get_scan_range(key_id, true),
-                get_scan_range(value_var, false)
+                ScanRange::get(obj_var_id, true),
+                ScanRange::get(key_id, true),
+                ScanRange::get(value_var, false)
             };
             auto index_scan = make_unique<IndexScan<3>>(binding_size, *model.object_key_value, move(ranges));
             optional_children.push_back(move(index_scan));
@@ -144,10 +132,24 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
 
 void BindingIterVisitor::visit(OpOrderBy& op_order_by) {
     op_order_by.op->accept_visitor(*this);
+
+    std::vector<std::pair<std::string, VarId>> order_vars;
+    for (const auto& order_item : op_order_by.items) {
+        string var_name = order_item.var;
+        if (order_item.key) {
+            var_name += '.';
+            var_name += order_item.key.get();
+        }
+        auto var_id = get_var_id(var_name);
+        order_vars.push_back(make_pair(var_name, var_id));
+    }
+    auto binding_size = var_name2var_id.size();
+    tmp = make_unique<OrderBy>(model, move(tmp), binding_size, order_vars, op_order_by.ascending_order);
 }
 
 
 void BindingIterVisitor::visit(OpGroupBy& op_group_by) {
+    // TODO:
     op_group_by.op->accept_visitor(*this);
 }
 

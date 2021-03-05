@@ -45,33 +45,31 @@ using namespace std;
 using boost::asio::ip::tcp;
 namespace po = boost::program_options;
 
-void execute_query(unique_ptr<BindingIter> root, std::ostream& os) {
+void execute_query(unique_ptr<BindingIter> binding_iter, std::ostream& os) {
     // prepare to start the execution
     auto start = chrono::system_clock::now();
-    unsigned int count = 0;
-    auto& binding = root->get_binding();
+    unsigned int result_count = 0;
+
+    binding_iter->begin();
+    auto& binding = binding_iter->get_binding();
 
     // get all results
-    while (root->next()) {
-        // cout << "starting next!\n";
+    while (binding_iter->next()) {
         // TODO: uncomment/comment to enable/disable printing results
         os << binding;
-        count++;
+        result_count++;
     }
 
-    // print execution stats
-    cout << "\nPlan Executed:\n";
-
-    root->analyze(2);
-
-    cout << "\n";
-
-    cout << "N results:" << std::to_string(count) << "\n";
-
     auto end = chrono::system_clock::now();
-
     chrono::duration<float, std::milli> duration = end - start;
-    os << "Found " << std::to_string(count) << " results.\n";
+
+    // print execution stats in server console
+    cout << "\nPlan Executed:\n";
+    binding_iter->analyze(2);
+    cout << "\nResults:" << result_count << "\n";
+
+    // write execution stats in output stream
+    os << "Found " << std::to_string(result_count) << " results.\n";
     os << "Execution time: " << std::to_string(duration.count()) << " ms.\n";
 }
 
