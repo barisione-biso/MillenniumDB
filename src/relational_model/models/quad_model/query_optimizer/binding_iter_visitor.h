@@ -50,6 +50,7 @@ public:
     void visit(OpTransitiveClosure&) override;
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
+    void visit(OpDistinct&) override;
 
     QuadModel& model;
     const std::map<std::string, VarId> var_name2var_id;

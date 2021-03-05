@@ -65,3 +65,4 @@ void CheckVarNames::visit(OpConnectionType&) { }
 void CheckVarNames::visit(OpLabel&) { }
 void CheckVarNames::visit(OpProperty&) { }
 void CheckVarNames::visit(OpUnjointObject&) { }
+void CheckVarNames::visit(OpDistinct&) { }

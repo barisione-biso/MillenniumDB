@@ -13,6 +13,7 @@
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/visitors/check_var_names.h"
 #include "base/parser/logical_plan/op/visitors/check_well_designed.h"
 #include "base/parser/logical_plan/op/visitors/optimize_tree.h"
@@ -48,6 +49,24 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
     if (ast.order_by) {
         op = make_unique<OpOrderBy>(move(op), ast.order_by.get());
     }
+
+    // TODO: create op distinct if necesary
+    if (ast.select.distinct) {
+        // TODO:
+        op = make_unique<OpDistinct>(move(op)); // tal vez hay que pasarle mas cosas?
+    }
+
+    // OpSelect
+    //     |
+    // OpDistinct
+    //     |
+    // OpFilter
+    //     |
+    // OpMatch
+    //     |
+    //     - OpProperty
+    //     - OpLabel
+    //     - OpConnection
 
     return make_unique<OpSelect>(move(op), ast.select.selection, limit);
 }

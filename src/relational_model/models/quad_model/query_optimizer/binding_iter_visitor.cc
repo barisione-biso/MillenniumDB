@@ -11,11 +11,13 @@
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
+#include "base/parser/logical_plan/op/op_distinct.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_id_iter_visitor.h"
+#include "relational_model/execution/binding_iter/distinct.h"
 
 using namespace std;
 
@@ -158,6 +160,16 @@ VarId BindingIterVisitor::get_var_id(const std::string& var) {
     } else {
         throw std::logic_error("variable " + var + " not present in var_name2var_id");
     }
+}
+
+void BindingIterVisitor::visit(OpDistinct& op_distinct) { 
+    op_distinct.op->accept_visitor(*this);
+
+    tmp = make_unique<Distinct>(
+        model,
+        move(tmp)
+    );
+
 }
 
 void BindingIterVisitor::visit(OpMatch&) { }

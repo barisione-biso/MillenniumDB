@@ -167,3 +167,4 @@ void OptimizeTree::visit(OpUnjointObject&)     { }
 void OptimizeTree::visit(OpTransitiveClosure&) { }
 void OptimizeTree::visit(OpConnection&)        { }
 void OptimizeTree::visit(OpConnectionType&)    { }
+void OptimizeTree::visit(OpDistinct&) { }
