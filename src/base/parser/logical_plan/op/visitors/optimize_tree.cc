@@ -171,3 +171,5 @@ void OptimizeTree::visit(OpPredicatePath&)     { }
 void OptimizeTree::visit(OpInversePath&)       { }
 void OptimizeTree::visit(OpSequencePath&)      { }
 void OptimizeTree::visit(OpAlternativePath&)   { }
+void OptimizeTree::visit(OpZeroOrMorePath&)    { }
+void OptimizeTree::visit(OpZeroOrOnePath&)     { }

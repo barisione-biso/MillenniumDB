@@ -40,5 +40,7 @@ public:
     void visit(OpInversePath&) override;
     void visit(OpSequencePath&) override;
     void visit(OpAlternativePath&) override;
+    void visit(OpZeroOrMorePath&) override;
+    void visit(OpZeroOrOnePath&) override;
 };
 #endif // BASE__OPTIMIZE_TREE_H_

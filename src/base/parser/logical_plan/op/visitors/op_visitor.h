@@ -18,6 +18,8 @@ class OpPredicatePath;
 class OpInversePath;
 class OpSequencePath;
 class OpAlternativePath;
+class OpZeroOrMorePath;
+class OpZeroOrOnePath;
 
 class OpVisitor {
 public:
@@ -39,6 +41,8 @@ public:
     virtual void visit(OpInversePath&) = 0;
     virtual void visit(OpSequencePath&) = 0;
     virtual void visit(OpAlternativePath&) = 0;
+    virtual void visit(OpZeroOrMorePath&) = 0;
+    virtual void visit(OpZeroOrOnePath&) = 0;
 };
 
 #endif // BASE__OP_VISITOR_H_

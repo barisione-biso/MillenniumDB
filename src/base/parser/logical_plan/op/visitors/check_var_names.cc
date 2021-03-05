@@ -14,6 +14,8 @@
 #include "base/parser/logical_plan/op/op_inverse_path.h"
 #include "base/parser/logical_plan/op/op_sequence_path.h"
 #include "base/parser/logical_plan/op/op_alternative_path.h"
+#include "base/parser/logical_plan/op/op_zero_or_more_paths.h"
+#include "base/parser/logical_plan/op/op_zero_or_one_path.h"
 
 void CheckVarNames::visit(OpSelect& op_select) {
     op_select.op->accept_visitor(*this);
@@ -73,3 +75,5 @@ void CheckVarNames::visit(OpPredicatePath&)       { }
 void CheckVarNames::visit(OpInversePath&)         { }
 void CheckVarNames::visit(OpSequencePath&)        { }
 void CheckVarNames::visit(OpAlternativePath&)     { }
+void CheckVarNames::visit(OpZeroOrMorePath&)        { }
+void CheckVarNames::visit(OpZeroOrOnePath&)     { }

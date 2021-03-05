@@ -10,6 +10,8 @@
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/op_zero_or_more_paths.h"
+#include "base/parser/logical_plan/op/op_zero_or_one_path.h"
 
 using namespace std;
 
@@ -79,3 +81,5 @@ void CheckWellDesigned::visit(OpPredicatePath&)     { }
 void CheckWellDesigned::visit(OpInversePath&)       { }
 void CheckWellDesigned::visit(OpSequencePath&)      { }
 void CheckWellDesigned::visit(OpAlternativePath&)   { }
+void CheckWellDesigned::visit(OpZeroOrMorePath&)      { }
+void CheckWellDesigned::visit(OpZeroOrOnePath&)   { }

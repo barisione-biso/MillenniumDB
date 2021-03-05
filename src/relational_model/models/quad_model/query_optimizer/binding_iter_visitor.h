@@ -54,6 +54,8 @@ public:
     void visit(OpInversePath&) override;
     void visit(OpSequencePath&) override;
     void visit(OpAlternativePath&) override;
+    void visit(OpZeroOrMorePath&) override;
+    void visit(OpZeroOrOnePath&) override;
 
     QuadModel& model;
     const std::map<std::string, VarId> var_name2var_id;

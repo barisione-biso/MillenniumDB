@@ -310,3 +310,5 @@ void BindingIdIterVisitor::visit(OpPredicatePath&)     { }
 void BindingIdIterVisitor::visit(OpInversePath&)       { }
 void BindingIdIterVisitor::visit(OpSequencePath&)      { }
 void BindingIdIterVisitor::visit(OpAlternativePath&)   { }
+void BindingIdIterVisitor::visit(OpZeroOrMorePath&)    { }
+void BindingIdIterVisitor::visit(OpZeroOrOnePath&)     { }

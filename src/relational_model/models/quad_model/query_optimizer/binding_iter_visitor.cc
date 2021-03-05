@@ -172,3 +172,5 @@ void BindingIterVisitor::visit(OpPredicatePath&)     { }
 void BindingIterVisitor::visit(OpInversePath&)       { }
 void BindingIterVisitor::visit(OpSequencePath&)      { }
 void BindingIterVisitor::visit(OpAlternativePath&)   { }
+void BindingIterVisitor::visit(OpZeroOrMorePath&)    { }
+void BindingIterVisitor::visit(OpZeroOrOnePath&)     { }

@@ -43,6 +43,8 @@ public:
     void visit(OpInversePath&) override;
     void visit(OpSequencePath&) override;
     void visit(OpAlternativePath&) override;
+    void visit(OpZeroOrMorePath&) override;
+    void visit(OpZeroOrOnePath&) override;
 
     QuadModel& model;
     std::vector<query::ast::SelectItem> select_items;
