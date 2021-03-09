@@ -10,8 +10,12 @@
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/logical_plan/op/op_zero_or_more_paths.h"
-#include "base/parser/logical_plan/op/op_zero_or_one_path.h"
+#include "base/parser/logical_plan/op/op_path.h"
+#include "base/parser/logical_plan/op/op_path_alternatives.h"
+#include "base/parser/logical_plan/op/op_path_atom.h"
+#include "base/parser/logical_plan/op/op_path_sequence.h"
+#include "base/parser/logical_plan/op/op_path_suffix.h"
+
 
 using namespace std;
 
@@ -77,9 +81,10 @@ void CheckWellDesigned::visit(OpConnectionType&)    { }
 void CheckWellDesigned::visit(OpLabel&)             { }
 void CheckWellDesigned::visit(OpProperty&)          { }
 void CheckWellDesigned::visit(OpUnjointObject&)     { }
-void CheckWellDesigned::visit(OpPredicatePath&)     { }
-void CheckWellDesigned::visit(OpInversePath&)       { }
-void CheckWellDesigned::visit(OpSequencePath&)      { }
-void CheckWellDesigned::visit(OpAlternativePath&)   { }
-void CheckWellDesigned::visit(OpZeroOrMorePath&)      { }
-void CheckWellDesigned::visit(OpZeroOrOnePath&)   { }
+
+void CheckWellDesigned::visit(OpPropertyPath&)      { }
+void CheckWellDesigned::visit(OpPath&)              { }
+void CheckWellDesigned::visit(OpPathAlternatives&)  { }
+void CheckWellDesigned::visit(OpPathSequence&)      { }
+void CheckWellDesigned::visit(OpPathSuffix&)        { }
+void CheckWellDesigned::visit(OpPathAtom&)          { }

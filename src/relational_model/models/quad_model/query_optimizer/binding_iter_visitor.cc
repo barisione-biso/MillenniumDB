@@ -17,6 +17,12 @@
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_id_iter_visitor.h"
+#include "base/parser/logical_plan/op/op_path.h"
+#include "base/parser/logical_plan/op/op_path_alternatives.h"
+#include "base/parser/logical_plan/op/op_path_atom.h"
+#include "base/parser/logical_plan/op/op_path_sequence.h"
+#include "base/parser/logical_plan/op/op_property_path.h"
+#include "base/parser/logical_plan/op/op_path_suffix.h"
 
 using namespace std;
 
@@ -170,9 +176,10 @@ void BindingIterVisitor::visit(OpUnjointObject&) { }
 void BindingIterVisitor::visit(OpConnectionType&) { }
 void BindingIterVisitor::visit(OpLabel&) { }
 void BindingIterVisitor::visit(OpProperty&) { }
-void BindingIterVisitor::visit(OpPredicatePath&)     { }
-void BindingIterVisitor::visit(OpInversePath&)       { }
-void BindingIterVisitor::visit(OpSequencePath&)      { }
-void BindingIterVisitor::visit(OpAlternativePath&)   { }
-void BindingIterVisitor::visit(OpZeroOrMorePath&)    { }
-void BindingIterVisitor::visit(OpZeroOrOnePath&)     { }
+
+void BindingIterVisitor::visit(OpPath&)              { }
+void BindingIterVisitor::visit(OpPathAlternatives&)  { }
+void BindingIterVisitor::visit(OpPathSequence&)      { }
+void BindingIterVisitor::visit(OpPathSuffix&)        { }
+void BindingIterVisitor::visit(OpPathAtom&)          { }
+void BindingIterVisitor::visit(OpPropertyPath&)      { }

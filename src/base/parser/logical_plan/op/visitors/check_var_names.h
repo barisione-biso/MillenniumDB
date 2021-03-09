@@ -28,12 +28,13 @@ public:
     void visit(OpTransitiveClosure&) override;
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
-    void visit(OpPredicatePath&) override;
-    void visit(OpInversePath&) override;
-    void visit(OpSequencePath&) override;
-    void visit(OpAlternativePath&) override;
-    void visit(OpZeroOrMorePath&) override;
-    void visit(OpZeroOrOnePath&) override;
+
+    void visit(OpPropertyPath&) override;
+    void visit(OpPath&) override;
+    void visit(OpPathAtom&) override;
+    void visit(OpPathAlternatives&) override;
+    void visit(OpPathSequence&) override;
+    void visit(OpPathSuffix&) override;
 };
 
 #endif // BASE__CHECK_VAR_NAMES_EXISTS_H_

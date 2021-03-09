@@ -1,29 +1,29 @@
-#ifndef BASE__OP_SEQUENCE_PATH_H_
-#define BASE__OP_SEQUENCE_PATH_H_
+#ifndef BASE__OP_PATH_SEQUENCE_H_
+#define BASE__OP_PATH_SEQUENCE_H_
 
 #include <string>
 
 #include "base/parser/logical_plan/op/op.h"
 
-class OpSequencePath : public Op {
+class OpPathSequence : public Op {
 public:
     const std::string from;
     const std::string to;
     const std::string type;
 
-    OpSequencePath(std::string from, std::string to, std::string type) :
+    OpPathSequence(std::string from, std::string to, std::string type) :
         from (std::move(from)),
         to   (std::move(to)),
         type (std::move(type)) { }
 
-    ~OpSequencePath() = default;
+    ~OpPathSequence() = default;
 
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
 
-    bool operator<(const OpSequencePath& other) const {
+    bool operator<(const OpPathSequence& other) const {
         if (from < other.from) {
             return true;
         } else if (to < other.to) {
@@ -36,7 +36,7 @@ public:
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
-        os << "OpSequencePath(" << from << "->" << to  << ":" << type << ")\n";
+        os << "OpPathSequence(" << from << "->" << to  << ":" << type << ")\n";
         return os;
     };
 
@@ -55,4 +55,4 @@ public:
     }
 };
 
-#endif // BASE__OP_SEQUENCE_PATH_H_
+#endif // BASE__OP_PATH_SEQUENCE_H_

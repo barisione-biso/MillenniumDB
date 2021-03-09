@@ -13,6 +13,12 @@
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op.h"
+#include "base/parser/logical_plan/op/op_path.h"
+#include "base/parser/logical_plan/op/op_path_alternatives.h"
+#include "base/parser/logical_plan/op/op_property_path.h"
+#include "base/parser/logical_plan/op/op_path_atom.h"
+#include "base/parser/logical_plan/op/op_path_sequence.h"
+#include "base/parser/logical_plan/op/op_path_suffix.h"
 
 using namespace std;
 
@@ -167,9 +173,11 @@ void OptimizeTree::visit(OpUnjointObject&)     { }
 void OptimizeTree::visit(OpTransitiveClosure&) { }
 void OptimizeTree::visit(OpConnection&)        { }
 void OptimizeTree::visit(OpConnectionType&)    { }
-void OptimizeTree::visit(OpPredicatePath&)     { }
-void OptimizeTree::visit(OpInversePath&)       { }
-void OptimizeTree::visit(OpSequencePath&)      { }
-void OptimizeTree::visit(OpAlternativePath&)   { }
-void OptimizeTree::visit(OpZeroOrMorePath&)    { }
-void OptimizeTree::visit(OpZeroOrOnePath&)     { }
+
+void OptimizeTree::visit(OpPath&)              { }
+void OptimizeTree::visit(OpPathAlternatives&)  { }
+void OptimizeTree::visit(OpPropertyPath&)      { }
+void OptimizeTree::visit(OpPathSequence&)      { }
+void OptimizeTree::visit(OpPathSuffix&)        { }
+void OptimizeTree::visit(OpPathAtom&)          { }
+

@@ -6,22 +6,26 @@
 #include <memory>
 #include <utility>
 #include <vector>
+// TODO: ELIMINAR AL ELIMINAR EL COUT
+#include <iostream>
 
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_connection_type.h"
 #include "base/parser/logical_plan/op/op_connection.h"
 #include "base/parser/logical_plan/op/op_label.h"
 #include "base/parser/logical_plan/op/op_property.h"
+#include "base/parser/logical_plan/op/op_property_path.h"
 #include "base/parser/logical_plan/op/op_transitive_closure.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op.h"
+#include "base/parser/logical_plan/property_path/property_path_parser.h"
 
 class OpMatch : public Op {
 public:
     std::set<OpLabel>             labels;
     std::set<OpProperty>          properties;
     std::set<OpConnection>        connections;
-    std::set<OpTransitiveClosure> property_paths; // TODO: for now only supporting transitive closure
+    std::set<OpPropertyPath>      property_paths;
     std::set<OpConnectionType>    connection_types;
     std::set<OpUnjointObject>     unjoint_objects;
 
@@ -60,18 +64,31 @@ public:
                         );
                     }
                 } else {
-                    // PROPERTY PATHS
-                    // TODO: REMAKE PROPERTY PATHS
-                    // auto property_path = boost::get<query::ast::PropertyPath>(linear_pattern_step.path);
-                    // if (property_path.direction == query::ast::EdgeDirection::right) {
-                    //     property_paths.insert(
-                    //         OpTransitiveClosure(last_object_name, current_node_name, property_path.type)
-                    //     );
-                    // } else {
-                    //     property_paths.insert(
-                    //         OpTransitiveClosure(current_node_name, last_object_name, property_path.type)
-                    //     );
-                    // }
+                    std::cout << "Evaluando property paths\n";
+                    auto property_path = boost::get<query::ast::PropertyPath>(linear_pattern_step.path);
+                    PropertyPathParser property_path_parser;
+                    if (property_path.direction == query::ast::EdgeDirection::right) {
+                        property_paths.insert(
+                            OpPropertyPath(last_object_name,
+                                           current_node_name,
+                                           nullptr
+                                           /*property_path_parser(property_path.path_alternatives)*/)
+                        );
+                    } else {
+                        property_paths.insert(
+                            OpPropertyPath(current_node_name,
+                                           last_object_name,
+                                           nullptr
+                                           /*property_path_parser(property_path.path_alternatives)*/)
+                        );
+                    }
+                    // MATCH (?x)->(?y)=[:P1*]=>(?z)=[:P2 | :P3]=>(?u), (?y)=[:P1*]=>(?z)
+                    // OpMatch
+                    //   - OpConnection(?x, ?y)
+                    //   - OpPropertyPath(?y, ?z, [:P1*])
+                    //      [:P1*] := OpPathSuffix(*, OpPathAtom(P1))
+                    //      [:P2 | :P3] := OpAlternatives({OpPathAtom(:P2), OpPathAtom(:P3)})
+                    //   - OpPropertyPath(?z, ?u, [:P2 | :P3])
                 }
                 last_object_name = std::move(current_node_name);
             }

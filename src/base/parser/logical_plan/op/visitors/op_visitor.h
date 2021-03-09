@@ -14,12 +14,13 @@ class OpOrderBy;
 class OpGroupBy;
 class OpUnjointObject;
 class OpGraphPatternRoot;
-class OpPredicatePath;
-class OpInversePath;
-class OpSequencePath;
-class OpAlternativePath;
-class OpZeroOrMorePath;
-class OpZeroOrOnePath;
+
+class OpPropertyPath;
+class OpPath;
+class OpPathAtom;
+class OpPathAlternatives;
+class OpPathSequence;
+class OpPathSuffix;
 
 class OpVisitor {
 public:
@@ -37,12 +38,14 @@ public:
     virtual void visit(OpOrderBy&) = 0;
     virtual void visit(OpGroupBy&) = 0;
     virtual void visit(OpUnjointObject&) = 0;
-    virtual void visit(OpPredicatePath&) = 0;
-    virtual void visit(OpInversePath&) = 0;
-    virtual void visit(OpSequencePath&) = 0;
-    virtual void visit(OpAlternativePath&) = 0;
-    virtual void visit(OpZeroOrMorePath&) = 0;
-    virtual void visit(OpZeroOrOnePath&) = 0;
+
+    virtual void visit(OpPropertyPath&) = 0;
+    virtual void visit(OpPath&) = 0;
+    virtual void visit(OpPathAtom&) = 0;
+    virtual void visit(OpPathAlternatives&) = 0;
+    virtual void visit(OpPathSequence&) = 0;
+    virtual void visit(OpPathSuffix&) = 0;
+
 };
 
 #endif // BASE__OP_VISITOR_H_
