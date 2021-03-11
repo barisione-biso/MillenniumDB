@@ -15,6 +15,8 @@ project(MilleniumDB VERSION 0.1)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -O0 -g3 -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -O3 -g0 -pthread")
 
+find_package(Boost 1.71.0 REQUIRED)
+
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 file(GLOB_RECURSE SRCS src/*.cc)
