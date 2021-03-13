@@ -64,22 +64,19 @@ public:
                         );
                     }
                 } else {
-                    std::cout << "Evaluando property paths\n";
                     auto property_path = boost::get<query::ast::PropertyPath>(linear_pattern_step.path);
-                    PropertyPathParser property_path_parser;
+                    PropertyPathParser pp_parser;
                     if (property_path.direction == query::ast::EdgeDirection::right) {
                         property_paths.insert(
                             OpPropertyPath(last_object_name,
                                            current_node_name,
-                                           nullptr
-                                           /*property_path_parser(property_path.path_alternatives)*/)
+                                           pp_parser(property_path.path_alternatives))
                         );
                     } else {
                         property_paths.insert(
                             OpPropertyPath(current_node_name,
                                            last_object_name,
-                                           nullptr
-                                           /*property_path_parser(property_path.path_alternatives)*/)
+                                           pp_parser(property_path.path_alternatives))
                         );
                     }
                     // MATCH (?x)->(?y)=[:P1*]=>(?z)=[:P2 | :P3]=>(?u), (?y)=[:P1*]=>(?z)

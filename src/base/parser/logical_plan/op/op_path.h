@@ -1,13 +1,11 @@
 #ifndef BASE__OP_PATH_H_
 #define BASE__OP_PATH_H_
 
+#include "base/parser/logical_plan/op/op.h"
+
 class OpPath : public Op {
 public:
-
-    bool operator<(const OpPath& /*other*/) const {
-        // TODO:
-        return false;
-    }
+    virtual bool operator<(const OpPath&) const = 0;
 };
 
 #endif // BASE__OP_PATH_H_
