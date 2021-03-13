@@ -4,10 +4,10 @@
 #include "base/parser/grammar/query/query_ast.h"
 #include "base/parser/logical_plan/op/op_path.h"
 
-class PropertyPathParser {
+class PathConstructor {
 public:
-    PropertyPathParser() = default;
-    ~PropertyPathParser() = default;
+    PathConstructor() = default;
+    ~PathConstructor() = default;
 
     std::unique_ptr<OpPath> operator()(query::ast::PropertyPathAlternatives& p , bool inverse = false);
     std::unique_ptr<OpPath> operator()(query::ast::PropertyPathSequence& p, bool inverse = false);

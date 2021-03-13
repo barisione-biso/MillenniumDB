@@ -18,7 +18,7 @@
 #include "base/parser/logical_plan/op/op_transitive_closure.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op.h"
-#include "base/parser/logical_plan/property_path/property_path_parser.h"
+#include "base/parser/logical_plan/path_constructor/path_constructor.h"
 
 class OpMatch : public Op {
 public:
@@ -65,18 +65,18 @@ public:
                     }
                 } else {
                     auto property_path = boost::get<query::ast::PropertyPath>(linear_pattern_step.path);
-                    PropertyPathParser pp_parser;
+                    PathConstructor path_constructor;
                     if (property_path.direction == query::ast::EdgeDirection::right) {
                         property_paths.insert(
                             OpPropertyPath(last_object_name,
                                            current_node_name,
-                                           pp_parser(property_path.path_alternatives))
+                                           path_constructor(property_path.path_alternatives))
                         );
                     } else {
                         property_paths.insert(
                             OpPropertyPath(current_node_name,
                                            last_object_name,
-                                           pp_parser(property_path.path_alternatives))
+                                           path_constructor(property_path.path_alternatives))
                         );
                     }
                     // MATCH (?x)->(?y)=[:P1*]=>(?z)=[:P2 | :P3]=>(?u), (?y)=[:P1*]=>(?z)

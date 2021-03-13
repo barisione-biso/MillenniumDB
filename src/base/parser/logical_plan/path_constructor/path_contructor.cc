@@ -1,4 +1,4 @@
-#include "property_path_parser.h"
+#include "path_constructor.h"
 
 #include "base/parser/logical_plan/op/op_path_alternatives.h"
 #include "base/parser/logical_plan/op/op_path_atom.h"
@@ -10,7 +10,7 @@
 
 using namespace std;
 
-unique_ptr<OpPath> PropertyPathParser::operator()(query::ast::PropertyPathAlternatives& p, bool inverse) {
+unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAlternatives& p, bool inverse) {
     assert(p.alternatives.size() > 0);
     if (p.alternatives.size() > 1) {
         vector<unique_ptr<OpPath>> alternatives;
@@ -26,7 +26,7 @@ unique_ptr<OpPath> PropertyPathParser::operator()(query::ast::PropertyPathAltern
 }
 
 
-unique_ptr<OpPath> PropertyPathParser::operator()(query::ast::PropertyPathSequence& p, bool inverse) {
+unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathSequence& p, bool inverse) {
     assert(p.atoms.size() > 0);
     if (p.atoms.size() > 1) {
         vector<unique_ptr<OpPath>> sequence;
@@ -48,7 +48,7 @@ unique_ptr<OpPath> PropertyPathParser::operator()(query::ast::PropertyPathSequen
 }
 
 
-unique_ptr<OpPath> PropertyPathParser::operator()(query::ast::PropertyPathAtom& p, bool inverse) {
+unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, bool inverse) {
     unique_ptr<OpPath> tmp;
 
     if (p.atom.type() == typeid(std::string)) {
