@@ -84,7 +84,6 @@ build/Release/bin/query [path/to/query_file] -p [port]
 
 ## Internals
 To know more details about how MilleniumDB works:
-1. [How is the data stored](storage.md).
+1. [How is the data stored](internals/storage.md).
 2. [How is the data accessed](internals/buffer_manager.md).
-    - BufferManager
 3. [Implementation limits](limits.md).
