@@ -5,7 +5,7 @@
 
 class OpPathSuffix : public OpPath {
 public:
-    static constexpr uint64_t MAX = -1;
+    static constexpr uint32_t MAX = -1;
     std::unique_ptr<OpPath> op_path;
     uint32_t min;
     uint32_t max;

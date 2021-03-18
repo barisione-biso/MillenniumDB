@@ -6,8 +6,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
-// TODO: ELIMINAR AL ELIMINAR EL COUT
-#include <iostream>
+
 
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_connection_type.h"
@@ -19,6 +18,7 @@
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/path_constructor/path_constructor.h"
+#include "relational_model/models/quad_model/query_optimizer/path_validator/path_validator.h"
 
 class OpMatch : public Op {
 public:
@@ -79,13 +79,13 @@ public:
                                            path_constructor(property_path.path_alternatives))
                         );
                     }
-                    // MATCH (?x)->(?y)=[:P1*]=>(?z)=[:P2 | :P3]=>(?u), (?y)=[:P1*]=>(?z)
-                    // OpMatch
-                    //   - OpConnection(?x, ?y)
-                    //   - OpPropertyPath(?y, ?z, [:P1*])
-                    //      [:P1*] := OpPathSuffix(*, OpPathAtom(P1))
-                    //      [:P2 | :P3] := OpAlternatives({OpPathAtom(:P2), OpPathAtom(:P3)})
-                    //   - OpPropertyPath(?z, ?u, [:P2 | :P3])
+                    //TODO: Mover este llamado a relational model
+                    auto path = OpPropertyPath( last_object_name,
+                                                current_node_name,
+                                                path_constructor(property_path.path_alternatives));
+                    PathValidator path_validator = PathValidator(path);
+                    path_validator.print();
+
                 }
                 last_object_name = std::move(current_node_name);
             }

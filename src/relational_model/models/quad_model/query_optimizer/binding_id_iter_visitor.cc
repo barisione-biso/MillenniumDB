@@ -18,6 +18,7 @@
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_suffix.h"
+#include "relational_model/models/quad_model/query_optimizer/path_validator/path_validator.h"
 
 using namespace std;
 
@@ -40,7 +41,6 @@ VarId BindingIdIterVisitor::get_var_id(const std::string& var) {
 
 void BindingIdIterVisitor::visit(OpMatch& op_match) {
     vector<unique_ptr<JoinPlan>> base_plans;
-
     // Process Labels
     for (auto& op_label : op_match.labels) {
         auto label_id = model.get_string_id(op_label.label);
@@ -125,7 +125,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
             );
         }
     }
-
+    //
     // TODO: property paths are only transitive closures for now
     // for (auto& property_path : op_match.property_paths) {
     //     auto from_id = property_path.from[0] == '?'
