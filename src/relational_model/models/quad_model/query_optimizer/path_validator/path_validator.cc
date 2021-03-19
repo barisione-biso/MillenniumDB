@@ -35,14 +35,16 @@ void PathValidator::visit(OpPathSequence& path) {
     transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
     path.sequence[0]->accept_visitor(*this);
 
+    uint32_t added_nodes = 0;
     for (size_t i = 1; i+1 < path.sequence.size(); i++) {
+        added_nodes++;
         limits.push({ total_states - 1, total_states});
         total_states++;
         transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
         path.sequence[i]->accept_visitor(*this);
     }
 
-    limits.push({ final_start, std::get<1>(initial_limits) });
+    limits.push({ final_start + added_nodes, std::get<1>(initial_limits) });
     path.sequence[path.sequence.size() - 1]->accept_visitor(*this);
 }
 
