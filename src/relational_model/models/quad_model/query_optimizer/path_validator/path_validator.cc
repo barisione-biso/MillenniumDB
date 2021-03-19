@@ -29,23 +29,42 @@ void PathValidator::visit(OpPathSequence& path) {
     cout << "sequence:" << std::get<0>(initial_limits) << " " << std::get<1>(initial_limits) << "\n";
     limits.pop();
 
+    transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
+    auto next_start = total_states;
+    auto next_end = total_states++;
+    limits.push({ std::get<0>(initial_limits), next_start});
+    path.sequence[0]->accept_visitor((*this));
+
+    for (size_t i = 1; i + 1 < path.sequence.size(); i++) {
+        limits.push({next_start, total_states });
+        transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
+        next_start = total_states;
+        next_end = total_states++;
+        path.sequence[i]->accept_visitor(*this);
+    }
+    limits.push({ next_end, std::get<1>(initial_limits) });
+    path.sequence[path.sequence.size() - 1]->accept_visitor(*this);
+    /*
     limits.push( {std::get<0>(initial_limits), total_states});
+    auto next_start =  total_states;
     auto final_start = total_states;
     total_states++;
     transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
     path.sequence[0]->accept_visitor(*this);
 
-    uint32_t added_nodes = 0;
+    uint32_t added_nodes = 1;
     for (size_t i = 1; i+1 < path.sequence.size(); i++) {
         added_nodes++;
-        limits.push({ total_states - 1, total_states});
+        limits.push({ next_start, total_states});
+        next_start = total_states;
         total_states++;
         transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
         path.sequence[i]->accept_visitor(*this);
     }
 
-    limits.push({ final_start + added_nodes, std::get<1>(initial_limits) });
+    limits.push({ total_states - added_nodes, std::get<1>(initial_limits) });
     path.sequence[path.sequence.size() - 1]->accept_visitor(*this);
+    */
 }
 
 
