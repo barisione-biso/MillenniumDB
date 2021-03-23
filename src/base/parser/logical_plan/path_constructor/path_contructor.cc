@@ -3,7 +3,6 @@
 #include "base/parser/logical_plan/op/op_path_alternatives.h"
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
-#include "base/parser/logical_plan/op/op_path_suffix.h"
 
 #include <cassert>
 #include <vector>
@@ -58,7 +57,9 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
         query::ast::PropertyPathAlternatives a = boost::get<query::ast::PropertyPathAlternatives>(p.atom);
         tmp = (*this)(a, p.inverse ^ inverse); // ^ = XOR
     }
-
+    return tmp;
+    /*
+    TODO: retornar kleene star
     if (p.suffix.type() == typeid(query::ast::PropertyPathSuffix)) {
         query::ast::PropertyPathSuffix suffix = boost::get<query::ast::PropertyPathSuffix>(p.suffix);
         switch (suffix) {
@@ -74,4 +75,5 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
     }
     query::ast::PropertyPathBoundSuffix suffix = boost::get<query::ast::PropertyPathBoundSuffix>(p.suffix);
     return make_unique<OpPathSuffix>(move(tmp), suffix.min, suffix.max);
+    */
 }

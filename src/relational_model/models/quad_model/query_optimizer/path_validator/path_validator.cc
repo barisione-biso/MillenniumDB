@@ -1,5 +1,7 @@
 #include "path_validator.h"
 
+#include <iostream>
+
 using namespace std;
 
 PathValidator::PathValidator(OpPropertyPath& path) {
@@ -12,8 +14,6 @@ PathValidator::PathValidator(OpPropertyPath& path) {
     //TODO: A+ => Sequence (A, A*)
     //TODO: A? => Alternative (A, e)
     //TODO: A{m,n} => sequence(A...(m veces)...,A,A?,...(n veces)...,A?)
-    //TODO: OpPathSuffix se elimina
-    //TODO: Se crea OpPathKleenStar y OpPathEpsilon
 
     total_states = 2;
     transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
@@ -56,7 +56,7 @@ void PathValidator::visit(OpPathSequence& path) {
     path.sequence[path.sequence.size() - 1]->accept_visitor(*this);
 }
 
-
+/*
 void PathValidator::visit(OpPathSuffix& path) {
     auto initial_limits = limits.top();
     auto start = std::get<0>(initial_limits);
@@ -68,14 +68,14 @@ void PathValidator::visit(OpPathSuffix& path) {
         //transitions[std::get<0>(new_limits)].push_back({std::get<1>(new_limits), "", false});
     }
     else if (path.min == 0 && path.max == OpPathSuffix::MAX) {
-        // * suffix
+        //  suffix
 
         // Epsilon transitions
-        /*
+        /
         transitions[start].push_back({end, "", false});
         limits.push({ start, start });
         path.op_path->accept_visitor(*this);
-        */
+        /
         // create 2 new states
         
         auto new_start = total_states++;
@@ -100,7 +100,7 @@ void PathValidator::visit(OpPathSuffix& path) {
         // TODO: {min, max} suffix
     }
 }
-
+*/
 void PathValidator::visit(OpPathKleenStar&) { }
 void PathValidator::visit(OpPathEpsilon&)    { }
 

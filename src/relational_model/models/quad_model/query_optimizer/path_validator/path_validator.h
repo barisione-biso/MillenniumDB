@@ -11,7 +11,6 @@
 #include "base/parser/logical_plan/op/op_property_path.h"
 #include "base/parser/logical_plan/op/op_path_alternatives.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
-#include "base/parser/logical_plan/op/op_path_suffix.h"
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_kleene_star.h"
 #include "base/parser/logical_plan/op/op_path_epsilon.h"
@@ -43,7 +42,6 @@ private:
     // NFA constructors
     void visit(OpPathAlternatives&);
     void visit(OpPathSequence&);
-    void visit(OpPathSuffix&);
     void visit(OpPathAtom&);
     void visit(OpPathKleenStar&);
     void visit(OpPathEpsilon&);

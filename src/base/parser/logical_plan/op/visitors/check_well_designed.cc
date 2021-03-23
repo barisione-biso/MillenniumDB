@@ -14,7 +14,6 @@
 #include "base/parser/logical_plan/op/op_path_alternatives.h"
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
-#include "base/parser/logical_plan/op/op_path_suffix.h"
 #include "base/parser/logical_plan/op/op_path_kleene_star.h"
 #include "base/parser/logical_plan/op/op_path_epsilon.h"
 
@@ -88,7 +87,6 @@ void CheckWellDesigned::visit(OpPropertyPath&)      { }
 void CheckWellDesigned::visit(OpPath&)              { }
 void CheckWellDesigned::visit(OpPathAlternatives&)  { }
 void CheckWellDesigned::visit(OpPathSequence&)      { }
-void CheckWellDesigned::visit(OpPathSuffix&)        { }
 void CheckWellDesigned::visit(OpPathAtom&)          { }
-void CheckWellDesigned::visit(OpPathKleenStar&)    { }
+void CheckWellDesigned::visit(OpPathKleenStar&)     { }
 void CheckWellDesigned::visit(OpPathEpsilon&)       { }

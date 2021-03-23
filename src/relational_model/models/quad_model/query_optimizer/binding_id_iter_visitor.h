@@ -45,7 +45,6 @@ public:
     void visit(OpPathAtom&) override;
     void visit(OpPathAlternatives&) override;
     void visit(OpPathSequence&) override;
-    void visit(OpPathSuffix&) override;
     void visit(OpPathKleenStar&) override;
     void visit(OpPathEpsilon&) override;
 
