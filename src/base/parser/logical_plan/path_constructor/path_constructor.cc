@@ -4,6 +4,7 @@
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_kleene_star.h"
+#include "base/parser/logical_plan/op/op_path_epsilon.h"
 
 #include <cassert>
 #include <vector>
@@ -62,19 +63,20 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
     //TODO: retornar kleene star
     if (p.suffix.type() == typeid(query::ast::PropertyPathSuffix)) {
         query::ast::PropertyPathSuffix suffix = boost::get<query::ast::PropertyPathSuffix>(p.suffix);
+        vector<unique_ptr<OpPath>> op_vector;
         switch (suffix) {
             case query::ast::PropertyPathSuffix::NONE :
                 return tmp;
             case query::ast::PropertyPathSuffix::ZERO_OR_MORE :
                 return make_unique<OpPathKleeneStar>(move(tmp));
             case query::ast::PropertyPathSuffix::ONE_OR_MORE :
-                vector<unique_ptr<OpPath>> sequence;
-                sequence.push_back(tmp->duplicate());
-                sequence.push_back(make_unique<OpPathKleeneStar>(move(tmp)));
-                return make_unique<OpPathSequence>(move(sequence));
+                op_vector.push_back(tmp->duplicate());
+                op_vector.push_back(make_unique<OpPathKleeneStar>(move(tmp)));
+                return make_unique<OpPathSequence>(move(op_vector));
             case query::ast::PropertyPathSuffix::ZERO_OR_ONE :
-                return nullptr;
-                //return make_unique<OpPathSuffix>(move(tmp), 0, OpPathSuffix::MAX);
+                op_vector.push_back(move(tmp));
+                op_vector.push_back(make_unique<OpPathEpsilon>());
+                return make_unique<OpPathAlternatives>(move(op_vector));
         }
     }
     return tmp;

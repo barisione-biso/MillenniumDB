@@ -11,8 +11,6 @@ PathValidator::PathValidator(OpPropertyPath& path) {
     //TODO: Orden de Op
     //TODO: Mover instanciación de PathValidator fuera de OpMatch
     //TODO: Destructor de OpPropertyPath
-    //TODO: A+ => Sequence (A, A*)
-    //TODO: A? => Alternative (A, e)
     //TODO: A{m,n} => sequence(A...(m veces)...,A,A?,...(n veces)...,A?)
 
     total_states = 2;
