@@ -7,17 +7,17 @@
 using namespace std;
 
 
-BindingDistinct::BindingDistinct(GraphModel& model) :
-    model         (model) { }
+BindingDistinct::BindingDistinct(GraphModel& model, Binding& child_binding) :
+    model         (model),
+    child_binding (child_binding) { }
 
 
 std::ostream& BindingDistinct::print_to_ostream(std::ostream& os) const {
+    // TODO:
     return os;
 }
 
 
 GraphObject BindingDistinct::operator[](const VarId var) {
-    //TODO: change this and add assert like this one assert(var.id < binding_size);
-    return objects_vector[var.id];
+    return child_binding[var];
 }
-

@@ -139,7 +139,8 @@ void FileManager::remove(const FileId file_id) {
     opened_files[file_id.id]->close();              // close the file stream
     std::remove(file_paths[file_id.id].c_str());    // delete file from disk
 
-    filename2file_id.erase(file_paths[file_id.id]); // update map
+    filename2file_id.erase(file_paths[file_id.id]); // update map // TODO: BUG el file_paths[file_id.id] contiene el path absoluto y filename2file_id el
+                                                                  // tiene el nombre se archivo sin el path
     // file_paths[file_id.id] = "";                    // update file_paths, maybe is redundant?
     opened_files[file_id.id].reset();               // destroy the fstream
     available_file_ids.push(file_id);               // add removed file_id as available for reuse
