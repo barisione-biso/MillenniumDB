@@ -57,13 +57,11 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
         tmp = make_unique<OpPathAtom>(s, p.inverse ^ inverse); // ^ = XOR
     } else {
         query::ast::PropertyPathAlternatives a = boost::get<query::ast::PropertyPathAlternatives>(p.atom);
-        query::ast::PropertyPathAlternatives b = boost::get<query::ast::PropertyPathAlternatives>(p.atom);
         tmp = (*this)(a, p.inverse ^ inverse); // ^ = XOR
     }
-    //TODO: retornar kleene star
+    vector<unique_ptr<OpPath>> op_vector;
     if (p.suffix.type() == typeid(query::ast::PropertyPathSuffix)) {
         query::ast::PropertyPathSuffix suffix = boost::get<query::ast::PropertyPathSuffix>(p.suffix);
-        vector<unique_ptr<OpPath>> op_vector;
         switch (suffix) {
             case query::ast::PropertyPathSuffix::NONE :
                 return tmp;
@@ -79,7 +77,15 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
                 return make_unique<OpPathAlternatives>(move(op_vector));
         }
     }
-    return tmp;
-    //query::ast::PropertyPathBoundSuffix suffix = boost::get<query::ast::PropertyPathBoundSuffix>(p.suffix);
-    //return make_unique<OpPathSuffix>(move(tmp), suffix.min, suffix.max);
+    query::ast::PropertyPathBoundSuffix suffix = boost::get<query::ast::PropertyPathBoundSuffix>(p.suffix);
+    for (size_t i = 0; i < suffix.min; i++) {
+        op_vector.push_back(tmp->duplicate());
+    }
+    for (size_t i = 0; i < suffix.max; i++) {
+        vector<unique_ptr<OpPath>> alternatives;
+        alternatives.push_back(tmp->duplicate());
+        alternatives.push_back(make_unique<OpPathEpsilon>());
+        op_vector.push_back(make_unique<OpPathAlternatives>(move(alternatives)));
+    }
+    return make_unique<OpPathSequence>(move(op_vector));
 }
