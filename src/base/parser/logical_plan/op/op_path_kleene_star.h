@@ -10,8 +10,11 @@ class OpPathKleeneStar : public OpPath {
 public:
     std::unique_ptr<OpPath> path;
 
-    OpPathKleeneStar(std::unique_ptr<OpPath> path) :
-        path (std::move(path))
+    OpPathKleeneStar(std::unique_ptr<OpPath> _path) :
+        path  (std::move(_path))
+        { }
+    OpPathKleeneStar(OpPathKleeneStar& kleene_path) :
+        path  (kleene_path.duplicate())
         { }
 
     void accept_visitor(OpVisitor& visitor) override {
@@ -45,6 +48,10 @@ public:
 
     bool nullable() const {
         return true;
+    }
+
+    std::unique_ptr<OpPath> duplicate() override {
+        return std::make_unique<OpPathKleeneStar>(*this);
     }
 };
 

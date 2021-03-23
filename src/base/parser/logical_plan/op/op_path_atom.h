@@ -13,6 +13,11 @@ public:
         inverse (inverse)
         { }
 
+    OpPathAtom(const OpPathAtom& op_atom) :
+        atom    (op_atom.atom),
+        inverse (op_atom.inverse)
+        { }
+
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
@@ -41,6 +46,10 @@ public:
 
     bool nullable() const {
         return false;
+    }
+
+    std::unique_ptr<OpPath> duplicate() override {
+        return std::make_unique<OpPathAtom>(*this);
     }
 };
 

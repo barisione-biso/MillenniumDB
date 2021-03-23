@@ -18,7 +18,7 @@
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/path_constructor/path_constructor.h"
-#include "relational_model/models/quad_model/query_optimizer/path_validator/path_validator.h"
+//#include "relational_model/models/quad_model/query_optimizer/path_validator/path_validator.h"
 
 class OpMatch : public Op {
 public:
@@ -80,11 +80,11 @@ public:
                         );
                     }
                     //TODO: Mover este llamado a relational model
-                    auto path = OpPropertyPath( last_object_name,
-                                                current_node_name,
-                                                path_constructor(property_path.path_alternatives));
-                    PathValidator path_validator = PathValidator(path);
-                    path_validator.print();
+                    //auto path = OpPropertyPath( last_object_name,
+                    //                            current_node_name,
+                    //                            path_constructor(property_path.path_alternatives));
+                    //PathValidator path_validator = PathValidator(path);
+                    //path_validator.print();
 
                 }
                 last_object_name = std::move(current_node_name);

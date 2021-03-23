@@ -25,6 +25,14 @@ public:
         is_nullable  (get_nullable(alternatives))
         { }
 
+    OpPathAlternatives(OpPathAlternatives& path_alternative) :
+        is_nullable  (path_alternative.is_nullable)
+        {
+            for (auto& alternative : path_alternative.alternatives) {
+                alternatives.push_back(alternative->duplicate());
+            }
+        }
+
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
@@ -59,6 +67,10 @@ public:
 
     bool nullable() const {
         return is_nullable;
+    }
+
+    std::unique_ptr<OpPath> duplicate() override {
+        return std::make_unique<OpPathAlternatives>(*this);
     }
 };
 

@@ -25,6 +25,14 @@ public:
         is_nullable (get_nullable(sequence))
         { }
 
+    OpPathSequence(OpPathSequence& path_sequence) :
+        is_nullable     (path_sequence.nullable())
+        {
+            for (auto& seq : path_sequence.sequence) {
+                sequence.push_back(seq->duplicate());
+            }
+        }
+
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
@@ -59,6 +67,10 @@ public:
 
     bool nullable() const {
         return is_nullable;
+    }
+
+    std::unique_ptr<OpPath> duplicate() override {
+        return std::make_unique<OpPathSequence>(*this);
     }
 };
 

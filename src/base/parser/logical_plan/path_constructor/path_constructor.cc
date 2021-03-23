@@ -56,9 +56,9 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
         tmp = make_unique<OpPathAtom>(s, p.inverse ^ inverse); // ^ = XOR
     } else {
         query::ast::PropertyPathAlternatives a = boost::get<query::ast::PropertyPathAlternatives>(p.atom);
+        query::ast::PropertyPathAlternatives b = boost::get<query::ast::PropertyPathAlternatives>(p.atom);
         tmp = (*this)(a, p.inverse ^ inverse); // ^ = XOR
     }
-    return tmp;
     //TODO: retornar kleene star
     if (p.suffix.type() == typeid(query::ast::PropertyPathSuffix)) {
         query::ast::PropertyPathSuffix suffix = boost::get<query::ast::PropertyPathSuffix>(p.suffix);
@@ -67,10 +67,14 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
                 return tmp;
             case query::ast::PropertyPathSuffix::ZERO_OR_MORE :
                 return make_unique<OpPathKleeneStar>(move(tmp));
-            //case query::ast::PropertyPathSuffix::ONE_OR_ONE :
-            //    return make_unique<OpPathSuffix>(move(tmp), 1, OpPathSuffix::MAX);
-            //case query::ast::PropertyPathSuffix::ZERO_OR_MORE :
-            //    return make_unique<OpPathSuffix>(move(tmp), 0, OpPathSuffix::MAX);
+            case query::ast::PropertyPathSuffix::ONE_OR_MORE :
+                vector<unique_ptr<OpPath>> sequence;
+                sequence.push_back(tmp->duplicate());
+                sequence.push_back(make_unique<OpPathKleeneStar>(move(tmp)));
+                return make_unique<OpPathSequence>(move(sequence));
+            case query::ast::PropertyPathSuffix::ZERO_OR_ONE :
+                return nullptr;
+                //return make_unique<OpPathSuffix>(move(tmp), 0, OpPathSuffix::MAX);
         }
     }
     return tmp;

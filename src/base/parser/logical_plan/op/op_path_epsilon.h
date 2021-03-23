@@ -10,6 +10,7 @@ class OpPathEpsilon : public OpPath {
 public:
 
     OpPathEpsilon() { }
+    OpPathEpsilon(const OpPathEpsilon& _) { }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
@@ -41,6 +42,10 @@ public:
 
     bool nullable() const {
         return true;
+    }
+
+    std::unique_ptr<OpPath> duplicate() override {
+        return std::make_unique<OpPathEpsilon>(*this);
     }
 };
 
