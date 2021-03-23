@@ -9,9 +9,20 @@
 class OpPathSequence : public OpPath {
 public:
     std::vector<std::unique_ptr<OpPath>> sequence;
+    const bool is_nullable;
 
-    OpPathSequence(std::vector<std::unique_ptr<OpPath>> sequence) :
-        sequence (std::move(sequence))
+     static bool get_nullable(const std::vector<std::unique_ptr<OpPath>>& sequence) {
+        for (const auto& seq : sequence) {
+            if (seq->nullable()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    OpPathSequence(std::vector<std::unique_ptr<OpPath>> _sequence) :
+        sequence (std::move(_sequence)),
+        is_nullable (get_nullable(sequence))
         { }
 
     void accept_visitor(OpVisitor& visitor) override {
@@ -45,6 +56,10 @@ public:
 
         return os;
     };
+
+    bool nullable() const {
+        return is_nullable;
+    }
 };
 
 #endif // BASE__OP_PATH_SEQUENCE_H_

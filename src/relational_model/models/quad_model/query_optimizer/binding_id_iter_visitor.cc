@@ -18,6 +18,8 @@
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_suffix.h"
+#include "base/parser/logical_plan/op/op_path_kleene_star.h"
+#include "base/parser/logical_plan/op/op_path_epsilon.h"
 #include "relational_model/models/quad_model/query_optimizer/path_validator/path_validator.h"
 
 using namespace std;
@@ -319,4 +321,5 @@ void BindingIdIterVisitor::visit(OpPathAlternatives&)  { }
 void BindingIdIterVisitor::visit(OpPathSequence&)      { }
 void BindingIdIterVisitor::visit(OpPathSuffix&)        { }
 void BindingIdIterVisitor::visit(OpPathAtom&)          { }
-
+void BindingIdIterVisitor::visit(OpPathKleenStar&)    { }
+void BindingIdIterVisitor::visit(OpPathEpsilon&)       { }

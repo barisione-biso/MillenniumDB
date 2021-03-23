@@ -19,6 +19,8 @@
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_suffix.h"
+#include "base/parser/logical_plan/op/op_path_kleene_star.h"
+#include "base/parser/logical_plan/op/op_path_epsilon.h"
 
 using namespace std;
 
@@ -180,4 +182,5 @@ void OptimizeTree::visit(OpPropertyPath&)      { }
 void OptimizeTree::visit(OpPathSequence&)      { }
 void OptimizeTree::visit(OpPathSuffix&)        { }
 void OptimizeTree::visit(OpPathAtom&)          { }
-
+void OptimizeTree::visit(OpPathKleenStar&)    { }
+void OptimizeTree::visit(OpPathEpsilon&)       { }

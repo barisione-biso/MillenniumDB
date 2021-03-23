@@ -21,6 +21,8 @@ class OpPathAtom;
 class OpPathAlternatives;
 class OpPathSequence;
 class OpPathSuffix;
+class OpPathKleenStar;
+class OpPathEpsilon;
 
 class OpVisitor {
 public:
@@ -45,6 +47,8 @@ public:
     virtual void visit(OpPathAlternatives&) = 0;
     virtual void visit(OpPathSequence&) = 0;
     virtual void visit(OpPathSuffix&) = 0;
+    virtual void visit(OpPathKleenStar&) = 0;
+    virtual void visit(OpPathEpsilon&) = 0;
 
 };
 

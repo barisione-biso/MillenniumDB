@@ -13,6 +13,8 @@
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_suffix.h"
 #include "base/parser/logical_plan/op/op_path_atom.h"
+#include "base/parser/logical_plan/op/op_path_kleene_star.h"
+#include "base/parser/logical_plan/op/op_path_epsilon.h"
 
 /*
 
@@ -43,6 +45,8 @@ private:
     void visit(OpPathSequence&);
     void visit(OpPathSuffix&);
     void visit(OpPathAtom&);
+    void visit(OpPathKleenStar&);
+    void visit(OpPathEpsilon&);
 
     void generate_definitive_transitions();
 

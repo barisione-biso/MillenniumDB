@@ -1,17 +1,15 @@
-#ifndef BASE__OP_PATH_ATOM_H_
-#define BASE__OP_PATH_ATOM_H_
+#ifndef BASE__OP_PATH_EPSILON_H_
+#define BASE__OP_PATH_EPSILON_H_
 
-#include <string>
+#include <vector>
+#include <memory>
 
-class OpPathAtom : public OpPath {
+#include "base/parser/logical_plan/op/op_path.h"
+
+class OpPathEpsilon : public OpPath {
 public:
-    std::string atom;
-    bool inverse;
 
-    OpPathAtom(std::string atom, bool inverse) :
-        atom    (atom),
-        inverse (inverse)
-        { }
+    OpPathEpsilon() { }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
@@ -19,9 +17,11 @@ public:
 
     bool operator<(const OpPath& other) const override {
         // TODO:
-        // if (atom < other.atom) {
+        // if (min < min) {
         //     return true;
-        // } else if (inverse < other.inverse) {
+        // } else if (max < max) {
+        //     return true;
+        // } else if (*op_path < *other.op_path) {
         //     return true;
         // }
         return false;
@@ -34,14 +34,14 @@ public:
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
-        os << "OpAtom(" << atom << ",inverse:" << (inverse ? "true" : "false") << ")\n";
+        os << "OpPathEpsilon()\n";
 
         return os;
     };
 
     bool nullable() const {
-        return false;
+        return true;
     }
 };
 
-#endif // BASE__OP_PATH_ATOM_H_
+#endif // BASE__OP_PATH_EPSILON_H_

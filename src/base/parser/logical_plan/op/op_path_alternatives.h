@@ -9,9 +9,20 @@
 class OpPathAlternatives : public OpPath {
 public:
     std::vector<std::unique_ptr<OpPath>> alternatives;
+    const bool is_nullable;
 
-    OpPathAlternatives(std::vector<std::unique_ptr<OpPath>> alternatives) :
-        alternatives (std::move(alternatives))
+    static bool get_nullable(const std::vector<std::unique_ptr<OpPath>>& alternatives) {
+        for (const auto& alternative : alternatives) {
+            if (alternative->nullable()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    OpPathAlternatives(std::vector<std::unique_ptr<OpPath>> _alternatives) :
+        alternatives (std::move(_alternatives)),
+        is_nullable  (get_nullable(alternatives))
         { }
 
     void accept_visitor(OpVisitor& visitor) override {
@@ -45,6 +56,10 @@ public:
 
         return os;
     };
+
+    bool nullable() const {
+        return is_nullable;
+    }
 };
 
 #endif // BASE__OP_PATH_ALTERNATIVES_H_

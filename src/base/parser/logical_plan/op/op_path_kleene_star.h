@@ -1,19 +1,17 @@
-#ifndef BASE__OP_PATH_SUFFIX_H_
-#define BASE__OP_PATH_SUFFIX_H_
+#ifndef BASE__OP_PATH_KLEENE_STAR_H_
+#define BASE__OP_PATH_KLEENE_STAR_H_
 
-#include <iostream>
+#include <vector>
+#include <memory>
 
-class OpPathSuffix : public OpPath {
+#include "base/parser/logical_plan/op/op_path.h"
+
+class OpPathKleeneStar : public OpPath {
 public:
-    static constexpr uint32_t MAX = -1;
-    std::unique_ptr<OpPath> op_path;
-    uint32_t min;
-    uint32_t max;
+    std::unique_ptr<OpPath> path;
 
-    OpPathSuffix(std::unique_ptr<OpPath> op_path, uint32_t min, uint32_t max) :
-        op_path (std::move(op_path)),
-        min     (min),
-        max     (max)
+    OpPathKleeneStar(std::unique_ptr<OpPath> path) :
+        path (std::move(path))
         { }
 
     void accept_visitor(OpVisitor& visitor) override {
@@ -39,16 +37,15 @@ public:
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
-        os << "OpSuffix(min: " << min << ",max: " << max << ")\n";
-        op_path->print_to_ostream(os, indent + 2);
+        os << "OpPathKleeneStar()\n";
+        path->print_to_ostream(os, indent +2);
 
         return os;
     };
 
-    bool nullable () const {
+    bool nullable() const {
         return true;
     }
-
 };
 
-#endif // BASE__OP_PATH_SUFFIX_H_
+#endif // BASE__OP_PATH_KLEENE_STAR_H_

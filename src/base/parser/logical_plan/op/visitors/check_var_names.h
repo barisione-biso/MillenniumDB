@@ -35,6 +35,8 @@ public:
     void visit(OpPathAlternatives&) override;
     void visit(OpPathSequence&) override;
     void visit(OpPathSuffix&) override;
+    void visit(OpPathKleenStar&) override;
+    void visit(OpPathEpsilon&) override;
 };
 
 #endif // BASE__CHECK_VAR_NAMES_EXISTS_H_

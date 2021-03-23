@@ -3,19 +3,30 @@
 using namespace std;
 
 PathValidator::PathValidator(OpPropertyPath& path) {
+    //TODO: STRUCT para las transiciones
+    //TODO: STRUCT para los nodos
+    //TODO: Vector de nodos
+    //TODO: Orden de Op
+    //TODO: Mover instanciación de PathValidator fuera de OpMatch
+    //TODO: Destructor de OpPropertyPath
+    //TODO: A+ => Sequence (A, A*)
+    //TODO: A? => Alternative (A, e)
+    //TODO: A{m,n} => sequence(A...(m veces)...,A,A?,...(n veces)...,A?)
+    //TODO: OpPathSuffix se elimina
+    //TODO: Se crea OpPathKleenStar y OpPathEpsilon
+
     total_states = 2;
     transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
     transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
 
     limits.push( {0, 1} );
     path.path->accept_visitor(*this);
-    generate_definitive_transitions();
+    // generate_definitive_transitions();
 }
 
 
 void PathValidator::visit(OpPathAlternatives& path) {
     auto initial_limits = limits.top();
-    cout << "alternatives:" << std::get<0>(initial_limits) << " " << std::get<1>(initial_limits) << "\n";
     limits.pop();
     for (auto& alternative : path.alternatives) {
         limits.push( initial_limits );
@@ -26,7 +37,6 @@ void PathValidator::visit(OpPathAlternatives& path) {
 
 void PathValidator::visit(OpPathSequence& path) {
     auto initial_limits = limits.top();
-    cout << "sequence:" << std::get<0>(initial_limits) << " " << std::get<1>(initial_limits) << "\n";
     limits.pop();
 
     transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
@@ -44,33 +54,11 @@ void PathValidator::visit(OpPathSequence& path) {
     }
     limits.push({ next_end, std::get<1>(initial_limits) });
     path.sequence[path.sequence.size() - 1]->accept_visitor(*this);
-    /*
-    limits.push( {std::get<0>(initial_limits), total_states});
-    auto next_start =  total_states;
-    auto final_start = total_states;
-    total_states++;
-    transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
-    path.sequence[0]->accept_visitor(*this);
-
-    uint32_t added_nodes = 1;
-    for (size_t i = 1; i+1 < path.sequence.size(); i++) {
-        added_nodes++;
-        limits.push({ next_start, total_states});
-        next_start = total_states;
-        total_states++;
-        transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
-        path.sequence[i]->accept_visitor(*this);
-    }
-
-    limits.push({ total_states - added_nodes, std::get<1>(initial_limits) });
-    path.sequence[path.sequence.size() - 1]->accept_visitor(*this);
-    */
 }
 
 
 void PathValidator::visit(OpPathSuffix& path) {
     auto initial_limits = limits.top();
-    cout << "suffix:" << std::get<0>(initial_limits) << " " << std::get<1>(initial_limits) << "\n";
     auto start = std::get<0>(initial_limits);
     auto end   = std::get<1>(initial_limits);
     limits.pop();
@@ -82,7 +70,14 @@ void PathValidator::visit(OpPathSuffix& path) {
     else if (path.min == 0 && path.max == OpPathSuffix::MAX) {
         // * suffix
 
+        // Epsilon transitions
+        /*
+        transitions[start].push_back({end, "", false});
+        limits.push({ start, start });
+        path.op_path->accept_visitor(*this);
+        */
         // create 2 new states
+        
         auto new_start = total_states++;
         auto new_end   = total_states++;
         transitions.push_back( vector<tuple<uint32_t, string, bool>>() );
@@ -106,10 +101,12 @@ void PathValidator::visit(OpPathSuffix& path) {
     }
 }
 
+void PathValidator::visit(OpPathKleenStar&) { }
+void PathValidator::visit(OpPathEpsilon&)    { }
+
 
 void PathValidator::visit(OpPathAtom& path) {
     auto my_limits = limits.top();
-    cout << "atom:" << std::get<0>(my_limits) << " " << std::get<1>(my_limits) << "\n";
     limits.pop();
 
     auto start = std::get<0>(my_limits);
@@ -168,7 +165,6 @@ void PathValidator::generate_definitive_transitions() {
                     }
                 }
             }
-
         }
         epsilon_closures.push_back( std::move(epsilon_closure) );
     }
