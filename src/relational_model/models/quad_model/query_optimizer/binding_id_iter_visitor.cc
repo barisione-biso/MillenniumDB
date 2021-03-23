@@ -319,5 +319,5 @@ void BindingIdIterVisitor::visit(OpPropertyPath&)      { }
 void BindingIdIterVisitor::visit(OpPathAlternatives&)  { }
 void BindingIdIterVisitor::visit(OpPathSequence&)      { }
 void BindingIdIterVisitor::visit(OpPathAtom&)          { }
-void BindingIdIterVisitor::visit(OpPathKleenStar&)     { }
+void BindingIdIterVisitor::visit(OpPathKleeneStar&)     { }
 void BindingIdIterVisitor::visit(OpPathEpsilon&)       { }

@@ -43,7 +43,7 @@ private:
     void visit(OpPathAlternatives&);
     void visit(OpPathSequence&);
     void visit(OpPathAtom&);
-    void visit(OpPathKleenStar&);
+    void visit(OpPathKleeneStar&);
     void visit(OpPathEpsilon&);
 
     void generate_definitive_transitions();

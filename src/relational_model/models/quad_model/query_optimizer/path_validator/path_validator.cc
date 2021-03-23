@@ -101,7 +101,7 @@ void PathValidator::visit(OpPathSuffix& path) {
     }
 }
 */
-void PathValidator::visit(OpPathKleenStar&) { }
+void PathValidator::visit(OpPathKleeneStar&) { }
 void PathValidator::visit(OpPathEpsilon&)    { }
 
 

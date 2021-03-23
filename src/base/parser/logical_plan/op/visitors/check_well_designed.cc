@@ -88,5 +88,5 @@ void CheckWellDesigned::visit(OpPath&)              { }
 void CheckWellDesigned::visit(OpPathAlternatives&)  { }
 void CheckWellDesigned::visit(OpPathSequence&)      { }
 void CheckWellDesigned::visit(OpPathAtom&)          { }
-void CheckWellDesigned::visit(OpPathKleenStar&)     { }
+void CheckWellDesigned::visit(OpPathKleeneStar&)     { }
 void CheckWellDesigned::visit(OpPathEpsilon&)       { }

@@ -180,5 +180,5 @@ void OptimizeTree::visit(OpPathAlternatives&)  { }
 void OptimizeTree::visit(OpPropertyPath&)      { }
 void OptimizeTree::visit(OpPathSequence&)      { }
 void OptimizeTree::visit(OpPathAtom&)          { }
-void OptimizeTree::visit(OpPathKleenStar&)     { }
+void OptimizeTree::visit(OpPathKleeneStar&)     { }
 void OptimizeTree::visit(OpPathEpsilon&)       { }

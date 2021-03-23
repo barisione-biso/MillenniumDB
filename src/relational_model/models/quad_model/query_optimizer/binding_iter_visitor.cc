@@ -183,5 +183,5 @@ void BindingIterVisitor::visit(OpPathAlternatives&)  { }
 void BindingIterVisitor::visit(OpPathSequence&)      { }
 void BindingIterVisitor::visit(OpPathAtom&)          { }
 void BindingIterVisitor::visit(OpPropertyPath&)      { }
-void BindingIterVisitor::visit(OpPathKleenStar&)     { }
+void BindingIterVisitor::visit(OpPathKleeneStar&)     { }
 void BindingIterVisitor::visit(OpPathEpsilon&)       { }

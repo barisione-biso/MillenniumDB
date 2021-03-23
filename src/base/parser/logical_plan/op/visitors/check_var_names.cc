@@ -75,5 +75,5 @@ void CheckVarNames::visit(OpPath&)                { }
 void CheckVarNames::visit(OpPathAlternatives& )   { }
 void CheckVarNames::visit(OpPathSequence&)        { }
 void CheckVarNames::visit(OpPathAtom&)            { }
-void CheckVarNames::visit(OpPathKleenStar&)       { }
+void CheckVarNames::visit(OpPathKleeneStar&)       { }
 void CheckVarNames::visit(OpPathEpsilon&)         { }

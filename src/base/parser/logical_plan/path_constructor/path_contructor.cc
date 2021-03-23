@@ -3,6 +3,7 @@
 #include "base/parser/logical_plan/op/op_path_alternatives.h"
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
+#include "base/parser/logical_plan/op/op_path_kleene_star.h"
 
 #include <cassert>
 #include <vector>
@@ -58,22 +59,21 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
         tmp = (*this)(a, p.inverse ^ inverse); // ^ = XOR
     }
     return tmp;
-    /*
-    TODO: retornar kleene star
+    //TODO: retornar kleene star
     if (p.suffix.type() == typeid(query::ast::PropertyPathSuffix)) {
         query::ast::PropertyPathSuffix suffix = boost::get<query::ast::PropertyPathSuffix>(p.suffix);
         switch (suffix) {
             case query::ast::PropertyPathSuffix::NONE :
                 return tmp;
-            case query::ast::PropertyPathSuffix::ONE_OR_MORE :
-                return make_unique<OpPathSuffix>(move(tmp), 1, OpPathSuffix::MAX);
             case query::ast::PropertyPathSuffix::ZERO_OR_MORE :
-                return make_unique<OpPathSuffix>(move(tmp), 0, OpPathSuffix::MAX);
-            case query::ast::PropertyPathSuffix::ZERO_OR_ONE :
-                return make_unique<OpPathSuffix>(move(tmp), 0, 1);
+                return make_unique<OpPathKleeneStar>(move(tmp));
+            //case query::ast::PropertyPathSuffix::ONE_OR_ONE :
+            //    return make_unique<OpPathSuffix>(move(tmp), 1, OpPathSuffix::MAX);
+            //case query::ast::PropertyPathSuffix::ZERO_OR_MORE :
+            //    return make_unique<OpPathSuffix>(move(tmp), 0, OpPathSuffix::MAX);
         }
     }
-    query::ast::PropertyPathBoundSuffix suffix = boost::get<query::ast::PropertyPathBoundSuffix>(p.suffix);
-    return make_unique<OpPathSuffix>(move(tmp), suffix.min, suffix.max);
-    */
+    return tmp;
+    //query::ast::PropertyPathBoundSuffix suffix = boost::get<query::ast::PropertyPathBoundSuffix>(p.suffix);
+    //return make_unique<OpPathSuffix>(move(tmp), suffix.min, suffix.max);
 }
