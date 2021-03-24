@@ -20,6 +20,7 @@ bool DistinctOrdered::next() {
     if (last_tuple.size() == 0) {
         // first tuple
         if (child_iter->next()) {
+            // save objects of current tuple for future comparison
             for (const auto& var : projected_vars) {
                 last_tuple.push_back( child_binding[var] );
             }
@@ -30,6 +31,7 @@ bool DistinctOrdered::next() {
     } else {
         // not first tuple
         while (child_iter->next()) {
+            // save objects of current tuple
             for (size_t i = 0; i < projected_vars.size(); i++) {
                 current_tuple[i] = child_binding[projected_vars[i]];
             }

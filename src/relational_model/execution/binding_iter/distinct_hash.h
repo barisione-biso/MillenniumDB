@@ -17,7 +17,7 @@ public:
 
     void begin() override;
     bool next() override;
-    void analyze(int indent = 0) const override;    
+    void analyze(int indent = 0) const override;
 
     bool current_tuple_distinct();
 

@@ -12,15 +12,15 @@
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
 #include "base/parser/logical_plan/op/op_distinct.h"
+#include "relational_model/execution/binding_id_iter/distinct_id_hash.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/order_by.h"
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
-#include "relational_model/models/quad_model/query_optimizer/binding_id_iter_visitor.h"
 #include "relational_model/execution/binding_iter/distinct_ordered.h"
-#include "relational_model/execution/binding_id_iter/distinct_id_hash.h"
 #include "relational_model/execution/binding_iter/distinct_hash.h"
+#include "relational_model/models/quad_model/query_optimizer/binding_id_iter_visitor.h"
 
 using namespace std;
 
@@ -216,7 +216,7 @@ void BindingIterVisitor::visit(OpDistinct& op_distinct) {
                 }
                 auto var_id = get_var_id(var_name);
                 projected_var_ids.push_back(var_id);
-            }       
+            }
             tmp = make_unique<DistinctHash>(move(tmp), projected_var_ids);
         }
     }

@@ -19,7 +19,6 @@ public:
     void assign_nulls() override;
 
     void analyze(int indent = 0) const override;
-    
 
     bool current_tuple_distinct();
 

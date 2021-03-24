@@ -18,8 +18,9 @@ template class ExtendableTable<ObjectId>;
 template <class T>
 ExtendableTable<T>::ExtendableTable(std::size_t tuple_size) :
     tuple_size      (tuple_size),
-    buckets_file_id (file_manager.get_file_id("tmp_buckets.dat"))
+    buckets_file_id (file_manager.get_file_id("tmp_buckets.dat"))  // TODO: use tmp files
 {
+    // create directory with 2^global_depth empty buckets
     uint_fast32_t dir_size = 1 << global_depth;
     dir = new uint64_t[dir_size];
     for (uint_fast32_t i = 0; i < dir_size; ++i) {
@@ -34,7 +35,7 @@ ExtendableTable<T>::ExtendableTable(std::size_t tuple_size) :
 
 template <class T>
 ExtendableTable<T>::~ExtendableTable() {
-    //file_manager.remove(buckets_file_id);
+    file_manager.remove(buckets_file_id);
 }
 
 
@@ -74,6 +75,7 @@ bool ExtendableTable<T>::is_in_or_insert(std::vector<T> tuple) {
         bool is_in = bucket.is_in_or_insert(tuple, hash[0], hash[1], &need_split);
         if (need_split) {
             if (*bucket.local_depth < global_depth) {
+                // new_bucket_number = 2^local_depth + bucket_number
                 const auto new_bucket_number = bucket_number | (1 << (*bucket.local_depth));
                 ++(*bucket.local_depth);
                 const auto new_mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - (*bucket.local_depth));
@@ -95,6 +97,7 @@ bool ExtendableTable<T>::is_in_or_insert(std::vector<T> tuple) {
                 assert(*bucket.local_depth == global_depth && "EXTENDIBLE HASH INCONSISTENCY: *bucket.local_depth != global_depth");
                 ++(*bucket.local_depth);
 
+                // new_bucket_number = 2^local_depth + bucket_number
                 const auto new_bucket_number = bucket_number | (1 << global_depth);
                 ExtendableBucket<T> new_bucket(buckets_file_id, new_bucket_number, tuple_size);
                 *new_bucket.tuple_count = 0;
@@ -129,7 +132,7 @@ void ExtendableTable<T>::duplicate_dirs() {
         dir,
         old_dir_size * sizeof(uint64_t)
     );
-
+    // new pointers should still point to old buckets (no need to create all buckets at once when duplicating)
     std::memcpy(
         &new_dir[old_dir_size],
         dir,

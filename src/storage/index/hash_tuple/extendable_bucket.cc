@@ -40,6 +40,7 @@ bool ExtendableBucket<T>::is_in(std::vector<T>& tuple, const uint64_t hash1, con
     for (uint8_t i = 0; i < *tuple_count; ++i) {
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             bool tuple_found = true;
+            // compare objects (in case we have a collision)
             for (uint_fast16_t j = 0; j < *tuple_size; j++) {
                 if (tuple[j] != tuples[((*tuple_size) * i) + j]) {
                     tuple_found = false;
@@ -60,6 +61,7 @@ bool ExtendableBucket<T>::is_in_or_insert(std::vector<T>& tuple, const uint64_t 
     for (uint8_t i = 0; i < *tuple_count; ++i) {
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             bool tuple_found = true;
+            // compare objects (in case we have a collision)
             for (uint_fast16_t j = 0; j < *tuple_size; j++) {
                 if (tuple[j] != tuples[((*tuple_size) * i) + j]) {
                     tuple_found = false;
@@ -106,7 +108,7 @@ void ExtendableBucket<T>::redistribute(ExtendableBucket<T>& other, const uint64_
                 &hashes[2*i],
                 2 * sizeof(uint64_t)
             );
-
+            // copy objects to other bucket
             std::memcpy(
                 &other.tuples[*tuple_size * other_pos],
                 &tuples[*tuple_size*i],
@@ -121,7 +123,7 @@ void ExtendableBucket<T>::redistribute(ExtendableBucket<T>& other, const uint64_
                     &hashes[2*i],
                     2 * sizeof(uint64_t)
                 );
-
+                // copy objects in this bucket
                 std::memcpy(
                     &tuples[*tuple_size * this_pos],
                     &tuples[*tuple_size *i],
@@ -131,6 +133,7 @@ void ExtendableBucket<T>::redistribute(ExtendableBucket<T>& other, const uint64_
             ++this_pos;
         }
     }
+    // we are making the supposition that at least one suffix is different (otherwise it will split forever)
     *this->tuple_count = this_pos;
     *other.tuple_count = other_pos;
     this->page.make_dirty();

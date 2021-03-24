@@ -15,10 +15,12 @@ void DistinctIdHash::begin(BindingId& parent_binding, bool parent_has_next) {
     current_tuple = std::vector<ObjectId>(projected_vars.size());
 }
 
+
 void DistinctIdHash::reset() {
-    // TODO: clear hash table ?
+    // TODO: now this method is never called, maybe in the future we may need to clear hash table
     child_iter->reset();
 }
+
 
 bool DistinctIdHash::next() {
     while (child_iter->next()) {
@@ -33,9 +35,11 @@ bool DistinctIdHash::next() {
     return false;
 }
 
+
 void DistinctIdHash::assign_nulls() {
     child_iter->assign_nulls();
 }
+
 
 bool DistinctIdHash::current_tuple_distinct() {
     bool is_new_tuple = !extendable_table.is_in_or_insert(current_tuple);

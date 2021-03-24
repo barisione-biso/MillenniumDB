@@ -17,7 +17,7 @@ template <class U> class ExtendableTable;
 template <class T>
 class ExtendableBucket {
 
-friend class ExtendableTable<T>;  
+friend class ExtendableTable<T>;
 
 public:
     ExtendableBucket(const FileId file_id, const uint_fast32_t bucket_number, std::size_t tuple_size);
