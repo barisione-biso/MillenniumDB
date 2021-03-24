@@ -39,7 +39,8 @@ void FileManager::init(const std::string& db_folder) {
 
 uint_fast32_t FileManager::count_pages(const FileId file_id) const {
     // TODO: need mutex?
-    return experimental::filesystem::file_size(file_paths[file_id.id])/Page::PAGE_SIZE;
+    const auto file_path = get_file_path(filenames[file_id.id]);
+    return experimental::filesystem::file_size(file_path)/Page::PAGE_SIZE;
 }
 
 
@@ -77,8 +78,6 @@ fstream& FileManager::get_file(const FileId file_id) const {
 
 
 FileId FileManager::get_file_id(const string& filename) {
-    const string file_path = db_folder + "/" + filename;
-
     std::lock_guard<std::mutex> lck(files_mutex);
 
     // case 1: file is in the map
@@ -89,10 +88,11 @@ FileId FileManager::get_file_id(const string& filename) {
 
     // case 2: file is not in the map and available_file_ids is not empty
     else if (!available_file_ids.empty()) {
+        const auto file_path = get_file_path(filename);
         const auto res = available_file_ids.front();
         available_file_ids.pop();
 
-        file_paths[res.id] = file_path;
+        filenames[res.id] = filename;
         filename2file_id.insert({ filename, res });
         auto file = make_unique<fstream>();
         if (!experimental::filesystem::exists(file_path)) {
@@ -111,9 +111,10 @@ FileId FileManager::get_file_id(const string& filename) {
 
     // case 3: file is not in the map and available_file_ids is empty
     else {
-        const auto res = FileId(file_paths.size());
+        const auto file_path = get_file_path(filename);
+        const auto res = FileId(filenames.size());
 
-        file_paths.push_back(file_path);
+        filenames.push_back(filename);
         filename2file_id.insert({ filename, res });
         auto file = make_unique<fstream>();
         if (!experimental::filesystem::exists(file_path)) {
@@ -134,14 +135,14 @@ FileId FileManager::get_file_id(const string& filename) {
 
 void FileManager::remove(const FileId file_id) {
     std::lock_guard<std::mutex> lck(files_mutex);
+    const auto file_path = get_file_path(filenames[file_id.id]);
 
     buffer_manager.remove(file_id);                 // clear pages from buffer_manager
     opened_files[file_id.id]->close();              // close the file stream
-    std::remove(file_paths[file_id.id].c_str());    // delete file from disk
+    std::remove(file_path.c_str());                 // delete file from disk
 
-    filename2file_id.erase(file_paths[file_id.id]); // update map // TODO: BUG el file_paths[file_id.id] contiene el path absoluto y filename2file_id el
-                                                                  // tiene el nombre se archivo sin el path
-    // file_paths[file_id.id] = "";                    // update file_paths, maybe is redundant?
+    filename2file_id.erase(filenames[file_id.id]);  // update map
+    // filenames[file_id.id] = "";                    // update filenames, maybe is redundant?
     opened_files[file_id.id].reset();               // destroy the fstream
     available_file_ids.push(file_id);               // add removed file_id as available for reuse
 }

@@ -1,6 +1,6 @@
 /*
  * FileManager mantains a list (`opened_files`) with all files that are opened,
- * and another list (`file_paths`) with the string of the file paths.
+ * and another list (`filenames`) with the string of their names.
  * The FileId its just the index, so both lists must have the same size
  * and objects at the same index are related to each other.
  *
@@ -64,9 +64,9 @@ private:
     // to avoid synchronization problems when establishing a new file_id in `get_file_id(filename)`
     std::mutex files_mutex;
 
-    // contains all filenames that have been used. The position in this vector is equivalent to the FileId
-    // representing that file
-    std::vector<std::string> file_paths;
+    // Contains all filenames that are being used (removed files are not in this list).
+    // The position in this vector is equivalent to the FileId representing that file
+    std::vector<std::string> filenames;
 
     // private constructor, other classes must use the global object `file_manager`
     FileManager(const std::string& db_folder);
@@ -78,6 +78,10 @@ private:
     // read a page from disk into memory pointed by `bytes`.
     // `bytes` must point to the start memory position of `Page::PAGE_SIZE` allocated bytes
     void read_page(PageId page_id, char* bytes) const;
+
+    inline const std::string get_file_path(const std::string& filename) const noexcept {
+        return db_folder + "/" + filename;
+    }
 };
 
 extern FileManager& file_manager; // global object

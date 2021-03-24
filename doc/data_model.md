@@ -1,21 +1,29 @@
-# Data Model
+# The generic data model
 
-## Objects
-There are 3 types of objects:
-- **Identifiable nodes**: nodes asociated to a string e.g: "Q1"
+Everything in our graph model is an **object**, and there are different subtypes of objects:
+- **Nodes**:
+Nodes have the following attributes:
+    - `ID`: a (posibbly null) string. If the ID is not null,
+    we denominate the node is an **identifiable node**, otherwise denominate the node as an **anonymous node**.
+    - `labels`: a (possibly empty) set of strings.
+    - `properties`: a (possibly empty) set of pairs <key, value>. A key cannot appear twice in the set.
 
-- **Anonymous nodes**: nodes not asociated to a string. Can be used to represent a compose object (e.g. a wikidata time) or a resource not identified or unknown.
+- **Connections**: Connections have the following attributes:
+    - `from`: an **Object**.
+    - `to`: an **Object**.
+    - `types`: a (possibly empty) set of **identifiable nodes**.
+    - `properties`: a (possibly empty) set of pairs <key, value>. A key cannot appear twice in the set.
 
-- **Connections**: object similar to an edge, that asociates 2 other objects with a direction (From and To). Not exactly a typical edge because we can have connections of connections.
+- **Literals**: literals are values of a certain type. Supported types are `integer`, `string`, `float` and `boolean`.
 
-## Connection Type
-Connections have a (possibly empty) set of  **Identifiable nodes** as types. For wikidata we will assume the set is of size 1.
+TODO: maybe is better to define `properties` as a partial function?
 
-## Labels
-**Identifiable nodes** and **Anonymous nodes** have a (possibly empty) set of strings as labels.
-**Connections** don't have labels
 
-## Properties
-All 3 types of objects have a (possibly empty) set of key/values.
-(e.g. "name":"John").
-An object cannot have 2 properties with the same key.
+# Model constraints
+The model presented before is very flexible, but most of the time we have some constrains we could take advantage on. For example if we know every **connection** will always have one **type**, we can make some optimizations on how we save the data on the disk and then we can save some operations when solving a query.
+
+For that reason, we allow having multiples models depending on what constrains do we have. Depending on the model you use, you end up using different indexes to store the data and thus, each model has its own query solver (TODO: query optimizer? query planner?).
+
+
+## Quad Model
+Currently this is the only model implemented. The only restriction to the generic model is that every **connection** must have one **type**.

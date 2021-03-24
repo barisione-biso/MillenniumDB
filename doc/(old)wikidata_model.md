@@ -4,7 +4,7 @@
 - There are 3 subclasses of objects:
   - An `Identificable Object` has a string as identifier.
   - An `Anonymous Object` only has an internal id.
-  - An `Connection Object` that is asociated with two `Objects`, like an edge.
+  - A `Connection Object` that has an internal id and asociates 3 `Objects`.
 
 ### Label
 * Labels are from a set `L` (subset of strings)
