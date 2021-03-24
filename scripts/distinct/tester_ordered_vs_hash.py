@@ -23,7 +23,7 @@ for i in range(1, 13):
                 break
             line = line.strip()
             answer_ordered.add(line)
-        
+
     if answer_hash.difference(answer_ordered) or answer_ordered.difference(answer_hash):
         print("test incorrecto")
         print("Respuestas en hash que no están en ordered:")
@@ -33,4 +33,4 @@ for i in range(1, 13):
     else:
         print("test correcto")
     print()
-    
+
