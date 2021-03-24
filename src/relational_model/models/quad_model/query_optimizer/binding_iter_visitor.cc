@@ -11,11 +11,15 @@
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
+#include "base/parser/logical_plan/op/op_distinct.h"
+#include "relational_model/execution/binding_id_iter/distinct_id_hash.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/order_by.h"
 #include "relational_model/execution/binding_iter/select.h"
 #include "relational_model/execution/binding_iter/where.h"
+#include "relational_model/execution/binding_iter/distinct_ordered.h"
+#include "relational_model/execution/binding_iter/distinct_hash.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_id_iter_visitor.h"
 
 using namespace std;
@@ -75,6 +79,7 @@ void BindingIterVisitor::visit(OpSelect& op_select) {
 
 
 void BindingIterVisitor::visit(OpFilter& op_filter) {
+    distinct_into_id = false;
     op_filter.op->accept_visitor(*this);
     auto match_binding_size = var_name2var_id.size();
 
@@ -123,6 +128,19 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
     if (optional_children.size() > 0) {
         binding_id_iter_current_root = make_unique<OptionalNode>(binding_size, move(binding_id_iter_current_root), move(optional_children));
     }
+    if (distinct_into_id) {
+        std::vector<VarId> projected_var_ids;
+        for (const auto& order_item : select_items) {
+            string var_name = order_item.var;
+            if (order_item.key) {
+                var_name += '.';
+                var_name += order_item.key.get();
+            }
+            auto var_id = get_var_id(var_name);
+            projected_var_ids.push_back(var_id);
+        }
+        binding_id_iter_current_root = make_unique<DistinctIdHash>(move(binding_id_iter_current_root), projected_var_ids);
+    }
 
     tmp = make_unique<Match>(model, move(binding_id_iter_current_root), binding_size);
 }
@@ -161,6 +179,49 @@ VarId BindingIterVisitor::get_var_id(const std::string& var) {
         throw std::logic_error("variable " + var + " not present in var_name2var_id");
     }
 }
+
+
+void BindingIterVisitor::visit(OpDistinct& op_distinct) {
+    bool ordered = false; // TODO: a futuro se podria saber si viene o no ordenado con algo como bool op->is_ordered(); 
+    if (ordered) {
+        op_distinct.op->accept_visitor(*this);
+        auto binding_size = var_name2var_id.size();
+        // TODO: si vienen ordenados a futuro no es necesario llamar a OrderBy
+        std::vector<VarId> projected_var_ids;
+        std::vector<std::pair<std::string, VarId>> order_vars;
+        std::vector<bool> ascending_order(binding_size);
+        for (const auto& order_item : select_items) {
+            string var_name = order_item.var;
+            if (order_item.key) {
+                var_name += '.';
+                var_name += order_item.key.get();
+            }
+            auto var_id = get_var_id(var_name);
+            order_vars.push_back(make_pair(var_name, var_id));
+            projected_var_ids.push_back(var_id);
+        }
+
+        tmp = make_unique<OrderBy>(model, move(tmp), binding_size, order_vars, ascending_order);
+        tmp = make_unique<DistinctOrdered>(model, move(tmp), projected_var_ids);
+    } else {
+        distinct_into_id = true;  // OpFilter may change this value when accepting visitor
+        op_distinct.op->accept_visitor(*this);
+        if (!distinct_into_id) {
+            std::vector<VarId> projected_var_ids;
+            for (const auto& order_item : select_items) {
+                string var_name = order_item.var;
+                if (order_item.key) {
+                    var_name += '.';
+                    var_name += order_item.key.get();
+                }
+                auto var_id = get_var_id(var_name);
+                projected_var_ids.push_back(var_id);
+            }
+            tmp = make_unique<DistinctHash>(move(tmp), projected_var_ids);
+        }
+    }
+}
+
 
 void BindingIterVisitor::visit(OpMatch&) { }
 void BindingIterVisitor::visit(OpOptional&) { }

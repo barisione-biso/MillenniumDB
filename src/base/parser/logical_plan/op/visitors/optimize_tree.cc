@@ -11,6 +11,7 @@
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op.h"
 
@@ -158,6 +159,11 @@ void OptimizeTree::visit(OpGroupBy& op_group_by) {
 
 void OptimizeTree::visit(OpOrderBy& op_order_by) {
     op_order_by.op->accept_visitor(*this);
+}
+
+
+void OptimizeTree::visit(OpDistinct& op_distinct) {
+    op_distinct.op->accept_visitor(*this);
 }
 
 

@@ -28,6 +28,7 @@ public:
     void visit(OpTransitiveClosure&) override;
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
+    void visit(OpDistinct&) override;
 };
 
 #endif // BASE__CHECK_VAR_NAMES_EXISTS_H_

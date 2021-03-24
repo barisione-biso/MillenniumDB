@@ -36,5 +36,6 @@ public:
     void visit(OpTransitiveClosure&) override;
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
+    void visit(OpDistinct&) override;
 };
 #endif // BASE__OPTIMIZE_TREE_H_
