@@ -78,10 +78,11 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
         }
     }
     query::ast::PropertyPathBoundSuffix suffix = boost::get<query::ast::PropertyPathBoundSuffix>(p.suffix);
+    //TODO: Exception when suffix min > suffix max
     for (size_t i = 0; i < suffix.min; i++) {
         op_vector.push_back(tmp->duplicate());
     }
-    for (size_t i = 0; i < suffix.max; i++) {
+    for (size_t i = suffix.min; i < suffix.max; i++) {
         vector<unique_ptr<OpPath>> alternatives;
         alternatives.push_back(tmp->duplicate());
         alternatives.push_back(make_unique<OpPathEpsilon>());

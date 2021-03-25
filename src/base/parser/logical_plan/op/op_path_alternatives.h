@@ -1,8 +1,9 @@
 #ifndef BASE__OP_PATH_ALTERNATIVES_H_
 #define BASE__OP_PATH_ALTERNATIVES_H_
 
+#include <memory>
 #include <string>
-
+#include <vector>
 
 #include "base/parser/logical_plan/op/op_path.h"
 
@@ -25,13 +26,13 @@ public:
         is_nullable  (get_nullable(alternatives))
         { }
 
-    OpPathAlternatives(OpPathAlternatives& path_alternative) :
-        is_nullable  (path_alternative.is_nullable)
-        {
-            for (auto& alternative : path_alternative.alternatives) {
-                alternatives.push_back(alternative->duplicate());
-            }
+    OpPathAlternatives(const OpPathAlternatives& other) :
+        is_nullable  (other.is_nullable)
+    {
+        for (const auto& alternative : other.alternatives) {
+            alternatives.push_back(alternative->duplicate());
         }
+    }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
@@ -69,9 +70,20 @@ public:
         return is_nullable;
     }
 
-    std::unique_ptr<OpPath> duplicate() override {
+    // void denull() override {
+    //     if (!nullable()) {
+    //         return;
+    //     }
+    //     for (const auto& alternative : alternatives) {
+    //         alternative->denull();
+    //     }
+    // }
+
+    std::unique_ptr<OpPath> duplicate() const override {
         return std::make_unique<OpPathAlternatives>(*this);
     }
+
+    OpPathType type() const { return OpPathType::OP_PATH_ALTERNATIVES; }
 };
 
 #endif // BASE__OP_PATH_ALTERNATIVES_H_

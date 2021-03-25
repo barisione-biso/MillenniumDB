@@ -1,7 +1,10 @@
 #ifndef BASE__OP_PATH_ATOM_H_
 #define BASE__OP_PATH_ATOM_H_
 
+#include <memory>
 #include <string>
+
+#
 
 class OpPathAtom : public OpPath {
 public:
@@ -13,9 +16,9 @@ public:
         inverse (inverse)
         { }
 
-    OpPathAtom(const OpPathAtom& op_atom) :
-        atom    (op_atom.atom),
-        inverse (op_atom.inverse)
+    OpPathAtom(const OpPathAtom& other) :
+        atom    (other.atom),
+        inverse (other.inverse)
         { }
 
     void accept_visitor(OpVisitor& visitor) override {
@@ -48,9 +51,12 @@ public:
         return false;
     }
 
-    std::unique_ptr<OpPath> duplicate() override {
+    std::unique_ptr<OpPath> duplicate() const override {
         return std::make_unique<OpPathAtom>(*this);
     }
+
+    OpPathType type() const { return OpPathType::OP_PATH_ATOM; }
+
 };
 
 #endif // BASE__OP_PATH_ATOM_H_

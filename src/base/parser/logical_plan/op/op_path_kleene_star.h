@@ -1,20 +1,23 @@
 #ifndef BASE__OP_PATH_KLEENE_STAR_H_
 #define BASE__OP_PATH_KLEENE_STAR_H_
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "base/parser/logical_plan/op/op_path.h"
+#include "base/parser/logical_plan/op/visitors/simplify_property_path.h"
 
 class OpPathKleeneStar : public OpPath {
 public:
     std::unique_ptr<OpPath> path;
 
-    OpPathKleeneStar(std::unique_ptr<OpPath> _path) :
-        path  (std::move(_path))
+    OpPathKleeneStar(std::unique_ptr<OpPath> path) :
+        // path  (std::move(path))
+        path  ( SimplifyPropertyPath::denull(std::move(path)) )
         { }
-    OpPathKleeneStar(OpPathKleeneStar& kleene_path) :
-        path  (kleene_path.duplicate())
+
+    OpPathKleeneStar(const OpPathKleeneStar& other) :
+        path  (other.path->duplicate())
         { }
 
     void accept_visitor(OpVisitor& visitor) override {
@@ -50,9 +53,11 @@ public:
         return true;
     }
 
-    std::unique_ptr<OpPath> duplicate() override {
+    std::unique_ptr<OpPath> duplicate() const override {
         return std::make_unique<OpPathKleeneStar>(*this);
     }
+
+    OpPathType type() const { return OpPathType::OP_PATH_KLEENE_STAR; }
 };
 
 #endif // BASE__OP_PATH_KLEENE_STAR_H_

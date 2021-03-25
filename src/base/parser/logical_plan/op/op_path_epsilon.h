@@ -9,8 +9,7 @@
 class OpPathEpsilon : public OpPath {
 public:
 
-    OpPathEpsilon() { }
-    OpPathEpsilon(const OpPathEpsilon& _) { }
+    OpPathEpsilon() = default;
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
@@ -44,9 +43,12 @@ public:
         return true;
     }
 
-    std::unique_ptr<OpPath> duplicate() override {
-        return std::make_unique<OpPathEpsilon>(*this);
+    std::unique_ptr<OpPath> duplicate() const override {
+        return std::make_unique<OpPathEpsilon>();
     }
+
+    OpPathType type() const { return OpPathType::OP_PATH_EPSILON; }
+
 };
 
 #endif // BASE__OP_PATH_EPSILON_H_

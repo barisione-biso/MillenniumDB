@@ -1,12 +1,12 @@
 #ifndef BASE__OP_MATCH_H_
 #define BASE__OP_MATCH_H_
 
-#include <set>
+#include <iostream>
 #include <map>
 #include <memory>
+#include <set>
 #include <utility>
 #include <vector>
-
 
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_connection_type.h"
@@ -80,9 +80,11 @@ public:
                         );
                     }
                     //TODO: Mover este llamado a relational model
-                    //auto path = OpPropertyPath( last_object_name,
-                    //                            current_node_name,
-                    //                            path_constructor(property_path.path_alternatives));
+                    auto path = OpPropertyPath( last_object_name,
+                                                current_node_name,
+                                                path_constructor(property_path.path_alternatives));
+
+                    path.print_to_ostream(std::cout);
                     //PathValidator path_validator = PathValidator(path);
                     //path_validator.print();
 

@@ -15,7 +15,8 @@ public:
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');
-        os << "OpPropertyPath( (" << from << ")=[" << *path << "]=>(" << to <<") )\n";
+        os << "OpPropertyPath(" << from << "=>" << to <<")\n";
+        os << *path << "\n";
         return os;
     };
 
@@ -25,11 +26,9 @@ public:
         path (std::move(path))
         { }
 
-
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
-
 
     bool operator<(const OpPropertyPath& other) const {
         if (from < other.from) {
@@ -41,7 +40,6 @@ public:
         }
         return false;
     }
-
 
     std::set<std::string> get_var_names() const override {
         std::set<std::string> res;

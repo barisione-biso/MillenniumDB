@@ -1,8 +1,8 @@
 #ifndef BASE__OP_PATH_SEQUENCE_H_
 #define BASE__OP_PATH_SEQUENCE_H_
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "base/parser/logical_plan/op/op.h"
 
@@ -25,13 +25,13 @@ public:
         is_nullable (get_nullable(sequence))
         { }
 
-    OpPathSequence(OpPathSequence& path_sequence) :
-        is_nullable     (path_sequence.nullable())
-        {
-            for (auto& seq : path_sequence.sequence) {
-                sequence.push_back(seq->duplicate());
-            }
+    OpPathSequence(const OpPathSequence& other) :
+        is_nullable     (other.nullable())
+    {
+        for (const auto& seq : other.sequence) {
+            sequence.push_back(seq->duplicate());
         }
+    }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
@@ -69,9 +69,21 @@ public:
         return is_nullable;
     }
 
-    std::unique_ptr<OpPath> duplicate() override {
+    // void denull() override {
+    //     if (!nullable()) {
+    //         return;
+    //     }
+    //     for (const auto& alternative : alternatives) {
+    //         alternative->denull();
+    //     }
+    // }
+
+    std::unique_ptr<OpPath> duplicate() const override {
         return std::make_unique<OpPathSequence>(*this);
     }
+
+    OpPathType type() const { return OpPathType::OP_PATH_SEQUENCE; }
+
 };
 
 #endif // BASE__OP_PATH_SEQUENCE_H_
