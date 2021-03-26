@@ -61,7 +61,14 @@ public:
     OpPathType type() const { return OpPathType::OP_PATH_KLEENE_STAR; }
 
     PathAutomaton get_automaton() const override {
-        return PathAutomaton();
+        auto kleene_automaton = PathAutomaton();
+        auto path_automaton = path->get_automaton();
+        path_automaton.connect_states(path_automaton.end, path_automaton.start, "");
+        kleene_automaton.merge_with_automaton(path_automaton);
+        kleene_automaton.connect_states(kleene_automaton.start, kleene_automaton.end, "");
+        kleene_automaton.connect_states(kleene_automaton.start, path_automaton.start, "");
+        kleene_automaton.connect_states(path_automaton.end, kleene_automaton.end, "");
+        return kleene_automaton;
     }
 };
 
