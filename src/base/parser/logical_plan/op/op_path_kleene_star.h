@@ -63,11 +63,11 @@ public:
     PathAutomaton get_automaton() const override {
         auto kleene_automaton = PathAutomaton();
         auto path_automaton = path->get_automaton();
-        path_automaton.connect_states(path_automaton.end, path_automaton.start, "");
+        path_automaton.connect_states(path_automaton.end, path_automaton.start, "", false);
         kleene_automaton.merge_with_automaton(path_automaton);
-        kleene_automaton.connect_states(kleene_automaton.start, kleene_automaton.end, "");
-        kleene_automaton.connect_states(kleene_automaton.start, path_automaton.start, "");
-        kleene_automaton.connect_states(path_automaton.end, kleene_automaton.end, "");
+        kleene_automaton.connect_states(kleene_automaton.start, kleene_automaton.end, "", false);
+        kleene_automaton.connect_states(kleene_automaton.start, path_automaton.start, "", false);
+        kleene_automaton.connect_states(path_automaton.end, kleene_automaton.end, "", false);
         return kleene_automaton;
     }
 };

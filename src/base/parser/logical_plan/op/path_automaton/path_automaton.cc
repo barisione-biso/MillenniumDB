@@ -6,17 +6,27 @@ using namespace std;
 
 uint32_t PathAutomaton::id = 0;
 
+//TODO: Como manejar el id path automaton
+/*TODO: Simplificar automata:
+    - Al momento de crearlo, en alternatives hay una simplificacion
+    - Merge de paths vacios  x1=[]=>x2, se puede hacer cuando:
+        - x1 solo se conecta a x2, x2 se puede conectar a más de uno
+    - Simplificaciones post calculo de clausuras
+*/
+//TODO: Calcular clausuras
+
+
 PathAutomaton::PathAutomaton() {
-    start = new State(PathAutomaton::id);
+    start = PathAutomaton::id;
     PathAutomaton::id++;
-    end = new State(PathAutomaton::id);
+    end = PathAutomaton::id;
     PathAutomaton::id++;
 }
 
 void PathAutomaton::print() {
      for (auto i = conections.begin(); i != conections.end(); ++i) {
         for (auto& j : i->second) {
-            cout << i->first << "=[" << j.second << "]=>" << j.first->get_id() << "\n";
+            cout << i->first << "=[" << (std::get<2>(j) ? "^" : "") << std::get<1>(j) << "]=>" << std::get<0>(j) << "\n";
         }
     }
 
@@ -28,20 +38,12 @@ void PathAutomaton::merge_with_automaton(PathAutomaton automaton) {
     conections.merge(automaton.conections);
 }
 
-void PathAutomaton::connect_states(State* from, State* to, std::string type) {
-    if (conections.find(from->get_id()) == conections.end()) {
-        std::vector<pair<State*, std::string>> new_vec;
-        new_vec.push_back(make_pair(to, type));
-        conections[from->get_id()] = new_vec;
+void PathAutomaton::connect_states(uint32_t from, uint32_t to, std::string type, bool inverse) {
+    if (conections.find(from) == conections.end()) {
+        vector<tuple<uint32_t, std::string, bool>> new_vec;
+        new_vec.push_back(make_tuple(to, type, inverse));
+        conections[from] = new_vec;
     } else {
-        conections[from->get_id()].push_back(make_pair(to, type));
+        conections[from].push_back(make_tuple(to, type, inverse));
     }
-}
-
-
-State::State(uint32_t _id) :
-    id   (_id)  { }
-
-uint32_t State::get_id() {
-    return id;
 }

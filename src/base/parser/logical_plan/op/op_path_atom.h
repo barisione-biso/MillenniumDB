@@ -60,7 +60,7 @@ public:
 
     PathAutomaton get_automaton() const override {
         auto automaton = PathAutomaton();
-        automaton.connect_states(automaton.start, automaton.end, atom);
+        automaton.connect_states(automaton.start, automaton.end, atom, inverse);
         return automaton;
     }
 };

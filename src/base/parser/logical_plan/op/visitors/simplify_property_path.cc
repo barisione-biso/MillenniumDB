@@ -61,14 +61,14 @@ unique_ptr<OpPath> SimplifyPropertyPath::accept_denull(unique_ptr<OpPath> path) 
         return denull(move(casted));
     }
 
-    case OpPathType::OP_PATH_EPSILON : {
-    }
+    default : { //OpPathType::OP_PATH_EPSILON : {
         // OpPathEpsilon
         OpPathEpsilon* tmp = dynamic_cast<OpPathEpsilon*>(path.get());
         std::unique_ptr<OpPathEpsilon> casted;
         path.release();
         casted.reset(tmp);
         return denull(move(casted));
+    }
     }
 }
 
@@ -80,7 +80,7 @@ unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathKleeneStar> kle
 
 unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathAlternatives> op_path_alternatives) {
     if (!op_path_alternatives->nullable()) {
-        return move(op_path_alternatives);
+        return op_path_alternatives;
     }
     vector<unique_ptr<OpPath>> new_alternatives;
     for (size_t i = 0; i < op_path_alternatives->alternatives.size(); i++) {
@@ -92,7 +92,7 @@ unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathAlternatives> o
 
 unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathSequence> path_sequence) {
     if (!path_sequence->nullable()) {
-        return move(path_sequence);
+        return path_sequence;
     }
     vector<unique_ptr<OpPath>> new_alternatives;
     for (size_t i = 0; i < path_sequence->sequence.size(); i++) {
@@ -103,9 +103,9 @@ unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathSequence> path_
 }
 
 unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathAtom> atom) {
-    return move(atom);
+    return atom;
 }
 
 unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathEpsilon> epsilon) {
-    return move(epsilon);
+    return epsilon;
 }

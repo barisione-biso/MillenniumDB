@@ -91,8 +91,8 @@ public:
         for (auto& alternative : alternatives) {
             auto automaton = alternative->get_automaton();
             alternative_automaton.merge_with_automaton(automaton);
-            alternative_automaton.connect_states(alternative_automaton.start, automaton.start, "");
-            alternative_automaton.connect_states(automaton.end, alternative_automaton.end, "");
+            alternative_automaton.connect_states(alternative_automaton.start, automaton.start, "", false);
+            alternative_automaton.connect_states(automaton.end, alternative_automaton.end, "", false);
         }
         return alternative_automaton;
     }

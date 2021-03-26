@@ -3,32 +3,22 @@
 
 #include <string>
 #include <map>
+#include <tuple>
 #include <vector>
-
-class State {
-    public:
-        State(uint32_t id);
-        ~State()=default;
-        uint32_t get_id();
-        void print();
-
-    private:
-        uint32_t id;
-};
 
 
 class PathAutomaton {
 public:
+    uint32_t start;
+    uint32_t end;
+    std::map<uint32_t, std::vector<std::tuple<uint32_t, std::string, bool>>> conections;
+
     PathAutomaton();
     ~PathAutomaton() = default;
 
     void print();
     void merge_with_automaton(PathAutomaton automaton);
-    void connect_states(State* from, State* to, std::string type);
-    State* start;
-    State* end;
-    std::map<uint32_t, std::vector<std::pair<State*, std::string>>> conections;
-
+    void connect_states(uint32_t from, uint32_t to, std::string type, bool inverse);
 
 private:
     static uint32_t id;
