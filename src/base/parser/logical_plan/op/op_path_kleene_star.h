@@ -6,6 +6,7 @@
 
 #include "base/parser/logical_plan/op/op_path.h"
 #include "base/parser/logical_plan/op/visitors/simplify_property_path.h"
+#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
 class OpPathKleeneStar : public OpPath {
 public:
@@ -58,6 +59,10 @@ public:
     }
 
     OpPathType type() const { return OpPathType::OP_PATH_KLEENE_STAR; }
+
+    PathAutomaton get_automaton() const override {
+        return PathAutomaton();
+    }
 };
 
 #endif // BASE__OP_PATH_KLEENE_STAR_H_

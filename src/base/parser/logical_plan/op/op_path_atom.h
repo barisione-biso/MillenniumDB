@@ -3,8 +3,9 @@
 
 #include <memory>
 #include <string>
+#include <iostream>
 
-#
+#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
 class OpPathAtom : public OpPath {
 public:
@@ -57,6 +58,11 @@ public:
 
     OpPathType type() const { return OpPathType::OP_PATH_ATOM; }
 
+    PathAutomaton get_automaton() const override {
+        auto automaton = PathAutomaton();
+        automaton.connect_states(automaton.start, automaton.end, atom);
+        return automaton;
+    }
 };
 
 #endif // BASE__OP_PATH_ATOM_H_

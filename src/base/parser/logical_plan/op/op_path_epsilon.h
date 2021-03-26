@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "base/parser/logical_plan/op/op_path.h"
+#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
 class OpPathEpsilon : public OpPath {
 public:
@@ -48,6 +49,10 @@ public:
     }
 
     OpPathType type() const { return OpPathType::OP_PATH_EPSILON; }
+
+    PathAutomaton get_automaton() const override {
+        return PathAutomaton();
+    }
 
 };
 

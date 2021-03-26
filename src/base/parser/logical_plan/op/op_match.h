@@ -18,7 +18,7 @@
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/path_constructor/path_constructor.h"
-//#include "relational_model/models/quad_model/query_optimizer/path_validator/path_validator.h"
+
 
 class OpMatch : public Op {
 public:
@@ -85,8 +85,7 @@ public:
                                                 path_constructor(property_path.path_alternatives));
 
                     path.print_to_ostream(std::cout);
-                    //PathValidator path_validator = PathValidator(path);
-                    //path_validator.print();
+                    path.get_automaton().print();
 
                 }
                 last_object_name = std::move(current_node_name);

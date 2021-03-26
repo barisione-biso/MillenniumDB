@@ -2,6 +2,7 @@
 #define BASE__OP_PATH_H_
 
 #include "base/parser/logical_plan/op/op.h"
+#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
 enum class OpPathType {
     OP_PATH_ALTERNATIVES,
@@ -17,6 +18,7 @@ public:
     virtual bool nullable() const = 0;
     virtual std::unique_ptr<OpPath> duplicate() const = 0;
     virtual OpPathType type() const = 0;
+    virtual PathAutomaton get_automaton() const = 0;
 
     // virtual void denull() = 0;
 };

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "base/parser/logical_plan/op/op_path.h"
+#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
 class OpPathAlternatives : public OpPath {
 public:
@@ -84,6 +85,17 @@ public:
     }
 
     OpPathType type() const { return OpPathType::OP_PATH_ALTERNATIVES; }
+
+    PathAutomaton get_automaton() const override {
+        auto alternative_automaton = PathAutomaton();
+        for (auto& alternative : alternatives) {
+            auto automaton = alternative->get_automaton();
+            alternative_automaton.merge_with_automaton(automaton);
+            alternative_automaton.connect_states(alternative_automaton.start, automaton.start, "");
+            alternative_automaton.connect_states(automaton.end, alternative_automaton.end, "");
+        }
+        return alternative_automaton;
+    }
 };
 
 #endif // BASE__OP_PATH_ALTERNATIVES_H_

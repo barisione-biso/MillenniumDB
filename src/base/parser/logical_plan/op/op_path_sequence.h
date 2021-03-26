@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "base/parser/logical_plan/op/op.h"
+#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
 class OpPathSequence : public OpPath {
 public:
@@ -83,6 +84,10 @@ public:
     }
 
     OpPathType type() const { return OpPathType::OP_PATH_SEQUENCE; }
+
+    PathAutomaton get_automaton() const override {
+        return PathAutomaton();
+    }
 
 };
 
