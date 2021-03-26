@@ -51,7 +51,9 @@ public:
     OpPathType type() const { return OpPathType::OP_PATH_EPSILON; }
 
     PathAutomaton get_automaton() const override {
-        return PathAutomaton();
+        auto automaton = PathAutomaton();
+        automaton.connect_states(automaton.start, automaton.end, "");
+        return automaton;
     }
 
 };
