@@ -86,7 +86,14 @@ public:
     OpPathType type() const { return OpPathType::OP_PATH_SEQUENCE; }
 
     PathAutomaton get_automaton() const override {
-        return PathAutomaton();
+        auto sequence_automaton = sequence[0]->get_automaton();
+        for (size_t i = 1; i < sequence.size(); i++) {
+            auto seq_automaton = sequence[i]->get_automaton();
+            sequence_automaton.merge_with_automaton(seq_automaton);
+            sequence_automaton.connect_states(sequence_automaton.end, seq_automaton.start, "");
+            sequence_automaton.end = seq_automaton.end;
+        }
+        return sequence_automaton;
     }
 
 };
