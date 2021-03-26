@@ -4,46 +4,54 @@
 
 using namespace std;
 
-uint32_t PathAutomaton::id = 0;
-
-//TODO: Como manejar el id path automaton
-/*TODO: Simplificar automata:
-    - Al momento de crearlo, en alternatives hay una simplificacion
-    - Merge de paths vacios  x1=[]=>x2, se puede hacer cuando:
-        - x1 solo se conecta a x2, x2 se puede conectar a más de uno
-    - Simplificaciones post calculo de clausuras
+//TODO: Añadir epsilon transition (metodo)
+/*TODO: Calcular clausuras:
+    - Recorrer automata, para cada transicion epsilon, buscar el primer label no nulo, y conectar
+    desde donde nace la transición con el estado que conecta el label.
 */
-//TODO: Calcular clausuras
 
 
-PathAutomaton::PathAutomaton() {
-    start = PathAutomaton::id;
-    PathAutomaton::id++;
-    end = PathAutomaton::id;
-    PathAutomaton::id++;
-}
+PathAutomaton::PathAutomaton() { }
 
 void PathAutomaton::print() {
-     for (auto i = conections.begin(); i != conections.end(); ++i) {
-        for (auto& j : i->second) {
-            cout << i->first << "=[" << (std::get<2>(j) ? "^" : "") << std::get<1>(j) << "]=>" << std::get<0>(j) << "\n";
+     for (size_t i = 0; i < connections.size(); i++) {
+        for (auto& t : connections[i]) {
+            cout << t.from << "=[" << (t.inverse ? "^" : "") << t.label << "]=>" << t.to << "\n";
         }
     }
-
-}
-
-
-void PathAutomaton::merge_with_automaton(PathAutomaton automaton) {
-    //conections.insert(automaton.conections.begin(), automaton.conections.end());
-    conections.merge(automaton.conections);
-}
-
-void PathAutomaton::connect_states(uint32_t from, uint32_t to, std::string type, bool inverse) {
-    if (conections.find(from) == conections.end()) {
-        vector<tuple<uint32_t, std::string, bool>> new_vec;
-        new_vec.push_back(make_tuple(to, type, inverse));
-        conections[from] = new_vec;
-    } else {
-        conections[from].push_back(make_tuple(to, type, inverse));
+    cout << "end states: { ";
+    for (auto& state : end) {
+        cout << state << "  ";
     }
+    cout << "}\n";
+}
+
+
+void PathAutomaton::merge_with_automaton(PathAutomaton& other) {
+    for (size_t i = 0; i < other.connections.size(); i++) {
+        auto new_connection = vector<Transition>();
+        for (auto& t : other.connections[i]) {
+            auto transition = Transition(t.from + total_states, t.to + total_states, t.label, t.inverse);
+            connect(transition);
+        }
+    }
+    set<uint32_t> new_end;
+    for (auto& end_state : other.end) {
+        new_end.insert(total_states + end_state);
+    }
+    other.start += total_states;
+    other.end = move(new_end);
+    total_states += other.total_states;
+}
+
+void PathAutomaton::connect(Transition transition) {
+    while (connections.size() <= transition.from) {
+        vector<Transition> new_vec;
+        connections.push_back(new_vec);
+    }
+    connections[transition.from].push_back(transition);
+}
+
+void PathAutomaton::add_epsilon_transition(uint32_t from, uint32_t to) {
+    connect(Transition(from , to, "", false));
 }

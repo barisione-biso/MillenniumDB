@@ -91,8 +91,10 @@ public:
         for (auto& alternative : alternatives) {
             auto automaton = alternative->get_automaton();
             alternative_automaton.merge_with_automaton(automaton);
-            alternative_automaton.connect_states(alternative_automaton.start, automaton.start, "", false);
-            alternative_automaton.connect_states(automaton.end, alternative_automaton.end, "", false);
+            alternative_automaton.add_epsilon_transition(alternative_automaton.start, automaton.start);
+            for(auto& end_state : automaton.end) {
+                alternative_automaton.end.insert(end_state);
+            }
         }
         return alternative_automaton;
     }

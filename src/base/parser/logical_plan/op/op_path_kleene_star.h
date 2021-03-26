@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <tuple>
 
 #include "base/parser/logical_plan/op/op_path.h"
 #include "base/parser/logical_plan/op/visitors/simplify_property_path.h"
@@ -61,14 +62,25 @@ public:
     OpPathType type() const { return OpPathType::OP_PATH_KLEENE_STAR; }
 
     PathAutomaton get_automaton() const override {
-        auto kleene_automaton = PathAutomaton();
+        //auto kleene_automaton = PathAutomaton();
         auto path_automaton = path->get_automaton();
-        path_automaton.connect_states(path_automaton.end, path_automaton.start, "", false);
-        kleene_automaton.merge_with_automaton(path_automaton);
-        kleene_automaton.connect_states(kleene_automaton.start, kleene_automaton.end, "", false);
-        kleene_automaton.connect_states(kleene_automaton.start, path_automaton.start, "", false);
-        kleene_automaton.connect_states(path_automaton.end, kleene_automaton.end, "", false);
-        return kleene_automaton;
+        //TODO: Chequear condicion
+        if (path_automaton.total_states == 2) {
+            // && path_automaton.conections.size() == 1
+            // && path_automaton.conections[path_automaton.start].size() == 1 ) {
+            auto new_automaton = PathAutomaton();
+            auto transition = path_automaton.connections[0][0];
+            new_automaton.connect(Transition(0,0, transition.label, transition.inverse));
+            new_automaton.end.insert(new_automaton.start);
+            return new_automaton;
+        }
+        else {
+            for (auto& end_state : path_automaton.end) {
+                path_automaton.add_epsilon_transition(end_state, path_automaton.start);
+            }
+            path_automaton.end.insert(path_automaton.start);
+            return path_automaton;
+        }
     }
 };
 

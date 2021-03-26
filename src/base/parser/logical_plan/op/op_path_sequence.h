@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <iostream>
 
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
@@ -90,8 +91,11 @@ public:
         for (size_t i = 1; i < sequence.size(); i++) {
             auto seq_automaton = sequence[i]->get_automaton();
             sequence_automaton.merge_with_automaton(seq_automaton);
-            sequence_automaton.connect_states(sequence_automaton.end, seq_automaton.start, "", false);
-            sequence_automaton.end = seq_automaton.end;
+            for (auto& end_state : sequence_automaton.end) {
+                sequence_automaton.add_epsilon_transition(end_state, seq_automaton.start);
+            }
+            //TODO: Chequear si se copia bien
+            sequence_automaton.end = std::move(seq_automaton.end);
         }
         return sequence_automaton;
     }
