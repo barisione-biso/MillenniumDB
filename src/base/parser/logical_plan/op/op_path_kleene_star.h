@@ -69,7 +69,7 @@ public:
             // && path_automaton.conections.size() == 1
             // && path_automaton.conections[path_automaton.start].size() == 1 ) {
             auto new_automaton = PathAutomaton();
-            auto transition = path_automaton.connections[0][0];
+            auto transition = path_automaton.from_to_connections[0][0];
             new_automaton.connect(Transition(0,0, transition.label, transition.inverse));
             new_automaton.end.insert(new_automaton.start);
             return new_automaton;

@@ -27,7 +27,8 @@ class PathAutomaton {
 public:
     uint32_t start = 0;
     std::set<uint32_t> end;
-    std::vector<std::vector<Transition>> connections;
+    std::vector<std::vector<Transition>> from_to_connections;
+    std::vector<std::vector<Transition>> to_from_connections;
     std::vector<uint32_t> incidence_vector;
     uint32_t total_states = 1;
 
@@ -37,7 +38,7 @@ public:
     void print();
 
     // Add states from other to this, rename 'other' states, update 'other'
-    // end to be consistent with rename. Don't update 'other' connections
+    // end states to be consistent with rename. Don't update 'other' connections
     void rename_and_merge(PathAutomaton& other);
 
     void connect(Transition transition);
@@ -47,17 +48,28 @@ public:
 
     void optimize_automata();
     private:
-        // Método 1
-        void merge_empty_states();
-        void delete_epsilon_from(Transition transition);
 
-        // TODO: Comenar porque no incluye al mismo estado en la clausura
+
+        void merge_states();
+
+        // set returned  of ep. closure of 's' doesn't include s for avoid
+        // redundant loop in optimization
         std::set<uint32_t> get_epsilon_closure(uint32_t state);
-        // Remove epsilon transition and unreachable states
-        void clean_automata(uint32_t state);
 
-
+        // Delete states that can not be reached from start
         void delete_unreachable_states();
+
+
+        void delete_absortion_states();
+
+        // Return a set with reachable states from start. Explores automaton with DFS
+        std::set<uint32_t> get_reachable_states_from_start();
+
+        // Return a set with reachable states from a state in end set. Use DFS
+        std::set<uint32_t> get_reachable_states_from_end();
+
+
+
 };
 
 #endif // BASE__PATH_AUTOMATON_H_
