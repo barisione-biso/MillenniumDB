@@ -14,7 +14,7 @@ public:
     std::unique_ptr<OpPath> path;
 
     OpPathKleeneStar(std::unique_ptr<OpPath> path) :
-        // path  (std::move(path))
+        //path  (std::move(path))
         path  ( SimplifyPropertyPath::denull(std::move(path)) )
         { }
 

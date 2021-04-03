@@ -15,7 +15,7 @@ public:
 
      static bool get_nullable(const std::vector<std::unique_ptr<OpPath>>& sequence) {
         for (const auto& seq : sequence) {
-            if (seq->nullable()) {
+            if (!seq->nullable()) {
                 return false;
             }
         }
@@ -90,11 +90,10 @@ public:
         auto sequence_automaton = sequence[0]->get_automaton();
         for (size_t i = 1; i < sequence.size(); i++) {
             auto seq_automaton = sequence[i]->get_automaton();
-            sequence_automaton.merge_with_automaton(seq_automaton);
+            sequence_automaton.rename_and_merge(seq_automaton);
             for (auto& end_state : sequence_automaton.end) {
                 sequence_automaton.add_epsilon_transition(end_state, seq_automaton.start);
             }
-            //TODO: Chequear si se copia bien
             sequence_automaton.end = std::move(seq_automaton.end);
         }
         return sequence_automaton;

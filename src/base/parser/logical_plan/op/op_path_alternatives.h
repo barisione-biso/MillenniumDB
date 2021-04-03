@@ -90,7 +90,7 @@ public:
         auto alternative_automaton = PathAutomaton();
         for (auto& alternative : alternatives) {
             auto automaton = alternative->get_automaton();
-            alternative_automaton.merge_with_automaton(automaton);
+            alternative_automaton.rename_and_merge(automaton);
             alternative_automaton.add_epsilon_transition(alternative_automaton.start, automaton.start);
             for(auto& end_state : automaton.end) {
                 alternative_automaton.end.insert(end_state);

@@ -54,7 +54,9 @@ public:
     }
 
     PathAutomaton get_automaton() {
-        return path->get_automaton();
+        auto automaton = path->get_automaton();
+        automaton.optimize_automata();
+        return automaton;
     }
 };
 
