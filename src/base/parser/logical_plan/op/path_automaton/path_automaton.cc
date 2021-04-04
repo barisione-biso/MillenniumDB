@@ -10,6 +10,11 @@ using namespace std;
 Supuestos importantes del automata:
     - El estado inicial siempre será uno.
     - Desde start siempre se va a poder llegar todos los states de end
+    - Crear un ciclo, ya sea de un nodo hacia si mismo o hacia otro puede
+      cambiar la semántica del automata. Al momento de optimizar se revisan los
+      casos:
+        - No se puede mergear 2 nodos que hacen un 2-ciclo (Al final se mergea el nodo consigo mismo)
+        - Al reemplazar una transicion epsilon desde v hacia s, v != s
 */
 
 
@@ -23,10 +28,11 @@ construido con las reglas del generado actualmente
 
 - Revisar condicion de merge al momento de unir dos estados, antes de optimizarlo
     - Condicion: A s solo llega un epsilon desde v, o solo sale un epsilon hacia v. Entonce
-    s y v se pueden fusionar
+    s y v se pueden fusionar: No es condicion suficiente, se deben revisar ciclos
 */
 
 PathAutomaton::PathAutomaton() { }
+
 
 void PathAutomaton::print() {
      for (size_t i = 0; i < from_to_connections.size(); i++) {
@@ -92,62 +98,12 @@ void PathAutomaton::add_epsilon_transition(uint32_t from, uint32_t to) {
 }
 
 
-void PathAutomaton::merge_states() {
-    for (size_t i = 0; i < from_to_connections.size(); i++) {
-        // If v has only one transitions (and it is epsilon) to s, then v = s
-        if (to_from_connections[i].size() == 1 && to_from_connections[i][0].label.empty()) {
-            auto merge_state = to_from_connections[i][0].from;
-            auto delete_state = to_from_connections[i][0].to;
-            to_from_connections[delete_state].clear();
-            if (end.find(delete_state) != end.end()) {
-                end.insert(merge_state);
-            }
-            auto iterator = from_to_connections[merge_state].begin();
-            while (iterator != from_to_connections[merge_state].end()) {
-                if (iterator->to == delete_state && iterator->label.empty()) {
-                    from_to_connections[merge_state].erase(iterator);
-                } else {
-                    iterator++;
-                }
-            }
-            for (auto& old_t: from_to_connections[delete_state]) {
-                connect(Transition(merge_state, old_t.to, old_t.label, old_t.inverse));
-                auto iterator = to_from_connections[old_t.to].begin();
-                while (iterator != to_from_connections[old_t.to].end()) {
-                    if (iterator->from == delete_state) {
-                        to_from_connections[old_t.to].erase(iterator);
-                    } else {
-                        iterator++;
-                    }
-                }
-            }
-            from_to_connections[delete_state].clear();
-        }
-    }
-}
-
-
 void PathAutomaton::optimize_automata() {
     print();
     cout << "---------------------\n";
-    merge_states();
+    delete_mergeable_states();
     print();
     cout << "================\n";
-    // for (size_t s = 0; s < from_to_connections.size(); s++) {
-    //     auto epsilon_closure = get_epsilon_closure(s);
-    //     for (const auto& v : epsilon_closure) {
-    //         // If closure state v is final, then state s is final
-    //         if (end.find(v) != end.end()) {
-    //             end.insert(s);
-    //         }
-    //         for (const auto& t : from_to_connections[v]) {
-    //             if (!t.label.empty()) {
-    //                 connect(Transition(s, t.to, t.label, t.inverse));
-    //             }
-    //         }
-    //     }
-    //     //clean_automata(s);
-    // }
     // Por cada transición epsilon del autómata de la forma (a)=[]=>(b):
     // calcular clausura epsilon de (a) si aún no se ha hecho
     // por cada estado (s) en la clausura epsilon de (a):
@@ -174,11 +130,11 @@ void PathAutomaton::optimize_automata() {
         }
 
         // TODO: use vector iterator for more readable code
-        for (size_t i = 0; i < from_to_connections[a].size(); /*i++ only when connection is not deleted*/) {
+        for (size_t i = 0; i < from_to_connections[a].size();) {
             // from_to_connections[a][i] transition: (a)=[]=>(b)
             if (from_to_connections[a][i].label.empty()) {
                 for (const auto s : epsilon_closure) {
-                    for (const auto& t : from_to_connections[s]) { // (s)=[l]=>(t)
+                    for (const auto& t : from_to_connections[s]) {
                         if (!t.label.empty()) {
                             connect(Transition(a, t.to, t.label, t.inverse));
                         }
@@ -192,9 +148,60 @@ void PathAutomaton::optimize_automata() {
         }
     }
     delete_unreachable_states();
-    //delete_absortion_states();
+    delete_absortion_states();
 }
 
+
+void PathAutomaton::delete_mergeable_states() {
+    bool has_changes = true;
+    while (has_changes) {
+        has_changes = false;
+        /*
+        Nota importante: El caso en que from y s sean = 0 implica
+        que el automata es de la forma 0=[]=>0. En tal caso el resultado
+        será un autómata vacío, que para efectos prácticos realiza lo mismo
+        que el anterior, no acepta nada o acepta todo dependiendo si s es final.
+        Se añade una condicion adicional para el merge: los estados a mergear deben ser distintos,
+        no tiene sentido mergear un nodo consigo mismo.
+
+        Las condiciones de merge de una sola transicion epsilon, es necesaria, pero no es suficiente.
+        Adicionalmente se debe cumplir que los estados a mergear no formen un ciclo, o dicho de otra manera
+        que no haga un merge de un nodo consigo mismo, porque eso puede hacer que se pierdan transiciones
+        no necesariamente vacías o cambiar el significado del autómata
+        - s y v se mergean con v final, s pasa a ser final (o mergeo hacia v): Listo
+        - s y v se mergean con s = start, mergeo v hacia s: Listo
+        - s y v se mergean y hacen ciclo de largo 2 Se debe omitir este merge: Listo
+        */
+        for (size_t s = 0; s < from_to_connections.size(); s++) {
+            // If s only can by reached from v and the transition is epsilon, then v = s
+            if (to_from_connections[s].size() == 1 &&
+                to_from_connections[s][0].label.empty() &&
+                !has_two_length_cycle(s))
+            {
+                // If from = start, merge to from avoiding delete start
+                if (to_from_connections[s][0].from == start) {
+                    merge_states(to_from_connections[s][0].from, s);
+                } else {
+                    merge_states(s, to_from_connections[s][0].from);
+                }
+
+                has_changes = true;
+            }
+            // If v only has one transition to s, and it is epsilon, then s = v
+            if (from_to_connections[s].size() == 1 &&
+                from_to_connections[s][0].label.empty() &&
+                !has_two_length_cycle(s))
+            {
+                if (from_to_connections[s][0].to == start) {
+                    merge_states(from_to_connections[s][0].to, s);
+                } else {
+                    merge_states(s, from_to_connections[s][0].to);
+                }
+                has_changes = true;
+            }
+        }
+    }
+}
 
 
 set<uint32_t> PathAutomaton::get_epsilon_closure(uint32_t state) {
@@ -208,6 +215,7 @@ set<uint32_t> PathAutomaton::get_epsilon_closure(uint32_t state) {
         current_state = open.top();
         open.pop();
         if (visited.find(current_state) == visited.end()) {
+            visited.insert(current_state);
             for (auto& transition : from_to_connections[current_state]) {
                 if (transition.label.empty()) {
                     epsilon_closure.insert(transition.to);
@@ -265,6 +273,7 @@ void PathAutomaton::delete_unreachable_states() {
     }
 }
 
+
 void PathAutomaton::delete_absortion_states() {
     // Se usa la idea anterior pero haciendo dfs desde cada estado
     // que es de end
@@ -315,6 +324,7 @@ set<uint32_t> PathAutomaton::get_reachable_states_from_start() {
     return visited;
 }
 
+
 set<uint32_t> PathAutomaton::get_reachable_states_from_end() {
     stack<uint32_t> open;
     set<uint32_t> visited;
@@ -333,4 +343,66 @@ set<uint32_t> PathAutomaton::get_reachable_states_from_end() {
         }
     }
     return visited;
+}
+
+
+void PathAutomaton::merge_states(uint32_t destiny, uint32_t source) {
+    /*
+    En un merge de v hacia s: Todas las conexiones que salen de v, ahora saldran
+    de s. Todas las conexiones que se dirijan a v, se dirigen ahora a s. Se maneja el
+    caso en que v sale hacia si mismo, donde luego s sale de si mismo
+    */
+    if (end.find(source) != end.end()) {
+        end.insert(destiny);
+    }
+    // Redirect source=[x]=>v to destiny=[x]=>v
+    for (const auto& t : from_to_connections[source]) {
+        if (t.from == t.to) {
+            connect(Transition(destiny, destiny, t.label, t.inverse));
+        } else if (t.to != destiny) {
+            connect(Transition(destiny, t.to, t.label, t.inverse));
+        }
+        // Delete source=[x]=>v
+        auto to_iterator = to_from_connections[t.to].begin();
+        while (to_iterator != to_from_connections[t.to].end()) {
+            if ((*to_iterator) == t) {
+                to_from_connections[t.to].erase(to_iterator);
+                to_iterator = to_from_connections[t.to].end();
+            } else {
+                to_iterator++;
+            }
+        }
+    }
+    // Redirect v=[x]=>source to v=[x]=>destiny
+    for (const auto& t : to_from_connections[source]) {
+        if (t.from == t.to) {
+            connect(Transition(destiny, destiny, t.label, t.inverse));
+        } else if (t.from != destiny) {
+            connect(Transition(t.from, destiny, t.label, t.inverse));
+        }
+        // Delete v=[x]=>source
+        auto from_iterator = from_to_connections[t.from].begin();
+        while (from_iterator != from_to_connections[t.from].end()) {
+            if ((*from_iterator) == t) {
+                from_to_connections[t.from].erase(from_iterator);
+                from_iterator = from_to_connections[t.from].end();
+            } else {
+                from_iterator++;
+            }
+        }
+    }
+    from_to_connections[source].clear();
+    to_from_connections[source].clear();
+}
+
+
+bool PathAutomaton::has_two_length_cycle(uint32_t state) {
+    for (const auto& from_transitions : from_to_connections[state]) {
+        for (const auto& to_transitions : to_from_connections[state]) {
+            if (from_transitions.to == to_transitions.from) {
+                return true;
+            }
+        }
+    }
+    return false;
 }

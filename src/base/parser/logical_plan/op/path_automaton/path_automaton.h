@@ -49,8 +49,8 @@ public:
     void optimize_automata();
     private:
 
-
-        void merge_states();
+        // Check if two states are mergeable and do the merge.
+        void delete_mergeable_states();
 
         // set returned  of ep. closure of 's' doesn't include s for avoid
         // redundant loop in optimization
@@ -68,6 +68,13 @@ public:
         // Return a set with reachable states from a state in end set. Use DFS
         std::set<uint32_t> get_reachable_states_from_end();
 
+        // states with direct path fro o to source have the same path but from/to destiny.
+        // Be careful with states that are merged, because source connections
+        // will be removed
+        void merge_states(uint32_t destiny, uint32_t source);
+
+        // Returns true if state forms a 2-cycle with another state
+        bool has_two_length_cycle(uint32_t state);
 
 
 };
