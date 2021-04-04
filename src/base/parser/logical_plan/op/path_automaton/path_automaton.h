@@ -29,7 +29,6 @@ public:
     std::set<uint32_t> end;
     std::vector<std::vector<Transition>> from_to_connections;
     std::vector<std::vector<Transition>> to_from_connections;
-    std::vector<uint32_t> incidence_vector;
     uint32_t total_states = 1;
 
     PathAutomaton();
@@ -47,8 +46,8 @@ public:
     void add_epsilon_transition(uint32_t from, uint32_t to);
 
     void optimize_automata();
-    private:
 
+    private:
         // Check if two states are mergeable and do the merge.
         void delete_mergeable_states();
 
@@ -68,9 +67,8 @@ public:
         // Return a set with reachable states from a state in end set. Use DFS
         std::set<uint32_t> get_reachable_states_from_end();
 
-        // states with direct path fro o to source have the same path but from/to destiny.
-        // Be careful with states that are merged, because source connections
-        // will be removed
+        // Connections from source or to source will be from or to destiny.
+        // Be careful, all source transitions will be removed
         void merge_states(uint32_t destiny, uint32_t source);
 
         // Returns true if state forms a 2-cycle with another state

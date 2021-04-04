@@ -171,6 +171,7 @@ void PathAutomaton::delete_mergeable_states() {
         - s y v se mergean con v final, s pasa a ser final (o mergeo hacia v): Listo
         - s y v se mergean con s = start, mergeo v hacia s: Listo
         - s y v se mergean y hacen ciclo de largo 2 Se debe omitir este merge: Listo
+        - s y v se mergean y son dos estados cualquiera: Listo
         */
         for (size_t s = 0; s < from_to_connections.size(); s++) {
             // If s only can by reached from v and the transition is epsilon, then v = s
