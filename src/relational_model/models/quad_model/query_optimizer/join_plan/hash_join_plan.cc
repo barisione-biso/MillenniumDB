@@ -82,13 +82,13 @@ unique_ptr<BindingIdIter> HashJoinPlan::get_binding_id_iter(std::size_t binding_
     auto left_vars_bitmap = lhs->get_vars() & not_commons;
     auto right_vars_bitmap = rhs->get_vars() & not_commons;
 
-    cout << "getvars" << endl;
-    cout << lhs->get_vars() << endl;
-    cout << rhs->get_vars() << endl;
-    cout << "bitmaps" << endl;
-    cout << left_vars_bitmap << endl;
-    cout << common_vars_bitmap << endl;
-    cout << right_vars_bitmap << endl;
+    // cout << "getvars" << endl;
+    // cout << lhs->get_vars() << endl;
+    // cout << rhs->get_vars() << endl;
+    // cout << "bitmaps" << endl;
+    // cout << left_vars_bitmap << endl;
+    // cout << common_vars_bitmap << endl;
+    // cout << right_vars_bitmap << endl;
 
 
     // TODO: test this
@@ -98,15 +98,15 @@ unique_ptr<BindingIdIter> HashJoinPlan::get_binding_id_iter(std::size_t binding_
     for (uint_fast32_t position = 0; position < binding_size; position++) {
         auto current_mask = 1 << position; // from right to left
         if ((common_vars_bitmap & current_mask) > 0) {
-            cout << "common: " << VarId(current_mask).id << " mask: " << current_mask << endl;
+            cout << "common var: " << VarId(current_mask).id << endl;
             common_vars.push_back(VarId(current_mask));
         }
         else if ((left_vars_bitmap & current_mask) > 0) {
-            cout << "left: " << VarId(current_mask).id << " mask: " << current_mask << endl;
+            cout << "left var: " << VarId(current_mask).id << endl;
             left_vars.push_back(VarId(current_mask));
         }
         else if ((right_vars_bitmap & current_mask) > 0) {
-            cout << "right: " << VarId(current_mask).id << " mask: " << current_mask << endl;
+            cout << "right var: " << VarId(current_mask).id << endl;
             right_vars.push_back(VarId(current_mask));
         }
     }

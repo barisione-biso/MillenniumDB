@@ -25,8 +25,8 @@ public:
     void assign_nulls() override;
 
 private:
-    std::unique_ptr<BindingIdIter> lhs; // ?x ?y ?z ?u
-    std::unique_ptr<BindingIdIter> rhs; // ?x ?a ?b ?u ?c
+    std::unique_ptr<BindingIdIter> lhs;
+    std::unique_ptr<BindingIdIter> rhs;
     std::vector<VarId> left_vars;
     std::vector<VarId> common_vars;
     std::vector<VarId> right_vars;
