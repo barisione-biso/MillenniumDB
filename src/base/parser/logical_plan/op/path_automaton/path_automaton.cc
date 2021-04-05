@@ -105,7 +105,7 @@ void PathAutomaton::optimize_automata() {
     print();
     cout << "================\n";
     // Por cada transición epsilon del autómata de la forma (a)=[]=>(b):
-    // calcular clausura epsilon de (a) si aún no se ha hecho
+    // calcular clausura epsilon de (b) si aún no se ha hecho
     // por cada estado (s) en la clausura epsilon de (a):
     //     si (s) es final, marcar (a) como final
     //     por cada transición desde (s), de la forma (s)=[l]=>(t):
@@ -120,6 +120,7 @@ void PathAutomaton::optimize_automata() {
     // Primero una pasada partiendo en el estado inicial y llendo hacia adelante.
     // Luego otra pasada partierndo en todos los estados finales y llendo hacia atras.
     // Se eliminan las transiciones que salen o llegan a los nodos no visitados.
+    // TODO: Revisar si la clausura se calcula de a o de b
     for (size_t a = 0; a < from_to_connections.size(); a++) {
         auto epsilon_closure = get_epsilon_closure(a);
         for (const auto s : epsilon_closure) {
@@ -128,7 +129,6 @@ void PathAutomaton::optimize_automata() {
                 end.insert(a);
             }
         }
-
         // TODO: use vector iterator for more readable code
         for (size_t i = 0; i < from_to_connections[a].size();) {
             // from_to_connections[a][i] transition: (a)=[]=>(b)
@@ -170,7 +170,7 @@ void PathAutomaton::delete_mergeable_states() {
         no necesariamente vacías o cambiar el significado del autómata
         - s y v se mergean con v final, s pasa a ser final (o mergeo hacia v): Listo
         - s y v se mergean con s = start, mergeo v hacia s: Listo
-        - s y v se mergean y hacen ciclo de largo 2 Se debe omitir este merge: Listo
+        - s y v se mergean y hacen ciclo de largo 2 Se debe omitir este merge: Listo  
         - s y v se mergean y son dos estados cualquiera: Listo
         */
         for (size_t s = 0; s < from_to_connections.size(); s++) {
