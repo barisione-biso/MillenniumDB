@@ -35,6 +35,7 @@ ExtendableTable<T>::ExtendableTable(std::size_t tuple_size) :
 
 template <class T>
 ExtendableTable<T>::~ExtendableTable() {
+    //std::cout << file_manager.count_pages(buckets_file_id) << "\n";
     file_manager.remove(buckets_file_id);
 }
 

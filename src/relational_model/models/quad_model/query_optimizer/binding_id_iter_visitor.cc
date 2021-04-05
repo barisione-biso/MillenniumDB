@@ -12,6 +12,7 @@
 #include "relational_model/models/quad_model/query_optimizer/join_plan/property_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/transitive_closure_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
 
 using namespace std;
@@ -217,7 +218,8 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
     int best_index = 0;
     double best_cost = std::numeric_limits<double>::max();
     for (size_t j = 0; j < base_plans_size; j++) {
-        base_plans[j]->set_input_vars(input_vars);
+        base_plans[j]->set_input_vars(input_vars); // TODO: ?x :P1 ?y OPT { ?x :P2 ?a, ?x :P3 ?b }
+                                                   // (Q1 :P2 ?a) Join (Q1 :P3 ?b)
         auto current_element_cost = base_plans[j]->estimate_cost();
         base_plans[j]->print(0, true, var_names);
         std::cout << "\n";
@@ -238,13 +240,21 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
             if (base_plans[j] != nullptr
                 && !base_plans[j]->cartesian_product_needed(*root_plan) )
             {
-                auto nested_loop_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
-                auto nested_loop_cost = nested_loop_plan->estimate_cost();
+                // auto nested_loop_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                // auto nested_loop_cost = nested_loop_plan->estimate_cost();
 
-                if (nested_loop_cost < best_cost) {
-                    best_cost = nested_loop_cost;
+                // if (nested_loop_cost < best_cost) {
+                //     best_cost = nested_loop_cost;
+                //     best_index = j;
+                //     best_step_plan = move(nested_loop_plan);
+                // }
+                auto hash_join_plan = make_unique<HashJoinPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                auto hash_join_cost = hash_join_plan->estimate_cost();
+
+                if (hash_join_cost < best_cost) {
+                    best_cost = hash_join_cost;
                     best_index = j;
-                    best_step_plan = move(nested_loop_plan);
+                    best_step_plan = move(hash_join_plan);
                 }
             }
         }

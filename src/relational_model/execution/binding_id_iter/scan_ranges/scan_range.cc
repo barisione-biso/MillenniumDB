@@ -14,4 +14,10 @@ unique_ptr<ScanRange> ScanRange::get(Id id, bool assigned) {
     } else {
         return make_unique<UnassignedVar>(std::get<VarId>(id));
     }
+    // TODO: cambiar para volver a IndexNestedLoopJoin
+    // if ( holds_alternative<ObjectId>(id) ) {
+    //     return make_unique<Term>(std::get<ObjectId>(id));
+    // } else {
+    //     return make_unique<UnassignedVar>(std::get<VarId>(id));
+    // }
 }
