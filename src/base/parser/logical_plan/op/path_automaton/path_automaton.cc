@@ -188,8 +188,6 @@ void PathAutomaton::delete_mergeable_states() {
                 }
                 has_changes = true;
             }
-            cout << "-------------" << s << "---------------\n";
-            print();
         }
     }
 }
