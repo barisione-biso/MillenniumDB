@@ -13,7 +13,7 @@
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_kleene_star.h"
-#include "base/parser/logical_plan/op/op_path_epsilon.h"
+#include "base/parser/logical_plan/op/op_path_optional.h"
 #include "base/parser/logical_plan/op/op_select.h"
 
 void CheckVarNames::visit(OpSelect& op_select) {
@@ -76,4 +76,4 @@ void CheckVarNames::visit(OpPathAlternatives& )   { }
 void CheckVarNames::visit(OpPathSequence&)        { }
 void CheckVarNames::visit(OpPathAtom&)            { }
 void CheckVarNames::visit(OpPathKleeneStar&)       { }
-void CheckVarNames::visit(OpPathEpsilon&)         { }
+void CheckVarNames::visit(OpPathOptional&)         { }

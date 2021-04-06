@@ -71,10 +71,6 @@ public:
         // Be careful, all source transitions will be removed
         void merge_states(uint32_t destiny, uint32_t source);
 
-        // Returns true if state forms a 2-cycle with another state
-        bool has_two_length_cycle(uint32_t state);
-
-
 };
 
 #endif // BASE__PATH_AUTOMATON_H_

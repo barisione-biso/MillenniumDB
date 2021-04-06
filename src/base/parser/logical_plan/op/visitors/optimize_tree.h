@@ -43,6 +43,6 @@ public:
     void visit(OpPathAlternatives&) override;
     void visit(OpPathSequence&) override;
     void visit(OpPathKleeneStar&) override;
-    void visit(OpPathEpsilon&) override;
+    void visit(OpPathOptional&) override;
 };
 #endif // BASE__OPTIMIZE_TREE_H_

@@ -9,7 +9,7 @@ enum class OpPathType {
     OP_PATH_SEQUENCE,
     OP_PATH_KLEENE_STAR,
     OP_PATH_ATOM,
-    OP_PATH_EPSILON,
+    OP_PATH_OPTIONAL,
 };
 
 class OpPath : public Op {

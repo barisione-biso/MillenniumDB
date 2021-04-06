@@ -18,7 +18,7 @@
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_kleene_star.h"
-#include "base/parser/logical_plan/op/op_path_epsilon.h"
+#include "base/parser/logical_plan/op/op_path_optional.h"
 
 
 using namespace std;
@@ -320,4 +320,4 @@ void BindingIdIterVisitor::visit(OpPathAlternatives&)  { }
 void BindingIdIterVisitor::visit(OpPathSequence&)      { }
 void BindingIdIterVisitor::visit(OpPathAtom&)          { }
 void BindingIdIterVisitor::visit(OpPathKleeneStar&)     { }
-void BindingIdIterVisitor::visit(OpPathEpsilon&)       { }
+void BindingIdIterVisitor::visit(OpPathOptional&)       { }

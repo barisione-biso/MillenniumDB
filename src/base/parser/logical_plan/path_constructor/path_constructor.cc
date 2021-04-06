@@ -4,7 +4,7 @@
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_kleene_star.h"
-#include "base/parser/logical_plan/op/op_path_epsilon.h"
+#include "base/parser/logical_plan/op/op_path_optional.h"
 
 #include <cassert>
 #include <vector>
@@ -72,9 +72,7 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
                 op_vector.push_back(make_unique<OpPathKleeneStar>(move(tmp)));
                 return make_unique<OpPathSequence>(move(op_vector));
             case query::ast::PropertyPathSuffix::ZERO_OR_ONE :
-                op_vector.push_back(move(tmp));
-                op_vector.push_back(make_unique<OpPathEpsilon>());
-                return make_unique<OpPathAlternatives>(move(op_vector));
+                return make_unique<OpPathOptional>(move(tmp));
         }
     }
     query::ast::PropertyPathBoundSuffix suffix = boost::get<query::ast::PropertyPathBoundSuffix>(p.suffix);
@@ -83,10 +81,7 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
         op_vector.push_back(tmp->duplicate());
     }
     for (size_t i = suffix.min; i < suffix.max; i++) {
-        vector<unique_ptr<OpPath>> alternatives;
-        alternatives.push_back(tmp->duplicate());
-        alternatives.push_back(make_unique<OpPathEpsilon>());
-        op_vector.push_back(make_unique<OpPathAlternatives>(move(alternatives)));
+        op_vector.push_back(make_unique<OpPathOptional>(tmp->duplicate()));
     }
     return make_unique<OpPathSequence>(move(op_vector));
 }

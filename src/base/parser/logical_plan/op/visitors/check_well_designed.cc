@@ -15,7 +15,7 @@
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_kleene_star.h"
-#include "base/parser/logical_plan/op/op_path_epsilon.h"
+#include "base/parser/logical_plan/op/op_path_optional.h"
 
 
 using namespace std;
@@ -89,4 +89,4 @@ void CheckWellDesigned::visit(OpPathAlternatives&)  { }
 void CheckWellDesigned::visit(OpPathSequence&)      { }
 void CheckWellDesigned::visit(OpPathAtom&)          { }
 void CheckWellDesigned::visit(OpPathKleeneStar&)     { }
-void CheckWellDesigned::visit(OpPathEpsilon&)       { }
+void CheckWellDesigned::visit(OpPathOptional&)       { }

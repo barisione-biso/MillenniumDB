@@ -14,7 +14,6 @@ Supuestos importantes del automata:
       cambiar la semántica del automata. Al momento de optimizar se revisan los
       casos:
         - No se puede mergear 2 nodos que hacen un 2-ciclo (Al final se mergea el nodo consigo mismo)
-        - Al reemplazar una transicion epsilon desde v hacia s, v != s
 */
 
 
@@ -28,7 +27,7 @@ construido con las reglas del generado actualmente
 
 - Revisar condicion de merge al momento de unir dos estados, antes de optimizarlo
     - Condicion: A s solo llega un epsilon desde v, o solo sale un epsilon hacia v. Entonce
-    s y v se pueden fusionar: No es condicion suficiente, se deben revisar ciclos
+    s y v se pueden fusionar
 */
 
 PathAutomaton::PathAutomaton() { }
@@ -157,27 +156,16 @@ void PathAutomaton::delete_mergeable_states() {
     while (has_changes) {
         has_changes = false;
         /*
-        Nota importante: El caso en que from y s sean = 0 implica
-        que el automata es de la forma 0=[]=>0. En tal caso el resultado
-        será un autómata vacío, que para efectos prácticos realiza lo mismo
-        que el anterior, no acepta nada o acepta todo dependiendo si s es final.
-        Se añade una condicion adicional para el merge: los estados a mergear deben ser distintos,
-        no tiene sentido mergear un nodo consigo mismo.
-
-        Las condiciones de merge de una sola transicion epsilon, es necesaria, pero no es suficiente.
-        Adicionalmente se debe cumplir que los estados a mergear no formen un ciclo, o dicho de otra manera
-        que no haga un merge de un nodo consigo mismo, porque eso puede hacer que se pierdan transiciones
-        no necesariamente vacías o cambiar el significado del autómata
+        - s y v se mergean con s = v, entonces no hago merge
         - s y v se mergean con v final, s pasa a ser final (o mergeo hacia v): Listo
         - s y v se mergean con s = start, mergeo v hacia s: Listo
-        - s y v se mergean y hacen ciclo de largo 2 Se debe omitir este merge: Listo  
         - s y v se mergean y son dos estados cualquiera: Listo
         */
         for (size_t s = 0; s < from_to_connections.size(); s++) {
             // If s only can by reached from v and the transition is epsilon, then v = s
             if (to_from_connections[s].size() == 1 &&
                 to_from_connections[s][0].label.empty() &&
-                !has_two_length_cycle(s))
+                to_from_connections[s][0].from != s)
             {
                 // If from = start, merge to from avoiding delete start
                 if (to_from_connections[s][0].from == start) {
@@ -191,7 +179,7 @@ void PathAutomaton::delete_mergeable_states() {
             // If v only has one transition to s, and it is epsilon, then s = v
             if (from_to_connections[s].size() == 1 &&
                 from_to_connections[s][0].label.empty() &&
-                !has_two_length_cycle(s))
+                from_to_connections[s][0].to != s)
             {
                 if (from_to_connections[s][0].to == start) {
                     merge_states(from_to_connections[s][0].to, s);
@@ -200,6 +188,8 @@ void PathAutomaton::delete_mergeable_states() {
                 }
                 has_changes = true;
             }
+            cout << "-------------" << s << "---------------\n";
+            print();
         }
     }
 }
@@ -353,6 +343,8 @@ void PathAutomaton::merge_states(uint32_t destiny, uint32_t source) {
     de s. Todas las conexiones que se dirijan a v, se dirigen ahora a s. Se maneja el
     caso en que v sale hacia si mismo, donde luego s sale de si mismo
     */
+   // Avoid merge a state with itself
+   cout << destiny <<  " " << source << "\n";
     if (end.find(source) != end.end()) {
         end.insert(destiny);
     }
@@ -360,7 +352,8 @@ void PathAutomaton::merge_states(uint32_t destiny, uint32_t source) {
     for (const auto& t : from_to_connections[source]) {
         if (t.from == t.to) {
             connect(Transition(destiny, destiny, t.label, t.inverse));
-        } else if (t.to != destiny) {
+        } else {
+            cout << "a" << destiny <<  " " << t.to << "\n";
             connect(Transition(destiny, t.to, t.label, t.inverse));
         }
         // Delete source=[x]=>v
@@ -378,7 +371,7 @@ void PathAutomaton::merge_states(uint32_t destiny, uint32_t source) {
     for (const auto& t : to_from_connections[source]) {
         if (t.from == t.to) {
             connect(Transition(destiny, destiny, t.label, t.inverse));
-        } else if (t.from != destiny) {
+        } else {
             connect(Transition(t.from, destiny, t.label, t.inverse));
         }
         // Delete v=[x]=>source
@@ -394,16 +387,4 @@ void PathAutomaton::merge_states(uint32_t destiny, uint32_t source) {
     }
     from_to_connections[source].clear();
     to_from_connections[source].clear();
-}
-
-
-bool PathAutomaton::has_two_length_cycle(uint32_t state) {
-    for (const auto& from_transitions : from_to_connections[state]) {
-        for (const auto& to_transitions : to_from_connections[state]) {
-            if (from_transitions.to == to_transitions.from) {
-                return true;
-            }
-        }
-    }
-    return false;
 }

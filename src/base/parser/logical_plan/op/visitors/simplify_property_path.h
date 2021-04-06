@@ -8,7 +8,7 @@ class OpPathAlternatives;
 class OpPathSequence;
 class OpPathAtom;
 class OpPathKleeneStar;
-class OpPathEpsilon;
+class OpPathOptional;
 
 class SimplifyPropertyPath {
 public:
@@ -21,7 +21,7 @@ private:
     static std::unique_ptr<OpPath> denull(std::unique_ptr<OpPathSequence>);
     static std::unique_ptr<OpPath> denull(std::unique_ptr<OpPathAtom>);
     static std::unique_ptr<OpPath> denull(std::unique_ptr<OpPathKleeneStar>);
-    static std::unique_ptr<OpPath> denull(std::unique_ptr<OpPathEpsilon>);
+    static std::unique_ptr<OpPath> denull(std::unique_ptr<OpPathOptional>);
 };
 
 #endif // BASE__SIMPLIFY_PROPERTY_PATH_H_

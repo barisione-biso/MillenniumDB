@@ -8,7 +8,7 @@
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_kleene_star.h"
-#include "base/parser/logical_plan/op/op_path_epsilon.h"
+#include "base/parser/logical_plan/op/op_path_optional.h"
 
 using namespace std;
 
@@ -61,10 +61,10 @@ unique_ptr<OpPath> SimplifyPropertyPath::accept_denull(unique_ptr<OpPath> path) 
         return denull(move(casted));
     }
 
-    default : { //OpPathType::OP_PATH_EPSILON : {
-        // OpPathEpsilon
-        OpPathEpsilon* tmp = dynamic_cast<OpPathEpsilon*>(path.get());
-        std::unique_ptr<OpPathEpsilon> casted;
+    default : { //OpPathType::op_path_optional : {
+        // OpPathOptional
+        OpPathOptional* tmp = dynamic_cast<OpPathOptional*>(path.get());
+        std::unique_ptr<OpPathOptional> casted;
         path.release();
         casted.reset(tmp);
         return denull(move(casted));
@@ -106,6 +106,6 @@ unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathAtom> atom) {
     return atom;
 }
 
-unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathEpsilon> epsilon) {
-    return epsilon;
+unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathOptional> optional) {
+    return move(optional->path);
 }

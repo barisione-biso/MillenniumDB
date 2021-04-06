@@ -13,7 +13,7 @@
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_kleene_star.h"
-#include "base/parser/logical_plan/op/op_path_epsilon.h"
+#include "base/parser/logical_plan/op/op_path_optional.h"
 
 /*
 
@@ -44,7 +44,7 @@ private:
     void visit(OpPathSequence&);
     void visit(OpPathAtom&);
     void visit(OpPathKleeneStar&);
-    void visit(OpPathEpsilon&);
+    void visit(OpPathOptional&);
 
     void generate_definitive_transitions();
 

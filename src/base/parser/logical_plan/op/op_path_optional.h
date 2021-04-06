@@ -1,5 +1,5 @@
-#ifndef BASE__OP_PATH_EPSILON_H_
-#define BASE__OP_PATH_EPSILON_H_
+#ifndef BASE__OP_PATH_OPTIONAL_H_
+#define BASE__OP_PATH_OPTIONAL_H_
 
 #include <vector>
 #include <memory>
@@ -7,10 +7,12 @@
 #include "base/parser/logical_plan/op/op_path.h"
 #include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
-class OpPathEpsilon : public OpPath {
+class OpPathOptional : public OpPath {
 public:
+    std::unique_ptr<OpPath> path;
 
-    OpPathEpsilon() = default;
+    OpPathOptional(std::unique_ptr<OpPath> path) :
+        path   (move(path)) { }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
@@ -35,7 +37,8 @@ public:
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
-        os << "OpPathEpsilon()\n";
+        os << "OpPathOptional()\n";
+        path->print_to_ostream(os, indent + 2);
 
         return os;
     };
@@ -45,17 +48,17 @@ public:
     }
 
     std::unique_ptr<OpPath> duplicate() const override {
-        return std::make_unique<OpPathEpsilon>();
+        return std::make_unique<OpPathOptional>(path->duplicate());
     }
 
-    OpPathType type() const { return OpPathType::OP_PATH_EPSILON; }
+    OpPathType type() const { return OpPathType::OP_PATH_OPTIONAL; }
 
     PathAutomaton get_automaton() const override {
-        auto automaton = PathAutomaton();
-        automaton.end.insert(0);
+        auto automaton = path->get_automaton();
+        automaton.end.insert(automaton.start);
         return automaton;
     }
 
 };
 
-#endif // BASE__OP_PATH_EPSILON_H_
+#endif // BASE__OP_PATH_OPTIONAL_H_

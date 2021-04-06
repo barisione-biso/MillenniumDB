@@ -35,7 +35,7 @@ public:
     void visit(OpPathAlternatives&) override;
     void visit(OpPathSequence&) override;
     void visit(OpPathKleeneStar&) override;
-    void visit(OpPathEpsilon&) override;
+    void visit(OpPathOptional&) override;
 };
 
 #endif // BASE__CHECK_WELL_DESIGNED_H_

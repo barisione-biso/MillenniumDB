@@ -99,7 +99,7 @@ void PathValidator::visit(OpPathSuffix& path) {
 }
 */
 void PathValidator::visit(OpPathKleeneStar&) { }
-void PathValidator::visit(OpPathEpsilon&)    { }
+void PathValidator::visit(OpPathOptional&)    { }
 
 
 void PathValidator::visit(OpPathAtom& path) {
