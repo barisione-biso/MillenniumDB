@@ -27,13 +27,11 @@ public:
     }
 
     bool operator<(const OpPath& other) const override {
-        // TODO:
-        // if (atom < other.atom) {
-        //     return true;
-        // } else if (inverse < other.inverse) {
-        //     return true;
-        // }
-        return false;
+        return atom < other.to_string();
+    }
+
+    std::string to_string() const override {
+        return atom;
     }
 
     std::set<std::string> get_var_names() const override {

@@ -15,12 +15,11 @@ enum class OpPathType {
 class OpPath : public Op {
 public:
     virtual bool operator<(const OpPath&) const = 0;
+    virtual std::string to_string() const = 0;
     virtual bool nullable() const = 0;
     virtual std::unique_ptr<OpPath> duplicate() const = 0;
     virtual OpPathType type() const = 0;
     virtual PathAutomaton get_automaton() const = 0;
-
-    // virtual void denull() = 0;
 };
 
 #endif // BASE__OP_PATH_H_

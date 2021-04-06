@@ -19,15 +19,11 @@ public:
     }
 
     bool operator<(const OpPath& other) const override {
-        // TODO:
-        // if (min < min) {
-        //     return true;
-        // } else if (max < max) {
-        //     return true;
-        // } else if (*op_path < *other.op_path) {
-        //     return true;
-        // }
-        return false;
+        return to_string() < other.to_string();
+    }
+
+    std::string to_string() const override {
+        return path->to_string();
     }
 
     std::set<std::string> get_var_names() const override {

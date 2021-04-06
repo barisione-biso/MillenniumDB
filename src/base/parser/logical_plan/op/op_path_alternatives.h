@@ -40,15 +40,15 @@ public:
     }
 
     bool operator<(const OpPath& other) const override {
-        // TODO:
-        // if (min < min) {
-        //     return true;
-        // } else if (max < max) {
-        //     return true;
-        // } else if (*op_path < *other.op_path) {
-        //     return true;
-        // }
-        return false;
+        return to_string() < other.to_string();
+    }
+
+    std::string to_string() const override {
+        std::string alternative_string = "";
+        for (const auto& alt : alternatives) {
+            alternative_string.append(alt->to_string());
+        }
+        return alternative_string;
     }
 
     std::set<std::string> get_var_names() const override {
@@ -70,15 +70,6 @@ public:
     bool nullable() const {
         return is_nullable;
     }
-
-    // void denull() override {
-    //     if (!nullable()) {
-    //         return;
-    //     }
-    //     for (const auto& alternative : alternatives) {
-    //         alternative->denull();
-    //     }
-    // }
 
     std::unique_ptr<OpPath> duplicate() const override {
         return std::make_unique<OpPathAlternatives>(*this);
