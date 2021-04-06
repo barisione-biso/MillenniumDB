@@ -52,7 +52,7 @@ public:
         void delete_mergeable_states();
 
         // set returned  of ep. closure of 's' doesn't include s for avoid
-        // redundant loop in optimization
+        // redundant iteration during optimization. Uses DFS
         std::set<uint32_t> get_epsilon_closure(uint32_t state);
 
         // Delete states that can not be reached from start

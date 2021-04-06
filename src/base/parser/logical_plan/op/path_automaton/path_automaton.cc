@@ -194,7 +194,6 @@ void PathAutomaton::delete_mergeable_states() {
 
 
 set<uint32_t> PathAutomaton::get_epsilon_closure(uint32_t state) {
-    //Dfs from state
     set<uint32_t>  epsilon_closure;
     set<uint32_t> visited;
     stack<uint32_t> open;
@@ -341,8 +340,6 @@ void PathAutomaton::merge_states(uint32_t destiny, uint32_t source) {
     de s. Todas las conexiones que se dirijan a v, se dirigen ahora a s. Se maneja el
     caso en que v sale hacia si mismo, donde luego s sale de si mismo
     */
-   // Avoid merge a state with itself
-   cout << destiny <<  " " << source << "\n";
     if (end.find(source) != end.end()) {
         end.insert(destiny);
     }
@@ -351,7 +348,6 @@ void PathAutomaton::merge_states(uint32_t destiny, uint32_t source) {
         if (t.from == t.to) {
             connect(Transition(destiny, destiny, t.label, t.inverse));
         } else {
-            cout << "a" << destiny <<  " " << t.to << "\n";
             connect(Transition(destiny, t.to, t.label, t.inverse));
         }
         // Delete source=[x]=>v
