@@ -26,8 +26,20 @@ PropertyPathCheck::PropertyPathCheck(
 
 
 void PropertyPathCheck::begin(BindingId& parent_binding, bool /* parent_has_next */) {
-    // TODO: Añadir estado inicial al automata:
+    // Add inital state to queue
     this->parent_binding = &parent_binding;
+    // Set start_object_id and add it to `open` and `visited`
+    if (std::holds_alternative<ObjectId>(start)) {
+        auto start_object_id = std::get<ObjectId>(start);
+        //visited.insert(start_object_id);
+        open.push(Pair(automaton.start, start_object_id));
+    } else {
+        auto start_var_id = std::get<VarId>(start);
+        auto start_object_id = (parent_binding)[start_var_id];
+        //visited.insert(start_object_id);
+        open.push(Pair(automaton.start, start_object_id));
+    }
+
     //min_ids[type_pos] = type.id;
     //max_ids[type_pos] = type.id;
     min_ids[2] = 0;
@@ -36,17 +48,7 @@ void PropertyPathCheck::begin(BindingId& parent_binding, bool /* parent_has_next
     max_ids[3] = 0xFFFFFFFFFFFFFFFF;
     // min_ids[start_pos] and max_ids[start_pos] will be set at next()
 
-    // Set start_object_id and add it to `open` and `visited`
-    //if (std::holds_alternative<ObjectId>(start)) {
-    //    auto start_object_id = std::get<ObjectId>(start);
-    //    visited.insert(start_object_id);
-    //    open.push(start_object_id);
-    //} else {
-    //    auto start_var_id = std::get<VarId>(start);
-    //    auto start_object_id = (parent_binding)[start_var_id];
-    //    visited.insert(start_object_id);
-    //    open.push(start_object_id);
-    //}
+
 
     // Set end_object_id
     if (std::holds_alternative<ObjectId>(end)) {

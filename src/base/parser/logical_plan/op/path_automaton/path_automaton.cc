@@ -88,7 +88,7 @@ void PathAutomaton::optimize_automata() {
     delete_mergeable_states();
     // Por cada transición epsilon del autómata de la forma (a)=[]=>(b):
     // calcular clausura epsilon de (b) si aún no se ha hecho
-    // por cada estado (s) en la clausura epsilon de (a):
+    // por cada estado (s) en la clausura epsilon de (b):
     //     si (s) es final, marcar (a) como final
     //     por cada transición desde (s), de la forma (s)=[l]=>(t):
     //         crear transicion (a)=[l]=>(t)
@@ -128,6 +128,33 @@ void PathAutomaton::optimize_automata() {
             }
         }
     }
+    //for (size_t a = 0; a < from_to_connections.size(); a++) {
+    //    //auto epsilon_closure = get_epsilon_closure(a);
+    //    //for (const auto s : epsilon_closure) {
+    //    //    if (end.find(s) != end.end()) {
+    //    //        end.insert(a);
+    //    //    }
+    //    //}
+    //    // TODO: use vector iterator for more readable code
+    //    for (size_t i = 0; i < from_to_connections[a].size();) {
+    //        // from_to_connections[a][i] transition: (a)=[]=>(b)
+    //        if (from_to_connections[a][i].label.empty()) {
+    //            auto b = from_to_connections[a][i].to;
+    //            auto epsilon_closure = get_epsilon_closure(b);
+    //            for (const auto s : epsilon_closure) {
+    //                for (const auto& t : from_to_connections[s]) {
+    //                    if (!t.label.empty()) {
+    //                        connect(Transition(a, t.to, t.label, t.inverse));
+    //                    }
+    //                }
+    //            }
+    //            // delete epsilon transition
+    //            from_to_connections[a].erase(from_to_connections[a].begin() + i);
+    //        } else {
+    //            i++;
+    //        }
+    //    }
+    //}
     delete_unreachable_states();
     delete_absortion_states();
 }

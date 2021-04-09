@@ -58,7 +58,7 @@ public:
         // Delete states that can not be reached from start
         void delete_unreachable_states();
 
-        // Absortion states cannot be reached from end
+        // Absortion states cannot reach a any final state
         void delete_absortion_states();
 
         // Return a set with reachable states from start.

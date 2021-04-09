@@ -13,8 +13,12 @@
 #include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
 struct Pair {
-    unsigned int state;
-    ObjectId object_id;
+    const unsigned int state;
+    const ObjectId object_id;
+
+    Pair(unsigned int state, ObjectId object_id) :
+        state      (state),
+        object_id  (object_id) { }
 
     bool operator<(Pair& other) {
         if (state < other.state) {
