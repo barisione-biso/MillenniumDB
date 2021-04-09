@@ -52,12 +52,6 @@ public:
         }
         return res;
     }
-
-    PathAutomaton get_automaton() {
-        auto automaton = path->get_automaton();
-        automaton.optimize_automata();
-        return automaton;
-    }
 };
 
 #endif // BASE__OP_PROPERTY_PATH_H_

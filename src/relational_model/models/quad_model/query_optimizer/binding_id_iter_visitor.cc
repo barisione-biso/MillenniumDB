@@ -128,21 +128,22 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     }
     //
     // TODO: property paths are only transitive closures for now
-    // for (auto& property_path : op_match.property_paths) {
-    //     auto from_id = property_path.from[0] == '?'
-    //                     ? (JoinPlan::Id) get_var_id(property_path.from)
-    //                     : (JoinPlan::Id) model.get_identifiable_object_id(property_path.from);
+    for (auto& property_path : op_match.property_paths) {
+        auto from_id = property_path.from[0] == '?'
+                    ? (JoinPlan::Id) get_var_id(property_path.from)
+                    : (JoinPlan::Id) model.get_identifiable_object_id(property_path.from);
 
-    //     auto to_id   = property_path.to[0] == '?'
-    //                     ? (JoinPlan::Id) get_var_id(property_path.to)
-    //                     : (JoinPlan::Id) model.get_identifiable_object_id(property_path.to);
+        auto to_id   = property_path.to[0] == '?'
+                    ? (JoinPlan::Id) get_var_id(property_path.to)
+                    : (JoinPlan::Id) model.get_identifiable_object_id(property_path.to);
 
-    //     auto type_id = model.get_identifiable_object_id(property_path.type);
+        //auto automata = property_path.get_automaton();
+        //auto type_id = model.get_identifiable_object_id(property_path.type);
 
-    //     base_plans.push_back(
-    //         make_unique<TransitiveClosurePlan>(model, from_id, to_id, type_id)
-    //     );
-    // }
+        base_plans.push_back(
+            make_unique<TransitiveClosurePlan>(model, from_id, to_id, *property_path.path)
+        );
+    }
 
     assert(tmp == nullptr);
 

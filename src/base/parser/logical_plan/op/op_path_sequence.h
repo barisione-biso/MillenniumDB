@@ -39,15 +39,18 @@ public:
         visitor.visit(*this);
     }
 
-    bool operator<(const OpPath& other) const override {
-        return to_string() < other.to_string();
-    }
+    //bool operator<(const OpPath& other) const override {
+    //    return to_string() < other.to_string();
+    //}
 
     std::string to_string() const override {
-        std::string sequence_string = "";
-        for (const auto& seq : sequence) {
-            sequence_string.append(seq->to_string());
+        std::string sequence_string = "(";
+        sequence_string.append(sequence[0]->to_string());
+        for (std::size_t i = 1; i < sequence.size(); i++) {
+            sequence_string.append("/");
+            sequence_string.append(sequence[i]->to_string());
         }
+        sequence_string.append(")");
         return sequence_string;
     }
 

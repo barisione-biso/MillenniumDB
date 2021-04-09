@@ -52,19 +52,19 @@ public:
         void delete_mergeable_states();
 
         // set returned  of ep. closure of 's' doesn't include s for avoid
-        // redundant iteration during optimization. Uses DFS
+        // redundant iteration during optimization.
         std::set<uint32_t> get_epsilon_closure(uint32_t state);
 
         // Delete states that can not be reached from start
         void delete_unreachable_states();
 
-
+        // Absortion states cannot be reached from end
         void delete_absortion_states();
 
-        // Return a set with reachable states from start. Explores automaton with DFS
+        // Return a set with reachable states from start.
         std::set<uint32_t> get_reachable_states_from_start();
 
-        // Return a set with reachable states from a state in end set. Use DFS
+        // Return a set with reachable states from a state in end set.
         std::set<uint32_t> get_reachable_states_from_end();
 
         // Connections from source or to source will be from or to destiny.

@@ -1,0 +1,124 @@
+#include "property_path_plan.h"
+
+#include <limits>
+
+#include "relational_model/execution/binding_id_iter/transitive_closure_check.h"
+#include "relational_model/execution/binding_id_iter/transitive_closure_enum.h"
+
+using namespace std;
+
+PropertyPathPlan::PropertyPathPlan(QuadModel& model, Id from, Id to, OpPath& path) :
+    model           (model),
+    from            (from),
+    to              (to),
+    path            (path),
+    from_assigned   (std::holds_alternative<ObjectId>(from)),
+    to_assigned     (std::holds_alternative<ObjectId>(to)) { }
+
+
+PropertyPathPlan::PropertyPathPlan(const PropertyPathPlan& other) :
+    model           (other.model),
+    from            (other.from),
+    to              (other.to),
+    path            (other.path),
+    from_assigned   (other.from_assigned),
+    to_assigned     (other.to_assigned) { }
+
+
+unique_ptr<JoinPlan> PropertyPathPlan::duplicate() {
+    return make_unique<PropertyPathPlan>(*this);
+}
+
+
+double PropertyPathPlan::estimate_cost() {
+    if (!to_assigned && !from_assigned) {
+        return std::numeric_limits<double>::max();
+    }
+    return /*100.0 +*/ estimate_output_size();
+}
+
+void PropertyPathPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
+    for (int i = 0; i < indent; ++i) {
+        cout << ' ';
+    }
+    cout << "PropertyPathPlan(";
+    if (std::holds_alternative<ObjectId>(from)) {
+        cout << "from: " << model.get_graph_object(std::get<ObjectId>(from));
+    } else {
+        cout << "from: " << var_names[std::get<VarId>(from).id];
+    }
+
+    if (std::holds_alternative<ObjectId>(to)) {
+        cout << ", to: " << model.get_graph_object(std::get<ObjectId>(to));
+    } else {
+        cout << ", to: " << var_names[std::get<VarId>(to).id];
+    }
+    // TODO: Print del to_string del property_path
+    cout << ")";
+
+    if (estimated_cost) {
+        cout << ",\n";
+        for (int i = 0; i < indent; ++i) {
+            cout << ' ';
+        }
+        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    }
+}
+
+double PropertyPathPlan::estimate_output_size() {
+    // TODO: find a better estimation
+    const auto total_connections = static_cast<double>(
+        model.catalog().connections_count
+    );
+    return total_connections * total_connections;
+}
+
+
+uint64_t PropertyPathPlan::get_vars() {
+    uint64_t result = 0;
+    if ( std::holds_alternative<VarId>(from) ) {
+        result |= 1UL << std::get<VarId>(from).id;
+    }
+    if ( std::holds_alternative<VarId>(to) ) {
+        result |= 1UL << std::get<VarId>(to).id;
+    }
+    return result;
+}
+
+
+void PropertyPathPlan::set_input_vars(uint64_t input_vars) {
+    if (std::holds_alternative<VarId>(from)) {
+        auto from_var_id = std::get<VarId>(from);
+        if ((input_vars & (1UL << from_var_id.id)) != 0) {
+            from_assigned = true;
+        }
+    }
+    if (std::holds_alternative<VarId>(to)) {
+        auto to_var_id = std::get<VarId>(to);
+        if ((input_vars & (1UL << to_var_id.id)) != 0) {
+            to_assigned = true;
+        }
+    }
+}
+
+
+unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*binding_size*/) {
+    //if (from_assigned) {
+    //    if (to_assigned) {
+    //        // bool case
+    //        return make_unique<PropertyPathCheck>(*model.type_from_to_edge, from, to, 1, 0, path.get_optimized_automaton());
+    //    } else {
+    //        // enum starting on from
+    //        return make_unique<PropertyPathEnum>(*model.type_from_to_edge, from, std::get<VarId>(to), 1, 0, path.get_optimized_automaton());
+    //    }
+    //} else {
+    //    if (to_assigned) {
+    //        // enum starting on to
+    //        auto inverted_path = path.invert();
+    //        return make_unique<PropertyPathEnum>(*model.to_type_from_edge, to, std::get<VarId>(from), 0, 1, inverted_path.get_optimized_automaton());
+    //    } else {
+    //        throw runtime_error("property path must have at least 1 node fixed");
+    //    }
+    //}
+    return nullptr;
+}

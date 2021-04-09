@@ -18,12 +18,11 @@ public:
         visitor.visit(*this);
     }
 
-    bool operator<(const OpPath& other) const override {
-        return to_string() < other.to_string();
-    }
-
     std::string to_string() const override {
-        return path->to_string();
+        std::string res = "(";
+        res.append(path->to_string());
+        res.append(")?");
+        return res;
     }
 
     std::set<std::string> get_var_names() const override {

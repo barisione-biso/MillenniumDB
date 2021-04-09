@@ -13,13 +13,28 @@ enum class OpPathType {
 };
 
 class OpPath : public Op {
+
 public:
-    virtual bool operator<(const OpPath&) const = 0;
+
     virtual std::string to_string() const = 0;
     virtual bool nullable() const = 0;
     virtual std::unique_ptr<OpPath> duplicate() const = 0;
     virtual OpPathType type() const = 0;
+    // TODO: Alternatives: Pasan recursivamente. Atom: !inverse, Sequence: Da vuelta
+    // la secuencia y lo pasa recursivo. Kleen Start y Optional lo pasan recursivo
+    virtual std::unique_ptr<OpPath> invert() const = 0;
+
+    bool operator<(const OpPath& other) const {
+        return to_string() < other.to_string();
+    }
+
+    // TODO: Make protected
     virtual PathAutomaton get_automaton() const = 0;
+    PathAutomaton get_optimized_automaton() const {
+        auto automaton = get_automaton();
+        automaton.optimize_automata();
+        return automaton;
+    }
 };
 
 #endif // BASE__OP_PATH_H_

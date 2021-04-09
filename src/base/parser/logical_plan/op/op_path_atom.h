@@ -26,11 +26,14 @@ public:
         visitor.visit(*this);
     }
 
-    bool operator<(const OpPath& other) const override {
-        return atom < other.to_string();
-    }
+    //bool operator<(const OpPath& other) const override {
+    //    return to_string() < other.to_string();
+    //}
 
     std::string to_string() const override {
+        if (inverse) {
+            return "^" + atom;
+        }
         return atom;
     }
 
