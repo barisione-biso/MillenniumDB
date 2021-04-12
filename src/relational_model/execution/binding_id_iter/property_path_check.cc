@@ -10,83 +10,94 @@
 
 using namespace std;
 
-PropertyPathCheck::PropertyPathCheck(
-                                    BPlusTree<4>& bpt,
-                                    Id start,
-                                    Id end,
-                                    uint_fast32_t start_pos,
-                                    uint_fast32_t type_pos,
-                                    PathAutomaton automaton) :
-    bpt           (bpt),
-    start         (start),
-    end           (end),
-    automaton     (automaton),
-    start_pos     (start_pos),
-    type_pos      (type_pos) { }
+// from_to_type_edge
+// to_type_from_edge
+// type_from_to_edge
+
+// (start)=[]=>(end)
+// (?x)=[]=>(N) === (N)=[^]=>(?x)
+// - Forward: type_from_to_edge
+// - Inverse: to_type_from_edge
+
+PropertyPathCheck::PropertyPathCheck(BPlusTree<4>& type_from_to_edge,
+                                     BPlusTree<4>& to_type_from_edge,
+                                     Id start,
+                                     Id end,
+                                     PathAutomaton automaton) :
+    type_from_to_edge (type_from_to_edge),
+    to_type_from_edge (to_type_from_edge),
+    start             (start),
+    end               (end),
+    automaton         (automaton)
+    { }
 
 
 void PropertyPathCheck::begin(BindingId& parent_binding, bool /* parent_has_next */) {
-    // Add inital state to queue
     this->parent_binding = &parent_binding;
-    // Set start_object_id and add it to `open` and `visited`
+    // Add inital state to queue
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        //visited.insert(start_object_id);
         open.push(Pair(automaton.start, start_object_id));
     } else {
         auto start_var_id = std::get<VarId>(start);
-        auto start_object_id = (parent_binding)[start_var_id];
-        //visited.insert(start_object_id);
+        auto start_object_id = parent_binding[start_var_id];
         open.push(Pair(automaton.start, start_object_id));
     }
-
-    //min_ids[type_pos] = type.id;
-    //max_ids[type_pos] = type.id;
-    min_ids[2] = 0;
-    max_ids[2] = 0xFFFFFFFFFFFFFFFF;
-    min_ids[3] = 0;
-    max_ids[3] = 0xFFFFFFFFFFFFFFFF;
-    // min_ids[start_pos] and max_ids[start_pos] will be set at next()
-
-
 
     // Set end_object_id
     if (std::holds_alternative<ObjectId>(end)) {
         end_object_id = std::get<ObjectId>(end);
     } else {
         auto end_var_id = std::get<VarId>(end);
-        end_object_id = (parent_binding)[end_var_id];
+        end_object_id = parent_binding[end_var_id];
     }
+
+    min_ids[2] = 0;
+    max_ids[2] = 0xFFFFFFFFFFFFFFFF;
+    min_ids[3] = 0;
+    max_ids[3] = 0xFFFFFFFFFFFFFFFF;
+    // pos 0 and 1 will be set at next()
 }
 
 
 bool PropertyPathCheck::next() {
     while (open.size() > 0) {
-        auto current = open.front();
-        open.pop();
-        //min_ids[start_pos] = current.id;
-        //max_ids[start_pos] = current.id;
-        it = bpt.get_range(
-            Record<4>(min_ids),
-            Record<4>(max_ids)
-        );
-        ++bpt_searches;
+        auto& current_pair = open.front();
+        if (automaton.end.find(current_pair.state) != automaton.end.end() // check if state is final
+            && current_pair.object_id == end_object_id)                   // check node
+        {
+            queue<Pair> empty;
+            open.swap(empty);
+            return true;
+        } else if (visited.find(current_pair) == visited.end()) {
+            for (const auto& transition : automaton.transitions[current_pair.state]) {
+                if (transition.inverse) {
+                    min_ids[0] = current_pair.object_id.id;
+                    max_ids[0] = current_pair.object_id.id;
+                    min_ids[1] = transition.label.id;
+                    max_ids[1] = transition.label.id;
+                    it = to_type_from_edge.get_range(
+                        Record<4>(min_ids),
+                        Record<4>(max_ids)
+                    );
+                } else {
+                    min_ids[0] = transition.label.id;
+                    max_ids[0] = transition.label.id;
+                    min_ids[1] = current_pair.object_id.id;
+                    max_ids[1] = current_pair.object_id.id;
+                    it = type_from_to_edge.get_range(
+                        Record<4>(min_ids),
+                        Record<4>(max_ids)
+                    );
+                }
+                auto child_record = it->next();
+                while (child_record != nullptr) {
+                    open.push( Pair(transition.to, ObjectId(child_record->ids[3])) );
+                }
 
-        auto child_record = it->next();
-        while (child_record != nullptr){
-            ObjectId child( child_record->ids[2] );
-            //if (child == end_object_id) {
-            //    queue<ObjectId> empty;
-            //    open.swap(empty);
-            //    ++results_found;
-            //    return true;
-            //} else {
-            //    if (visited.find(child) == visited.end()) {
-            //        visited.insert(child);
-            //        open.push(child);
-            //    }
-            //    child_record = it->next();
-            //}
+            }
+            visited.insert(current_pair);
+            open.pop();
         }
     }
     return false;
@@ -95,21 +106,20 @@ bool PropertyPathCheck::next() {
 
 void PropertyPathCheck::reset() {
     // Empty open and visited
-    queue<ObjectId> empty;
-    //open.swap(empty);
+    queue<Pair> empty;
+    open.swap(empty);
     visited.clear();
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        //visited.insert(start_object_id);
-        //open.push(start_object_id);
+        open.push(Pair(automaton.start, start_object_id));
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
-        //visited.insert(start_object_id);
-        //open.push(start_object_id);
+        open.push(Pair(automaton.start, start_object_id));
     }
 
+    // Set end_object_id
     if (std::holds_alternative<ObjectId>(end)) {
         end_object_id = std::get<ObjectId>(end);
     } else {

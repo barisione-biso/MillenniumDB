@@ -2,8 +2,10 @@
 
 #include <limits>
 
-#include "relational_model/execution/binding_id_iter/transitive_closure_check.h"
-#include "relational_model/execution/binding_id_iter/transitive_closure_enum.h"
+// #include "relational_model/execution/binding_id_iter/transitive_closure_check.h"
+// #include "relational_model/execution/binding_id_iter/transitive_closure_enum.h"
+#include "base/parser/logical_plan/op/op_path.h"
+#include "relational_model/execution/binding_id_iter/property_path_check.h"
 
 using namespace std;
 
@@ -103,15 +105,22 @@ void PropertyPathPlan::set_input_vars(uint64_t input_vars) {
 
 
 unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*binding_size*/) {
-    //if (from_assigned) {
-    //    if (to_assigned) {
-    //        // bool case
-    //        return make_unique<PropertyPathCheck>(*model.type_from_to_edge, from, to, 1, 0, path.get_optimized_automaton());
-    //    } else {
-    //        // enum starting on from
-    //        return make_unique<PropertyPathEnum>(*model.type_from_to_edge, from, std::get<VarId>(to), 1, 0, path.get_optimized_automaton());
-    //    }
-    //} else {
+    if (from_assigned) {
+        if (to_assigned) {
+           // bool case
+           auto automaton = path.get_optimized_automaton();
+           transform_automaton(automaton);
+           return make_unique<PropertyPathCheck>(*model.type_from_to_edge,
+                                                 *model.to_type_from_edge,
+                                                 from,
+                                                 to,
+                                                 automaton);
+        } else {
+            // enum starting on from
+            // return make_unique<PropertyPathEnum>(*model.type_from_to_edge, from, std::get<VarId>(to), 1, 0, path.get_optimized_automaton());
+            return nullptr;
+        }
+    } // else {
     //    if (to_assigned) {
     //        // enum starting on to
     //        auto inverted_path = path.invert();
@@ -121,4 +130,17 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
     //    }
     //}
     return nullptr;
+}
+
+
+void PropertyPathPlan::transform_automaton(PathAutomaton& automaton) {
+    for (size_t i = 0; i < automaton.from_to_connections.size(); i++) {
+        vector<TransitionId> transition_id_vector;
+        for (const auto& t : automaton.from_to_connections[i]) {
+            transition_id_vector.push_back(
+                TransitionId(t.to, model.get_identifiable_object_id(t.label), t.inverse)
+            );
+        }
+        automaton.transitions.push_back(transition_id_vector);
+    }
 }

@@ -13,14 +13,14 @@
 #include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
 struct Pair {
-    const unsigned int state;
+    const uint32_t state;
     const ObjectId object_id;
 
     Pair(unsigned int state, ObjectId object_id) :
         state      (state),
         object_id  (object_id) { }
 
-    bool operator<(Pair& other) {
+    bool operator<(const Pair& other) const {
         if (state < other.state) {
             return true;
         } else {
@@ -40,12 +40,13 @@ class PropertyPathCheck : public BindingIdIter {
 
 private:
     // Attributes determined in the constuctor
-    BPlusTree<4>& bpt;
+    BPlusTree<4>& type_from_to_edge;
+    BPlusTree<4>& to_type_from_edge;
     Id start;
     Id end;
     PathAutomaton automaton;
-    uint_fast32_t start_pos;
-    uint_fast32_t type_pos;
+    // uint_fast32_t start_pos;
+    // uint_fast32_t type_pos;
 
     // Attributes determined in begin
     ObjectId end_object_id;
@@ -65,8 +66,11 @@ private:
     uint_fast32_t bpt_searches = 0;
 
 public:
-    PropertyPathCheck(BPlusTree<4>& bpt, Id start, Id end,
-                        uint_fast32_t start_pos, uint_fast32_t type_pos, PathAutomaton automaton);
+    PropertyPathCheck(BPlusTree<4>& type_from_to_edge,
+                      BPlusTree<4>& to_type_from_edge,
+                      Id start,
+                      Id end,
+                      PathAutomaton automaton);
     ~PropertyPathCheck() = default;
 
     void analyze(int indent = 0) const override;

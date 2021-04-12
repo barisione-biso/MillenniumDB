@@ -3,6 +3,7 @@
 
 #include "relational_model/models/quad_model/quad_model.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
+#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
 
 class PropertyPathPlan : public JoinPlan {
@@ -21,6 +22,8 @@ public:
     std::unique_ptr<JoinPlan> duplicate() override;
 
     void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) override;
+
+    void transform_automaton(PathAutomaton& automaton);
 
 private:
     QuadModel& model;

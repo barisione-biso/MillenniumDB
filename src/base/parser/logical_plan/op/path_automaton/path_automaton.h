@@ -6,6 +6,8 @@
 #include <tuple>
 #include <vector>
 
+#include "base/ids/object_id.h"
+
 struct Transition {
     uint32_t from;
     uint32_t to;
@@ -23,12 +25,28 @@ struct Transition {
     }
 };
 
+struct TransitionId {
+    // uint32_t from;
+    uint32_t to;
+    ObjectId label;
+    bool inverse;
+
+    TransitionId(uint32_t to, ObjectId label, bool inverse) :
+        to        (to),
+        label     (label),
+        inverse   (inverse) { }
+};
+
+
+
 class PathAutomaton {
 public:
     uint32_t start = 0;
     std::set<uint32_t> end;
     std::vector<std::vector<Transition>> from_to_connections;
     std::vector<std::vector<Transition>> to_from_connections;
+    std::vector<std::vector<TransitionId>> transitions;
+
     uint32_t total_states = 1;
 
     PathAutomaton();
