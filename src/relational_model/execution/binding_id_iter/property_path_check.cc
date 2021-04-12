@@ -37,11 +37,15 @@ void PropertyPathCheck::begin(BindingId& parent_binding, bool /* parent_has_next
     // Add inital state to queue
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        open.push(Pair(automaton.start, start_object_id));
+        auto start_pair = Pair(automaton.start, start_object_id);
+        open.push(start_pair);
+        visited.insert(start_pair);
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = parent_binding[start_var_id];
-        open.push(Pair(automaton.start, start_object_id));
+        auto start_pair = Pair(automaton.start, start_object_id);
+        open.push(start_pair);
+        visited.insert(start_pair);
     }
 
     // Set end_object_id
