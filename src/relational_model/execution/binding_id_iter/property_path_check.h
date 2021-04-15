@@ -8,58 +8,35 @@
 #include <variant>
 
 #include "base/binding/binding_id_iter.h"
+#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
+#include "base/property_paths/search_state.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
-#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
 
-struct Pair {
-    const uint32_t state;
-    const ObjectId object_id;
+// TODO: Comment resume
 
-    Pair(unsigned int state, ObjectId object_id) :
-        state      (state),
-        object_id  (object_id) { }
-
-    bool operator<(const Pair& other) const {
-        if (state < other.state) {
-            return true;
-        } else {
-            return object_id < other.object_id;
-        }
-    }
-};
-
-
-/* PropertyPathCheck will determine if there exists a path between 2 nodes: `start` & `end`
- * following connections with type `type`.
- * If `start` or `end` are VarId, it assumes they will be propertly assignated in the binding
- * before `next()` is called
- */
 class PropertyPathCheck : public BindingIdIter {
     using Id = std::variant<VarId, ObjectId>;
 
 private:
     // Attributes determined in the constuctor
-    BPlusTree<4>& type_from_to_edge;
-    BPlusTree<4>& to_type_from_edge;
+    BPlusTree<4>& type_from_to_edge;  // Used to search foward
+    BPlusTree<4>& to_type_from_edge;  // Used to search backward
     Id start;
     Id end;
     PathAutomaton automaton;
-    // uint_fast32_t start_pos;
-    // uint_fast32_t type_pos;
 
     // Attributes determined in begin
     ObjectId end_object_id;
     BindingId* parent_binding;
-    std::unique_ptr<BptIter<4>> it;
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
     std::array<uint64_t, 4> min_ids;
     std::array<uint64_t, 4> max_ids;
 
     // Structs for BFS
-    std::set<Pair> visited;
-    std::queue<Pair> open;
+    std::set<SearchState> visited;
+    std::queue<SearchState> open;
 
     // Statistics
     uint_fast32_t results_found = 0;
