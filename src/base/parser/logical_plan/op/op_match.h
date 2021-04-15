@@ -83,12 +83,6 @@ public:
                                            last_object_name,
                                            path_constructor(property_path.path_alternatives)));
                     }
-                    auto path = OpPropertyPath( last_object_name,
-                                                current_node_name,
-                                                path_constructor(property_path.path_alternatives));
-
-                    path.print_to_ostream(std::cout);
-                    path.path->get_optimized_automaton().print();
                 }
                 last_object_name = std::move(current_node_name);
             }
