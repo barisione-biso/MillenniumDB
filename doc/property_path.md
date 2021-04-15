@@ -100,63 +100,63 @@ UNCOMPLETED
 
 ## Path Automaton
 
-Each OpPath generates its own automaton and recursively get children automatons and after merge its.
 
-Automatons objects have two important vectors:
+PathAutomaton class have two important vectors:
     - `vector<vector<Transitions>> from_to_connections`: The i element of this vector, describe the connections that starts from i state.
     - `vector<vector<Transitions>> to_from_connections`: The i element of this vector describe the connections that reach to i state.
 
-Each OpPath generates a specific automaton:
+Each OpPath implements a `get_automaton` method and in each case, the method will return a automaton as follow:
 
-- `OpPathAtom`: Generates the automaton
-    ```
-        0-[atom]->1
-    ```
- with  1 as end state.
-- `OpPathAlternatives`: Generates the automaton
-    ```
-           child_1 automaton
-          /                  \
-        []                    []
-       /                        \
-    0  -[child_i automaton]-[]-> 1
-       \                        /
-        []                    []
-          \                  /
-           child_n_automaton
+- `OpPathAtom`:
 
-    ```
-    With 1 as end automatons.
+    ![](property_path_assets/atom_automaton.png)
 
-- `OpPathSequence`: Generates the automaton
-    ```
+- `OpPathAlternatives`:
 
-    0 -> [] -> [child_1 automaton] ... ->[] ->[child_n automaton] -> 1
-    ```
 
-    With 1 as end state
 
-- `OpPathKleeneStar`: Generates the automaton
-    ```
-            <---  []  <---
-            |               \
-            v
-    0 - [child automaton] -> 1
-     \                      /
-      -------> []  ------->
+   ![](property_path_assets/alternative_automaton.png)
 
-    ```
-    With 1 as end state
-- `OpPathOptional`: Generates the automaton
-    ```
-    0 - [path automaton] -> 1
-    ```
-    With 0 and 1 as end states
 
-The start state always will be the 0. The procces of merge a automaton is handled by the `rename_and_merge(PathAutomaton& other)` other.
+- `OpPathSequence`:
+
+    ![](property_path_assets/sequence_automaton.png)
+
+- `OpPathKleeneStar`:
+
+    ![](property_path_assets/kleene_star_automaton.png)
+
+- `OpPathOptional`:
+
+    ![](property_path_assets/optional_automaton.png)
+
+
+-------------------------------
+The final automaton is obtained by forming a construction tree, where the leafs will be OpPathAtom automatons. Then the automata will be mixed according to the type of OpPath that is their parent.
+
+The mix process is handled by `rename_and_merge` method
 
 - `rename_and_merge(PathAutomaton& other)`:
-    If `other` automaton have n states, add n empty vectors to `from_to_connections` and `to_from_connections`. Add all transitions to this position. But if the this automaton have m states, the transitions of other state i will be saved in m + i position. The states will be increase its id in m, end states and start state of other will be reanamed. After merge, other connectinos and state id are incosistent.
+    Add `other` connections to the current automaton. But all states of other will be rename like `n + state_id`, where `n` is the number of states of the current automaton and `state_id` the id of a state in `other`. Also renames the `other`'s end states and start states.
+
+Let's see how the automaton for the query `(:A / :B)*` will be constructed.
+
+First, OpPathAtoms will be constructed separately:
+
+![](property_path_assets/construction_example_1.png)
+
+
+Parent of A and B automaton is a OpPathSequence. This generates a new automaton:
+
+![](property_path_assets/construction_example_2.png)
+
+According with the OpPathSequence automaton schema. `A` and `B` automatons will be concatenated inside the sequence automaton and linked with epsilon transitions:
+
+
+![](property_path_assets/construction_example_3.png)
+
+The final automaton is not a minimal automaton. In [optimization section](##Path-Automaton-Optimizations) you can see how this epsilon transitions of this automaton will be removed and some techniques to reduce the size of it.
+
 
 # Optimizations
 ## - Path Constructor Optimization
@@ -197,6 +197,8 @@ Path Automaton have 4 optimizations:
 A state s is mergeable with v if:
 - Has only one transition that starts from s, and the transitions is epsilon and reach to v.
 - Exists only one transitions that reaches to s and starts from v.
+
+![](property_path_assets/merge.png)
 
 ### Replace epsilon transitions
 
