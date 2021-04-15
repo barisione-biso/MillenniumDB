@@ -23,6 +23,7 @@ public:
 
     void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) override;
 
+    // Set transitions with TransitionId object (string to ObjectId)
     void transform_automaton(PathAutomaton& automaton);
 
 private:
