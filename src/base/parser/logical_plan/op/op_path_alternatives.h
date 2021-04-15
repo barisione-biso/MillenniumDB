@@ -39,10 +39,6 @@ public:
         visitor.visit(*this);
     }
 
-    //bool operator<(const OpPath& other) const override {
-    //    return to_string() < other.to_string();
-    //}
-
     std::string to_string() const override {
         std::string alternative_string = "(";
         alternative_string.append(alternatives[0]->to_string());
@@ -91,6 +87,14 @@ public:
             }
         }
         return alternative_automaton;
+    }
+
+    std::unique_ptr<OpPath> invert() const override {
+        std::vector<std::unique_ptr<OpPath>> invert_alternatives;
+        for (auto& alternative : alternatives) {
+            invert_alternatives.push_back(alternative->invert());
+        }
+        return std::make_unique<OpPathAlternatives>(move(invert_alternatives));
     }
 };
 

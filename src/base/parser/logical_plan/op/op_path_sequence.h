@@ -39,10 +39,6 @@ public:
         visitor.visit(*this);
     }
 
-    //bool operator<(const OpPath& other) const override {
-    //    return to_string() < other.to_string();
-    //}
-
     std::string to_string() const override {
         std::string sequence_string = "(";
         sequence_string.append(sequence[0]->to_string());
@@ -91,6 +87,14 @@ public:
             sequence_automaton.end = std::move(seq_automaton.end);
         }
         return sequence_automaton;
+    }
+
+    std::unique_ptr<OpPath> invert() const override {
+        std::vector<std::unique_ptr<OpPath>> invert_sequence;
+        for (size_t i = sequence.size() - 1; i > 0; i--) {
+            invert_sequence.push_back(sequence[i]->invert());
+        }
+        return std::make_unique<OpPathSequence>(move(invert_sequence));
     }
 
 };

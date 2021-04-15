@@ -61,12 +61,10 @@ public:
     OpPathType type() const { return OpPathType::OP_PATH_KLEENE_STAR; }
 
     PathAutomaton get_automaton() const override {
-        //auto kleene_automaton = PathAutomaton();
         auto path_automaton = path->get_automaton();
-        //TODO: Chequear condicion
+        // Heuristic for kleene star consutriction
         if (path_automaton.total_states == 2) {
-            // && path_automaton.conections.size() == 1
-            // && path_automaton.conections[path_automaton.start].size() == 1 ) {
+            // Automaton with 2 states have only one connection from 0 to 1
             auto new_automaton = PathAutomaton();
             auto transition = path_automaton.from_to_connections[0][0];
             new_automaton.connect(Transition(0,0, transition.label, transition.inverse));
@@ -80,6 +78,10 @@ public:
             path_automaton.end.insert(path_automaton.start);
             return path_automaton;
         }
+    }
+
+    std::unique_ptr<OpPath> invert() const {
+        return std::make_unique<OpPathKleeneStar>(path->invert());
     }
 };
 

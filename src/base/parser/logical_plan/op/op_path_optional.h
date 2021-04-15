@@ -54,6 +54,10 @@ public:
         return automaton;
     }
 
+    std::unique_ptr<OpPath> invert() const override {
+        return std::make_unique<OpPathOptional>(path->invert());
+    }
+
 };
 
 #endif // BASE__OP_PATH_OPTIONAL_H_

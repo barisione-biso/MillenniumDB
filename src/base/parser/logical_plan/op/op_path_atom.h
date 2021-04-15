@@ -26,10 +26,6 @@ public:
         visitor.visit(*this);
     }
 
-    //bool operator<(const OpPath& other) const override {
-    //    return to_string() < other.to_string();
-    //}
-
     std::string to_string() const override {
         if (inverse) {
             return "^" + atom;
@@ -65,6 +61,10 @@ public:
         automaton.connect(Transition(0, 1, atom, inverse));
         automaton.total_states = 2;
         return automaton;
+    }
+
+    std::unique_ptr<OpPath> invert() const override {
+        return std::make_unique<OpPathAtom>(atom, !inverse);
     }
 };
 
