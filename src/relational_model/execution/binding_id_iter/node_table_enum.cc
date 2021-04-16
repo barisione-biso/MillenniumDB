@@ -5,9 +5,15 @@ NodeTableEnum::NodeTableEnum(std::size_t /*binding_size*/, const VarId var_id, R
     table  (table) { }
 
 
-void NodeTableEnum::begin(BindingId& parent_binding, bool) {
+void NodeTableEnum::begin(BindingId& parent_binding, bool parent_has_next) {
     this->parent_binding = &parent_binding;
-    current_pos = 0;
+    if (parent_has_next) {
+        current_pos = 0;
+    }
+    else {
+        // TODO: this will only support up to 2^^32 - 1 nodes
+        current_pos = -1;
+    }
 }
 
 

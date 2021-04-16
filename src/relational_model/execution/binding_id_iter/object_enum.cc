@@ -8,9 +8,14 @@ ObjectEnum::ObjectEnum(std::size_t /*binding_size*/, VarId var_id, const uint64_
     max_count (max_count) { }
 
 
-void ObjectEnum::begin(BindingId& parent_binding, bool /*parent_has_next*/) {
+void ObjectEnum::begin(BindingId& parent_binding, bool parent_has_next) {
     this->parent_binding = &parent_binding;
-    current_node = 0;
+    if (parent_has_next) {
+        current_node = 0;
+    }
+    else {
+        current_node = max_count;
+    }
 }
 
 

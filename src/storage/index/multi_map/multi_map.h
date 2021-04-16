@@ -10,27 +10,32 @@
 #include "base/ids/var_id.h"
 #include "storage/file_id.h"
 #include "storage/index/object_file/object_file.h"
+#include "storage/index/multi_map/multi_bucket.h"
 
 using MultiPair = std::pair<std::vector<ObjectId>, std::vector<ObjectId>>;
-using MultiBucket = std::vector<MultiPair>;
+
+
 //template <class T>
 class MultiMap {
 public:
     static constexpr uint_fast32_t MAX_BUCKETS = 512;
 
-    MultiMap(std::size_t _key_size, std::size_t _value_size);
+    MultiMap(std::size_t _key_size, std::size_t _value_size, char tmp_char);
     ~MultiMap();
 
     void insert(std::vector<ObjectId> key, std::vector<ObjectId> value);
-    std::uint_fast32_t bucket_size(std::uint_fast32_t current_bucket);
-    MultiPair& get_pair(std::uint_fast32_t current_bucket, std::uint_fast32_t current_pos);
+    uint_fast32_t get_bucket_size(uint_fast32_t current_bucket);
+    MultiPair get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);
 
 private:
     const std::size_t key_size;
     const std::size_t value_size;
-    std::vector<MultiBucket> buckets;
+    const uint32_t MAX_TUPLES;
 
-    //const FileId buckets_file_id;
+    std::vector<FileId>                       buckets_files;
+    std::vector<uint_fast32_t>                buckets_sizes;
+    std::vector<std::unique_ptr<MultiBucket>> last_buckets_pages;
+    std::vector<std::unique_ptr<MultiBucket>> current_buckets_pages;  // for reading
 };
 
 #endif // STORAGE__MULTI_MAP_H_

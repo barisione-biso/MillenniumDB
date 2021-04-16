@@ -1,0 +1,4 @@
+// join de relacion con varios resultados con relacion de un solo resultado
+SELECT *
+MATCH (?x :label2) -> (?y)
+LIMIT 10000
