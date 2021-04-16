@@ -91,8 +91,8 @@ public:
 
     std::unique_ptr<OpPath> invert() const override {
         std::vector<std::unique_ptr<OpPath>> invert_sequence;
-        for (size_t i = sequence.size() - 1; i > 0; i--) {
-            invert_sequence.push_back(sequence[i]->invert());
+        for (size_t i = 0; i < sequence.size(); i++) {
+            invert_sequence.push_back(sequence[sequence.size() - 1 - i]->invert());
         }
         return std::make_unique<OpPathSequence>(move(invert_sequence));
     }
