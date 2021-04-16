@@ -3,7 +3,7 @@
 
 #include <array>
 #include <memory>
-#include <set>
+#include <unordered_set>
 #include <queue>
 #include <variant>
 
@@ -35,7 +35,7 @@ private:
     std::array<uint64_t, 4> max_ids;
 
     // Structs for BFS
-    std::set<SearchState> visited;
+    std::unordered_set<SearchState, SearchStateHasher> visited;
     std::queue<SearchState> open;
 
     // Statistics
