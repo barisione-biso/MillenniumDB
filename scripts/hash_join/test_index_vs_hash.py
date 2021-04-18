@@ -1,0 +1,1 @@
+# TODO: 7 queries 3 times each, repeat with nested loop,  this script (make table to test time differences and results)
