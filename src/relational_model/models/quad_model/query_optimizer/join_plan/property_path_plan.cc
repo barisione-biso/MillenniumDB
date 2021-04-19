@@ -5,8 +5,8 @@
 // #include "relational_model/execution/binding_id_iter/transitive_closure_check.h"
 // #include "relational_model/execution/binding_id_iter/transitive_closure_enum.h"
 #include "base/parser/logical_plan/op/op_path.h"
-#include "relational_model/execution/binding_id_iter/property_path_check.h"
-#include "relational_model/execution/binding_id_iter/property_path_enum.h"
+#include "relational_model/execution/binding_id_iter/property_path_bfs_check.h"
+#include "relational_model/execution/binding_id_iter/property_path_bfs_enum.h"
 
 using namespace std;
 
@@ -111,14 +111,14 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
         transform_automaton(automaton);
         if (to_assigned) {
            // bool case
-           return make_unique<PropertyPathCheck>(*model.type_from_to_edge,
+           return make_unique<PropertyPathBFSCheck>(*model.type_from_to_edge,
                                                  *model.to_type_from_edge,
                                                  from,
                                                  to,
                                                  automaton);
         } else {
             // enum starting on from
-            return make_unique<PropertyPathEnum>(*model.type_from_to_edge,
+            return make_unique<PropertyPathBFSEnum>(*model.type_from_to_edge,
                                                  *model.to_type_from_edge,
                                                  from,
                                                  std::get<VarId>(to),
@@ -130,7 +130,7 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
             auto inverted_path = path.invert();
             auto automaton = inverted_path->get_optimized_automaton();
             transform_automaton(automaton);
-            return make_unique<PropertyPathEnum>(*model.type_from_to_edge,
+            return make_unique<PropertyPathBFSEnum>(*model.type_from_to_edge,
                                                  *model.to_type_from_edge,
                                                  to,
                                                  std::get<VarId>(from),

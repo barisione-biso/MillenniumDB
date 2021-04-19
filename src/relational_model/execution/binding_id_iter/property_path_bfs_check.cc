@@ -1,4 +1,4 @@
-#include "property_path_check.h"
+#include "property_path_bfs_check.h"
 
 #include <cassert>
 #include <iostream>
@@ -11,7 +11,7 @@
 using namespace std;
 
 
-PropertyPathCheck::PropertyPathCheck(BPlusTree<4>& type_from_to_edge,
+PropertyPathBFSCheck::PropertyPathBFSCheck(BPlusTree<4>& type_from_to_edge,
                                      BPlusTree<4>& to_type_from_edge,
                                      Id start,
                                      Id end,
@@ -24,7 +24,7 @@ PropertyPathCheck::PropertyPathCheck(BPlusTree<4>& type_from_to_edge,
     { }
 
 
-void PropertyPathCheck::begin(BindingId& parent_binding, bool parent_has_next) {
+void PropertyPathBFSCheck::begin(BindingId& parent_binding, bool parent_has_next) {
     this->parent_binding = &parent_binding;
     if (parent_has_next) {
         // Add inital state to queue
@@ -58,7 +58,7 @@ void PropertyPathCheck::begin(BindingId& parent_binding, bool parent_has_next) {
 }
 
 
-bool PropertyPathCheck::next() {
+bool PropertyPathBFSCheck::next() {
     while (open.size() > 0) {
         auto& current_state = open.front();
         if (automaton.end.find(current_state.state) != automaton.end.end()
@@ -108,7 +108,7 @@ bool PropertyPathCheck::next() {
 }
 
 
-void PropertyPathCheck::reset() {
+void PropertyPathBFSCheck::reset() {
     // Empty open and visited
     queue<SearchState> empty;
     open.swap(empty);
@@ -138,13 +138,13 @@ void PropertyPathCheck::reset() {
 }
 
 
-void PropertyPathCheck::assign_nulls() { }
+void PropertyPathBFSCheck::assign_nulls() { }
 
 
-void PropertyPathCheck::analyze(int indent) const {
+void PropertyPathBFSCheck::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "PropertyPathCheck(bpt_searches: " << bpt_searches
+    cout << "PropertyPathBFSCheck(bpt_searches: " << bpt_searches
          << ", found: " << results_found <<")\n";
 }

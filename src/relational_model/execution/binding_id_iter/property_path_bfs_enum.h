@@ -13,9 +13,14 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
-// TODO: Comment resume
+/*
+PropertyPathBFSCheck  returns nodes that can be reached by 'start' or reach to 'end' by a
+path that automaton object describes.
+  * Explores graph using BFS algorithm
+*/
 
-class PropertyPathEnum : public BindingIdIter {
+
+class PropertyPathBFSEnum : public BindingIdIter {
     using Id = std::variant<VarId, ObjectId>;
 
 private:
@@ -45,12 +50,12 @@ private:
     uint_fast32_t bpt_searches = 0;
 
 public:
-    PropertyPathEnum(BPlusTree<4>& type_from_to_edge,
+    PropertyPathBFSEnum(BPlusTree<4>& type_from_to_edge,
                       BPlusTree<4>& to_type_from_edge,
                       Id start,
                       VarId end,
                       PathAutomaton automaton);
-    ~PropertyPathEnum() = default;
+    ~PropertyPathBFSEnum() = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;

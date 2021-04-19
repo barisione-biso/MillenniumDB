@@ -1,5 +1,5 @@
-#ifndef RELATIONAL_MODEL__PROPERTY_PATH_CHECK_H_
-#define RELATIONAL_MODEL__PROPERTY_PATH_CHECK_H_
+#ifndef RELATIONAL_MODEL__PROPERTY_PATH_BFS_CHECK_H_
+#define RELATIONAL_MODEL__PROPERTY_PATH_BFS_CHECK_H_
 
 #include <array>
 #include <memory>
@@ -13,9 +13,14 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
-// TODO: Comment resume
+/*
+PropertyPathBFSCheck will determine if there exists a path between 2 nodes: `start` & `end`
+  * A path is validate with automaton
+  * Explores graph using BFS algorithm
+  * Only find one valid path and returns
+*/
 
-class PropertyPathCheck : public BindingIdIter {
+class PropertyPathBFSCheck : public BindingIdIter {
     using Id = std::variant<VarId, ObjectId>;
 
 private:
@@ -43,12 +48,12 @@ private:
     uint_fast32_t bpt_searches = 0;
 
 public:
-    PropertyPathCheck(BPlusTree<4>& type_from_to_edge,
+    PropertyPathBFSCheck(BPlusTree<4>& type_from_to_edge,
                       BPlusTree<4>& to_type_from_edge,
                       Id start,
                       Id end,
                       PathAutomaton automaton);
-    ~PropertyPathCheck() = default;
+    ~PropertyPathBFSCheck() = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
@@ -57,4 +62,4 @@ public:
     bool next() override;
 };
 
-#endif // RELATIONAL_MODEL__PROPERTY_PATH_CHECK_H_
+#endif // RELATIONAL_MODEL__PROPERTY_PATH_BFS_CHECK_H_
