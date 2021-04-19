@@ -5,15 +5,21 @@ NodeTableEnum::NodeTableEnum(std::size_t /*binding_size*/, const VarId var_id, R
     table  (table) { }
 
 
-void NodeTableEnum::begin(BindingId& parent_binding, bool) {
+void NodeTableEnum::begin(BindingId& parent_binding, bool parent_has_next) {
     this->parent_binding = &parent_binding;
-    current_pos = 0;
+    if (parent_has_next) {
+        current_pos = 0;
+    }
+    else {
+        current_pos = -1;
+    }
 }
 
 
 bool NodeTableEnum::next() {
-    auto record = table[current_pos++];
+    auto record = table[current_pos];
     if (record != nullptr) {
+        current_pos++;
         parent_binding->add(var_id, ObjectId(record->ids[0]));
         ++results;
         return true;
