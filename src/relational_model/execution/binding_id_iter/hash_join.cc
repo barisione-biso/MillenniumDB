@@ -13,8 +13,8 @@ HashJoin::HashJoin(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs,
     left_vars       (left_vars),
     common_vars     (common_vars),
     right_vars      (right_vars),
-    lhs_hash        (MultiMap(common_vars.size(), left_vars.size(), 'l')),
-    rhs_hash        (MultiMap(common_vars.size(), right_vars.size(), 'r')),
+    lhs_hash        (MultiMap(common_vars.size(), left_vars.size())),
+    rhs_hash        (MultiMap(common_vars.size(), right_vars.size())),
     small_hash      (SmallMultiMap({}))  // empty initialization
     { }
 
@@ -27,7 +27,8 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
 
     current_key = std::vector<ObjectId>(common_vars.size());
     current_value = std::vector<ObjectId>(left_vars.size());
-    //uint_fast32_t left_size = 0;  // TODO:  move inside multi hash
+    lhs_hash.begin();
+    rhs_hash.begin();
     while (lhs->next()){
         // save left keys and value
         for (size_t i = 0; i < common_vars.size(); i++) {
@@ -37,10 +38,9 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
             current_value[i] = (*parent_binding)[left_vars[i]];
         }
         lhs_hash.insert(current_key, current_value);
-        //left_size++;
     }
     current_value = std::vector<ObjectId>(right_vars.size());
-    //uint_fast32_t right_size = 0;
+
     while (rhs->next()) {
         for (size_t i = 0; i < common_vars.size(); i++) {
             current_key[i] = (*parent_binding)[common_vars[i]];
@@ -49,7 +49,6 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
             current_value[i] = (*parent_binding)[right_vars[i]];
         }
         rhs_hash.insert(current_key, current_value);
-        //right_size++;
     }
 
     current_bucket = 0;

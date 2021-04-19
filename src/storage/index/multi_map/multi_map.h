@@ -18,11 +18,13 @@ using MultiPair = std::pair<std::vector<ObjectId>, std::vector<ObjectId>>;
 //template <class T>
 class MultiMap {
 public:
+    static uint32_t instances_count;
     static constexpr uint_fast32_t MAX_BUCKETS = 512;
 
-    MultiMap(std::size_t _key_size, std::size_t _value_size, char tmp_char);
+    MultiMap(std::size_t _key_size, std::size_t _value_size);
     ~MultiMap();
 
+    void begin();
     void insert(std::vector<ObjectId> key, std::vector<ObjectId> value);
     uint_fast32_t get_bucket_size(uint_fast32_t current_bucket);
     MultiPair get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);

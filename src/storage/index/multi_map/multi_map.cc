@@ -10,35 +10,46 @@
 #include "storage/index/multi_map/multi_bucket.h"
 
 
-MultiMap::MultiMap(std::size_t key_size, std::size_t value_size, char tmp_char) :
+uint32_t MultiMap::instances_count = 0;
+
+
+MultiMap::MultiMap(std::size_t key_size, std::size_t value_size) :
     key_size        (key_size),
     value_size      (value_size),
     MAX_TUPLES      ( (Page::PAGE_SIZE - sizeof(uint32_t*)) / ((key_size + value_size)*sizeof(ObjectId)) )
-    {
-        buckets_files.reserve(MAX_BUCKETS);
-        buckets_sizes.reserve(MAX_BUCKETS);
-        last_buckets_pages.reserve(MAX_BUCKETS);
-        current_buckets_pages.reserve(MAX_BUCKETS);
-        for (uint_fast32_t i = 0; i < MAX_BUCKETS; ++i) {
-            // TODO: use tmp files
-            buckets_files.push_back(file_manager.get_file_id("tmp_multibucket_" + std::to_string(tmp_char) + "_" + std::to_string(i)));
-            last_buckets_pages.push_back(
-                std::make_unique<MultiBucket>(buffer_manager.get_page(buckets_files[i], 0), key_size, value_size)
-            );
-            current_buckets_pages.push_back(
-                std::make_unique<MultiBucket>(buffer_manager.get_page(buckets_files[i], 0), key_size, value_size)
-            );
-            *(last_buckets_pages[i]->tuple_count) = 0;
-            last_buckets_pages[i]->page.make_dirty();
-            buckets_sizes.push_back(0);
-        }
-    }
+    { }
 
 
 MultiMap::~MultiMap() {
     for (uint_fast32_t i = 0; i < MAX_BUCKETS; ++i) {
         // TODO: use tmp files
         file_manager.remove(buckets_files[i]);
+    }
+}
+
+
+void MultiMap::begin() {
+    buckets_files.reserve(MAX_BUCKETS);
+    buckets_sizes.reserve(MAX_BUCKETS);
+    last_buckets_pages.reserve(MAX_BUCKETS);
+    current_buckets_pages.reserve(MAX_BUCKETS);
+    for (uint_fast32_t i = 0; i < MAX_BUCKETS; ++i) {
+        // TODO: use tmp files
+        buckets_files.push_back(file_manager.get_file_id(
+                                    "tmp_multibucket_"
+                                    + std::to_string(instances_count++)
+                                    + "_" + std::to_string(i)
+                                    )
+                                );
+        last_buckets_pages.push_back(
+            std::make_unique<MultiBucket>(buffer_manager.get_page(buckets_files[i], 0), key_size, value_size)
+        );
+        current_buckets_pages.push_back(
+            std::make_unique<MultiBucket>(buffer_manager.get_page(buckets_files[i], 0), key_size, value_size)
+        );
+        *(last_buckets_pages[i]->tuple_count) = 0;
+        last_buckets_pages[i]->page.make_dirty();
+        buckets_sizes.push_back(0);
     }
 }
 
