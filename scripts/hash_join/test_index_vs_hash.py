@@ -1,7 +1,9 @@
 #7 queries 3 times each, repeat with nested loop,  this script makew table to test times results
 
 ## TODO: automatizar generación de archivos en un solo script
-# 
+# make querys without limit and compare outputs
+# try to improve times of the slowest ones with parameters: MAX_BUCKETS, hash_function, treshold MAX_SIZE_SMALL_HASH
+# test hash in memory
 
 import re
 from statistics import mean
