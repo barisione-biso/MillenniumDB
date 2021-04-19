@@ -17,7 +17,7 @@
 PropertyPathBFSCheck will determine if there exists a path between 2 nodes: `start` & `end`
   * A path is validate with automaton
   * Explores graph using BFS algorithm
-  * Only find one valid path and returns
+  * The search is only for the first valid path
 */
 
 class PropertyPathBFSCheck : public BindingIdIter {

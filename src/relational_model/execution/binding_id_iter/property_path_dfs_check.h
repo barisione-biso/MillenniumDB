@@ -1,10 +1,10 @@
-#ifndef RELATIONAL_MODEL__PROPERTY_PATH_BFS_ENUM_H_
-#define RELATIONAL_MODEL__PROPERTY_PATH_BFS_ENUM_H_
+#ifndef RELATIONAL_MODEL__PROPERTY_PATH_DFS_CHECK_H_
+#define RELATIONAL_MODEL__PROPERTY_PATH_DFS_CHECK_H_
 
 #include <array>
 #include <memory>
 #include <unordered_set>
-#include <queue>
+#include <stack>
 #include <variant>
 
 #include "base/binding/binding_id_iter.h"
@@ -14,48 +14,46 @@
 #include "storage/index/bplus_tree/bplus_tree.h"
 
 /*
-PropertyPathBFSCheck  returns nodes that can be reached by 'start' or reach to 'end' by a
-path that automaton object describes.
-  * Explores graph using BFS algorithm
+PropertyPathDFSCheck will determine if there exists a path between 2 nodes: `start` & `end`
+  * A path is validate with automaton
+  * Explores graph using DFS algorithm
+  * The search is only for the first valid path
 */
 
-
-class PropertyPathBFSEnum : public BindingIdIter {
+class PropertyPathDFSCheck : public BindingIdIter {
     using Id = std::variant<VarId, ObjectId>;
 
 private:
     // Attributes determined in the constuctor
-
     BPlusTree<4>& type_from_to_edge;  // Used to search foward
     BPlusTree<4>& to_type_from_edge;  // Used to search backward
-
     Id start;
-    VarId end;
+    Id end;
     PathAutomaton automaton;
 
-
     // Attributes determined in begin
+    ObjectId end_object_id;
     BindingId* parent_binding;
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
     std::array<uint64_t, 4> min_ids;
     std::array<uint64_t, 4> max_ids;
 
-    // Structs for BFS
+    // Structs for DFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
-    std::queue<SearchState> open;
+    std::stack<SearchState> open;
 
     // Statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
 public:
-    PropertyPathBFSEnum(BPlusTree<4>& type_from_to_edge,
+    PropertyPathDFSCheck(BPlusTree<4>& type_from_to_edge,
                       BPlusTree<4>& to_type_from_edge,
                       Id start,
-                      VarId end,
+                      Id end,
                       PathAutomaton automaton);
-    ~PropertyPathBFSEnum() = default;
+    ~PropertyPathDFSCheck() = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
@@ -64,4 +62,4 @@ public:
     bool next() override;
 };
 
-#endif // RELATIONAL_MODEL__PROPERTY_PATH_BFS_ENUM_H_
+#endif // RELATIONAL_MODEL__PROPERTY_PATH_DFS_CHECK_H_
