@@ -306,3 +306,4 @@ void BindingIdIterVisitor::visit(OpSelect&) { }
 void BindingIdIterVisitor::visit(OpFilter&) { }
 void BindingIdIterVisitor::visit(OpOrderBy&) { }
 void BindingIdIterVisitor::visit(OpGroupBy&) { }
+void BindingIdIterVisitor::visit(OpDistinct&) { }

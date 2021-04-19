@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "base/parser/logical_plan/exceptions.h"
+#include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
@@ -10,6 +11,7 @@
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
+
 
 using namespace std;
 
@@ -68,6 +70,12 @@ void CheckWellDesigned::visit(OpGroupBy& op_group_by) {
 void CheckWellDesigned::visit(OpOrderBy& op_order_by) {
     op_order_by.op->accept_visitor(*this);
 }
+
+
+void CheckWellDesigned::visit(OpDistinct& op_distinct) {
+    op_distinct.op->accept_visitor(*this);
+}
+
 
 void CheckWellDesigned::visit(OpTransitiveClosure&) { }
 void CheckWellDesigned::visit(OpConnection&)        { }

@@ -39,6 +39,7 @@ public:
     void visit(OpTransitiveClosure&) override;
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
+    void visit(OpDistinct&) override;
 
     QuadModel& model;
     std::vector<query::ast::SelectItem> select_items;

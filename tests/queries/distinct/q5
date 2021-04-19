@@ -1,0 +1,3 @@
+SELECT DISTINCT ?x, ?z
+MATCH (?x)-[=TYPE(?y)]->(?z)
+// 12

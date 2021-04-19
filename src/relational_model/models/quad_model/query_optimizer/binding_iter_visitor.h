@@ -49,11 +49,13 @@ public:
     void visit(OpTransitiveClosure&) override;
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
+    void visit(OpDistinct&) override;
 
     QuadModel& model;
     const std::map<std::string, VarId> var_name2var_id;
     std::unique_ptr<BindingIter> tmp;
     std::vector<query::ast::SelectItem> select_items;
+    bool distinct_into_id = false;
 
     VarId get_var_id(const std::string& var_name);
 
