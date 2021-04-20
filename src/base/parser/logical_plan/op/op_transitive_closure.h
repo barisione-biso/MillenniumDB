@@ -26,12 +26,15 @@ public:
     bool operator<(const OpTransitiveClosure& other) const {
         if (from < other.from) {
             return true;
+        } else if (from > other.from) {
+            return false;
         } else if (to < other.to) {
             return true;
-        } else if (type < other.type) {
-            return true;
+        } else if (to > other.to) {
+            return false;
+        } else {
+            return type < other.type;
         }
-        return false;
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{

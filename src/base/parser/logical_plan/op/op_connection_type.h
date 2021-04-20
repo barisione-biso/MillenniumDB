@@ -22,21 +22,19 @@ public:
         return os;
     };
 
-
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
 
-
     bool operator<(const OpConnectionType& other) const {
         if (edge < other.edge) {
             return true;
-        } else if (type < other.type) {
-            return true;
+        } else if (edge > other.edge) {
+            return false;
+        } else {
+            return type < other.type;
         }
-        return false;
     }
-
 
     std::set<std::string> get_var_names() const override {
         std::set<std::string> res;

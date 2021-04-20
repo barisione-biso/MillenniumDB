@@ -28,14 +28,15 @@ public:
     }
 
 
-    // Only comparing obj_name and key
+    // Only comparing obj_name and key, not checking value
     bool operator<(const OpProperty& other) const {
         if (obj_name < other.obj_name) {
             return true;
-        } else if (key < other.key) {
-            return true;
+        } else if (obj_name > other.obj_name) {
+            return false;
+        } else {
+            return key < other.key;
         }
-        // not checking value
         return false;
     }
 
