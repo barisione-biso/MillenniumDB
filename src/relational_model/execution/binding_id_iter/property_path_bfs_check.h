@@ -4,6 +4,7 @@
 #include <array>
 #include <memory>
 #include <unordered_set>
+//#include <set>
 #include <queue>
 #include <variant>
 
@@ -41,6 +42,7 @@ private:
 
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
+    //std::set<SearchState> visited;
     std::queue<SearchState> open;
 
     // Statistics

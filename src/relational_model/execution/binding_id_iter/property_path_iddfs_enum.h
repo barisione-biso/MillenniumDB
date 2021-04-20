@@ -1,5 +1,5 @@
-#ifndef RELATIONAL_MODEL__PROPERTY_PATH_DFS_ENUM_H_
-#define RELATIONAL_MODEL__PROPERTY_PATH_DFS_ENUM_H_
+#ifndef RELATIONAL_MODEL__PROPERTY_PATH_IDDFS_ENUM_H_
+#define RELATIONAL_MODEL__PROPERTY_PATH_IDDFS_ENUM_H_
 
 #include <array>
 #include <memory>
@@ -13,14 +13,8 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
-/*
-PropertyPathDFSCheck  returns nodes that can be reached by 'start' or reach to 'end' by a
-path that automaton object describes.
-  * Explores graph using BFS algorithm
-*/
 
-
-class PropertyPathDFSEnum : public BindingIdIter {
+class PropertyPathIDDFSEnum : public BindingIdIter {
     using Id = std::variant<VarId, ObjectId>;
 
 private:
@@ -41,7 +35,7 @@ private:
     std::array<uint64_t, 4> min_ids;
     std::array<uint64_t, 4> max_ids;
 
-    // Structs for DFS
+    // Structs for IDFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::stack<SearchState> open;
 
@@ -50,12 +44,12 @@ private:
     uint_fast32_t bpt_searches = 0;
 
 public:
-    PropertyPathDFSEnum(BPlusTree<4>& type_from_to_edge,
+    PropertyPathIDDFSEnum(BPlusTree<4>& type_from_to_edge,
                       BPlusTree<4>& to_type_from_edge,
                       Id start,
                       VarId end,
                       PathAutomaton automaton);
-    ~PropertyPathDFSEnum() = default;
+    ~PropertyPathIDDFSEnum() = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
@@ -64,4 +58,4 @@ public:
     bool next() override;
 };
 
-#endif // RELATIONAL_MODEL__PROPERTY_PATH_DFS_ENUM_H_
+#endif // RELATIONAL_MODEL__PROPERTY_PATH_IDDFS_ENUM_H_

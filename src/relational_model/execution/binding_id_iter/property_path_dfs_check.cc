@@ -30,15 +30,15 @@ void PropertyPathDFSCheck::begin(BindingId& parent_binding, bool parent_has_next
         // Add inital state to queue
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
-            auto start_pair = SearchState(automaton.start, start_object_id);
-            open.push(start_pair);
-            visited.insert(start_pair);
+            auto start_state = SearchState(automaton.start, start_object_id);
+            open.push(start_state);
+            visited.insert(start_state);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
-            auto start_pair = SearchState(automaton.start, start_object_id);
-            open.push(start_pair);
-            visited.insert(start_pair);
+            auto start_state = SearchState(automaton.start, start_object_id);
+            open.push(start_state);
+            visited.insert(start_state);
         }
 
         // Set end_object_id
@@ -60,7 +60,8 @@ void PropertyPathDFSCheck::begin(BindingId& parent_binding, bool parent_has_next
 
 bool PropertyPathDFSCheck::next() {
     while (open.size() > 0) {
-        auto& current_state = open.top();
+        auto current_state = open.top();
+        open.pop();
         if (automaton.end.find(current_state.state) != automaton.end.end()
             && current_state.object_id == end_object_id )
         {
@@ -101,7 +102,6 @@ bool PropertyPathDFSCheck::next() {
                     child_record = it->next();
                 }
             }
-            open.pop();
         }
     }
     return false;
@@ -116,16 +116,16 @@ void PropertyPathDFSCheck::reset() {
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        auto start_pair = SearchState(automaton.start, start_object_id);
-        open.push(start_pair);
-        visited.insert(start_pair);
+        auto start_state = SearchState(automaton.start, start_object_id);
+        open.push(start_state);
+        visited.insert(start_state);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
-        auto start_pair = SearchState(automaton.start, start_object_id);
-        open.push(start_pair);
-        visited.insert(start_pair);
+        auto start_state = SearchState(automaton.start, start_object_id);
+        open.push(start_state);
+        visited.insert(start_state);
     }
 
     // Set end_object_id

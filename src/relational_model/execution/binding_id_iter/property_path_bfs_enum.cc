@@ -24,21 +24,21 @@ PropertyPathBFSEnum::PropertyPathBFSEnum(BPlusTree<4>& type_from_to_edge,
 
 
 void PropertyPathBFSEnum::begin(BindingId& parent_binding, bool parent_has_next) {
-    automaton.print();
+
     this->parent_binding = &parent_binding;
     if (parent_has_next) {
         // Add inital state to queue
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
-            auto start_pair = SearchState(automaton.start, start_object_id);
-            open.push(start_pair);
-            visited.insert(start_pair);
+            auto start_state = SearchState(automaton.start, start_object_id);
+            open.push(start_state);
+            visited.insert(start_state);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
-            auto start_pair = SearchState(automaton.start, start_object_id);
-            open.push(start_pair);
-            visited.insert(start_pair);
+            auto start_state = SearchState(automaton.start, start_object_id);
+            open.push(start_state);
+            visited.insert(start_state);
         }
 
         min_ids[2] = 0;
@@ -100,20 +100,21 @@ void PropertyPathBFSEnum::reset() {
     // Empty open and visited
     queue<SearchState> empty;
     open.swap(empty);
+    cout << "Visited clear\n";
     visited.clear();
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        auto start_pair = SearchState(automaton.start, start_object_id);
-        open.push(start_pair);
-        visited.insert(start_pair);
+        auto start_state = SearchState(automaton.start, start_object_id);
+        open.push(start_state);
+        visited.insert(start_state);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
-        auto start_pair = SearchState(automaton.start, start_object_id);
-        open.push(start_pair);
-        visited.insert(start_pair);
+        auto start_state = SearchState(automaton.start, start_object_id);
+        open.push(start_state);
+        visited.insert(start_state);
     }
 }
 

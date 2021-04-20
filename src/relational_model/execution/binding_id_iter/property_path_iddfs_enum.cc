@@ -1,4 +1,4 @@
-#include "property_path_dfs_enum.h"
+#include "property_path_iddfs_enum.h"
 
 #include <cassert>
 #include <iostream>
@@ -10,11 +10,12 @@
 
 using namespace std;
 
-PropertyPathDFSEnum::PropertyPathDFSEnum(BPlusTree<4>& type_from_to_edge,
+PropertyPathIDDFSEnum::PropertyPathIDDFSEnum(BPlusTree<4>& type_from_to_edge,
                                      BPlusTree<4>& to_type_from_edge,
                                      Id start,
                                      VarId end,
-                                     PathAutomaton automaton) :
+                                     PathAutomaton automaton
+                                     ) :
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
     start             (start),
@@ -23,21 +24,22 @@ PropertyPathDFSEnum::PropertyPathDFSEnum(BPlusTree<4>& type_from_to_edge,
     { }
 
 
-void PropertyPathDFSEnum::begin(BindingId& parent_binding, bool parent_has_next) {
+void PropertyPathIDDFSEnum::begin(BindingId& parent_binding, bool parent_has_next) {
+    automaton.print();
     this->parent_binding = &parent_binding;
     if (parent_has_next) {
         // Add inital state to queue
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
-            auto start_state = SearchState(automaton.start, start_object_id);
-            open.push(start_state);
-            visited.insert(start_state);
+            auto start_pair = SearchState(automaton.start, start_object_id);
+            open.push(start_pair);
+            visited.insert(start_pair);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
-            auto start_state = SearchState(automaton.start, start_object_id);
-            open.push(start_state);
-            visited.insert(start_state);
+            auto start_pair = SearchState(automaton.start, start_object_id);
+            open.push(start_pair);
+            visited.insert(start_pair);
         }
 
         min_ids[2] = 0;
@@ -49,7 +51,7 @@ void PropertyPathDFSEnum::begin(BindingId& parent_binding, bool parent_has_next)
 }
 
 
-bool PropertyPathDFSEnum::next() {
+bool PropertyPathIDDFSEnum::next() {
     while (open.size() > 0) {
         auto current_state = open.top();
         open.pop();
@@ -95,7 +97,7 @@ bool PropertyPathDFSEnum::next() {
 }
 
 
-void PropertyPathDFSEnum::reset() {
+void PropertyPathIDDFSEnum::reset() {
     // Empty open and visited
     stack<SearchState> empty;
     open.swap(empty);
@@ -103,27 +105,27 @@ void PropertyPathDFSEnum::reset() {
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        auto start_state = SearchState(automaton.start, start_object_id);
-        open.push(start_state);
-        visited.insert(start_state);
+        auto start_pair = SearchState(automaton.start, start_object_id);
+        open.push(start_pair);
+        visited.insert(start_pair);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
-        auto start_state = SearchState(automaton.start, start_object_id);
-        open.push(start_state);
-        visited.insert(start_state);
+        auto start_pair = SearchState(automaton.start, start_object_id);
+        open.push(start_pair);
+        visited.insert(start_pair);
     }
 }
 
 
-void PropertyPathDFSEnum::assign_nulls() { }
+void PropertyPathIDDFSEnum::assign_nulls() { }
 
 
-void PropertyPathDFSEnum::analyze(int indent) const {
+void PropertyPathIDDFSEnum::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "PropertyPathDFSEnum(bpt_searches: " << bpt_searches
+    cout << "PropertyPathIDDFSEnum(bpt_searches: " << bpt_searches
          << ", found: " << results_found <<")\n";
 }
