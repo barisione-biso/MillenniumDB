@@ -33,11 +33,12 @@ void MultiMap::begin() {
     buckets_sizes.reserve(MAX_BUCKETS);
     last_buckets_pages.reserve(MAX_BUCKETS);
     current_buckets_pages.reserve(MAX_BUCKETS);
+    instances_count++;
     for (uint_fast32_t i = 0; i < MAX_BUCKETS; ++i) {
         // TODO: use tmp files
         buckets_files.push_back(file_manager.get_file_id(
                                     "tmp_multibucket_"
-                                    + std::to_string(instances_count++)
+                                    + std::to_string(instances_count)
                                     + "_" + std::to_string(i)
                                     )
                                 );
