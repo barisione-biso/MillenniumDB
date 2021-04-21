@@ -26,19 +26,19 @@ PropertyPathIDDFSCheck::PropertyPathIDDFSCheck(BPlusTree<4>& type_from_to_edge,
 
 void PropertyPathIDDFSCheck::begin(BindingId& parent_binding, bool parent_has_next) {
     this->parent_binding = &parent_binding;
-    current_max_deep = 0;
+    current_max_deep = max_deep_step;
     if (parent_has_next) {
         // Add inital state to queue
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
             auto start_state = SearchState(automaton.start, start_object_id);
-            open_next_step.push(make_pair(start_state, 0));
+            open.push(make_pair(start_state, 0));
             visited.insert(start_state);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
             auto start_state = SearchState(automaton.start, start_object_id);
-            open_next_step.push(make_pair(start_state, 0));
+            open.push(make_pair(start_state, 0));
             visited.insert(start_state);
         }
 
@@ -60,11 +60,8 @@ void PropertyPathIDDFSCheck::begin(BindingId& parent_binding, bool parent_has_ne
 
 
 bool PropertyPathIDDFSCheck::next() {
-    while (open_next_step.size()) {
-        visited.clear();
-        open.swap(open_next_step);
-        current_max_deep += max_deep_step;
-        while (open.size() > 0) {
+    while (open.size() || open_next_step.size()) {
+        while (open.size()) {
             auto current_pair = open.top();
             open.pop();
             auto current_state = current_pair.first;
@@ -73,7 +70,9 @@ bool PropertyPathIDDFSCheck::next() {
                 && current_state.object_id == end_object_id )
             {
                 stack<pair<SearchState, uint64_t>> empty;
+                stack<pair<SearchState, uint64_t>> empty_next;
                 open.swap(empty);
+                open_next_step.swap(empty_next);
                 results_found++;
                 return true;
             } else {
@@ -112,6 +111,8 @@ bool PropertyPathIDDFSCheck::next() {
                 }
             }
         }
+        open.swap(open_next_step);
+        current_max_deep += max_deep_step;
     }
     return false;
 }
@@ -120,8 +121,8 @@ bool PropertyPathIDDFSCheck::next() {
 void PropertyPathIDDFSCheck::reset() {
     // Empty open and visited
     stack<pair<SearchState,uint64_t>> empty;
-       stack<pair<SearchState,uint64_t>> empty_next;
-    current_max_deep = 0;
+    stack<pair<SearchState,uint64_t>> empty_next;
+    current_max_deep = max_deep_step;
     open.swap(empty);
     visited.clear();
     open_next_step.swap(empty_next);
@@ -129,14 +130,14 @@ void PropertyPathIDDFSCheck::reset() {
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
         auto start_state = SearchState(automaton.start, start_object_id);
-        open_next_step.push(make_pair(start_state, 0));
+        open.push(make_pair(start_state, 0));
         visited.insert(start_state);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
         auto start_state = SearchState(automaton.start, start_object_id);
-        open_next_step.push(make_pair(start_state, 0));
+        open.push(make_pair(start_state, 0));
         visited.insert(start_state);
     }
 

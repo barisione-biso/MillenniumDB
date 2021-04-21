@@ -14,6 +14,14 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
+/*
+PropertyPathIDDFSCheck will determine if there exists a path between 2 nodes: `start` & `end`
+  * A path is validate with automaton
+  * Explores graph using IDDFS algorithm. When reaches to max deep, it updates the max
+    deep and open will have nodes with max_deep + 1.
+  * The search is only for the first valid path
+*/
+
 
 
 class PropertyPathIDDFSCheck : public BindingIdIter {
