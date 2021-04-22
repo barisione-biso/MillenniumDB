@@ -131,40 +131,40 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
         if (to_assigned)
         {
             // bool case
-            //   return make_unique<PropertyPathBFSCheck>(*model.type_from_to_edge,
-            //                                         *model.to_type_from_edge,
-            //                                         from,
-            //                                         to,
-            //                                         automaton);
+               return make_unique<PropertyPathBFSCheck>(*model.type_from_to_edge,
+                                                     *model.to_type_from_edge,
+                                                     from,
+                                                     to,
+                                                     automaton);
             //return make_unique<PropertyPathDFSCheck>(*model.type_from_to_edge,
             //                                         *model.to_type_from_edge,
             //                                         from,
             //                                         to,
             //                                         automaton);
-            return make_unique<PropertyPathIDDFSCheck>(*model.type_from_to_edge,
-                                                       *model.to_type_from_edge,
-                                                       from,
-                                                       to,
-                                                       automaton);
+            //return make_unique<PropertyPathIDDFSCheck>(*model.type_from_to_edge,
+            //                                           *model.to_type_from_edge,
+            //                                           from,
+            //                                           to,
+            //                                           automaton);
         }
         else
         {
             // enum starting on from
-            //return make_unique<PropertyPathBFSEnum>(*model.type_from_to_edge,
-            //                                     *model.to_type_from_edge,
-            //                                     from,
-            //                                     std::get<VarId>(to),
-            //                                     automaton);
+            return make_unique<PropertyPathBFSEnum>(*model.type_from_to_edge,
+                                                 *model.to_type_from_edge,
+                                                 from,
+                                                 std::get<VarId>(to),
+                                                 automaton);
             //return make_unique<PropertyPathDFSEnum>(*model.type_from_to_edge,
             //                                        *model.to_type_from_edge,
             //                                        from,
             //                                        std::get<VarId>(to),
             //                                        automaton);
-            return make_unique<PropertyPathIDDFSEnum>(*model.type_from_to_edge,
-                                                      *model.to_type_from_edge,
-                                                      from,
-                                                      std::get<VarId>(to),
-                                                      automaton);
+            //return make_unique<PropertyPathIDDFSEnum>(*model.type_from_to_edge,
+            //                                          *model.to_type_from_edge,
+            //                                          from,
+            //                                          std::get<VarId>(to),
+            //                                          automaton);
         }
     }
     else
@@ -175,21 +175,21 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
             auto inverted_path = path.invert();
             auto automaton = inverted_path->get_optimized_automaton();
             transform_automaton(automaton);
-            //return make_unique<PropertyPathBFSEnum>(*model.type_from_to_edge,
-            //                                     *model.to_type_from_edge,
-            //                                     to,
-            //                                     std::get<VarId>(from),
-            //                                     automaton);
+            return make_unique<PropertyPathBFSEnum>(*model.type_from_to_edge,
+                                                 *model.to_type_from_edge,
+                                                 to,
+                                                 std::get<VarId>(from),
+                                                 automaton);
             //return make_unique<PropertyPathDFSEnum>(*model.type_from_to_edge,
             //                                        *model.to_type_from_edge,
             //                                        to,
             //                                        std::get<VarId>(from),
             //                                        automaton);
-            return make_unique<PropertyPathIDDFSEnum>(*model.type_from_to_edge,
-                                                      *model.to_type_from_edge,
-                                                      to,
-                                                      std::get<VarId>(from),
-                                                      automaton);
+            //return make_unique<PropertyPathIDDFSEnum>(*model.type_from_to_edge,
+            //                                          *model.to_type_from_edge,
+            //                                          to,
+            //                                          std::get<VarId>(from),
+            //                                          automaton);
         }
         else
         {
