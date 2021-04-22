@@ -21,6 +21,8 @@ MultiMap::MultiMap(std::size_t key_size, std::size_t value_size) :
 
 
 MultiMap::~MultiMap() {
+    last_buckets_pages.clear();
+    current_buckets_pages.clear();
     for (uint_fast32_t i = 0; i < MAX_BUCKETS; ++i) {
         // TODO: use tmp files
         file_manager.remove(buckets_files[i]);
@@ -69,6 +71,8 @@ void MultiMap::insert(std::vector<ObjectId> key, std::vector<ObjectId> value) {
         last_buckets_pages[bucket_number] = std::make_unique<MultiBucket>(
             buffer_manager.get_page(buckets_files[bucket_number], new_page_number), key_size, value_size
         );
+        *(last_buckets_pages[bucket_number]->tuple_count) = 0;
+        last_buckets_pages[bucket_number]->page.make_dirty();
     }
     last_buckets_pages[bucket_number]->insert(MultiPair(key, value));
     buckets_sizes[bucket_number]++;
@@ -82,6 +86,7 @@ uint_fast32_t MultiMap::get_bucket_size(uint_fast32_t bucket_number) {
 
 MultiPair MultiMap::get_pair(uint_fast32_t bucket_number, uint_fast32_t current_pos) {
     assert(current_pos <= buckets_sizes[bucket_number]);
+    assert(bucket_number < MAX_BUCKETS);
     uint32_t page_number = current_pos / MAX_TUPLES;
     if (current_buckets_pages[bucket_number]->page.get_page_number() != page_number) {
         current_buckets_pages[bucket_number] = std::make_unique<MultiBucket>(

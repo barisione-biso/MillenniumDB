@@ -1,5 +1,6 @@
 #include "hash_join_plan.h"
 #include "relational_model/execution/binding_id_iter/hash_join.h"
+#include "relational_model/execution/binding_id_iter/hash_join_in_memory.h"
 // #include "relational_model/execution/binding_id_iter/index_nested_loop_join.h"
 
 using namespace std;
@@ -98,7 +99,7 @@ unique_ptr<BindingIdIter> HashJoinPlan::get_binding_id_iter(std::size_t binding_
         }
     }
 
-    return make_unique<HashJoin>(
+    return make_unique<HashJoin>( //<HashJoinInMemory>
         lhs->get_binding_id_iter(binding_size),
         rhs->get_binding_id_iter(binding_size),
         move(left_vars),
