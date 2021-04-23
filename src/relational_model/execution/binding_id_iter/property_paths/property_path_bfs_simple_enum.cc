@@ -1,4 +1,4 @@
-#include "property_path_bfs_enum.h"
+#include "property_path_bfs_simple_enum.h"
 
 #include <cassert>
 #include <iostream>
@@ -10,7 +10,7 @@
 
 using namespace std;
 
-PropertyPathBFSEnum::PropertyPathBFSEnum(BPlusTree<4>& type_from_to_edge,
+PropertyPathBFSSimpleEnum::PropertyPathBFSSimpleEnum(BPlusTree<4>& type_from_to_edge,
                                      BPlusTree<4>& to_type_from_edge,
                                      Id start,
                                      VarId end,
@@ -23,7 +23,7 @@ PropertyPathBFSEnum::PropertyPathBFSEnum(BPlusTree<4>& type_from_to_edge,
     { }
 
 
-void PropertyPathBFSEnum::begin(BindingId& parent_binding, bool parent_has_next) {
+void PropertyPathBFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has_next) {
 
     this->parent_binding = &parent_binding;
     if (parent_has_next) {
@@ -50,7 +50,7 @@ void PropertyPathBFSEnum::begin(BindingId& parent_binding, bool parent_has_next)
 }
 
 
-bool PropertyPathBFSEnum::next() {
+bool PropertyPathBFSSimpleEnum::next() {
     while (open.size() > 0) {
         auto current_state = open.front();
         open.pop();
@@ -96,7 +96,7 @@ bool PropertyPathBFSEnum::next() {
 }
 
 
-void PropertyPathBFSEnum::reset() {
+void PropertyPathBFSSimpleEnum::reset() {
     // Empty open and visited
     queue<SearchState> empty;
     open.swap(empty);
@@ -119,13 +119,13 @@ void PropertyPathBFSEnum::reset() {
 }
 
 
-void PropertyPathBFSEnum::assign_nulls() { }
+void PropertyPathBFSSimpleEnum::assign_nulls() { }
 
 
-void PropertyPathBFSEnum::analyze(int indent) const {
+void PropertyPathBFSSimpleEnum::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "PropertyPathBFSEnum(bpt_searches: " << bpt_searches
+    cout << "PropertyPathBFSSimpleEnum(bpt_searches: " << bpt_searches
          << ", found: " << results_found <<")\n";
 }
