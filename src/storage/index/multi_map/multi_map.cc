@@ -16,43 +16,36 @@ uint32_t MultiMap::instances_count = 0;
 MultiMap::MultiMap(std::size_t key_size, std::size_t value_size) :
     key_size        (key_size),
     value_size      (value_size),
-    MAX_TUPLES      ( (Page::PAGE_SIZE - sizeof(uint32_t*)) / ((key_size + value_size)*sizeof(ObjectId)) )
+    MAX_TUPLES      ( (Page::PAGE_SIZE - sizeof(uint32_t)) / ((key_size + value_size)*sizeof(ObjectId)) ),
+    buckets_file    ( file_manager.get_file_id("tmp_multibucket_" + std::to_string(++instances_count)) )
     { }
 
 
 MultiMap::~MultiMap() {
-    last_buckets_pages.clear();
     current_buckets_pages.clear();
-    for (uint_fast32_t i = 0; i < MAX_BUCKETS; ++i) {
-        // TODO: use tmp files
-        file_manager.remove(buckets_files[i]);
-    }
+    // TODO: use tmp files
+    file_manager.remove(buckets_file);
 }
 
 
 void MultiMap::begin() {
-    buckets_files.reserve(MAX_BUCKETS);
     buckets_sizes.reserve(MAX_BUCKETS);
-    last_buckets_pages.reserve(MAX_BUCKETS);
     current_buckets_pages.reserve(MAX_BUCKETS);
-    instances_count++;
+    buckets_page_numbers.reserve(MAX_BUCKETS);
+
+    last_page_number = -1;  // overflow to start with 0 in loop
     for (uint_fast32_t i = 0; i < MAX_BUCKETS; ++i) {
-        // TODO: use tmp files
-        buckets_files.push_back(file_manager.get_file_id(
-                                    "tmp_multibucket_"
-                                    + std::to_string(instances_count)
-                                    + "_" + std::to_string(i)
-                                    )
-                                );
-        last_buckets_pages.push_back(
-            std::make_unique<MultiBucket>(buffer_manager.get_page(buckets_files[i], 0), key_size, value_size)
-        );
         current_buckets_pages.push_back(
-            std::make_unique<MultiBucket>(buffer_manager.get_page(buckets_files[i], 0), key_size, value_size)
+            std::make_unique<MultiBucket>(buffer_manager.get_page(buckets_file, ++last_page_number), key_size, value_size)
         );
-        *(last_buckets_pages[i]->tuple_count) = 0;
-        last_buckets_pages[i]->page.make_dirty();
+
+        *(current_buckets_pages[i]->tuple_count) = 0;
+        current_buckets_pages[i]->page.make_dirty();
         buckets_sizes.push_back(0);
+
+        std::vector<uint_fast32_t> vec;
+        vec.push_back(last_page_number);
+        buckets_page_numbers.push_back(vec);
     }
 }
 
@@ -66,15 +59,16 @@ void MultiMap::insert(std::vector<ObjectId> key, std::vector<ObjectId> value) {
     uint64_t mask = MAX_BUCKETS - 1;  // (assuming MAX_BUCKETS is power of 2)
     uint64_t bucket_number = hash[0] & mask;  // suffix = bucket_number in this case
 
-    if (last_buckets_pages[bucket_number]->get_tuple_count() >= MAX_TUPLES) {
-        auto new_page_number = last_buckets_pages[bucket_number]->page.get_page_number() + 1;
-        last_buckets_pages[bucket_number] = std::make_unique<MultiBucket>(
-            buffer_manager.get_page(buckets_files[bucket_number], new_page_number), key_size, value_size
+    // if want to insert and read change current for last
+    if (current_buckets_pages[bucket_number]->get_tuple_count() >= MAX_TUPLES) {
+        current_buckets_pages[bucket_number] = std::make_unique<MultiBucket>(
+            buffer_manager.get_page(buckets_file, ++last_page_number), key_size, value_size // +1 before assign
         );
-        *(last_buckets_pages[bucket_number]->tuple_count) = 0;
-        last_buckets_pages[bucket_number]->page.make_dirty();
+        *(current_buckets_pages[bucket_number]->tuple_count) = 0;
+        current_buckets_pages[bucket_number]->page.make_dirty();
+        buckets_page_numbers[bucket_number].push_back(last_page_number);
     }
-    last_buckets_pages[bucket_number]->insert(MultiPair(key, value));
+    current_buckets_pages[bucket_number]->insert(MultiPair(key, value));
     buckets_sizes[bucket_number]++;
 }
 
@@ -88,9 +82,10 @@ MultiPair MultiMap::get_pair(uint_fast32_t bucket_number, uint_fast32_t current_
     assert(current_pos <= buckets_sizes[bucket_number]);
     assert(bucket_number < MAX_BUCKETS);
     uint32_t page_number = current_pos / MAX_TUPLES;
-    if (current_buckets_pages[bucket_number]->page.get_page_number() != page_number) {
+    uint32_t real_page_number = buckets_page_numbers[bucket_number][page_number];
+    if (current_buckets_pages[bucket_number]->page.get_page_number() != real_page_number) {
         current_buckets_pages[bucket_number] = std::make_unique<MultiBucket>(
-            buffer_manager.get_page(buckets_files[bucket_number], page_number), key_size, value_size
+            buffer_manager.get_page(buckets_file, real_page_number), key_size, value_size
         );
     }
     uint32_t page_pos = current_pos % MAX_TUPLES;

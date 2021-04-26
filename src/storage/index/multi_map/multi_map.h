@@ -14,8 +14,6 @@
 
 using MultiPair = std::pair<std::vector<ObjectId>, std::vector<ObjectId>>;
 
-
-//template <class T>
 class MultiMap {
 public:
     static uint32_t instances_count;
@@ -30,14 +28,18 @@ public:
     MultiPair get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);
 
 private:
-    const std::size_t key_size;
-    const std::size_t value_size;
-    const uint32_t MAX_TUPLES;
+    const std::size_t  key_size;
+    const std::size_t  value_size;
+    const uint32_t     MAX_TUPLES;
 
-    std::vector<FileId>                       buckets_files;
+    uint_fast32_t      last_page_number;
+    const FileId       buckets_file;
+
+    std::vector<std::vector<uint_fast32_t>>   buckets_page_numbers;
     std::vector<uint_fast32_t>                buckets_sizes;
-    std::vector<std::unique_ptr<MultiBucket>> last_buckets_pages;
-    std::vector<std::unique_ptr<MultiBucket>> current_buckets_pages;  // for reading
+
+    // NOTE: if we don't use last_bucket_pages we are supposed to insert everything and then read (can't do both at same time)
+    std::vector<std::unique_ptr<MultiBucket>> current_buckets_pages;
 };
 
 #endif // STORAGE__MULTI_MAP_H_

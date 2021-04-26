@@ -52,8 +52,11 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
     }
 
     current_bucket = 0;
-    current_pos_left = 0;
-    current_pos_right = 0;
+    //current_pos_left = 0;
+    //current_pos_right = 0;
+    enumerating_with_nested_loop = false;
+    enumerating_with_second_hash = false;
+    left_min = false;
 }
 
 
@@ -68,8 +71,7 @@ bool HashJoin::next() {
         if (enumerating_with_second_hash) {
             if (left_min) {
                 if (current_pair_iter != end_range_iter) {
-                    MultiPair left_pair = *current_pair_iter;
-                    assign_binding(left_pair, saved_pair);
+                    assign_binding(*current_pair_iter, saved_pair);
                     ++current_pair_iter;
                     return true;
                 }
@@ -82,8 +84,7 @@ bool HashJoin::next() {
                         end_range_iter = range.second;
 
                         if (current_pair_iter != end_range_iter) {
-                            MultiPair left_pair = *current_pair_iter;
-                            assign_binding(left_pair, saved_pair);
+                            assign_binding(*current_pair_iter, saved_pair);
                             ++current_pair_iter;
                             return true;
                         }
@@ -92,8 +93,7 @@ bool HashJoin::next() {
             }
             else {
                 if (current_pair_iter != end_range_iter) {
-                    MultiPair right_pair = *current_pair_iter;
-                    assign_binding(saved_pair, right_pair);
+                    assign_binding(saved_pair, *current_pair_iter);
                     ++current_pair_iter;
                     return true;
                 }
@@ -106,8 +106,7 @@ bool HashJoin::next() {
                         end_range_iter = range.second;
 
                         if (current_pair_iter != end_range_iter) {
-                            MultiPair right_pair = *current_pair_iter;
-                            assign_binding(saved_pair, right_pair);
+                            assign_binding(saved_pair, *current_pair_iter);
                             ++current_pair_iter;
                             return true;
                         }
@@ -198,7 +197,7 @@ bool HashJoin::next() {
 }
 
 
-void HashJoin::assign_binding(MultiPair& left_pair, MultiPair& right_pair) {
+void HashJoin::assign_binding(const MultiPair& left_pair, const MultiPair& right_pair) {
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
         parent_binding->add(left_vars[i], left_pair.second[i]);
     }

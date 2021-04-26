@@ -24,14 +24,12 @@ public:
     ~MultiBucket();
 
     void insert(const MultiPair& pair);
+    MultiPair get_pair(uint_fast32_t current_pos) const;
+
     inline uint_fast32_t get_tuple_count() const noexcept { return *tuple_count; }
-    MultiPair get_pair(uint_fast32_t current_pos);
-    //inline bool is_full() const noexcept { return *tuple_count < MAX_TUPLES; }
 
 private:
     Page& page;
-
-    //const uint32_t MAX_TUPLES;
 
     uint32_t   const key_size;
     uint32_t   const value_size;

@@ -12,8 +12,8 @@ from statistics import mean
 # try to solve bug
 
 test = 8
-#parameter = "MAX_BUCKETS"  # -> lowest numbers where better, need to try with bigger querys
-#values = [2**3, 2**2, 2**1]
+parameter = "MAX_BUCKETS"  # -> lowest numbers where better, need to try with bigger querys
+values = [2**3, 2**2, 2**1]
 
 #parameter = "Treshold"
 #values = [1024*8, 1024*16, 1024*32] #-->  2048 gives better results, tried with 4096 also but 2048 works better
@@ -21,8 +21,8 @@ test = 8
 #parameter = "function"
 #values = ["xor", "murmur [1]", "murmur shift"]  ## almost no difference with 3 options 98ms-100ms-99ms averages
 
-#
-#
+#parameter = "Join Iter"
+#values = ["HashJoin", "HashJoinInMemory", "Quad"]  # change last for quad and 1-3
 
 print(f"Test {test}:")
 hash_execution_times = []

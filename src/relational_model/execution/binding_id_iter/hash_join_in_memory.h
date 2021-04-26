@@ -9,18 +9,6 @@
 #include "base/binding/binding_id_iter.h"
 #include "relational_model/execution/binding_id_iter/hash_join.h"
 
-// struct MultiPairHasher2 {
-//     uint64_t operator()(const std::vector<ObjectId>& key) const {
-//         auto val = key[0].id;
-//         for (std::size_t i = 1; i < key.size(); i++) {
-//             val = val ^ key[i].id;
-//         }
-//         return val;
-//     }
-// };
-
-// using MultiPair = std::pair<std::vector<ObjectId>, std::vector<ObjectId>>;
-// using SmallMultiMap = std::unordered_multimap<std::vector<ObjectId>, std::vector<ObjectId>, MultiPairHasher>;
 
 class HashJoinInMemory : public BindingIdIter {
 public:
@@ -58,7 +46,7 @@ private:
     std::vector<ObjectId> current_value;
     MultiPair saved_pair;
 
-    void assign_binding(MultiPair& lhs_pair, MultiPair& rhs_pair);
+    void assign_binding(const MultiPair& lhs_pair, const MultiPair& rhs_pair);
 };
 
 #endif // RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_H_

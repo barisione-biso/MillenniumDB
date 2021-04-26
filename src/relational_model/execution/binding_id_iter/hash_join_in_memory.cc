@@ -45,18 +45,11 @@ void HashJoinInMemory::begin(BindingId& _parent_binding, bool parent_has_next) {
 }
 
 
-// last_k_bits(hash(key)) => decide bucket entre 0 y 2^k -1
 bool HashJoinInMemory::next() {
-    // tengo que ver en que estado estoy:
-    // 1) ya estoy enumerando resultados de un bucket con el 2do hash
-    // 1b) ya estoy enumerando resultados de un bucket con el 2do hash y ya encontre un range
-    // 2) ya estoy enumerando resultados de un bucket con nested loop
-    // 3) aún no empiezo a enumerar resultados
     while (true) {
         if (enumerating) {
             if (current_pair_iter != end_range_iter) {
-                MultiPair left_pair = *current_pair_iter;
-                assign_binding(left_pair, saved_pair);
+                assign_binding(*current_pair_iter, saved_pair);
                 ++current_pair_iter;
                 if (current_pair_iter == end_range_iter) {
                     enumerating = false;
@@ -91,7 +84,7 @@ bool HashJoinInMemory::next() {
 }
 
 
-void HashJoinInMemory::assign_binding(MultiPair& left_pair, MultiPair& right_pair) {
+void HashJoinInMemory::assign_binding(const MultiPair& left_pair, const MultiPair& right_pair) {
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
         parent_binding->add(left_vars[i], left_pair.second[i]);
     }

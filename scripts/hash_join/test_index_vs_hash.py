@@ -8,6 +8,8 @@ import re
 from statistics import mean
 
 for i in range(1, 9):
+    if i == 6 or i == 7:
+        continue
     print(f"Test {i}:")
     answer_hash = set()
     answer_quad = set()
