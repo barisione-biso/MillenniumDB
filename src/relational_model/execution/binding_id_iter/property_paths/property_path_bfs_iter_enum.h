@@ -19,55 +19,9 @@ path that automaton object describes.
   * Explores graph using BFS algorithm
 */
 
-struct State;
-struct StateKey;
-struct StateKeyHasher;
-
-struct State {
-    // Start settings
-    uint32_t  automaton_start_state; // TODO: MAKE CONST
-    const ObjectId  start_object_id;
-
-    BPlusTree<4>& bpt_forward; // TODO: tratar de eliminar
-    BPlusTree<4>& bpt_inverse; // TODO: tratar de eliminar
-
-    PathAutomaton& automaton;  // TODO: tratar de eliminar
-
-    uint32_t        current_transtion = 0;
-
-    // Next settings
-    uint32_t        reached_automaton_state = 0;
-    ObjectId        reached_object_id;
-
-
-    std::array<uint64_t, 4> min_ids;
-    std::array<uint64_t, 4> max_ids;
-    std::unique_ptr<BptIter<4>> iter;
-
-    State(uint32_t automaton_state, ObjectId start_object_id, BPlusTree<4>& bpt_forward, BPlusTree<4>& bpt_inverse, PathAutomaton& automaton) :
-        automaton_start_state   (automaton_state),
-        start_object_id         (start_object_id),
-        bpt_forward             (bpt_forward),
-        bpt_inverse             (bpt_inverse),
-        automaton               (automaton),
-        reached_object_id       (ObjectId::get_null()) {
-
-            min_ids[2] = 0;
-            max_ids[2] = 0xFFFFFFFFFFFFFFFF;
-            min_ids[3] = 0;
-            max_ids[3] = 0xFFFFFFFFFFFFFFFF;
-
-        }
-    // If has a next state, update next settings and return true
-    bool has_next(std::unordered_set<StateKey, StateKeyHasher>& visited);
-
-    // Set iter with current_transition and automaton_start_state attr
-    void set_iter();
-};
-
-
+namespace BFSIterEnum {
 struct StateKey {
-    uint32_t state; // TODO: Make const
+    uint32_t state;
     const ObjectId object_id;
 
     StateKey(uint32_t state, ObjectId object_id) :
@@ -79,12 +33,13 @@ struct StateKey {
     }
 };
 
-
 struct StateKeyHasher {
     std::size_t operator() (const StateKey& lhs) const {
         return lhs.state ^ lhs.object_id.id;
     }
 };
+};
+
 
 
 class PropertyPathBFSIterEnum : public BindingIdIter {
@@ -104,13 +59,18 @@ private:
     BindingId* parent_binding;
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
-    // std::array<uint64_t, 4> min_ids;
-    // std::array<uint64_t, 4> max_ids;
+     std::array<uint64_t, 4> min_ids;
+     std::array<uint64_t, 4> max_ids;
 
     // Structs for BFS
-    std::unordered_set<StateKey, StateKeyHasher> visited;
-    std::queue<State> open;
+    std::unordered_set<BFSIterEnum::StateKey, BFSIterEnum::StateKeyHasher> visited;
+    std::queue<BFSIterEnum::StateKey> open;
     bool first_next = true;
+
+    std::unique_ptr<BptIter<4>> iter;
+    uint32_t        reached_automaton_state = 0;
+    uint32_t        current_transition = 0;
+    ObjectId        reached_object_id;
 
     // Statistics
     uint_fast32_t results_found = 0;
@@ -129,6 +89,8 @@ public:
     void reset() override;
     void assign_nulls() override;
     bool next() override;
+    bool current_state_has_next(const BFSIterEnum::StateKey& current_state);
+    void set_iter(const BFSIterEnum::StateKey& current_state);
 };
 
 

@@ -7,6 +7,7 @@
 #include "base/parser/logical_plan/op/op_path.h"
 #include "relational_model/execution/binding_id_iter/property_paths/property_path_bfs_check.h"
 #include "relational_model/execution/binding_id_iter/property_paths/property_path_bfs_simple_enum.h"
+#include "relational_model/execution/binding_id_iter/property_paths/property_path_bfs_iter_enum.h"
 //#include "relational_model/execution/binding_id_iter/property_paths/property_path_dfs_check.h"
 //#include "relational_model/execution/binding_id_iter/property_paths/property_path_dfs_enum.h"
 //#include "relational_model/execution/binding_id_iter/property_paths/property_path_iddfs_check.h"
@@ -15,7 +16,7 @@
 using namespace std;
 
 using PropertyPathCheck = PropertyPathBFSCheck;
-using PropertyPathEnum = PropertyPathBFSSimpleEnum;
+using PropertyPathEnum = PropertyPathBFSIterEnum;
 
 PropertyPathPlan::PropertyPathPlan(QuadModel &model, Id from, Id to, OpPath &path) : model(model),
                                                                                      from(from),
