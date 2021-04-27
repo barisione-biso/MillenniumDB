@@ -4,7 +4,7 @@
 #include <array>
 #include <memory>
 #include <unordered_set>
-#include <queue>
+#include <stack>
 #include <variant>
 
 #include "base/binding/binding_id_iter.h"
@@ -16,6 +16,18 @@
 
 
 namespace DFSIterEnum {
+
+struct State {
+    uint32_t state;
+    const ObjectId object_id;
+    std::unique_ptr<BptIter<4>> iter = nullptr;
+
+    State(uint32_t state, ObjectId object_id) :
+        state     (state),
+        object_id (object_id) { }
+
+};
+
 struct StateKey {
     uint32_t state;
     const ObjectId object_id;
@@ -60,10 +72,11 @@ private:
 
     // Structs for BFS
     std::unordered_set<DFSIterEnum::StateKey, DFSIterEnum::StateKeyHasher> visited;
-    std::queue<DFSIterEnum::StateKey> open;
+    std::stack<DFSIterEnum::State> open;
+
     bool first_next = true;
 
-    std::unique_ptr<BptIter<4>> iter;
+    // std::unique_ptr<BptIter<4>> iter;
     uint32_t        reached_automaton_state = 0;
     uint32_t        current_transition = 0;
     ObjectId        reached_object_id;
@@ -85,8 +98,8 @@ public:
     void reset() override;
     void assign_nulls() override;
     bool next() override;
-    bool current_state_has_next(const DFSIterEnum::StateKey& current_state);
-    void set_iter(const DFSIterEnum::StateKey& current_state);
+    bool current_state_has_next(DFSIterEnum::State& current_state);
+    void set_iter(DFSIterEnum::State& current_state);
 };
 
 
