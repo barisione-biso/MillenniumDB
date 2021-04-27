@@ -1,4 +1,4 @@
-#include "property_path_dfs_enum.h"
+#include "property_path_dfs_simple_enum.h"
 
 #include <cassert>
 #include <iostream>
