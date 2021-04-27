@@ -63,7 +63,6 @@ bool PropertyPathBFSIterEnum::next() {
         if (current_state_has_next(current_state)) {
             bool is_final = automaton.end.find(reached_automaton_state) != automaton.end.end();
             open.emplace(reached_automaton_state, reached_object_id);
-            visited.emplace(reached_automaton_state, reached_object_id);
             if (is_final) {
                 // set binding;
                 parent_binding->add(end, reached_object_id);

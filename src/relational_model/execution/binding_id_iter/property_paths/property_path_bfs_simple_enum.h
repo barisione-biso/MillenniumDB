@@ -44,7 +44,6 @@ private:
 
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
-    //std::set<SearchState> visited;
     std::queue<SearchState> open;
 
     // Statistics

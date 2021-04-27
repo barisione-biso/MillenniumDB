@@ -40,7 +40,6 @@ void PropertyPathBFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has
             open.push(start_state);
             visited.insert(start_state);
         }
-
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;
@@ -100,7 +99,6 @@ void PropertyPathBFSSimpleEnum::reset() {
     // Empty open and visited
     queue<SearchState> empty;
     open.swap(empty);
-    cout << "Visited clear\n";
     visited.clear();
 
     if (std::holds_alternative<ObjectId>(start)) {
