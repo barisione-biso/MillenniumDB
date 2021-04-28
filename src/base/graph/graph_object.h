@@ -4,6 +4,7 @@
 #include <ostream>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <variant>
 
 #include "base/graph/anonymous_node.h"
@@ -14,8 +15,6 @@
 #include "base/graph/string_external.h"
 
 struct NullGraphObject {
-    inline void operator=(const NullGraphObject&) { }
-
     inline bool operator==(const NullGraphObject&) const noexcept {
         return true;
     }
@@ -42,8 +41,6 @@ struct NullGraphObject {
 };
 
 struct NotFoundObject {
-    inline void operator=(const NotFoundObject&) { }
-
     inline bool operator==(const NotFoundObject&) const noexcept {
         return false;
     }
@@ -116,8 +113,8 @@ public:
     GraphObject() :
         value (NullGraphObject()) { }
 
-    GraphObject(const GraphObject& graph_object) :
-        value (graph_object.value) { }
+    // GraphObject(const GraphObject& graph_object) :
+    //     value (graph_object.value) { }
 
     static GraphObject make_identifiable_external(const char* str) {
         IdentifiableExternal string_external{ str };
@@ -206,9 +203,9 @@ public:
         return os;
     }
 
-    inline void operator=(const GraphObject& other) noexcept {
-        this->value = other.value;
-    }
+    // inline void operator=(const GraphObject& other) noexcept {
+    //     this->value = other.value;
+    // }
 
     inline bool operator==(const GraphObject& rhs) const noexcept {
         return this->value == rhs.value;
@@ -427,6 +424,7 @@ private:
         value (value) { }
 };
 
+static_assert(std::is_trivially_copyable<GraphObject>::value);
 static_assert(sizeof(GraphObject) <= 16, "GraphObject size should be small, if it needs to increase the size avoid copies");
 
 #endif // BASE__OBJECT_TYPE_H_

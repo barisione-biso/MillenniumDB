@@ -2,6 +2,7 @@
 #define BASE__VAR_ID_H_
 
 #include <cstdint>
+#include <type_traits>
 
 class VarId {
 public:
@@ -28,5 +29,7 @@ public:
         return id != rhs.id;
     }
 };
+
+static_assert(std::is_trivially_copyable<VarId>::value);
 
 #endif // BASE__VAR_ID_H_
