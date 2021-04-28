@@ -50,6 +50,23 @@ void MultiMap::begin() {
 }
 
 
+void MultiMap::reset() {
+    last_page_number = -1;
+    for (uint_fast32_t i = 0; i < MAX_BUCKETS; ++i) {
+        current_buckets_pages[i] = std::make_unique<MultiBucket>(
+                buffer_manager.get_page(buckets_file, ++last_page_number), key_size, value_size
+            );
+
+        *(current_buckets_pages[i]->tuple_count) = 0;
+        current_buckets_pages[i]->page.make_dirty();
+        buckets_sizes[i] = 0;
+
+        buckets_page_numbers[i].clear();
+        buckets_page_numbers[i].push_back(last_page_number);
+    }
+}
+
+
 void MultiMap::insert(std::vector<ObjectId> key, std::vector<ObjectId> value) {
     assert(key.size() == key_size);
 

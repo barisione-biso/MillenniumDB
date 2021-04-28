@@ -98,13 +98,33 @@ void HashJoinInMemory::assign_binding(const MultiPair& left_pair, const MultiPai
 
 
 void HashJoinInMemory::reset() {
-    // TODO:
+    lhs->reset();
+    rhs->reset();
+
+    current_value = std::vector<ObjectId>(left_vars.size());
+    lhs_hash.clear();
+    while (lhs->next()){
+        // save left keys and value
+        for (size_t i = 0; i < common_vars.size(); i++) {
+            current_key[i] = (*parent_binding)[common_vars[i]];
+        }
+        for (size_t i = 0; i < left_vars.size(); i++) {
+            current_value[i] = (*parent_binding)[left_vars[i]];
+        }
+        lhs_hash.insert(std::make_pair(current_key, current_value));
+    }
+
+    current_value = std::vector<ObjectId>(right_vars.size());
+
+    current_pair_iter = lhs_hash.end();
+    end_range_iter = lhs_hash.end();
+    enumerating = false;
 }
 
 
 void HashJoinInMemory::assign_nulls() {
-    // rhs->assign_nulls();
-    // lhs->assign_nulls();
+    rhs->assign_nulls();
+    lhs->assign_nulls();
 }
 
 

@@ -52,8 +52,6 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
     }
 
     current_bucket = 0;
-    //current_pos_left = 0;
-    //current_pos_right = 0;
     enumerating_with_nested_loop = false;
     enumerating_with_second_hash = false;
     left_min = false;
@@ -211,13 +209,44 @@ void HashJoin::assign_binding(const MultiPair& left_pair, const MultiPair& right
 
 
 void HashJoin::reset() {
-    // TODO:
+    lhs->reset();
+    rhs->reset();
+
+    current_value = std::vector<ObjectId>(left_vars.size());
+    lhs_hash.reset();
+    rhs_hash.reset();
+    while (lhs->next()){
+        // save left keys and value
+        for (size_t i = 0; i < common_vars.size(); i++) {
+            current_key[i] = (*parent_binding)[common_vars[i]];
+        }
+        for (size_t i = 0; i < left_vars.size(); i++) {
+            current_value[i] = (*parent_binding)[left_vars[i]];
+        }
+        lhs_hash.insert(current_key, current_value);
+    }
+    current_value = std::vector<ObjectId>(right_vars.size());
+
+    while (rhs->next()) {
+        for (size_t i = 0; i < common_vars.size(); i++) {
+            current_key[i] = (*parent_binding)[common_vars[i]];
+        }
+        for (size_t i = 0; i < right_vars.size(); i++) {
+            current_value[i] = (*parent_binding)[right_vars[i]];
+        }
+        rhs_hash.insert(current_key, current_value);
+    }
+
+    current_bucket = 0;
+    enumerating_with_nested_loop = false;
+    enumerating_with_second_hash = false;
+    left_min = false;
 }
 
 
 void HashJoin::assign_nulls() {
-    // rhs->assign_nulls();
-    // lhs->assign_nulls();
+    rhs->assign_nulls();
+    lhs->assign_nulls();
 }
 
 

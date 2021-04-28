@@ -1,8 +1,6 @@
 #7 queries 3 times each, repeat with nested loop,  this script makew table to test times results
 
 ## TODO: automatizar generación de archivos en un solo script
-# make querys without limit and compare outputs -> 7 memory error, 6 more than 30 min
-# test hash in memory
 
 import re
 from statistics import mean

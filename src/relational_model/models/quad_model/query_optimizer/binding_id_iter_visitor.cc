@@ -218,8 +218,7 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
     int best_index = 0;
     double best_cost = std::numeric_limits<double>::max();
     for (size_t j = 0; j < base_plans_size; j++) {
-        base_plans[j]->set_input_vars(input_vars); // TODO: ?x :P1 ?y OPT { ?x :P2 ?a, ?x :P3 ?b }
-                                                   // (Q1 :P2 ?a) Join (Q1 :P3 ?b)
+        base_plans[j]->set_input_vars(input_vars);
         auto current_element_cost = base_plans[j]->estimate_cost();
         base_plans[j]->print(0, true, var_names);
         std::cout << "\n";
@@ -240,6 +239,7 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
             if (base_plans[j] != nullptr
                 && !base_plans[j]->cartesian_product_needed(*root_plan) )
             {
+                // TODO: when do each join?
                 // auto nested_loop_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
                 // auto nested_loop_cost = nested_loop_plan->estimate_cost();
 

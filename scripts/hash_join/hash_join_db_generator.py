@@ -2,7 +2,6 @@
 import random
 FILE_PATH = "tests/dbs/hash_join_db2.txt"
 
-# TODO: compare outputs with nested loop join, compare times
 with open(FILE_PATH, 'w', encoding='utf-8') as output:
     # consulta 1 y 2 vacias
 
@@ -33,7 +32,7 @@ with open(FILE_PATH, 'w', encoding='utf-8') as output:
         output.write(f'Q{1000}->Q{node} :t2\n')
 
     # consulta 8
-    for node in range(20000, 20100):  ### TODO: try to find same bug with smallest possible values
+    for node in range(20000, 20100):
         output.write(f'Q{node} :label4\n')
         for i in random.choices(range(20000), k=10):
             output.write(f'Q{node}->Q{i} :t3\n') # i

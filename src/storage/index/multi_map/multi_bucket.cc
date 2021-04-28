@@ -35,7 +35,6 @@ void MultiBucket::insert(const MultiPair& pair) {
 
 
 MultiPair MultiBucket::get_pair(std::uint_fast32_t current_pos) const {
-    // TODO: test this
     std::vector<ObjectId> key;
     std::vector<ObjectId> value;
     key.reserve(key_size);

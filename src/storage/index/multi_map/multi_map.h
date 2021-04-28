@@ -23,6 +23,7 @@ public:
     ~MultiMap();
 
     void begin();
+    void reset();
     void insert(std::vector<ObjectId> key, std::vector<ObjectId> value);
     uint_fast32_t get_bucket_size(uint_fast32_t current_bucket);
     MultiPair get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);

@@ -7,7 +7,7 @@
 
 #include "base/ids/var_id.h"
 #include "base/binding/binding_id_iter.h"
-#include "relational_model/execution/binding_id_iter/hash_join.h"
+#include "relational_model/execution/binding_id_iter/hash_join/multipair_hasher.h"
 
 
 class HashJoinInMemory : public BindingIdIter {

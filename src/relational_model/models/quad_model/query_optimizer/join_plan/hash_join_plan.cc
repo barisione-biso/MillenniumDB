@@ -1,7 +1,6 @@
 #include "hash_join_plan.h"
-#include "relational_model/execution/binding_id_iter/hash_join.h"
-#include "relational_model/execution/binding_id_iter/hash_join_in_memory.h"
-// #include "relational_model/execution/binding_id_iter/index_nested_loop_join.h"
+#include "relational_model/execution/binding_id_iter/hash_join/hash_join.h"
+#include "relational_model/execution/binding_id_iter/hash_join/hash_join_in_memory.h"
 
 using namespace std;
 

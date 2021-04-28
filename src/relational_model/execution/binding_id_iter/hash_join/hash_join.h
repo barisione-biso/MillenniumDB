@@ -9,31 +9,7 @@
 #include "base/binding/binding_id_iter.h"
 #include "storage/index/multi_map/multi_map.h"
 #include "storage/index/hash_table/murmur3.h"
-
-
-struct MultiPairHasher {
-    // hash 1 simple xor
-    uint64_t operator()(const std::vector<ObjectId>& key) const {
-        // auto val = key[0].id;
-        // for (std::size_t i = 1; i < key.size(); i++) {
-        //     val = val ^ key[i].id;
-        // }
-        // return val;
-
-        uint64_t hash[2];
-        MurmurHash3_x64_128(key.data(), key.size() * sizeof(ObjectId), 0, hash);
-        uint64_t mask = MultiMap::MAX_BUCKETS - 1;  // (assuming MAX_BUCKETS is power of 2)
-
-        //uint64_t bucket_number = hash[1] & mask;  // suffix = bucket_number in this case
-        //return bucket_number;
-
-        return (hash[0] >> 9) & mask;
-    }
-    // xor vars, murmur[0]>> 9, murmur[1], postgress?
-};
-
-
-using SmallMultiMap = std::unordered_multimap<std::vector<ObjectId>, std::vector<ObjectId>, MultiPairHasher>;
+#include "relational_model/execution/binding_id_iter/hash_join/multipair_hasher.h"
 
 class HashJoin : public BindingIdIter {
 public:
@@ -80,8 +56,6 @@ private:
     std::vector<ObjectId> current_value;
     MultiPair saved_pair;
 
-    //void begin_small(uint_fast32_t small_size);
-    // bool next_small();
     void assign_binding(const MultiPair& lhs_pair, const MultiPair& rhs_pair);
 };
 

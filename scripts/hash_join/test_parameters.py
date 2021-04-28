@@ -1,15 +1,5 @@
-# TODO: 
-# try to improve times of the slowest ones with parameters: MAX_BUCKETS, hash_function, treshold MAX_SIZE_SMALL_HASH
-
 import re
 from statistics import mean
-
-# TODO: test hash join in memory
-# >make table with all times, include in memory hash and less buckets
-# >check last changes and repeat querys to find bug -> buckets or pages
-# start migrating multi map to 1 file
-# make table with new multi map
-# try to solve bug
 
 test = 8
 parameter = "MAX_BUCKETS"  # -> lowest numbers where better, need to try with bigger querys
