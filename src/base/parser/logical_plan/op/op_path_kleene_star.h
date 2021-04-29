@@ -62,7 +62,7 @@ public:
         if (path_automaton.total_states == 2) {
             // Automaton with 2 states have only one connection from 0 to 1
             auto new_automaton = PathAutomaton();
-            auto transition = path_automaton.from_to_connections[0][0];
+            auto& transition = path_automaton.from_to_connections[0][0];
             new_automaton.connect(Transition(0,0, transition.label, transition.inverse));
             new_automaton.end.insert(new_automaton.start);
             return new_automaton;
@@ -71,7 +71,7 @@ public:
             for (auto& end_state : path_automaton.end) {
                 path_automaton.add_epsilon_transition(end_state, path_automaton.start);
             }
-            path_automaton.end.insert(path_automaton.start);
+            path_automaton.add_end_state(path_automaton.start);
             return path_automaton;
         }
     }

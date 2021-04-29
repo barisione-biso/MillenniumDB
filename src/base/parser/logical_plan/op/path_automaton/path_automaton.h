@@ -40,14 +40,17 @@ struct TransitionId {
 
 
 class PathAutomaton {
+
 public:
-    uint32_t start = 0;
-    std::set<uint32_t> end;
     std::vector<std::vector<Transition>> from_to_connections;
     std::vector<std::vector<Transition>> to_from_connections;
-    std::vector<std::vector<TransitionId>> transitions;
 
+    std::set<uint32_t> end;
+    uint32_t start = 0;
+    uint32_t final_state;
+    std::vector<std::vector<TransitionId>> transitions;
     uint32_t total_states = 1;
+    bool start_is_final = false;
 
     PathAutomaton();
     ~PathAutomaton() = default;
@@ -64,6 +67,10 @@ public:
     void add_epsilon_transition(uint32_t from, uint32_t to);
 
     void optimize_automata();
+
+    void set_final_state();
+
+    inline void add_end_state(uint32_t state) { end.insert(state); }
 
     private:
         // Check if two states are mergeable and do the merge.

@@ -18,8 +18,9 @@
 namespace DFSIterEnum {
 
 struct State {
-    uint32_t state;
+    const uint32_t state;
     const ObjectId object_id;
+    uint32_t current_transition = 0;
     std::unique_ptr<BptIter<4>> iter = nullptr;
 
     State(uint32_t state, ObjectId object_id) :
@@ -78,7 +79,6 @@ private:
 
     // std::unique_ptr<BptIter<4>> iter;
     uint32_t        reached_automaton_state = 0;
-    uint32_t        current_transition = 0;
     ObjectId        reached_object_id;
 
     // Statistics

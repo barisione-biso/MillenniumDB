@@ -50,7 +50,7 @@ public:
 
     PathAutomaton get_automaton() const override {
         auto automaton = path->get_automaton();
-        automaton.end.insert(automaton.start);
+        automaton.add_end_state(automaton.start);
         return automaton;
     }
 

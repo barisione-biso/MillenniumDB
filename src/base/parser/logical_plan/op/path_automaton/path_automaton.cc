@@ -21,6 +21,7 @@ void PathAutomaton::print() {
         cout << state << "  ";
     }
     cout << "}\n";
+    cout << "final state: " << final_state << "\n";
 }
 
 
@@ -129,7 +130,11 @@ void PathAutomaton::optimize_automata() {
         }
     }
     delete_unreachable_states();
+    print();
+    set_final_state();
     delete_absortion_states();
+    end.clear();
+    print();
 }
 
 
@@ -279,16 +284,14 @@ set<uint32_t> PathAutomaton::get_reachable_states_from_end() {
     stack<uint32_t> open;
     set<uint32_t> visited;
     uint32_t current_state;
-    for (const auto& end_state : end) {
-        open.push(end_state);
-        while (!open.empty()) {
-            current_state = open.top();
-            open.pop();
-            if (visited.find(current_state) == visited.end()) {
-                visited.insert(current_state);
-                for (const auto& transition : to_from_connections[current_state]) {
-                    open.push(transition.from);
-                }
+    open.push(final_state);
+    while (!open.empty()) {
+        current_state = open.top();
+        open.pop();
+        if (visited.find(current_state) == visited.end()) {
+            visited.insert(current_state);
+            for (const auto& transition : to_from_connections[current_state]) {
+                open.push(transition.from);
             }
         }
     }
@@ -338,4 +341,20 @@ void PathAutomaton::merge_states(uint32_t destiny, uint32_t source) {
     }
     from_to_connections[source].clear();
     to_from_connections[source].clear();
+}
+
+void PathAutomaton::set_final_state() {
+    final_state = total_states;
+    total_states++;
+    // Set start state as final
+    if (end.find(start) != end.end()) {
+        start_is_final = true;
+    }
+    for (const auto& transitions_vector : from_to_connections) {
+        for (const auto& t : transitions_vector) {
+            if (end.find(t.to) != end.end()) {
+                connect(Transition(t.from, final_state, t.label, t.inverse));
+            }
+        }
+    }
 }

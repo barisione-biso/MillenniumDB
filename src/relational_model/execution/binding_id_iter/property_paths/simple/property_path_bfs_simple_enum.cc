@@ -44,15 +44,24 @@ void PropertyPathBFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;
         max_ids[3] = 0xFFFFFFFFFFFFFFFF;
+        is_first = true;
         // pos 0 and 1 will be set at next()
     }
 }
 
 
 bool PropertyPathBFSSimpleEnum::next() {
+    if (is_first) {
+        is_first = false;
+        if (automaton.start_is_final) {
+            auto& current_state = open.front();
+            visited.emplace(automaton.final_state, current_state.object_id);
+            parent_binding->add(end, current_state.object_id);
+            return true;
+        }
+    }
     while (open.size() > 0) {
-        auto current_state = open.front();
-        open.pop();
+        auto& current_state = open.front();
         std::unique_ptr<BptIter<4>> it;
         for (const auto& transition : automaton.transitions[current_state.state]) {
             if (transition.inverse) {
@@ -85,11 +94,13 @@ bool PropertyPathBFSSimpleEnum::next() {
                 child_record = it->next();
             }
         }
-        if (automaton.end.find(current_state.state) != automaton.end.end()) {
+        if (current_state.state == automaton.final_state) {
             results_found++;
             parent_binding->add(end, current_state.object_id);
+            open.pop();
             return true;
         }
+        open.pop();
     }
     return false;
 }
@@ -114,6 +125,7 @@ void PropertyPathBFSSimpleEnum::reset() {
         open.push(start_state);
         visited.insert(start_state);
     }
+    is_first = true;
 }
 
 

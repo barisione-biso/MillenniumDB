@@ -53,7 +53,8 @@ bool PropertyPathBFSIterEnum::next() {
     // Check if first node is final
     if (first_next) {
         first_next = false;
-        if (automaton.end.find(open.front().state) != automaton.end.end()) {
+        if (automaton.start_is_final) {
+            visited.emplace(automaton.final_state, open.front().object_id);
             parent_binding->add(end, open.front().object_id);
             return true;
         }
@@ -61,9 +62,9 @@ bool PropertyPathBFSIterEnum::next() {
     while (open.size() > 0) {
         auto& current_state = open.front();
         if (current_state_has_next(current_state)) {
-            bool is_final = automaton.end.find(reached_automaton_state) != automaton.end.end();
+            //bool is_final = reached_automaton_state == automaton.final_state;
             open.emplace(reached_automaton_state, reached_object_id);
-            if (is_final) {
+            if (reached_automaton_state == automaton.final_state) {
                 // set binding;
                 parent_binding->add(end, reached_object_id);
                 return true;

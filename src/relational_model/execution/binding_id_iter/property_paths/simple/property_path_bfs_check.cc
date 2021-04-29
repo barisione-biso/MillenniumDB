@@ -48,7 +48,7 @@ void PropertyPathBFSCheck::begin(BindingId& parent_binding, bool parent_has_next
             auto end_var_id = std::get<VarId>(end);
             end_object_id = parent_binding[end_var_id];
         }
-
+        is_first = true;
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;
@@ -59,50 +59,58 @@ void PropertyPathBFSCheck::begin(BindingId& parent_binding, bool parent_has_next
 
 
 bool PropertyPathBFSCheck::next() {
-    while (open.size() > 0) {
-        auto& current_state = open.front();
-        if (automaton.end.find(current_state.state) != automaton.end.end()
-            && current_state.object_id == end_object_id )
-        {
+    if (is_first) {
+        is_first = false;
+        if (automaton.start_is_final && open.front().object_id == end_object_id) {
             queue<SearchState> empty;
             open.swap(empty);
             results_found++;
             return true;
-        } else {
-            unique_ptr<BptIter<4>> it;
-            for (const auto& transition : automaton.transitions[current_state.state]) {
-                if (transition.inverse) {
-                    min_ids[0] = current_state.object_id.id;
-                    max_ids[0] = current_state.object_id.id;
-                    min_ids[1] = transition.label.id;
-                    max_ids[1] = transition.label.id;
-                    it = to_type_from_edge.get_range(
-                        Record<4>(min_ids),
-                        Record<4>(max_ids)
-                    );
-                } else {
-                    min_ids[0] = transition.label.id;
-                    max_ids[0] = transition.label.id;
-                    min_ids[1] = current_state.object_id.id;
-                    max_ids[1] = current_state.object_id.id;
-                    it = type_from_to_edge.get_range(
-                        Record<4>(min_ids),
-                        Record<4>(max_ids)
-                    );
-                }
-                bpt_searches++;
-                auto child_record = it->next();
-                while (child_record != nullptr) {
-                    auto next_state = SearchState(transition.to, ObjectId(child_record->ids[2]));
-                    if (visited.find(next_state) == visited.end()) {
-                        open.push(next_state);
-                        visited.insert(next_state);
-                    }
-                    child_record = it->next();
-                }
-            }
-            open.pop();
         }
+    }
+    while (open.size() > 0) {
+        auto& current_state = open.front();
+        unique_ptr<BptIter<4>> it;
+        for (const auto& transition : automaton.transitions[current_state.state]) {
+            if (transition.inverse) {
+                min_ids[0] = current_state.object_id.id;
+                max_ids[0] = current_state.object_id.id;
+                min_ids[1] = transition.label.id;
+                max_ids[1] = transition.label.id;
+                it = to_type_from_edge.get_range(
+                    Record<4>(min_ids),
+                    Record<4>(max_ids)
+                );
+            } else {
+                min_ids[0] = transition.label.id;
+                max_ids[0] = transition.label.id;
+                min_ids[1] = current_state.object_id.id;
+                max_ids[1] = current_state.object_id.id;
+                it = type_from_to_edge.get_range(
+                    Record<4>(min_ids),
+                    Record<4>(max_ids)
+                );
+            }
+            bpt_searches++;
+            auto child_record = it->next();
+            while (child_record != nullptr) {
+                auto next_state = SearchState(transition.to, ObjectId(child_record->ids[2]));
+                if (next_state.state == automaton.final_state
+                    && next_state.object_id == end_object_id )
+                {
+                    queue<SearchState> empty;
+                    open.swap(empty);
+                    results_found++;
+                    return true;
+                }
+                if (visited.find(next_state) == visited.end()) {
+                    open.push(next_state);
+                    visited.insert(next_state);
+                }
+                child_record = it->next();
+            }
+        }
+        open.pop();
     }
     return false;
 }
