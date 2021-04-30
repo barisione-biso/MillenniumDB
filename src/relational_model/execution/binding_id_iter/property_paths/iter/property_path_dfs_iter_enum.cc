@@ -62,7 +62,6 @@ bool PropertyPathDFSIterEnum::next() {
     while (open.size() > 0) {
         auto& current_state = open.top();
         if (current_state_has_next(current_state)) {
-            //bool is_final = automaton.end.find(reached_automaton_state) != automaton.end.end();
             open.emplace(reached_automaton_state, reached_object_id);
             if (reached_automaton_state == automaton.final_state) {
                 // set binding;
@@ -108,7 +107,9 @@ bool PropertyPathDFSIterEnum::current_state_has_next(State&  state) {
         }
         // Constructs new iter
         state.current_transition++;
-        set_iter(state);
+        if (state.current_transition < automaton.transitions[state.state].size()) {
+            set_iter(state);
+        }
     }
     return false;
 }

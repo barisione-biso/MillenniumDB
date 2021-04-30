@@ -130,11 +130,9 @@ void PathAutomaton::optimize_automata() {
         }
     }
     delete_unreachable_states();
-    print();
     set_final_state();
     delete_absortion_states();
     end.clear();
-    print();
 }
 
 

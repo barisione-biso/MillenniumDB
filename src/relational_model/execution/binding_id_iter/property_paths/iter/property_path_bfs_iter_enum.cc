@@ -62,7 +62,6 @@ bool PropertyPathBFSIterEnum::next() {
     while (open.size() > 0) {
         auto& current_state = open.front();
         if (current_state_has_next(current_state)) {
-            //bool is_final = reached_automaton_state == automaton.final_state;
             open.emplace(reached_automaton_state, reached_object_id);
             if (reached_automaton_state == automaton.final_state) {
                 // set binding;
@@ -109,7 +108,9 @@ bool PropertyPathBFSIterEnum::current_state_has_next(const StateKey&  current_st
         }
         // Constructs new iter
         current_transition++;
-        set_iter(current_state);
+        if (current_transition < automaton.transitions[current_state.state].size()) {
+            set_iter(current_state);
+        }
     }
     return false;
 }
