@@ -23,6 +23,7 @@ public:
     uint64_t get_vars() override;
 
     std::unique_ptr<BindingIdIter> get_binding_id_iter(std::size_t binding_size) override;
+    std::unique_ptr<LeapfrogIter> get_leapfrog_iter(const std::vector<VarId>& intersection_vars) override;
     std::unique_ptr<JoinPlan> duplicate() override;
 
     void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) override;

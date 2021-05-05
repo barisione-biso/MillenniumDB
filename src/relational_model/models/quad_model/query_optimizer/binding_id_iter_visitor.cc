@@ -6,6 +6,7 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
+#include "relational_model/execution/binding_id_iter/leapfrog_join.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/connection_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
@@ -13,6 +14,7 @@
 #include "relational_model/models/quad_model/query_optimizer/join_plan/transitive_closure_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
+#include "storage/index/bplus_tree/leapfrog_iter.h"
 
 using namespace std;
 
@@ -142,7 +144,8 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
 
     // construct var names
     vector<string> var_names;
-    var_names.resize(var_name2var_id.size());
+    const auto binding_size = var_name2var_id.size();
+    var_names.resize(binding_size);
     for (auto&& [var_name, var_id] : var_name2var_id) {
         var_names[var_id.id] = var_name;
     }
@@ -159,28 +162,31 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
         throw QuerySemanticException("Empty plan");
     }
 
-    if (base_plans.size() <= MAX_SELINGER_PLANS) {
-        SelingerOptimizer selinger_optimizer(move(base_plans), var_names, input_vars);
-        root_plan = selinger_optimizer.get_plan();
-    } else {
-        root_plan = get_greedy_join_plan(move(base_plans), var_names, input_vars);
-    }
+    // try to use leapfrog if possible
+    tmp = try_get_leapfrog_plan(base_plans, binding_size);
 
-    auto binding_size = var_name2var_id.size();
-
-    // insert new assigned_vars
-    const auto new_assigned_vars = root_plan->get_vars();
-    for (std::size_t i = 0; i < binding_size; i++) {
-        if ((new_assigned_vars & (1UL << i)) != 0) {
-            assigned_vars.insert(VarId(i));
+    if (tmp == nullptr){
+        if (base_plans.size() <= MAX_SELINGER_PLANS) {
+            SelingerOptimizer selinger_optimizer(move(base_plans), var_names, input_vars);
+            root_plan = selinger_optimizer.get_plan();
+        } else {
+            root_plan = get_greedy_join_plan(move(base_plans), var_names, input_vars);
         }
+
+        // insert new assigned_vars
+        const auto new_assigned_vars = root_plan->get_vars();
+        for (std::size_t i = 0; i < binding_size; i++) {
+            if ((new_assigned_vars & (1UL << i)) != 0) {
+                assigned_vars.insert(VarId(i));
+            }
+        }
+
+        std::cout << "\nPlan Generated:\n";
+        root_plan->print(2, true, var_names);
+        std::cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
+
+        tmp = root_plan->get_binding_id_iter(binding_size);
     }
-
-    std::cout << "\nPlan Generated:\n";
-    root_plan->print(2, true, var_names);
-    std::cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
-
-    tmp = root_plan->get_binding_id_iter(binding_size);
 }
 
 
@@ -210,7 +216,7 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
     vector<string>& var_names,
     uint64_t input_vars)
 {
-    auto base_plans_size = base_plans.size();
+    const auto base_plans_size = base_plans.size();
     assert(base_plans_size > 0);
 
     // choose the first scan
@@ -272,6 +278,54 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
     }
 
     return root_plan;
+}
+
+
+unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vector<unique_ptr<JoinPlan>>& base_plans,
+                                                                      const size_t binding_size)
+{
+    vector<VarId> intersection_vars;
+    set<VarId> enumeration_vars;
+    set<VarId> intersection_vars_set;
+
+    // TODO: me gustaría ordenar base plans (o recorerlo en un orden de indice distinto para no duplicar/mover unique_ptrs)
+    for (const auto& plan : base_plans) {
+        auto encoded_vars = plan->get_vars();
+        for (std::size_t i = 0; i < binding_size; i++) {
+            if ((encoded_vars & (1UL << i)) != 0) {
+                VarId var(i);
+                // cout << "VarId(" << i << ")\n";
+                // Var is in enumeration_vars
+                if (enumeration_vars.find(var) != enumeration_vars.end()) {
+                    enumeration_vars.erase(var);
+                    intersection_vars_set.insert(var);
+                    intersection_vars.push_back(var);
+                }
+                // Var is not in intersection vars
+                else if (intersection_vars_set.find(var) == intersection_vars_set.end()) {
+                    enumeration_vars.insert(var);
+                }
+                // else var is already in intersection_vars, do nothing
+            }
+        }
+    }
+
+    // Segunda pasada ahora si creando los LFIters
+    std::vector<std::unique_ptr<LeapfrogIter>> leapfrog_iters;
+    for (const auto& plan : base_plans) {
+        auto lf_iter = plan->get_leapfrog_iter(intersection_vars);
+        if (lf_iter == nullptr) {
+            return nullptr;
+        } else {
+            leapfrog_iters.push_back(move(lf_iter));
+        }
+    }
+
+    auto var_order = move(intersection_vars);
+    for (const auto& var : enumeration_vars) {
+        var_order.push_back(var);
+    }
+    return make_unique<LeapfrogJoin>(move(leapfrog_iters), move(var_order)); // TODO: generate global order?
 }
 
 

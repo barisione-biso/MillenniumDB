@@ -190,3 +190,67 @@ unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter(std::size_t binding_
         return make_unique<IndexScan<3>>(binding_size, *model.key_value_object, move(ranges));
     }
 }
+
+
+unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const vector<VarId>& global_intersection_vars) {
+    vector<ObjectId> terms;
+    vector<VarId> intersection_vars;
+    vector<VarId> enumeration_vars;
+
+    // index = INT32_MAX means enumeration, index = -1 means term
+    int_fast32_t obj_index   = std::holds_alternative<ObjectId>(object) ? -1 : INT32_MAX;
+    int_fast32_t key_index   = std::holds_alternative<ObjectId>(key)    ? -1 : INT32_MAX;
+    int_fast32_t value_index = std::holds_alternative<ObjectId>(value)  ? -1 : INT32_MAX;
+
+    // set index if they are in global_intersection_vars
+    for (size_t i = 0; i < global_intersection_vars.size(); i++) {
+        if (obj_index == INT32_MAX && std::get<VarId>(object) == global_intersection_vars[i]) {
+            obj_index = i;
+        }
+        if (key_index == INT32_MAX && std::get<VarId>(key) == global_intersection_vars[i]) {
+            key_index = i;
+        }
+        if (value_index == INT32_MAX && std::get<VarId>(value) == global_intersection_vars[i]) {
+            value_index = i;
+        }
+    }
+
+    auto assign = [&terms, &enumeration_vars, &intersection_vars](int_fast32_t& index, Id id) -> void {
+        if (index == -1) {
+            terms.push_back(std::get<ObjectId>(id));
+        } else if (index == INT32_MAX) {
+            enumeration_vars.push_back(std::get<VarId>(id));
+        } else {
+            intersection_vars.push_back(std::get<VarId>(id));
+        }
+    };
+
+    // object_key_value
+    if (obj_index <= key_index && key_index <= value_index) {
+        assign(obj_index,   object);
+        assign(key_index,   key);
+        assign(value_index, value);
+
+        return make_unique<LeapfrogIterImpl<3>>(
+            *model.object_key_value,
+            move(terms),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    }
+    // key_value_object
+    else if (key_index <= value_index && value_index <= obj_index) {
+        assign(key_index,   key);
+        assign(value_index, value);
+        assign(obj_index,   object);
+
+        return make_unique<LeapfrogIterImpl<3>>(
+            *model.key_value_object,
+            move(terms),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    } else {
+        return nullptr;
+    }
+}

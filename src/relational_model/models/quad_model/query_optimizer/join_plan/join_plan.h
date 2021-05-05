@@ -12,6 +12,7 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/assigned_var.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/term.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/unassigned_var.h"
+#include "storage/index/bplus_tree/leapfrog_iter.h"
 
 // Abstract Class
 class JoinPlan {
@@ -34,6 +35,7 @@ public:
     virtual uint64_t get_vars() = 0;
 
     virtual std::unique_ptr<BindingIdIter> get_binding_id_iter(std::size_t binding_size) = 0;
+    virtual std::unique_ptr<LeapfrogIter> get_leapfrog_iter(const std::vector<VarId>& intersection_vars) = 0;
     virtual std::unique_ptr<JoinPlan> duplicate() = 0;
 
     virtual void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) = 0;

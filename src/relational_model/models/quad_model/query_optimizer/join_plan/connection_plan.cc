@@ -372,3 +372,89 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(std::size_t bindin
         }
     }
 }
+
+
+unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(const vector<VarId>& global_intersection_vars) {
+    // TODO: que pasa en casos especiales como to == type?
+    vector<ObjectId> terms;
+    vector<VarId> intersection_vars;
+    vector<VarId> enumeration_vars;
+
+    // index = INT32_MAX means enumeration, index = -1 means term
+    int_fast32_t from_index = std::holds_alternative<ObjectId>(from) ? -1 : INT32_MAX;
+    int_fast32_t to_index   = std::holds_alternative<ObjectId>(to)   ? -1 : INT32_MAX;
+    int_fast32_t type_index = std::holds_alternative<ObjectId>(type) ? -1 : INT32_MAX;
+    int_fast32_t edge_index = INT32_MAX;
+
+    // set index if they are in global_intersection_vars
+    for (size_t i = 0; i < global_intersection_vars.size(); i++) {
+        if (from_index == INT32_MAX && std::get<VarId>(from) == global_intersection_vars[i]) {
+            from_index = i;
+        }
+        if (to_index == INT32_MAX && std::get<VarId>(to) == global_intersection_vars[i]) {
+            to_index = i;
+        }
+        if (type_index == INT32_MAX && std::get<VarId>(type) == global_intersection_vars[i]) {
+            type_index = i;
+        }
+        if (edge_index == INT32_MAX && edge == global_intersection_vars[i]) {
+            edge_index = i;
+        }
+    }
+
+    auto assign = [&terms, &enumeration_vars, &intersection_vars](int_fast32_t& index, Id id) -> void {
+        if (index == -1) {
+            terms.push_back(std::get<ObjectId>(id));
+        } else if (index == INT32_MAX) {
+            enumeration_vars.push_back(std::get<VarId>(id));
+        } else {
+            intersection_vars.push_back(std::get<VarId>(id));
+        }
+    };
+
+    // from_to_type_edge
+    if (from_index <= to_index && to_index <= type_index && type_index <= edge_index) {
+        assign(from_index, from);
+        assign(to_index,   to);
+        assign(type_index, type);
+        enumeration_vars.push_back(edge);
+
+        return make_unique<LeapfrogIterImpl<4>>(
+            *model.from_to_type_edge,
+            move(terms),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    }
+    // to_type_from_edge
+    else if (to_index <= type_index && type_index <= from_index && from_index <= edge_index) {
+        assign(to_index,   to);
+        assign(type_index, type);
+        assign(from_index, from);
+        enumeration_vars.push_back(edge);
+
+        return make_unique<LeapfrogIterImpl<4>>(
+            *model.to_type_from_edge,
+            move(terms),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    }
+    // type_from_to_edge
+    else if (type_index <= from_index && from_index <= to_index && to_index <= edge_index) {
+        assign(type_index, type);
+        assign(from_index, from);
+        assign(to_index,   to);
+        enumeration_vars.push_back(edge);
+
+        return make_unique<LeapfrogIterImpl<4>>(
+            *model.type_from_to_edge,
+            move(terms),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    } else {
+        return nullptr;
+    }
+
+}
