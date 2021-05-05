@@ -44,6 +44,7 @@ class PathAutomaton {
 public:
     std::vector<std::vector<Transition>> from_to_connections;
     std::vector<std::vector<Transition>> to_from_connections;
+    std::vector<uint32_t> distance_to_final;
 
     std::set<uint32_t> end;
     uint32_t start = 0;
@@ -66,9 +67,15 @@ public:
     // Add a transition (from, to, "", false)
     void add_epsilon_transition(uint32_t from, uint32_t to);
 
+    // Delete extra nodes and transitions
     void optimize_automata();
 
+    // Add a extra state which is final, end set will be cleared. If start is in end,
+    // start_is_final will be true
     void set_final_state();
+
+    // Compute the minimum distance between final_state and a state of the automaton
+    void calculate_distance_to_final_state();
 
     inline void add_end_state(uint32_t state) { end.insert(state); }
 

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <queue>
 #include <stack>
+#include <utility>
 
 using namespace std;
 
@@ -16,6 +17,11 @@ void PathAutomaton::print() {
             cout << t.from << "=[" << (t.inverse ? "^" : "") << t.label << "]=>" << t.to << "\n";
         }
     }
+    cout << "distance to end: \n";
+    for (size_t i = 0; i < total_states; i++) {
+        cout << i << ":" << distance_to_final[i] << "\n";
+    }
+    cout << "start is final: " << (start_is_final ? "true" : "false") << "\n";
     cout << "end states: { ";
     for (auto& state : end) {
         cout << state << "  ";
@@ -130,9 +136,15 @@ void PathAutomaton::optimize_automata() {
         }
     }
     delete_unreachable_states();
-    set_final_state();
+    if (end.size() == 1) {
+        final_state = *end.begin();
+        start_is_final = final_state == start;
+    } else {
+        set_final_state();
+    }
+    //end.clear();
     delete_absortion_states();
-    end.clear();
+    calculate_distance_to_final_state();
 }
 
 
@@ -205,6 +217,7 @@ void PathAutomaton::delete_unreachable_states() {
         if (reachable_states.find(i) == reachable_states.end()) {
             from_to_connections[i].clear();
             to_from_connections[i].clear();
+            end.erase(i);
             for (size_t j = 0; j < from_to_connections.size(); j++) {
                 auto iterator = from_to_connections[j].begin();
                 while (iterator != from_to_connections[j].end()) {
@@ -352,6 +365,28 @@ void PathAutomaton::set_final_state() {
         for (const auto& t : transitions_vector) {
             if (end.find(t.to) != end.end()) {
                 connect(Transition(t.from, final_state, t.label, t.inverse));
+            }
+        }
+    }
+}
+
+void PathAutomaton::calculate_distance_to_final_state() {
+    queue<pair<uint32_t, uint32_t>> open;
+    set<uint32_t> visited;
+    for (uint32_t i = 0; i < total_states; i++) {
+        distance_to_final.push_back(UINT32_MAX);
+    }
+    open.push(make_pair(final_state, 0));
+    while (!open.empty()) {
+        auto current_pair = open.front();
+        auto current_state = current_pair.first;
+        auto current_distance = current_pair.second;
+        open.pop();
+        if (visited.find(current_state) == visited.end()) {
+            visited.insert(current_state);
+            distance_to_final[current_state] = current_distance;
+            for (const auto& transition : to_from_connections[current_state]) {
+                open.push(make_pair(transition.from, current_distance + 1));
             }
         }
     }
