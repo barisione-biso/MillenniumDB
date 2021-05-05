@@ -453,7 +453,22 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(const vector<VarId>& 
             move(intersection_vars),
             move(enumeration_vars)
         );
+    } // type_to_from_edge
+    else if (type_index <= to_index && to_index <= from_index && from_index <= edge_index) {
+        assign(type_index, type);
+        assign(to_index,   to);
+        assign(from_index, from);
+        enumeration_vars.push_back(edge);
+
+        return make_unique<LeapfrogIterImpl<4>>(
+            *model.type_to_from_edge,
+            move(terms),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
     } else {
+        cout << "no order for leapfrog\n";
+        cout << "from: " << from_index << ", to: " << to_index << ", type: " << type_index << ", edge: " << edge_index << "\n";
         return nullptr;
     }
 

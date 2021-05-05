@@ -17,15 +17,15 @@
 using namespace std;
 
 BulkImport::BulkImport(const string& filename, QuadModel& model) :
-    model                (model),
-    catalog              (model.catalog()),
-    node_labels          (OrderedFile<2>("node_labels.dat")),
-    object_key_value     (OrderedFile<3>("object_key_value.dat")),
-    from_to_type_edge    (OrderedFile<4>("from_to_type_edge.dat")),
-    equal_from_to        (OrderedFile<3>("equal_from_to.dat")),
-    equal_from_type      (OrderedFile<3>("equal_from_type.dat")),
-    equal_to_type        (OrderedFile<3>("equal_to_type.dat")),
-    equal_from_to_type   (OrderedFile<2>("equal_from_to_type.dat"))
+    model                    (model),
+    catalog                  (model.catalog()),
+    node_labels              (OrderedFile<2>("node_labels.dat")),
+    object_key_value         (OrderedFile<3>("object_key_value.dat")),
+    connections_ordered_file (OrderedFile<4>("connections_ordered_file.tmp")),
+    equal_from_to            (OrderedFile<3>("equal_from_to.dat")),
+    equal_from_type          (OrderedFile<3>("equal_from_type.dat")),
+    equal_to_type            (OrderedFile<3>("equal_to_type.dat")),
+    equal_from_to_type       (OrderedFile<2>("equal_from_to_type.dat"))
 {
     import_file = ifstream(filename);
     import_file.unsetf(std::ios::skipws);
@@ -137,48 +137,53 @@ void BulkImport::start_import() {
 
 void BulkImport::index_connections() {
     // CONNECTIONS
-    from_to_type_edge.order(std::array<uint_fast8_t, 4> { 0, 1, 2, 3 });
-    model.from_to_type_edge->bulk_import(from_to_type_edge);
+    connections_ordered_file.order(std::array<uint_fast8_t, 4> { 0, 1, 2, 3 });
+    model.from_to_type_edge->bulk_import(connections_ordered_file);
 
     // set catalog.distinct_from
     {
         uint64_t distinct_from = 0;
         uint64_t current_from  = 0;
 
-        from_to_type_edge.begin_read();
-        auto record = from_to_type_edge.next_record();
+        connections_ordered_file.begin_read();
+        auto record = connections_ordered_file.next_record();
         while (record != nullptr) {
             if (record->ids[0] != current_from) {
                 ++distinct_from;
                 current_from = record->ids[0];
             }
-            record = from_to_type_edge.next_record();
+            record = connections_ordered_file.next_record();
         }
         catalog.distinct_from = distinct_from;
     }
 
-    from_to_type_edge.order(std::array<uint_fast8_t, 4> { 2, 0, 1, 3 });
-    model.to_type_from_edge->bulk_import(from_to_type_edge);
+    connections_ordered_file.order(std::array<uint_fast8_t, 4> { 2, 0, 1, 3 });
+    model.to_type_from_edge->bulk_import(connections_ordered_file);
 
     //set catalog.distinct_to
-    uint64_t distinct_to = 0;
-    uint64_t current_to  = 0;
+    {
+        uint64_t distinct_to = 0;
+        uint64_t current_to  = 0;
 
-    from_to_type_edge.begin_read();
-    auto record = from_to_type_edge.next_record();
-    while (record != nullptr) {
-        if (record->ids[0] != current_to) {
-            ++distinct_to;
-            current_to = record->ids[0];
+        connections_ordered_file.begin_read();
+        auto record = connections_ordered_file.next_record();
+        while (record != nullptr) {
+            if (record->ids[0] != current_to) {
+                ++distinct_to;
+                current_to = record->ids[0];
+            }
+            record = connections_ordered_file.next_record();
         }
-        record = from_to_type_edge.next_record();
+        catalog.distinct_to = distinct_to;
     }
-    catalog.distinct_to = distinct_to;
 
-    from_to_type_edge.order(std::array<uint_fast8_t, 4> { 2, 0, 1, 3 });
-    model.type_from_to_edge->bulk_import(from_to_type_edge);
+    connections_ordered_file.order(std::array<uint_fast8_t, 4> { 2, 0, 1, 3 });
+    model.type_from_to_edge->bulk_import(connections_ordered_file);
 
-    catalog.distinct_type   = catalog.type2total_count.size();
+    connections_ordered_file.order(std::array<uint_fast8_t, 4> { 0, 2, 1, 3 });
+    model.type_to_from_edge->bulk_import(connections_ordered_file);
+
+    catalog.distinct_type = catalog.type2total_count.size();
 }
 
 
@@ -500,7 +505,7 @@ uint64_t BulkImport::create_connection(const uint64_t from_id, const uint64_t to
         equal_to_type.append_record(std::array<uint64_t, 3> { type_id, from_id, edge_id });
     }
 
-    from_to_type_edge.append_record(std::array<uint64_t, 4> { from_id, to_id, type_id, edge_id });
+    connections_ordered_file.append_record(std::array<uint64_t, 4> { from_id, to_id, type_id, edge_id });
     model.edge_table->append_record(std::array<uint64_t, 3> { from_id, to_id, type_id });
 
     return edge_id;

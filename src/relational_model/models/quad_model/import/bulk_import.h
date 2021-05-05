@@ -26,9 +26,9 @@ private:
     QuadModel& model;
     QuadCatalog& catalog;
 
-    OrderedFile<2> node_labels;             // node_id, label_id
-    OrderedFile<3> object_key_value;        // object_id, key_id, value_id
-    OrderedFile<4> from_to_type_edge;       // from_id, to_id, type_id, edge_id
+    OrderedFile<2> node_labels;              // node_id, label_id
+    OrderedFile<3> object_key_value;         // object_id, key_id, value_id
+    OrderedFile<4> connections_ordered_file; // from_id, to_id, type_id, edge_id
 
     // To create indexes for special cases
     OrderedFile<3> equal_from_to;           // from/to, type, edge
