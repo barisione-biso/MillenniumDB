@@ -39,6 +39,12 @@ unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(uint_fast32_t pos) const {
 
 
 template <std::size_t N>
+std::unique_ptr<BPlusTreeLeaf<N>>  BPlusTreeLeaf<N>::duplicate() const {
+    return make_unique<BPlusTreeLeaf<N>>(buffer_manager.get_page(leaf_file_id, page.get_page_number()));
+}
+
+
+template <std::size_t N>
 unique_ptr<BPlusTreeLeaf<N>> BPlusTreeLeaf<N>::get_next_leaf() const {
     Page& new_page = buffer_manager.get_page(leaf_file_id, *next_leaf);
     return make_unique<BPlusTreeLeaf<N>>(new_page);

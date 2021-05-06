@@ -26,8 +26,6 @@ struct SearchLeafResult {
 
 template <std::size_t N>
 class BPlusTreeLeaf {
-// template <std::size_t M> friend class BPlusTreeDir;
-// template <std::size_t M> friend class BPlusTree;
 friend class BPlusTreeDir<N>;
 friend class BPlusTree<N>;
 
@@ -47,7 +45,8 @@ public:
 
     std::unique_ptr<BPlusTreeSplit<N>> insert(const Record<N>& record);
 
-    std::unique_ptr<BPlusTreeLeaf> get_next_leaf() const;
+    std::unique_ptr<BPlusTreeLeaf<N>> duplicate() const;
+    std::unique_ptr<BPlusTreeLeaf<N>> get_next_leaf() const;
     std::unique_ptr<Record<N>> get_record(uint_fast32_t pos) const; // asumes pos is valid
 
     // Search for the first record that is equal or greater than the parameter recived.
@@ -62,7 +61,7 @@ public:
 
 private:
     Page& page;
-    FileId leaf_file_id;
+    const FileId leaf_file_id;
     uint32_t* const value_count;
     uint32_t* const next_leaf;
     uint64_t* const records;

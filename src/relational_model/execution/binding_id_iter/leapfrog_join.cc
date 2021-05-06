@@ -40,7 +40,7 @@ void LeapfrogJoin::begin(BindingId& parent_binding, bool parent_has_next) {
         if (iter_list.size() > 0) {
             iters_for_var.push_back(move(iter_list));
         } else {
-            enumeration_level = i; // TODO: no se ejecuta si var_order no trae las enumeration_vars
+            enumeration_level = i;
             break;
         }
     }
@@ -65,43 +65,14 @@ void LeapfrogJoin::begin(BindingId& parent_binding, bool parent_has_next) {
 
     if (open_terms) {
         cout << "open_terms successfully\n";
-        // level = base_level;
         down();
     } else {
         cout << "open_terms failed\n";
-        // level = base_level - 1; // next condition is while (level >= base_level)
     }
     cout << "level: " << level << "\n";
-
-    // // Border case when there is no intersection
-    // if (level == enumeration_level) {
-    //     // prepare for enumeration phase
-    //     for (uint_fast32_t i = 0; i < leapfrog_iters.size(); i++) {
-    //         // consume all results and save it in a buffer
-    //         leapfrog_iters[i]->enum_no_intersection(*buffers[i]);
-    //         buffer_pos[i] = 0;
-    //     }
-    //     for (uint_fast32_t i = 1; i < leapfrog_iters.size(); i++) {
-    //         buffers[i]->assign_to_binding(parent_binding, 0);
-    //     }
-    //     buffer_pos[0] = -1; // so when calling buffer_pos[0]++ it will be at 0
-    //     // TODO: does sorting by buffer size improve performance?
-    // } else {
-    //     // TODO: extract to private function
-    //     // sort the corresponding iterators using insertion sort
-    //     for (int_fast32_t i = 1; i < (int_fast32_t) iters_for_var[level].size(); i++) {
-    //         auto aux = iters_for_var[level][i];
-    //         int_fast32_t j;
-    //         for (j = i - 1; j >= 0 && iters_for_var[level][j]->get_key() > aux->get_key(); j--) {
-    //             iters_for_var[level][j + 1] = iters_for_var[level][j];
-    //         }
-    //         iters_for_var[level][j + 1] = aux;
-    //     }
-    // }
 }
 
 
-// TODO: calling next() after it already returned false its undefined behaviour?
 bool LeapfrogJoin::next() {
     // cout << "next called\n";
     // cout << "level: " << level << "\n";
@@ -119,6 +90,7 @@ bool LeapfrogJoin::next() {
                     // We are in a previous intersection, so we need to move the last iterator forward
                     // to avoid having the same intersection
                     if (!iters_for_var[level][iters_for_var[level].size() - 1]->next()) {
+                        cout << "TODO: esto puede estar mal\n";
                         return false;
                     }
                 }
@@ -143,12 +115,16 @@ bool LeapfrogJoin::next() {
         }
 
         // when enumeration is over backtrack to previous level
-        level--;
-        // all iterators should be at the same key, last iterator goes next to prevent getting stuck in the same result
-        if (iters_for_var.size() == 0
-           || !iters_for_var[level][iters_for_var[level].size() -  1]->next())
-        {
+        level--; // go back to last enumeration_level
+
+        if (iters_for_var.size() == 0) {
             return false;
+        } else {
+            while (level >= base_level
+                   && !iters_for_var[level][iters_for_var[level].size() -  1]->next())
+            {
+                up();
+            }
         }
     }
     return false;
@@ -177,7 +153,6 @@ void LeapfrogJoin::down() {
     level++;
 
     if (level < enumeration_level) {
-        first_intersection = true;
         for (uint_fast32_t i = 0; i < iters_for_var[level].size(); i++) {
             iters_for_var[level][i]->down();
         }
@@ -194,7 +169,7 @@ void LeapfrogJoin::down() {
     } else { // level == enumeration_level
         // prepare for enumeration phase
         for (uint_fast32_t i = 0; i < leapfrog_iters.size(); i++) {
-            // consume all results and save it in a buffer
+            // consume all results and save them in a buffer
             leapfrog_iters[i]->enum_no_intersection(*buffers[i]);
             buffer_pos[i] = 0;
         }
@@ -242,7 +217,7 @@ bool LeapfrogJoin::find_intersection_for_current_level() {
 
 void LeapfrogJoin::analyze(int indent) const {
     cout << std::string(indent, ' ');
-    // TODO: put some usefull stats
+    // TODO: put some useful stats
     cout << "LeapfrogJoin()\n";
 }
 

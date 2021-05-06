@@ -23,21 +23,18 @@ public:
 private:
     std::vector<std::unique_ptr<LeapfrogIter>> leapfrog_iters;
 
-    // TODO: maybe I just need intersection vars. only using var_order outside of that range
-    // when assigning nulls.
-    // TODO: will var_order conmtains variables of the parant node at optionals?
-    std::vector<VarId> var_order;
+    // TODO: will var_order contain variables of the parant node at optionals?
+    std::vector<VarId> var_order; // contains variables from intersection_vars and enumeration_vars
 
     BindingId* parent_binding;
 
     const int_fast32_t base_level; // how many variables in local will be set from outside.
                                    // TODO: may change when including optionals?
-    int_fast32_t level;
+
+    int_fast32_t level; // level starts at base_level, and will vary between [base_level, enumeration_level]
+                        // when level-(base_level-1) means there is no more tuples left
 
     int_fast32_t enumeration_level;
-
-    bool first_intersection; // to remember the first time next() is called  after it went down a level
-
 
     // iters_for_var[i] is a list of (not-null) pointers of iterators for the variable var_order[i].
     std::vector<std::vector<LeapfrogIter*>> iters_for_var;

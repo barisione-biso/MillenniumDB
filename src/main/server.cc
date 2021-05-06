@@ -56,7 +56,7 @@ void execute_query(unique_ptr<BindingIter> binding_iter, std::ostream& os) {
     // get all results
     while (binding_iter->next()) {
         // TODO: uncomment/comment to enable/disable printing results
-        os << binding;
+        os << binding << endl;
         result_count++;
     }
 

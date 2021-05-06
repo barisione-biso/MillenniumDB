@@ -163,7 +163,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     }
 
     // try to use leapfrog if possible
-    tmp = try_get_leapfrog_plan(base_plans, binding_size);
+    // tmp = try_get_leapfrog_plan(base_plans, binding_size);
 
     if (tmp == nullptr){
         if (base_plans.size() <= MAX_SELINGER_PLANS) {

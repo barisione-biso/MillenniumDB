@@ -25,7 +25,7 @@ public:
     virtual const std::vector<VarId>& get_intersection_vars() = 0; // TODO: podría no ser virtual?
     virtual const std::vector<VarId>& get_enumeration_vars() = 0;  // TODO: podría no ser virtual?
 
-    // will consume all tuples and write them into the buffer+
+    // will consume all tuples and write them into the buffer. Invalidates the current_leaf
     virtual void enum_no_intersection(TupleBuffer& buffer) = 0;
 };
 

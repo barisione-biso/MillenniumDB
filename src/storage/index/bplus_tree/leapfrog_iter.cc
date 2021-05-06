@@ -3,6 +3,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "storage/buffer_manager.h"
+
 template class LeapfrogIterImpl<2>;
 template class LeapfrogIterImpl<3>;
 template class LeapfrogIterImpl<4>;
@@ -31,6 +33,7 @@ LeapfrogIterImpl<N>::LeapfrogIterImpl(const BPlusTree<N>& btree,
     }
     auto leaf_and_pos = directory_stack.top()->search_leaf(directory_stack, min);
     current_leaf = move(leaf_and_pos.leaf);
+    assert(current_leaf != nullptr);
     current_pos_in_leaf = leaf_and_pos.result_index;
 
     // check border case when B+tree is empty
@@ -126,15 +129,25 @@ bool LeapfrogIterImpl<N>::seek(uint64_t key) {
 }
 
 
+// updates current_leaf, current_tuple and current_pos_in_leaf only when returns true;
 template <std::size_t N>
 bool LeapfrogIterImpl<N>::internal_search(const Record<N>& min, const Record<N>& max) {
+    assert(current_leaf != nullptr);
     // if leaf.min <= min <= leaf.max, search inside the leaf and return
-    if (current_leaf != nullptr && current_leaf->check_range(min)) {
-        current_pos_in_leaf = current_leaf->search_index(min);
-        // check current_pos_in_leaf is a valid position
-        if (current_pos_in_leaf < current_leaf->get_value_count()) {
-            current_tuple = current_leaf->get_record(current_pos_in_leaf);
-            return (*current_tuple) <= max;
+    // if (current_leaf != nullptr && current_leaf->check_range(min)) {
+    if (current_leaf->check_range(min)) {
+        auto new_current_pos_in_leaf = current_leaf->search_index(min);
+        // check new_current_pos_in_leaf is a valid position
+        if (new_current_pos_in_leaf < current_leaf->get_value_count()) {
+            auto new_current_tuple = current_leaf->get_record(new_current_pos_in_leaf);
+            if ((*new_current_tuple) <= max) {
+                // current_leaf stays the same
+                current_tuple       = move(new_current_tuple);
+                current_pos_in_leaf = new_current_pos_in_leaf;
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
@@ -151,18 +164,26 @@ bool LeapfrogIterImpl<N>::internal_search(const Record<N>& min, const Record<N>&
 
         // then search until reaching the leaf_number and index of the record.
         auto leaf_and_pos = directory_stack.top()->search_leaf(directory_stack, min);
-        current_leaf = move(leaf_and_pos.leaf);
-        current_pos_in_leaf = leaf_and_pos.result_index;
+        auto new_current_leaf = move(leaf_and_pos.leaf);
+        auto new_current_pos_in_leaf = leaf_and_pos.result_index;
 
-        // check current_pos_in_leaf is a valid position
-        if (current_pos_in_leaf < current_leaf->get_value_count()) {
-            current_tuple = current_leaf->get_record(current_pos_in_leaf);
-            return (*current_tuple) <= max;
-        } else if (current_leaf->has_next()) {
-            current_leaf = current_leaf->get_next_leaf();
-            current_pos_in_leaf = 0;
-            current_tuple = current_leaf->get_record(current_pos_in_leaf);
-            return (*current_tuple) <= max;
+        // check new_current_pos_in_leaf is a valid position
+        // we may need to go to the first record of the next leaf
+        if (new_current_pos_in_leaf >= new_current_leaf->get_value_count()) {
+            if (new_current_leaf->has_next()) {
+                new_current_leaf = new_current_leaf->get_next_leaf();
+                new_current_pos_in_leaf = 0;
+            } else {
+                return false;
+            }
+        }
+
+        auto new_current_tuple = new_current_leaf->get_record(new_current_pos_in_leaf);
+        if ((*new_current_tuple) <= max) {
+            current_tuple       = move(new_current_tuple);
+            current_leaf        = move(new_current_leaf);
+            current_pos_in_leaf = new_current_pos_in_leaf;
+            return true;
         } else {
             return false;
         }
@@ -172,6 +193,8 @@ bool LeapfrogIterImpl<N>::internal_search(const Record<N>& min, const Record<N>&
 
 template <size_t N>
 void LeapfrogIterImpl<N>::enum_no_intersection(TupleBuffer& buffer) {
+    assert(current_leaf != nullptr);
+    assert(current_tuple != nullptr);
     buffer.reset();
     array<uint64_t, N> max;
 
@@ -182,7 +205,9 @@ void LeapfrogIterImpl<N>::enum_no_intersection(TupleBuffer& buffer) {
         max[i] = UINT64_MAX;
     }
 
-    BptIter it(SearchLeafResult<N>(move(current_leaf), current_pos_in_leaf), Record<N>(max));
+    // BptIter it(SearchLeafResult<N>(move(current_leaf), current_pos_in_leaf), Record<N>(max)); // TODO: al mover current_leaf lka 2da vez muere
+    BptIter it = BptIter(SearchLeafResult<N>(current_leaf->duplicate(), current_pos_in_leaf),
+                         Record<N>(max));
     auto record = it.next();
     while (record != nullptr) {
         vector<ObjectId> tuple;
@@ -192,7 +217,9 @@ void LeapfrogIterImpl<N>::enum_no_intersection(TupleBuffer& buffer) {
         buffer.append_tuple(tuple);
         record = it.next();
     }
-    // cout << "Tuple count: " << buffer.get_tuple_count() << "\n";
+    // TODO: update current_tuple and current_leaf? no se si se puede porque me paso en 1 con el while anterior
+    // y si justo quedo en una pagina nueva no tengo puntero para ir hacia atras
+    // cout << "Intersection tuple count: " << buffer.get_tuple_count() << "\n";
 }
 
 
