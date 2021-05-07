@@ -9,6 +9,7 @@
 struct SearchState {
     const uint32_t state;
     const ObjectId object_id;
+    uint32_t transition = 0;
 
     SearchState(unsigned int state, ObjectId object_id) :
         state      (state),

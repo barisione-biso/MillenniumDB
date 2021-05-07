@@ -69,33 +69,20 @@ bool PropertyPathBFSCheck::next() {
             return true;
         }
     }
+    // BFS classic implementation
     while (open.size() > 0) {
         auto& current_state = open.front();
-        unique_ptr<BptIter<4>> it;
-        for (const auto& transition : automaton.transitions[current_state.state]) {
-            if (transition.inverse) {
-                min_ids[0] = current_state.object_id.id;
-                max_ids[0] = current_state.object_id.id;
-                min_ids[1] = transition.label.id;
-                max_ids[1] = transition.label.id;
-                it = to_type_from_edge.get_range(
-                    Record<4>(min_ids),
-                    Record<4>(max_ids)
-                );
-            } else {
-                min_ids[0] = transition.label.id;
-                max_ids[0] = transition.label.id;
-                min_ids[1] = current_state.object_id.id;
-                max_ids[1] = current_state.object_id.id;
-                it = type_from_to_edge.get_range(
-                    Record<4>(min_ids),
-                    Record<4>(max_ids)
-                );
-            }
-            bpt_searches++;
-            auto child_record = it->next();
+        // Expand state. Only visit nodes that automatons transitions indicates
+        while (current_state.transition < automaton.transitions[current_state.state].size()) {
+            const auto& transition = automaton.transitions[current_state.state][current_state.transition];
+            set_iter(transition, current_state);
+
+            // Explore matches nodes
+            auto child_record = iter->next();
             while (child_record != nullptr) {
                 auto next_state = SearchState(transition.to, ObjectId(child_record->ids[2]));
+
+                // Check if next_state is final
                 if (next_state.state == automaton.final_state
                     && next_state.object_id == end_object_id )
                 {
@@ -104,16 +91,40 @@ bool PropertyPathBFSCheck::next() {
                     results_found++;
                     return true;
                 }
+                // Add to visited and queue
                 if (visited.find(next_state) == visited.end()) {
                     open.push(next_state);
                     visited.insert(next_state);
                 }
-                child_record = it->next();
+                child_record = iter->next();
             }
+        // Search to next transition
+        current_state.transition++;
         }
         open.pop();
     }
     return false;
+}
+
+
+void PropertyPathBFSCheck::set_iter(
+    const TransitionId& transition,
+    const SearchState& current_state) {
+    // Get iter from correct bpt_tree according to inverse attribute
+    if (transition.inverse) {
+        min_ids[0] = current_state.object_id.id;
+        max_ids[0] = current_state.object_id.id;
+        min_ids[1] = transition.label.id;
+        max_ids[1] = transition.label.id;
+        iter = to_type_from_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
+    } else {
+        min_ids[0] = transition.label.id;
+        max_ids[0] = transition.label.id;
+        min_ids[1] = current_state.object_id.id;
+        max_ids[1] = current_state.object_id.id;
+        iter = type_from_to_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
+    }
+    bpt_searches++;
 }
 
 

@@ -16,7 +16,7 @@
 
 /*
 PropertyPathBFSCheck will determine if there exists a path between
-2 nodes: `start` & `end` using BFS algorithm to explore the database.
+2 nodes: `start` & `end` using clasical BFS algorithm to explore the database.
 Use an automaton to only explore paths that match with the asked path
 */
 
@@ -42,11 +42,15 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::queue<SearchState> open;
-    bool is_first = false;
+    bool is_first = false;  // True if is the first iteration
+    std::unique_ptr<BptIter<4>> iter = nullptr;
 
     // Statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
+
+    // Constructs iter according to transition
+    void set_iter(const TransitionId& transition, const SearchState& current_state);
 
 public:
     PropertyPathBFSCheck(BPlusTree<4>& type_from_to_edge,
@@ -61,6 +65,8 @@ public:
     void reset() override;
     void assign_nulls() override;
     bool next() override;
+
+
 };
 
 #endif // RELATIONAL_MODEL__PROPERTY_PATH_BFS_CHECK_H_
