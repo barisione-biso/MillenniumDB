@@ -13,21 +13,10 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
-
-namespace DFSSimpleEnum {
-
-struct DFSState {
-    uint32_t state;
-    ObjectId object_id;
-    uint32_t transition = 0;
-
-    DFSState(uint32_t state, ObjectId object_id) :
-        state       (state),
-        object_id   (object_id) { }
-};
-}
-
-
+/*
+PropertyPathDFSSimpleEnum enumerates all nodes that can be reached from
+start with a specific path. To explore nodes, uses DFS classic algorithm
+*/
 
 class PropertyPathDFSSimpleEnum : public BindingIdIter {
     using Id = std::variant<VarId, ObjectId>;
@@ -52,12 +41,17 @@ private:
 
     // Structs for DFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
-    std::stack<DFSSimpleEnum::DFSState> open;
+    std::stack<SearchState> open;
+    // True in the first call of next
     bool is_first = false;
+    std::unique_ptr<BptIter<4>> iter = nullptr;
 
     // Statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
+
+    // Constructs iter with the transition label
+    void set_iter(const TransitionId& transition, const SearchState& current_state);
 
 public:
     PropertyPathDFSSimpleEnum(BPlusTree<4>& type_from_to_edge,

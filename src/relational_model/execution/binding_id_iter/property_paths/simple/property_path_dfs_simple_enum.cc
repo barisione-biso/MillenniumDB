@@ -9,7 +9,7 @@
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 
 using namespace std;
-using namespace DFSSimpleEnum;
+
 
 PropertyPathDFSSimpleEnum::PropertyPathDFSSimpleEnum(BPlusTree<4>& type_from_to_edge,
                                      BPlusTree<4>& to_type_from_edge,
@@ -49,6 +49,7 @@ void PropertyPathDFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has
 
 
 bool PropertyPathDFSSimpleEnum::next() {
+    // Check if first state is final
      if (is_first) {
         is_first = false;
         if (automaton.start_is_final) {
@@ -58,54 +59,49 @@ bool PropertyPathDFSSimpleEnum::next() {
             return true;
         }
     }
+    // DFS classic implementation
     while (open.size() > 0) {
         auto& current_state = open.top();
-        std::unique_ptr<BptIter<4>> it;
+
+        // Expand node. Explores reachable nodes with automaton transitions
         while (current_state.transition < automaton.transitions[current_state.state].size()) {
             const auto& transition = automaton.transitions[current_state.state][current_state.transition];
-            std::unique_ptr<BptIter<4>> it;
-            if (transition.inverse) {
-                min_ids[0] = current_state.object_id.id;
-                max_ids[0] = current_state.object_id.id;
-                min_ids[1] = transition.label.id;
-                max_ids[1] = transition.label.id;
-                it = to_type_from_edge.get_range(
-                    Record<4>(min_ids),
-                    Record<4>(max_ids)
-                );
-            } else {
-                min_ids[0] = transition.label.id;
-                max_ids[0] = transition.label.id;
-                min_ids[1] = current_state.object_id.id;
-                max_ids[1] = current_state.object_id.id;
-                it = type_from_to_edge.get_range(
-                    Record<4>(min_ids),
-                    Record<4>(max_ids)
-                );
-            }
-            bpt_searches++;
-            auto child_record = it->next();
-            auto find_new_tuple = false;
+            set_iter(transition, current_state);
+            auto child_record = iter->next();
+
+            auto find_new_state = false; // True when new state added to open
+
+            // Explore reachable nodes
             while (child_record != nullptr) {
                 auto next_state = SearchState(transition.to, ObjectId(child_record->ids[2]));
+
+                // Check if next_state has been already visited
                 if (visited.find(next_state) == visited.end()) {
-                    open.emplace(next_state.state, next_state.object_id);
+                    open.push(next_state);
                     visited.insert(next_state);
+
+                    // Check if next_state is final
                     if (next_state.state == automaton.final_state) {
                         results_found++;
                         parent_binding->add(end, next_state.object_id);
                         return true;
                     }
-                    find_new_tuple = true;
+
+                    // True to stop ehile current_state.transition loop
+                    find_new_state = true;
                     break;
                 }
-                child_record = it->next();
+                child_record = iter->next();
             }
-            if (find_new_tuple) {
+            // Stop expansion of current_state when new_state is added top open
+            // The idea is expand new_state in the next iteration, according to DFS algorithm
+            if (find_new_state) {
                 break;
             }
+            // Update to search in a new transition
             current_state.transition++;
         }
+        // Pop state when all transitions has been explored
         if (current_state.transition >= automaton.transitions[current_state.state].size()) {
             open.pop();
         }
@@ -113,10 +109,30 @@ bool PropertyPathDFSSimpleEnum::next() {
     return false;
 }
 
+void PropertyPathDFSSimpleEnum::set_iter(
+    const TransitionId& transition,
+    const SearchState& current_state) {
+    // Get iter from correct bpt_tree according to inverse attribute
+    if (transition.inverse) {
+        min_ids[0] = current_state.object_id.id;
+        max_ids[0] = current_state.object_id.id;
+        min_ids[1] = transition.label.id;
+        max_ids[1] = transition.label.id;
+        iter = to_type_from_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
+    } else {
+        min_ids[0] = transition.label.id;
+        max_ids[0] = transition.label.id;
+        min_ids[1] = current_state.object_id.id;
+        max_ids[1] = current_state.object_id.id;
+        iter = type_from_to_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
+    }
+    bpt_searches++;
+}
+
 
 void PropertyPathDFSSimpleEnum::reset() {
     // Empty open and visited
-    stack<DFSState> empty;
+    stack<SearchState> empty;
     open.swap(empty);
     visited.clear();
 

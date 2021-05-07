@@ -4,7 +4,6 @@
 #include <array>
 #include <memory>
 #include <unordered_set>
-//#include <set>
 #include <queue>
 #include <variant>
 
@@ -42,7 +41,7 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::queue<SearchState> open;
-    bool is_first = false;  // True if is the first iteration
+    bool is_first = false;  // // True in the first call of next
     std::unique_ptr<BptIter<4>> iter = nullptr;
 
     // Statistics

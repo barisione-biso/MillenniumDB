@@ -4,7 +4,6 @@
 #include <array>
 #include <memory>
 #include <unordered_set>
-//#include <set>
 #include <queue>
 #include <variant>
 
@@ -15,9 +14,8 @@
 #include "storage/index/bplus_tree/bplus_tree.h"
 
 /*
-PropertyPathBFSCheck  returns nodes that can be reached by 'start' or reach to 'end' by a
-path that automaton object describes.
-  * Explores graph using BFS algorithm
+PropertyPathBFSSimpleEnum enumerate all nodes that can be reached from start with
+a specific path. Use classic implementation of BFS algorithm.
 */
 
 
@@ -45,11 +43,15 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::queue<SearchState> open;
-    bool is_first = false;
+    bool is_first = false;  // True in the first call of next
+    std::unique_ptr<BptIter<4>> iter = nullptr;
 
     // Statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
+
+    // Constructs iter according to transition
+    void set_iter(const TransitionId& transition, const SearchState& current_state);
 
 public:
     PropertyPathBFSSimpleEnum(BPlusTree<4>& type_from_to_edge,

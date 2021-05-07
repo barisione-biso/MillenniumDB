@@ -13,21 +13,34 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
+/*
+PropertyPathAStarSimpleEnum enumerates all nodes that can be reached by start following
+a specific path. Uses Greddy strategy to explore nodes, but the implementation
+guarantees optimal state exploration order, for this reason consider that this operator
+uses AStar implementation
+*/
+
 
 struct PriorityState {
     uint32_t state;
     ObjectId object_id;
-    uint32_t priority;
+
+    // Indicates the shortest distances from state to automaton final_state
+    uint32_t distance;
+
+    uint32_t transition = 0;
 
     PriorityState(uint32_t state, ObjectId object_id, uint32_t distance_to_end) :
         state       (state),
         object_id   (object_id),
-        priority    (distance_to_end) { }
+        distance    (distance_to_end) { }
 
-
+    // operator < defines the priority order of states
     bool operator<(const PriorityState& rhs) const noexcept {
-        // TODO:
-        return priority > rhs.priority;
+        // If rhs > current_state, then rhs will be expand first.
+        // Use greedy strategy to expand nodes with a lower distance.
+        // Automaton structure guarantees optimal solution with a greddy strategy
+        return distance > rhs.distance;
     }
 };
 
@@ -57,11 +70,16 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::priority_queue<PriorityState> open;
-    bool is_first = false;
+    bool is_first = false;  // True in the first call of next
+    std::unique_ptr<BptIter<4>> iter = nullptr;
+
 
     // Statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
+
+    // Constructs iter with the transition label
+    void set_iter(const TransitionId& transition, const PriorityState* current_state);
 
 public:
     PropertyPathAStarSimpleEnum(BPlusTree<4>& type_from_to_edge,
