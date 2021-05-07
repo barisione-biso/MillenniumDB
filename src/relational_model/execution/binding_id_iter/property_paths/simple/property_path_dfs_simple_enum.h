@@ -1,11 +1,10 @@
-#ifndef RELATIONAL_MODEL__PROPERTY_PATH_BFS_CHECK_H_
-#define RELATIONAL_MODEL__PROPERTY_PATH_BFS_CHECK_H_
+#ifndef RELATIONAL_MODEL__PROPERTY_PATH_DFS_SIMPLE_ENUM_H_
+#define RELATIONAL_MODEL__PROPERTY_PATH_DFS_SIMPLE_ENUM_H_
 
 #include <array>
 #include <memory>
 #include <unordered_set>
-//#include <set>
-#include <queue>
+#include <stack>
 #include <variant>
 
 #include "base/binding/binding_id_iter.h"
@@ -14,34 +13,46 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
-/*
-PropertyPathBFSCheck will determine if there exists a path between
-2 nodes: `start` & `end` using BFS algorithm to explore the database.
-Use an automaton to only explore paths that match with the asked path
-*/
 
-class PropertyPathBFSCheck : public BindingIdIter {
+namespace DFSSimpleEnum {
+
+struct DFSState {
+    uint32_t state;
+    ObjectId object_id;
+    uint32_t transition = 0;
+
+    DFSState(uint32_t state, ObjectId object_id) :
+        state       (state),
+        object_id   (object_id) { }
+};
+}
+
+
+
+class PropertyPathDFSSimpleEnum : public BindingIdIter {
     using Id = std::variant<VarId, ObjectId>;
 
 private:
     // Attributes determined in the constuctor
+
     BPlusTree<4>& type_from_to_edge;  // Used to search foward
     BPlusTree<4>& to_type_from_edge;  // Used to search backward
+
     Id start;
-    Id end;
+    VarId end;
     PathAutomaton automaton;
 
+
     // Attributes determined in begin
-    ObjectId end_object_id;
     BindingId* parent_binding;
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
     std::array<uint64_t, 4> min_ids;
     std::array<uint64_t, 4> max_ids;
 
-    // Structs for BFS
+    // Structs for DFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
-    std::queue<SearchState> open;
+    std::stack<DFSSimpleEnum::DFSState> open;
     bool is_first = false;
 
     // Statistics
@@ -49,12 +60,12 @@ private:
     uint_fast32_t bpt_searches = 0;
 
 public:
-    PropertyPathBFSCheck(BPlusTree<4>& type_from_to_edge,
+    PropertyPathDFSSimpleEnum(BPlusTree<4>& type_from_to_edge,
                       BPlusTree<4>& to_type_from_edge,
                       Id start,
-                      Id end,
+                      VarId end,
                       PathAutomaton automaton);
-    ~PropertyPathBFSCheck() = default;
+    ~PropertyPathDFSSimpleEnum() = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
@@ -63,4 +74,4 @@ public:
     bool next() override;
 };
 
-#endif // RELATIONAL_MODEL__PROPERTY_PATH_BFS_CHECK_H_
+#endif // RELATIONAL_MODEL__PROPERTY_PATH_DFS_SIMPLE_ENUM_H_

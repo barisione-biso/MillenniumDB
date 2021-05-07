@@ -82,24 +82,21 @@ bool PropertyPathAStarIterEnum::next() {
     return false;
 }
 
+
 bool PropertyPathAStarIterEnum::current_state_has_next() {
-    auto& current_state = open.top();
-    auto state_transition = current_state.transition;
-    auto state = current_state.state;
-    if (current_state.iter == nullptr) {
-        if (state_transition < automaton.transitions[state].size()) {
-            set_iter(current_state);
-            state_transition = 0;
+    auto current_state = &open.top();
+    if (current_state->iter == nullptr) {
+        if (current_state->transition < automaton.transitions[current_state->state].size()) {
+            set_iter();
+            current_state = &open.top(); // set_iter modifies open.top()
         } else {
             return false;
         }
     }
-    while (state_transition < automaton.transitions[state].size()) {
-        auto& current_state = open.top();
-        state_transition = current_state.transition;
-        state = current_state.state;
-        auto& transition = automaton.transitions[state][state_transition];
-        auto child_record = current_state.iter->next();
+
+    while (current_state->transition < automaton.transitions[current_state->state].size()) {
+        auto& transition = automaton.transitions[current_state->state][current_state->transition];
+        auto child_record = current_state->iter->next();
         // Iterate over next_childs
         while (child_record != nullptr) {
             auto next_object_id = ObjectId(child_record->ids[2]);
@@ -113,49 +110,43 @@ bool PropertyPathAStarIterEnum::current_state_has_next() {
                 reached_object_id = next_object_id;
                 return true;
             }
-            child_record = current_state.iter->next();
+            child_record = current_state->iter->next();
         }
         // Constructs new iter
-        if (state_transition < automaton.transitions[state].size()) {
-            set_iter(current_state);
-            state_transition++;
+        if (current_state->transition < automaton.transitions[current_state->state].size()) {
+            set_iter();
+            current_state = &open.top(); // set_iter modifies open.top()
         }
     }
     return false;
 }
 
 
-void PropertyPathAStarIterEnum::set_iter(const PriorityIterState&  current_state) {
-    auto state              = current_state.state;
-    auto object_id          = current_state.object_id;
-    auto priority           = current_state.priority;
-    auto current_transition = current_state.transition;
-
-    auto new_state = PriorityIterState(state, object_id, priority);
-    if (current_state.iter != nullptr) {
-         new_state.transition = current_transition + 1;
+void PropertyPathAStarIterEnum::set_iter() {
+    auto current_state = &open.top();
+    PriorityIterState new_state(current_state->state, current_state->object_id, current_state->priority);
+    if (current_state->iter != nullptr) {
+        new_state.transition = current_state->transition + 1;
     } else {
         new_state.transition = 0;
     }
 
-    const auto& transition = automaton.transitions[state][new_state.transition];
-
-
-    open.pop();
-
+    const auto& transition = automaton.transitions[new_state.state][new_state.transition];
     if (transition.inverse) {
-        min_ids[0] = object_id.id;
-        max_ids[0] = object_id.id;
+        min_ids[0] = new_state.object_id.id;
+        max_ids[0] = new_state.object_id.id;
         min_ids[1] = transition.label.id;
         max_ids[1] = transition.label.id;
         new_state.iter = to_type_from_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
     } else {
         min_ids[0] = transition.label.id;
         max_ids[0] = transition.label.id;
-        min_ids[1] = object_id.id;
-        max_ids[1] = object_id.id;
+        min_ids[1] = new_state.object_id.id;
+        max_ids[1] = new_state.object_id.id;
         new_state.iter = type_from_to_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
     }
+
+    open.pop();
     open.push(move(new_state));
 }
 

@@ -90,7 +90,7 @@ public:
     void assign_nulls() override;
     bool next() override;
     bool current_state_has_next();
-    void set_iter(const AStarIterEnum::PriorityIterState& current_state);
+    void set_iter(); // modifies open.top()
     //void set_iter(
     //    uint32_t state,
     //    ObjectId object_id,

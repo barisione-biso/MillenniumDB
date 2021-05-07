@@ -1,4 +1,4 @@
-#include "property_path_bfs_check.h"
+#include "property_path_dfs_simple_enum.h"
 
 #include <cassert>
 #include <iostream>
@@ -9,12 +9,12 @@
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 
 using namespace std;
+using namespace DFSSimpleEnum;
 
-
-PropertyPathBFSCheck::PropertyPathBFSCheck(BPlusTree<4>& type_from_to_edge,
+PropertyPathDFSSimpleEnum::PropertyPathDFSSimpleEnum(BPlusTree<4>& type_from_to_edge,
                                      BPlusTree<4>& to_type_from_edge,
                                      Id start,
-                                     Id end,
+                                     VarId end,
                                      PathAutomaton automaton) :
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
@@ -24,29 +24,19 @@ PropertyPathBFSCheck::PropertyPathBFSCheck(BPlusTree<4>& type_from_to_edge,
     { }
 
 
-void PropertyPathBFSCheck::begin(BindingId& parent_binding, bool parent_has_next) {
+void PropertyPathDFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has_next) {
     this->parent_binding = &parent_binding;
     if (parent_has_next) {
         // Add inital state to queue
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
-            auto start_state = SearchState(automaton.start, start_object_id);
-            open.push(start_state);
-            visited.insert(start_state);
+            open.emplace(automaton.start, start_object_id);
+            visited.emplace(automaton.start, start_object_id);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
-            auto start_state = SearchState(automaton.start, start_object_id);
-            open.push(start_state);
-            visited.insert(start_state);
-        }
-
-        // Set end_object_id
-        if (std::holds_alternative<ObjectId>(end)) {
-            end_object_id = std::get<ObjectId>(end);
-        } else {
-            auto end_var_id = std::get<VarId>(end);
-            end_object_id = parent_binding[end_var_id];
+            open.emplace(automaton.start, start_object_id);
+            visited.emplace(automaton.start, start_object_id);
         }
         is_first = true;
         min_ids[2] = 0;
@@ -58,21 +48,22 @@ void PropertyPathBFSCheck::begin(BindingId& parent_binding, bool parent_has_next
 }
 
 
-bool PropertyPathBFSCheck::next() {
-    // Check if first node is end state
-    if (is_first) {
+bool PropertyPathDFSSimpleEnum::next() {
+     if (is_first) {
         is_first = false;
-        if (automaton.start_is_final && open.front().object_id == end_object_id) {
-            queue<SearchState> empty;
-            open.swap(empty);
-            results_found++;
+        if (automaton.start_is_final) {
+            auto& current_state = open.top();
+            visited.emplace(automaton.final_state, current_state.object_id);
+            parent_binding->add(end, current_state.object_id);
             return true;
         }
     }
     while (open.size() > 0) {
-        auto& current_state = open.front();
-        unique_ptr<BptIter<4>> it;
-        for (const auto& transition : automaton.transitions[current_state.state]) {
+        auto& current_state = open.top();
+        std::unique_ptr<BptIter<4>> it;
+        while (current_state.transition < automaton.transitions[current_state.state].size()) {
+            const auto& transition = automaton.transitions[current_state.state][current_state.transition];
+            std::unique_ptr<BptIter<4>> it;
             if (transition.inverse) {
                 min_ids[0] = current_state.object_id.id;
                 max_ids[0] = current_state.object_id.id;
@@ -94,66 +85,65 @@ bool PropertyPathBFSCheck::next() {
             }
             bpt_searches++;
             auto child_record = it->next();
+            auto find_new_tuple = false;
             while (child_record != nullptr) {
                 auto next_state = SearchState(transition.to, ObjectId(child_record->ids[2]));
-                if (next_state.state == automaton.final_state
-                    && next_state.object_id == end_object_id )
-                {
-                    queue<SearchState> empty;
-                    open.swap(empty);
-                    results_found++;
-                    return true;
-                }
                 if (visited.find(next_state) == visited.end()) {
-                    open.push(next_state);
+                    open.emplace(next_state.state, next_state.object_id);
                     visited.insert(next_state);
+                    if (next_state.state == automaton.final_state) {
+                        results_found++;
+                        parent_binding->add(end, next_state.object_id);
+                        return true;
+                    }
+                    find_new_tuple = true;
+                    break;
                 }
                 child_record = it->next();
             }
+            if (find_new_tuple) {
+                break;
+            }
+            current_state.transition++;
         }
-        open.pop();
+        if (current_state.transition >= automaton.transitions[current_state.state].size()) {
+            open.pop();
+        }
     }
     return false;
 }
 
 
-void PropertyPathBFSCheck::reset() {
+void PropertyPathDFSSimpleEnum::reset() {
     // Empty open and visited
-    queue<SearchState> empty;
+    stack<DFSState> empty;
     open.swap(empty);
     visited.clear();
 
+    is_first = true;
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
         auto start_state = SearchState(automaton.start, start_object_id);
-        open.push(start_state);
-        visited.insert(start_state);
+        open.emplace(automaton.start, start_object_id);
+        visited.emplace(automaton.start, start_object_id);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
         auto start_state = SearchState(automaton.start, start_object_id);
-        open.push(start_state);
-        visited.insert(start_state);
-    }
-
-    // Set end_object_id
-    if (std::holds_alternative<ObjectId>(end)) {
-        end_object_id = std::get<ObjectId>(end);
-    } else {
-        auto end_var_id = std::get<VarId>(end);
-        end_object_id = (*parent_binding)[end_var_id];
+        open.emplace(automaton.start, start_object_id);
+        visited.emplace(automaton.start, start_object_id);
     }
 }
 
 
-void PropertyPathBFSCheck::assign_nulls() { }
+void PropertyPathDFSSimpleEnum::assign_nulls() { }
 
 
-void PropertyPathBFSCheck::analyze(int indent) const {
+void PropertyPathDFSSimpleEnum::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "PropertyPathBFSCheck(bpt_searches: " << bpt_searches
+    cout << "PropertyPathDFSSimpleEnum(bpt_searches: " << bpt_searches
          << ", found: " << results_found <<")\n";
 }

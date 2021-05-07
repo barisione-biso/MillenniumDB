@@ -142,7 +142,7 @@ void PathAutomaton::optimize_automata() {
     } else {
         set_final_state();
     }
-    //end.clear();
+    end.clear();
     delete_absortion_states();
     calculate_distance_to_final_state();
 }
@@ -212,9 +212,12 @@ set<uint32_t> PathAutomaton::get_epsilon_closure(uint32_t state) {
 
 
 void PathAutomaton::delete_unreachable_states() {
+    // Get reachable states from start state
     auto reachable_states = get_reachable_states_from_start();
     for (size_t i = 1; i < from_to_connections.size(); i++) {
+        // Check if 'i0 is reachable from start
         if (reachable_states.find(i) == reachable_states.end()) {
+            // Delete all transitions from and to 'i' if is not reachable
             from_to_connections[i].clear();
             to_from_connections[i].clear();
             end.erase(i);
@@ -242,9 +245,12 @@ void PathAutomaton::delete_unreachable_states() {
 
 
 void PathAutomaton::delete_absortion_states() {
+    // Get state that can reach final_state
     auto end_reachable_states = get_reachable_states_from_end();
     for (size_t i = 0; i < from_to_connections.size(); i++) {
+        // Check if 'i' can reach to end state
         if (end_reachable_states.find(i) == end_reachable_states.end()) {
+            // Delete all 'i' transitions
             from_to_connections[i].clear();
             to_from_connections[i].clear();
             for (size_t j = 0; j < from_to_connections.size(); j++) {
@@ -271,7 +277,7 @@ void PathAutomaton::delete_absortion_states() {
 
 
 set<uint32_t> PathAutomaton::get_reachable_states_from_start() {
-    // Automaton exploration is with dfs algorithm from start
+    // DFS with initial point the start state
     stack<uint32_t> open;
     set<uint32_t> visited;
     open.push(start);
@@ -286,12 +292,13 @@ set<uint32_t> PathAutomaton::get_reachable_states_from_start() {
             }
         }
     }
+    // All reachable states will be in visited set
     return visited;
 }
 
 
 set<uint32_t> PathAutomaton::get_reachable_states_from_end() {
-    // Automaton exploration is with dfs algorithm from each end state
+    // DFS with start point the final_state.
     stack<uint32_t> open;
     set<uint32_t> visited;
     uint32_t current_state;
@@ -306,6 +313,7 @@ set<uint32_t> PathAutomaton::get_reachable_states_from_end() {
             }
         }
     }
+    // All end' reachable states will be in visited set
     return visited;
 }
 
@@ -361,6 +369,7 @@ void PathAutomaton::set_final_state() {
     if (end.find(start) != end.end()) {
         start_is_final = true;
     }
+    // Redirect state that reach to end's state to final_state
     for (const auto& transitions_vector : from_to_connections) {
         for (const auto& t : transitions_vector) {
             if (end.find(t.to) != end.end()) {
@@ -371,6 +380,7 @@ void PathAutomaton::set_final_state() {
 }
 
 void PathAutomaton::calculate_distance_to_final_state() {
+    // BFS with initial point the final_state
     queue<pair<uint32_t, uint32_t>> open;
     set<uint32_t> visited;
     for (uint32_t i = 0; i < total_states; i++) {
@@ -384,6 +394,8 @@ void PathAutomaton::calculate_distance_to_final_state() {
         open.pop();
         if (visited.find(current_state) == visited.end()) {
             visited.insert(current_state);
+            // Set distance to final_state. BFS guarantees that this distance
+            // is the minimum
             distance_to_final[current_state] = current_distance;
             for (const auto& transition : to_from_connections[current_state]) {
                 open.push(make_pair(transition.from, current_distance + 1));
