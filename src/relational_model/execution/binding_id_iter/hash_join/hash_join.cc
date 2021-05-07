@@ -28,7 +28,6 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
     current_key = std::vector<ObjectId>(common_vars.size());
     current_value = std::vector<ObjectId>(left_vars.size());
     lhs_hash.begin();
-    rhs_hash.begin();
     while (lhs->next()){
         // save left keys and value
         for (size_t i = 0; i < common_vars.size(); i++) {
@@ -40,7 +39,8 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
         lhs_hash.insert(current_key, current_value);
     }
     current_value = std::vector<ObjectId>(right_vars.size());
-
+    auto left_depth = lhs_hash.get_depth();
+    rhs_hash.begin(left_depth);
     while (rhs->next()) {
         for (size_t i = 0; i < common_vars.size(); i++) {
             current_key[i] = (*parent_binding)[common_vars[i]];
@@ -49,6 +49,12 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
             current_value[i] = (*parent_binding)[right_vars[i]];
         }
         rhs_hash.insert(current_key, current_value);
+    }
+    auto right_depth = rhs_hash.get_depth();
+    // split if different size
+    while (right_depth > left_depth) {
+        lhs_hash.split();
+        left_depth = lhs_hash.get_depth();
     }
 
     current_bucket = 0;
@@ -65,6 +71,7 @@ bool HashJoin::next() {
     // 1b) ya estoy enumerando resultados de un bucket con el 2do hash y ya encontre un range
     // 2) ya estoy enumerando resultados de un bucket con nested loop
     // 3) aún no empiezo a enumerar resultados
+    const uint_fast32_t total_buckets = (1 << lhs_hash.get_depth());  // rhs_hash and lhs_hash should have the same depth
     while (true) {
         if (enumerating_with_second_hash) {
             if (left_min) {
@@ -137,7 +144,7 @@ bool HashJoin::next() {
             }
         }
         else {
-            if (current_bucket < MultiMap::MAX_BUCKETS) {
+            if (current_bucket < total_buckets) {
                 auto left_size  = lhs_hash.get_bucket_size(current_bucket) * (left_vars.size() + common_vars.size()) * sizeof(ObjectId);
                 auto right_size = rhs_hash.get_bucket_size(current_bucket) * (right_vars.size() + common_vars.size()) * sizeof(ObjectId);
 

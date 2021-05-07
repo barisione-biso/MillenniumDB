@@ -24,9 +24,11 @@ public:
     ~MultiBucket();
 
     void insert(const MultiPair& pair);
+    void insert_in_pos(const MultiPair& pair, uint_fast32_t pos);  // for split
     MultiPair get_pair(uint_fast32_t current_pos) const;
 
     inline uint_fast32_t get_tuple_count() const noexcept { return *tuple_count; }
+    inline void set_tuple_count(uint_fast32_t value) const noexcept { *tuple_count = value; }
 
 private:
     Page& page;

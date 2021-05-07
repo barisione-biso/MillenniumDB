@@ -34,6 +34,17 @@ void MultiBucket::insert(const MultiPair& pair) {
 }
 
 
+void MultiBucket::insert_in_pos(const MultiPair& pair, uint_fast32_t pos) {
+    for (uint_fast16_t i = 0; i < key_size; i++) {
+        tuples[((key_size + value_size) * (pos)) + i] = pair.first[i];
+    }
+    for (uint_fast16_t i = 0; i < value_size; i++) {
+        tuples[((key_size + value_size) * (pos)) + key_size + i] = pair.second[i];
+    }
+    page.make_dirty();
+}
+
+
 MultiPair MultiBucket::get_pair(std::uint_fast32_t current_pos) const {
     std::vector<ObjectId> key;
     std::vector<ObjectId> value;

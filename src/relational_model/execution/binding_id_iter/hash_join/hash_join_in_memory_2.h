@@ -1,23 +1,23 @@
-#ifndef RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_H_
-#define RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_H_
+#ifndef RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_2_H_
+#define RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_2_H_
 
 #include <memory>
 #include <vector>
-#include <unordered_map>
 
 #include "base/ids/var_id.h"
 #include "base/binding/binding_id_iter.h"
 #include "relational_model/execution/binding_id_iter/hash_join/multipair_hasher.h"
+#include "storage/index/multi_map/multi_map.h"
 
 
-class HashJoinInMemory : public BindingIdIter {
+class HashJoinInMemory2 : public BindingIdIter {
 public:
-    HashJoinInMemory (std::unique_ptr<BindingIdIter> lhs,
+    HashJoinInMemory2 (std::unique_ptr<BindingIdIter> lhs,
              std::unique_ptr<BindingIdIter> rhs,
              std::vector<VarId> left_vars,
              std::vector<VarId> common_vars,
              std::vector<VarId> right_vars);
-    ~HashJoinInMemory () = default;
+    ~HashJoinInMemory2 () = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
@@ -35,9 +35,11 @@ private:
     BindingId* parent_binding;
 
     bool enumerating;
-    SmallMultiMap lhs_hash;  // asume left is the smallest one (from execution plan)
-    SmallMultiMap::iterator current_pair_iter;
-    SmallMultiMap::iterator end_range_iter;
+    MultiMap lhs_hash;  // asume left is the smallest one (from execution plan)
+    uint_fast32_t current_bucket;
+    uint_fast32_t current_bucket_pos;
+    //MultiMap::iterator current_pair_iter;
+    //MultiMap::iterator end_range_iter;
 
     std::vector<ObjectId> current_key;
     std::vector<ObjectId> current_value;
@@ -46,4 +48,4 @@ private:
     void assign_binding(const MultiPair& lhs_pair, const MultiPair& rhs_pair);
 };
 
-#endif // RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_H_
+#endif // RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_2_H_

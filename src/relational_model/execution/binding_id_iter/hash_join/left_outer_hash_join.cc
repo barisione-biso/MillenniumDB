@@ -121,7 +121,8 @@ bool LeftOuterHashJoin::next() {
             }
         }
         else {
-            if (current_bucket < MultiMap::MAX_BUCKETS) {
+            if (true) { // TODO: change this
+            //if (current_bucket < MultiMap::MAX_BUCKETS) {
                 auto right_size = rhs_hash.get_bucket_size(current_bucket) * (right_vars.size() + common_vars.size()) * sizeof(ObjectId);
                 left_assigned = false;
 

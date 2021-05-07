@@ -1,6 +1,7 @@
 #include "hash_join_plan.h"
 #include "relational_model/execution/binding_id_iter/hash_join/hash_join.h"
 #include "relational_model/execution/binding_id_iter/hash_join/hash_join_in_memory.h"
+#include "relational_model/execution/binding_id_iter/hash_join/hash_join_in_memory_2.h"
 
 using namespace std;
 
@@ -98,7 +99,7 @@ unique_ptr<BindingIdIter> HashJoinPlan::get_binding_id_iter(std::size_t binding_
         }
     }
 
-    return make_unique<HashJoin>( //<HashJoinInMemory>
+    return make_unique<HashJoinInMemory2>( //<HashJoinInMemory>
         lhs->get_binding_id_iter(binding_size),
         rhs->get_binding_id_iter(binding_size),
         move(left_vars),
