@@ -12,7 +12,7 @@
 #include "relational_model/models/quad_model/quad_catalog.h"
 #include "storage/index/object_file/object_file.h"
 #include "storage/index/ordered_file/ordered_file.h"
-#include "storage/index/hash_table/extendible_hash.h"
+#include "storage/index/hash/object_file_hash/object_file_hash.h"
 
 class BulkImport {
 public:

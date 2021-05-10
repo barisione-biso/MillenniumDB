@@ -1,4 +1,4 @@
-#include "bucket.h"
+#include "object_file_hash_bucket.h"
 
 #include <bitset>
 #include <cstring>
@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Bucket::Bucket(const FileId file_id, const uint_fast32_t bucket_number, ObjectFile& object_file) :
+ObjectFileHashBucket::ObjectFileHashBucket(const FileId file_id, const uint_fast32_t bucket_number, ObjectFile& object_file) :
     page        (buffer_manager.get_page(file_id, bucket_number)),
     object_file (object_file),
     key_count   ( reinterpret_cast<uint8_t*> (page.get_bytes()) ),
@@ -19,12 +19,12 @@ Bucket::Bucket(const FileId file_id, const uint_fast32_t bucket_number, ObjectFi
 { }
 
 
-Bucket::~Bucket() {
+ObjectFileHashBucket::~ObjectFileHashBucket() {
     buffer_manager.unpin(page);
 }
 
 
-uint64_t Bucket::get_id(const string& str, const uint64_t hash1, const uint64_t hash2) const {
+uint64_t ObjectFileHashBucket::get_id(const string& str, const uint64_t hash1, const uint64_t hash2) const {
     for (uint8_t i = 0; i < *key_count; ++i) {
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             // check if object is
@@ -39,7 +39,7 @@ uint64_t Bucket::get_id(const string& str, const uint64_t hash1, const uint64_t 
 }
 
 
-uint64_t Bucket::get_or_create_id(const string& str, const uint64_t hash1, const uint64_t hash2,
+uint64_t ObjectFileHashBucket::get_or_create_id(const string& str, const uint64_t hash1, const uint64_t hash2,
                                   bool* const need_split, bool* const created)
 {
     for (uint8_t i = 0; i < *key_count; ++i) {
@@ -75,7 +75,7 @@ uint64_t Bucket::get_or_create_id(const string& str, const uint64_t hash1, const
     return new_id;
 }
 
-void Bucket::write_id(const uint64_t id, const uint_fast32_t i) {
+void ObjectFileHashBucket::write_id(const uint64_t id, const uint_fast32_t i) {
     const auto offset = BYTES_FOR_ID*i;
 
     for (uint_fast8_t b = 0; b < BYTES_FOR_ID; b++) {
@@ -84,7 +84,7 @@ void Bucket::write_id(const uint64_t id, const uint_fast32_t i) {
 }
 
 
-uint64_t Bucket::read_id(const uint_fast32_t i) const {
+uint64_t ObjectFileHashBucket::read_id(const uint_fast32_t i) const {
     const auto offset = BYTES_FOR_ID*i;
 
     uint64_t res = 0;
@@ -95,7 +95,7 @@ uint64_t Bucket::read_id(const uint_fast32_t i) const {
 }
 
 
-void Bucket::redistribute(Bucket& other, const uint64_t mask, const uint64_t other_suffix) {
+void ObjectFileHashBucket::redistribute(ObjectFileHashBucket& other, const uint64_t mask, const uint64_t other_suffix) {
     uint8_t other_pos = 0;
     uint8_t this_pos = 0;
 

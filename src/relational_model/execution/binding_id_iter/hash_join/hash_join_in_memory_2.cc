@@ -13,7 +13,7 @@ HashJoinInMemory2::HashJoinInMemory2(unique_ptr<BindingIdIter> lhs, unique_ptr<B
     left_vars       (left_vars),
     common_vars     (common_vars),
     right_vars      (right_vars),
-    lhs_hash        (MultiMap(common_vars.size(), left_vars.size()))  // empty initialization
+    lhs_hash        (KeyValueHash(common_vars.size(), left_vars.size()))  // empty initialization
     { }
 
 
@@ -87,7 +87,7 @@ bool HashJoinInMemory2::next() {
 }
 
 
-void HashJoinInMemory2::assign_binding(const MultiPair& left_pair, const MultiPair& right_pair) {
+void HashJoinInMemory2::assign_binding(const KeyValuePair& left_pair, const KeyValuePair& right_pair) {
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
         parent_binding->add(left_vars[i], left_pair.second[i]);
     }

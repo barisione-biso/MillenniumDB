@@ -7,9 +7,9 @@
 
 #include "base/ids/var_id.h"
 #include "base/binding/binding_id_iter.h"
-#include "storage/index/multi_map/multi_map.h"
-#include "storage/index/hash_table/murmur3.h"
-#include "relational_model/execution/binding_id_iter/hash_join/multipair_hasher.h"
+#include "storage/index/hash/key_value_hash/key_value_hash.h"
+#include "storage/index/hash/murmur3.h"
+#include "relational_model/execution/binding_id_iter/hash_join/key_value_pair_hasher.h"
 
 
 class LeftOuterHashJoin : public BindingIdIter {
@@ -39,8 +39,8 @@ private:
 
     BindingId* parent_binding;
 
-    MultiMap lhs_hash;
-    MultiMap rhs_hash;
+    KeyValueHash lhs_hash;
+    KeyValueHash rhs_hash;
 
     bool enumerating_with_second_hash;
     bool enumerating_with_nested_loop;
@@ -56,10 +56,10 @@ private:
 
     std::vector<ObjectId> current_key;
     std::vector<ObjectId> current_value;
-    MultiPair saved_pair;
+    KeyValuePair saved_pair;
 
-    void assign_binding(const MultiPair& lhs_pair, const MultiPair& rhs_pair);
-    void assign_binding_nulls(const MultiPair& lhs_pair);
+    void assign_binding(const KeyValuePair& lhs_pair, const KeyValuePair& rhs_pair);
+    void assign_binding_nulls(const KeyValuePair& lhs_pair);
 };
 
 #endif // RELATIONAL_MODEL__LEFT_OUTER_HASH_JOIN_H_

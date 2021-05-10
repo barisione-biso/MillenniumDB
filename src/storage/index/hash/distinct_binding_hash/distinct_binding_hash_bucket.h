@@ -1,5 +1,5 @@
-#ifndef STORAGE__EXTENDABLE_BUCKET_H_
-#define STORAGE__EXTENDABLE_BUCKET_H_
+#ifndef STORAGE__DISTINCT_BINDING_HASH_BUCKET_H_
+#define STORAGE__DISTINCT_BINDING_HASH_BUCKET_H_
 
 #include <cstdint>
 #include <map>
@@ -12,16 +12,16 @@
 #include "storage/file_id.h"
 #include "storage/page.h"
 
-template <class U> class ExtendableTable;
+template <class U> class DistinctBindingHash;
 
 template <class T>
-class ExtendableBucket {
+class DistinctBindingHashBucket {
 
-friend class ExtendableTable<T>;
+friend class DistinctBindingHash<T>;
 
 public:
-    ExtendableBucket(const FileId file_id, const uint_fast32_t bucket_number, std::size_t tuple_size);
-    ~ExtendableBucket();
+    DistinctBindingHashBucket(const FileId file_id, const uint_fast32_t bucket_number, std::size_t tuple_size);
+    ~DistinctBindingHashBucket();
 
     bool is_in(std::vector<T>& tuple, const uint64_t hash1, const uint64_t hash2);
     bool is_in_or_insert(std::vector<T>& tuple, const uint64_t hash1, const uint64_t hash2, bool* const need_split);
@@ -37,7 +37,7 @@ private:
     uint64_t*       const hashes; // each tuple is (hash1, hash2)
     T*              const tuples;
 
-    void redistribute(ExtendableBucket<T>& other, const uint64_t mask, const uint64_t other_suffix);
+    void redistribute(DistinctBindingHashBucket<T>& other, const uint64_t mask, const uint64_t other_suffix);
 };
 
-#endif // STORAGE__EXTENDABLE_BUCKET_H_
+#endif // STORAGE__DISTINCT_BINDING_HASH_BUCKET_H_

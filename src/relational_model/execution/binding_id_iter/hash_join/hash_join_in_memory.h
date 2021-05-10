@@ -7,7 +7,7 @@
 
 #include "base/ids/var_id.h"
 #include "base/binding/binding_id_iter.h"
-#include "relational_model/execution/binding_id_iter/hash_join/multipair_hasher.h"
+#include "relational_model/execution/binding_id_iter/hash_join/key_value_pair_hasher.h"
 
 
 class HashJoinInMemory : public BindingIdIter {
@@ -41,9 +41,9 @@ private:
 
     std::vector<ObjectId> current_key;
     std::vector<ObjectId> current_value;
-    MultiPair saved_pair;
+    KeyValuePair saved_pair;
 
-    void assign_binding(const MultiPair& lhs_pair, const MultiPair& rhs_pair);
+    void assign_binding(const KeyValuePair& lhs_pair, const KeyValuePair& rhs_pair);
 };
 
 #endif // RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_H_

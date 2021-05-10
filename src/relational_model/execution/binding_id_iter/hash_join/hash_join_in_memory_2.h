@@ -6,8 +6,8 @@
 
 #include "base/ids/var_id.h"
 #include "base/binding/binding_id_iter.h"
-#include "relational_model/execution/binding_id_iter/hash_join/multipair_hasher.h"
-#include "storage/index/multi_map/multi_map.h"
+#include "relational_model/execution/binding_id_iter/hash_join/key_value_pair_hasher.h"
+#include "storage/index/hash/key_value_hash/key_value_hash.h"
 
 
 class HashJoinInMemory2 : public BindingIdIter {
@@ -35,7 +35,7 @@ private:
     BindingId* parent_binding;
 
     bool enumerating;
-    MultiMap lhs_hash;  // asume left is the smallest one (from execution plan)
+    KeyValueHash lhs_hash;  // asume left is the smallest one (from execution plan)
     uint_fast32_t current_bucket;
     uint_fast32_t current_bucket_pos;
     //MultiMap::iterator current_pair_iter;
@@ -43,9 +43,9 @@ private:
 
     std::vector<ObjectId> current_key;
     std::vector<ObjectId> current_value;
-    MultiPair saved_pair;
+    KeyValuePair saved_pair;
 
-    void assign_binding(const MultiPair& lhs_pair, const MultiPair& rhs_pair);
+    void assign_binding(const KeyValuePair& lhs_pair, const KeyValuePair& rhs_pair);
 };
 
 #endif // RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_2_H_

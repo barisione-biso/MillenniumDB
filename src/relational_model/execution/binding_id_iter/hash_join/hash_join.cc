@@ -13,8 +13,8 @@ HashJoin::HashJoin(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs,
     left_vars       (left_vars),
     common_vars     (common_vars),
     right_vars      (right_vars),
-    lhs_hash        (MultiMap(common_vars.size(), left_vars.size())),
-    rhs_hash        (MultiMap(common_vars.size(), right_vars.size())),
+    lhs_hash        (KeyValueHash(common_vars.size(), left_vars.size())),
+    rhs_hash        (KeyValueHash(common_vars.size(), right_vars.size())),
     small_hash      (SmallMultiMap({}))  // empty initialization
     { }
 
@@ -38,6 +38,7 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
         }
         lhs_hash.insert(current_key, current_value);
     }
+    // recycle current_value for saving right hash
     current_value = std::vector<ObjectId>(right_vars.size());
     auto left_depth = lhs_hash.get_depth();
     rhs_hash.begin(left_depth);
@@ -64,7 +65,6 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
 }
 
 
-// last_k_bits(hash(key)) => decide bucket entre 0 y 2^k -1
 bool HashJoin::next() {
     // tengo que ver en que estado estoy:
     // 1) ya estoy enumerando resultados de un bucket con el 2do hash
@@ -138,7 +138,6 @@ bool HashJoin::next() {
                 current_pos_right = 0;
             }
             else {
-                // current_pos_left = 0;
                 current_bucket++;
                 enumerating_with_nested_loop = false;
             }
@@ -202,7 +201,7 @@ bool HashJoin::next() {
 }
 
 
-void HashJoin::assign_binding(const MultiPair& left_pair, const MultiPair& right_pair) {
+void HashJoin::assign_binding(const KeyValuePair& left_pair, const KeyValuePair& right_pair) {
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
         parent_binding->add(left_vars[i], left_pair.second[i]);
     }
@@ -216,6 +215,7 @@ void HashJoin::assign_binding(const MultiPair& left_pair, const MultiPair& right
 
 
 void HashJoin::reset() {
+    // analogous to begin
     lhs->reset();
     rhs->reset();
 
@@ -223,7 +223,6 @@ void HashJoin::reset() {
     lhs_hash.reset();
     rhs_hash.reset();
     while (lhs->next()){
-        // save left keys and value
         for (size_t i = 0; i < common_vars.size(); i++) {
             current_key[i] = (*parent_binding)[common_vars[i]];
         }

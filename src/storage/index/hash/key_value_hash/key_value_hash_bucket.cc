@@ -1,4 +1,4 @@
-#include "multi_bucket.h"
+#include "key_value_hash_bucket.h"
 
 #include <cstring>
 
@@ -7,7 +7,7 @@
 
 using namespace std;
 
-MultiBucket::MultiBucket(Page& page, std::size_t key_size, std::size_t value_size) :
+KeyValueHashBucket::KeyValueHashBucket(Page& page, std::size_t key_size, std::size_t value_size) :
     page        (page),
     key_size    (key_size),
     value_size  (value_size),
@@ -16,13 +16,13 @@ MultiBucket::MultiBucket(Page& page, std::size_t key_size, std::size_t value_siz
     {}
 
 
-MultiBucket::~MultiBucket() {
+KeyValueHashBucket::~KeyValueHashBucket() {
     //page.make_dirty();
     buffer_manager.unpin(page);
 }
 
 
-void MultiBucket::insert(const MultiPair& pair) {
+void KeyValueHashBucket::insert(const KeyValuePair& pair) {
     for (uint_fast16_t i = 0; i < key_size; i++) {
         tuples[((key_size + value_size) * (*tuple_count)) + i] = pair.first[i];
     }
@@ -34,7 +34,7 @@ void MultiBucket::insert(const MultiPair& pair) {
 }
 
 
-void MultiBucket::insert_in_pos(const MultiPair& pair, uint_fast32_t pos) {
+void KeyValueHashBucket::insert_in_pos(const KeyValuePair& pair, uint_fast32_t pos) {
     for (uint_fast16_t i = 0; i < key_size; i++) {
         tuples[((key_size + value_size) * (pos)) + i] = pair.first[i];
     }
@@ -45,7 +45,7 @@ void MultiBucket::insert_in_pos(const MultiPair& pair, uint_fast32_t pos) {
 }
 
 
-MultiPair MultiBucket::get_pair(std::uint_fast32_t current_pos) const {
+KeyValuePair KeyValueHashBucket::get_pair(std::uint_fast32_t current_pos) const {
     std::vector<ObjectId> key;
     std::vector<ObjectId> value;
     key.reserve(key_size);
@@ -56,5 +56,5 @@ MultiPair MultiBucket::get_pair(std::uint_fast32_t current_pos) const {
     for (uint_fast16_t i = 0; i < value_size; i++) {
         value.push_back(tuples[((key_size + value_size) * (current_pos)) + key_size + i]);
     }
-    return MultiPair(key, value);
+    return KeyValuePair(key, value);
 }

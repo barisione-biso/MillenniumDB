@@ -14,7 +14,7 @@ from statistics import mean
 parameter = "Join Iter"
 values = ["HashJoin", "HashJoinInMemory", "HashJoinInMemory2", "Quad"]  # change last for quad and 1-3
 
-for test in range(1, 10):  # test number 9 is with triangle db
+for test in [7,8]:#range(1, 10):  # test number 9 is with triangle db
     print(f"Test {test}:")
     hash_execution_times = []
     print(f"{parameter}: {values[0]}")
@@ -25,15 +25,15 @@ for test in range(1, 10):  # test number 9 is with triangle db
     print("   Execution times:", hash_execution_times)
     print("   AVG execution:", mean(hash_execution_times))
     print()
-    hash_execution_times = []
-    print(f"{parameter}: {values[1]}")
-    for j in range(1, 4):
-        with open(f"tests/outputs/hash_join/hash_m1_{test}.{j}.txt") as file:
-            lines = file.readlines()
-            hash_execution_times.append(float(re.search(r"[-+]?\d*\.\d+|\d+", lines[-2]).group()))
-    print("   Execution times:", hash_execution_times)
-    print("   AVG execution:", mean(hash_execution_times))
-    print()
+    # hash_execution_times = []
+    # print(f"{parameter}: {values[1]}")
+    # for j in range(1, 4):
+    #     with open(f"tests/outputs/hash_join/hash_m1_{test}.{j}.txt") as file:
+    #         lines = file.readlines()
+    #         hash_execution_times.append(float(re.search(r"[-+]?\d*\.\d+|\d+", lines[-2]).group()))
+    # print("   Execution times:", hash_execution_times)
+    # print("   AVG execution:", mean(hash_execution_times))
+    # print()
 
     hash_execution_times = []
     print(f"{parameter}: {values[2]}")
@@ -45,11 +45,12 @@ for test in range(1, 10):  # test number 9 is with triangle db
     print("   AVG execution:", mean(hash_execution_times))
     print()
 
-    hash_execution_times = []
-    for j in range(1, 4):
-        with open(f"tests/outputs/hash_join/quad_{test}.{j}.txt") as file:
-            lines = file.readlines()
-            hash_execution_times.append(float(re.search(r"[-+]?\d*\.\d+|\d+", lines[-2]).group()))
-    print("   Execution times:", hash_execution_times)
-    print("   AVG execution:", mean(hash_execution_times))
-    print()
+    # hash_execution_times = []
+    # print(f"{parameter}: {values[3]}")
+    # for j in range(1, 4):
+    #     with open(f"tests/outputs/hash_join/quad_{test}.{j}.txt") as file:
+    #         lines = file.readlines()
+    #         hash_execution_times.append(float(re.search(r"[-+]?\d*\.\d+|\d+", lines[-2]).group()))
+    # print("   Execution times:", hash_execution_times)
+    # print("   AVG execution:", mean(hash_execution_times))
+    # print()

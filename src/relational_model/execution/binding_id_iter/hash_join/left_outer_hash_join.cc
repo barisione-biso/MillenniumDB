@@ -13,8 +13,8 @@ LeftOuterHashJoin::LeftOuterHashJoin(unique_ptr<BindingIdIter> lhs, unique_ptr<B
     left_vars       (left_vars),
     common_vars     (common_vars),
     right_vars      (right_vars),
-    lhs_hash        (MultiMap(common_vars.size(), left_vars.size())),
-    rhs_hash        (MultiMap(common_vars.size(), right_vars.size())),
+    lhs_hash        (KeyValueHash(common_vars.size(), left_vars.size())),
+    rhs_hash        (KeyValueHash(common_vars.size(), right_vars.size())),
     small_hash      (SmallMultiMap({}))  // empty initialization
     { }
 
@@ -155,7 +155,7 @@ bool LeftOuterHashJoin::next() {
 }
 
 
-void LeftOuterHashJoin::assign_binding(const MultiPair& left_pair, const MultiPair& right_pair) {
+void LeftOuterHashJoin::assign_binding(const KeyValuePair& left_pair, const KeyValuePair& right_pair) {
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
         parent_binding->add(left_vars[i], left_pair.second[i]);
     }
@@ -226,7 +226,7 @@ void LeftOuterHashJoin::analyze(int indent) const {
 }
 
 
-void LeftOuterHashJoin::assign_binding_nulls(const MultiPair& left_pair) {
+void LeftOuterHashJoin::assign_binding_nulls(const KeyValuePair& left_pair) {
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
         parent_binding->add(left_vars[i], left_pair.second[i]);
     }

@@ -42,7 +42,7 @@ public:
     FileId get_file_id(const std::string& filename);
 
     // Create a new temporary file id
-    FileId get_temp_file_id();
+    TmpFileId get_tmp_file_id();
 
     // get the file stream assignated to `file_id` as a reference. Only use this when not accessing via BufferManager
     std::fstream& get_file(const FileId file_id) const;

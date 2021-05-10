@@ -1,4 +1,4 @@
-#include "extendable_table.h"
+#include "distinct_binding_hash.h"
 
 #include <bitset>
 #include <cassert>
@@ -9,14 +9,14 @@
 #include "base/ids/object_id.h"
 #include "base/graph/graph_object.h"
 #include "storage/file_manager.h"
-#include "storage/index/hash_tuple/extendable_bucket.h"
-#include "storage/index/hash_table/murmur3.h"
+#include "storage/index/hash/distinct_binding_hash/distinct_binding_hash_bucket.h"
+#include "storage/index/hash/murmur3.h"
 
-template class ExtendableTable<GraphObject>;
-template class ExtendableTable<ObjectId>;
+template class DistinctBindingHash<GraphObject>;
+template class DistinctBindingHash<ObjectId>;
 
 template <class T>
-ExtendableTable<T>::ExtendableTable(std::size_t tuple_size) :
+DistinctBindingHash<T>::DistinctBindingHash(std::size_t tuple_size) :
     tuple_size      (tuple_size),
     buckets_file_id (file_manager.get_file_id("tmp_buckets.dat"))  // TODO: use tmp files
 {
@@ -24,7 +24,7 @@ ExtendableTable<T>::ExtendableTable(std::size_t tuple_size) :
     uint_fast32_t dir_size = 1 << global_depth;
     dir = new uint64_t[dir_size];
     for (uint_fast32_t i = 0; i < dir_size; ++i) {
-        ExtendableBucket<T> bucket(buckets_file_id, i, tuple_size);
+        DistinctBindingHashBucket<T> bucket(buckets_file_id, i, tuple_size);
         *bucket.tuple_count = 0;
         *bucket.local_depth = DEFAULT_GLOBAL_DEPTH;
         dir[i] = i;
@@ -34,14 +34,14 @@ ExtendableTable<T>::ExtendableTable(std::size_t tuple_size) :
 
 
 template <class T>
-ExtendableTable<T>::~ExtendableTable() {
+DistinctBindingHash<T>::~DistinctBindingHash() {
     //std::cout << file_manager.count_pages(buckets_file_id) << "\n";
     file_manager.remove(buckets_file_id);
 }
 
 
 template <class T>
-bool ExtendableTable<T>::is_in(std::vector<T> tuple) {
+bool DistinctBindingHash<T>::is_in(std::vector<T> tuple) {
     assert(tuple.size() == tuple_size);
 
     uint64_t hash[2];
@@ -51,14 +51,14 @@ bool ExtendableTable<T>::is_in(std::vector<T> tuple) {
     auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
     auto suffix = hash[0] & mask;
     auto bucket_number = dir[suffix];
-    auto bucket = ExtendableBucket<T>(buckets_file_id, bucket_number, tuple_size);
+    auto bucket = DistinctBindingHashBucket<T>(buckets_file_id, bucket_number, tuple_size);
 
     return bucket.is_in(tuple, hash[0], hash[1]);
 }
 
 
 template <class T>
-bool ExtendableTable<T>::is_in_or_insert(std::vector<T> tuple) {
+bool DistinctBindingHash<T>::is_in_or_insert(std::vector<T> tuple) {
     assert(tuple.size() == tuple_size);
 
     uint64_t hash[2];
@@ -70,7 +70,7 @@ bool ExtendableTable<T>::is_in_or_insert(std::vector<T> tuple) {
         auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
         auto suffix = hash[0] & mask;
         auto bucket_number = dir[suffix];
-        auto bucket = ExtendableBucket<T>(buckets_file_id, bucket_number, tuple_size);
+        auto bucket = DistinctBindingHashBucket<T>(buckets_file_id, bucket_number, tuple_size);
 
         bool need_split;
         bool is_in = bucket.is_in_or_insert(tuple, hash[0], hash[1], &need_split);
@@ -80,7 +80,7 @@ bool ExtendableTable<T>::is_in_or_insert(std::vector<T> tuple) {
                 const auto new_bucket_number = bucket_number | (1 << (*bucket.local_depth));
                 ++(*bucket.local_depth);
                 const auto new_mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - (*bucket.local_depth));
-                ExtendableBucket<T> new_bucket(buckets_file_id, new_bucket_number, tuple_size);
+                DistinctBindingHashBucket<T> new_bucket(buckets_file_id, new_bucket_number, tuple_size);
                 *new_bucket.tuple_count = 0;
                 (*new_bucket.local_depth) = (*bucket.local_depth);
 
@@ -100,7 +100,7 @@ bool ExtendableTable<T>::is_in_or_insert(std::vector<T> tuple) {
 
                 // new_bucket_number = 2^local_depth + bucket_number
                 const auto new_bucket_number = bucket_number | (1 << global_depth);
-                ExtendableBucket<T> new_bucket(buckets_file_id, new_bucket_number, tuple_size);
+                DistinctBindingHashBucket<T> new_bucket(buckets_file_id, new_bucket_number, tuple_size);
                 *new_bucket.tuple_count = 0;
                 *new_bucket.local_depth = *bucket.local_depth;
 
@@ -122,7 +122,7 @@ bool ExtendableTable<T>::is_in_or_insert(std::vector<T> tuple) {
 
 
 template <class T>
-void ExtendableTable<T>::duplicate_dirs() {
+void DistinctBindingHash<T>::duplicate_dirs() {
     uint64_t old_dir_size = 1UL << global_depth;
     ++global_depth;
     auto new_dir_size = 1UL << global_depth;

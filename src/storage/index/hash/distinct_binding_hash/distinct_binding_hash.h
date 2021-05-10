@@ -1,5 +1,5 @@
-#ifndef STORAGE__EXTENDABLE_TABLE_H_
-#define STORAGE__EXTENDABLE_TABLE_H_
+#ifndef STORAGE__DISTINCT_BINDING_HASH_H_
+#define STORAGE__DISTINCT_BINDING_HASH_H_
 
 #include <cstdint>
 #include <map>
@@ -8,15 +8,14 @@
 
 #include "base/ids/var_id.h"
 #include "storage/file_id.h"
-#include "storage/index/object_file/object_file.h"
 
 template <class T>
-class ExtendableTable {
+class DistinctBindingHash {
 public:
     static constexpr auto DEFAULT_GLOBAL_DEPTH = 10;
 
-    ExtendableTable(std::size_t vars_size);
-    ~ExtendableTable();
+    DistinctBindingHash(std::size_t vars_size);
+    ~DistinctBindingHash();
 
     bool is_in(std::vector<T> tuple);
     bool is_in_or_insert(std::vector<T> tuple);
@@ -33,4 +32,4 @@ private:
     void duplicate_dirs();
 };
 
-#endif // STORAGE__EXTENDABLE_TABLE_H_
+#endif // STORAGE__DISTINCT_BINDING_HASH_H_

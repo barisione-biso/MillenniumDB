@@ -1,4 +1,4 @@
-#include "extendible_hash.h"
+#include "object_file_hash.h"
 
 #include <bitset>
 #include <cassert>
@@ -7,11 +7,11 @@
 #include <iostream>
 
 #include "storage/file_manager.h"
-#include "storage/index/hash_table/bucket.h"
-#include "storage/index/hash_table/murmur3.h"
+#include "storage/index/hash/object_file_hash/object_file_hash_bucket.h"
+#include "storage/index/hash/murmur3.h"
 
 
-ExtendibleHash::ExtendibleHash(ObjectFile& object_file, const std::string& filename) :
+ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filename) :
     object_file     (object_file),
     dir_file_id     (file_manager.get_file_id(filename + ".dir")),
     buckets_file_id (file_manager.get_file_id(filename + ".dat"))
@@ -43,7 +43,7 @@ ExtendibleHash::ExtendibleHash(ObjectFile& object_file, const std::string& filen
         uint_fast32_t dir_size = 1 << global_depth;
         dir = new uint64_t[dir_size];
         for (uint_fast32_t i = 0; i < dir_size; ++i) {
-            Bucket bucket(buckets_file_id, i, object_file);
+            ObjectFileHashBucket bucket(buckets_file_id, i, object_file);
             *bucket.key_count = 0;
             *bucket.local_depth = DEFAULT_GLOBAL_DEPTH;
             dir[i] = i;
@@ -53,7 +53,7 @@ ExtendibleHash::ExtendibleHash(ObjectFile& object_file, const std::string& filen
 }
 
 
-ExtendibleHash::~ExtendibleHash() {
+ObjectFileHash::~ObjectFileHash() {
     auto& dir_file = file_manager.get_file(dir_file_id);
     dir_file.seekg(0, dir_file.beg);
 
@@ -66,7 +66,7 @@ ExtendibleHash::~ExtendibleHash() {
 }
 
 
-void ExtendibleHash::duplicate_dirs() {
+void ObjectFileHash::duplicate_dirs() {
     uint64_t old_dir_size = 1UL << global_depth;
     ++global_depth;
     auto new_dir_size = 1UL << global_depth;
@@ -89,7 +89,7 @@ void ExtendibleHash::duplicate_dirs() {
 }
 
 
-uint64_t ExtendibleHash::get_or_create_id(const std::string& str, bool* const created) {
+uint64_t ObjectFileHash::get_or_create_id(const std::string& str, bool* const created) {
     uint64_t hash[2];
     MurmurHash3_x64_128(str.data(), str.length(), 0, hash);
 
@@ -99,7 +99,7 @@ uint64_t ExtendibleHash::get_or_create_id(const std::string& str, bool* const cr
         auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
         auto suffix = hash[0] & mask;
         auto bucket_number = dir[suffix];
-        auto bucket = Bucket(buckets_file_id, bucket_number, object_file);
+        auto bucket = ObjectFileHashBucket(buckets_file_id, bucket_number, object_file);
 
         bool need_split;
         auto id = bucket.get_or_create_id(str, hash[0], hash[1], &need_split, created);
@@ -109,7 +109,7 @@ uint64_t ExtendibleHash::get_or_create_id(const std::string& str, bool* const cr
                 auto new_bucket_number = bucket_number | (1 << (*bucket.local_depth));
                 ++(*bucket.local_depth);
                 auto new_mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - (*bucket.local_depth));
-                auto new_bucket = Bucket(buckets_file_id, new_bucket_number, object_file);
+                auto new_bucket = ObjectFileHashBucket(buckets_file_id, new_bucket_number, object_file);
                 *new_bucket.key_count = 0;
                 (*new_bucket.local_depth) = (*bucket.local_depth);
 
@@ -122,7 +122,7 @@ uint64_t ExtendibleHash::get_or_create_id(const std::string& str, bool* const cr
                     dir[(i << (*bucket.local_depth)) | new_bucket_number] = new_bucket_number;
                 }
 
-                assert(*bucket.key_count + *new_bucket.key_count== Bucket::MAX_KEYS
+                assert(*bucket.key_count + *new_bucket.key_count== ObjectFileHashBucket::MAX_KEYS
                     && "EXTENDIBLE HASH INCONSISTENCY: sum of keys must be MAX_KEYS after a split");
 
             } else {
@@ -131,7 +131,7 @@ uint64_t ExtendibleHash::get_or_create_id(const std::string& str, bool* const cr
                 ++(*bucket.local_depth);
 
                 auto new_bucket_number = bucket_number | (1 << global_depth);
-                auto new_bucket = Bucket(buckets_file_id, new_bucket_number, object_file);
+                auto new_bucket = ObjectFileHashBucket(buckets_file_id, new_bucket_number, object_file);
                 *new_bucket.key_count = 0;
                 *new_bucket.local_depth = *bucket.local_depth;
 
@@ -144,7 +144,7 @@ uint64_t ExtendibleHash::get_or_create_id(const std::string& str, bool* const cr
                 // update dir for `1|bucket_number`
                 dir[new_bucket_number] = new_bucket_number;
 
-                assert(*bucket.key_count + *new_bucket.key_count== Bucket::MAX_KEYS
+                assert(*bucket.key_count + *new_bucket.key_count== ObjectFileHashBucket::MAX_KEYS
                     && "EXTENDIBLE HASH INCONSISTENCY: sum of keys must be MAX_KEYS after a split");
             }
         } else {
@@ -154,7 +154,7 @@ uint64_t ExtendibleHash::get_or_create_id(const std::string& str, bool* const cr
 }
 
 
-uint64_t ExtendibleHash::get_id(const std::string& str) const {
+uint64_t ObjectFileHash::get_id(const std::string& str) const {
     uint64_t hash[2];
     MurmurHash3_x64_128(str.data(), str.length(), 0, hash);
 
@@ -164,7 +164,7 @@ uint64_t ExtendibleHash::get_id(const std::string& str) const {
         auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
         auto suffix = hash[0] & mask;
         auto bucket_number = dir[suffix];
-        auto bucket = Bucket(buckets_file_id, bucket_number, object_file);
+        auto bucket = ObjectFileHashBucket(buckets_file_id, bucket_number, object_file);
 
         return bucket.get_id(str, hash[0], hash[1]);
     }

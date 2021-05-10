@@ -7,7 +7,7 @@
 #include "base/graph/graph_model.h"
 #include "relational_model/models/quad_model/quad_catalog.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
-#include "storage/index/hash_table/extendible_hash.h"
+#include "storage/index/hash/object_file_hash/object_file_hash.h"
 #include "storage/index/object_file/object_file.h"
 #include "storage/index/random_access_table/random_access_table.h"
 
@@ -43,8 +43,8 @@ public:
         return const_cast<ObjectFile&>(reinterpret_cast<const ObjectFile&>(object_file_buf));
     }
 
-    inline ExtendibleHash& strings_hash() const noexcept {
-        return const_cast<ExtendibleHash&>(reinterpret_cast<const ExtendibleHash&>(strings_cache_buf));
+    inline ObjectFileHash& strings_hash() const noexcept {
+        return const_cast<ObjectFileHash&>(reinterpret_cast<const ObjectFileHash&>(strings_cache_buf));
     }
 
     std::unique_ptr<RandomAccessTable<1>> node_table;
@@ -73,7 +73,7 @@ public:
 private:
     typename std::aligned_storage<sizeof(QuadCatalog), alignof(QuadCatalog)>::type       catalog_buf;
     typename std::aligned_storage<sizeof(ObjectFile), alignof(ObjectFile)>::type         object_file_buf;
-    typename std::aligned_storage<sizeof(ExtendibleHash), alignof(ExtendibleHash)>::type strings_cache_buf;
+    typename std::aligned_storage<sizeof(ObjectFileHash), alignof(ObjectFileHash)>::type strings_cache_buf;
 
     uint64_t get_or_create_external_id(const std::string& str, bool* const created);
 };

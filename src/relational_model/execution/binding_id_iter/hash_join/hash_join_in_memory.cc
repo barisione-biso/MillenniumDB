@@ -84,7 +84,7 @@ bool HashJoinInMemory::next() {
 }
 
 
-void HashJoinInMemory::assign_binding(const MultiPair& left_pair, const MultiPair& right_pair) {
+void HashJoinInMemory::assign_binding(const KeyValuePair& left_pair, const KeyValuePair& right_pair) {
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
         parent_binding->add(left_vars[i], left_pair.second[i]);
     }

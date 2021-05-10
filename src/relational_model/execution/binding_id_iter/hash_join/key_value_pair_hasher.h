@@ -1,12 +1,12 @@
-#ifndef RELATIONAL_MODEL__MULTIPAIR_HASHER_H_
-#define RELATIONAL_MODEL__MULTIPAIR_HASHER_H_
+#ifndef RELATIONAL_MODEL__KEY_VALUE_PAIR_HASHER_H_
+#define RELATIONAL_MODEL__KEY_VALUE_PAIR_HASHER_H_
 
 #include <unordered_map>
 
-#include "storage/index/multi_map/multi_map.h"
-#include "storage/index/hash_table/murmur3.h"
+#include "storage/index/hash/key_value_hash/key_value_hash.h"
+#include "storage/index/hash/murmur3.h"
 
-struct MultiPairHasher {
+struct KeyValuePairHasher {
     // hash 1 simple xor
     uint64_t operator()(const std::vector<ObjectId>& key) const {
         auto val = key[0].id;
@@ -17,7 +17,8 @@ struct MultiPairHasher {
 
         //uint64_t hash[2];
         //MurmurHash3_x64_128(key.data(), key.size() * sizeof(ObjectId), 0, hash);
-        //uint64_t mask = MultiMap::MAX_BUCKETS - 1;  // (assuming MAX_BUCKETS is power of 2)
+        // transform next line with depth
+        //uint64_t mask = KeyValueHash::MAX_BUCKETS - 1;  // (assuming MAX_BUCKETS is power of 2)
 
         //uint64_t bucket_number = hash[1] & mask;  // suffix = bucket_number in this case
         //return bucket_number;
@@ -28,6 +29,6 @@ struct MultiPairHasher {
 };
 
 
-using SmallMultiMap = std::unordered_multimap<std::vector<ObjectId>, std::vector<ObjectId>, MultiPairHasher>;
+using SmallMultiMap = std::unordered_multimap<std::vector<ObjectId>, std::vector<ObjectId>, KeyValuePairHasher>;
 
-#endif // RELATIONAL_MODEL__MULTIPAIR_HASHER_H_
+#endif // RELATIONAL_MODEL__KEY_VALUE_PAIR_HASHER_H_

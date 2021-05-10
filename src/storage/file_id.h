@@ -26,4 +26,23 @@ public:
     }
 };
 
+
+class TmpFileId {
+public:
+    static constexpr uint_fast32_t UNASSIGNED = UINT32_MAX;
+
+    uint_fast32_t id;
+
+    TmpFileId(uint_fast32_t id)
+        : id(id) {}
+
+    bool operator<(const TmpFileId other) const {
+        return this->id < other.id;
+    }
+
+    bool operator==(const TmpFileId other) const {
+        return this->id == other.id;
+    }
+};
+
 #endif // STORAGE__FILE_ID_H_
