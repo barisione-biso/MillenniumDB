@@ -105,12 +105,12 @@ void PropertyPathPlan::set_input_vars(uint64_t input_vars) {
     }
 }
 
-// TODO: ARREGLAR IDENTACION
 
 unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*binding_size*/) {
     if (from_assigned) {
         auto automaton = path.get_optimized_automaton();
         transform_automaton(automaton);
+        automaton.print();
         if (to_assigned) {
             // bool case
             return make_unique<PropertyPathCheck>(*model.type_from_to_edge,
@@ -132,6 +132,7 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
             auto inverted_path = path.invert();
             auto automaton = inverted_path->get_optimized_automaton();
             transform_automaton(automaton);
+            automaton.print();
             return make_unique<PropertyPathEnum>(*model.type_from_to_edge,
                                                  *model.to_type_from_edge,
                                                  to,

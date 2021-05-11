@@ -18,7 +18,7 @@ void PathAutomaton::print() {
         }
     }
     cout << "distance to end: \n";
-    for (size_t i = 0; i < total_states; i++) {
+    for (size_t i = 0; i < distance_to_final.size(); i++) {
         cout << i << ":" << distance_to_final[i] << "\n";
     }
     cout << "start is final: " << (start_is_final ? "true" : "false") << "\n";
@@ -370,8 +370,10 @@ void PathAutomaton::set_final_state() {
         start_is_final = true;
     }
     // Redirect state that reach to end's state to final_state
-    for (const auto& transitions_vector : from_to_connections) {
-        for (const auto& t : transitions_vector) {
+
+    for (size_t i = 0; i < from_to_connections.size(); i++) {
+        for (size_t j = 0; j < from_to_connections[i].size(); j++) {
+            const auto& t = from_to_connections[i][j];
             if (end.find(t.to) != end.end()) {
                 connect(Transition(t.from, final_state, t.label, t.inverse));
             }
