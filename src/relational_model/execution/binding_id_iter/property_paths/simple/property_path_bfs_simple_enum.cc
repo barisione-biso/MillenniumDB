@@ -65,7 +65,7 @@ bool PropertyPathBFSSimpleEnum::next() {
         // Expand state. Explore reachable nodes with automaton transitions
         for (const auto& transition : automaton.transitions[current_state.state]) {
             // Constructs iter with current automaton transition
-            set_iter(transition, current_state);
+            auto iter = set_iter(transition, current_state);
             auto child_record = iter->next();
 
             // Explore nodes
@@ -93,9 +93,10 @@ bool PropertyPathBFSSimpleEnum::next() {
 }
 
 
-void PropertyPathBFSSimpleEnum::set_iter(
+unique_ptr<BptIter<4>>  PropertyPathBFSSimpleEnum::set_iter(
     const TransitionId& transition,
     const SearchState& current_state) {
+    unique_ptr<BptIter<4>> iter = nullptr;
     // Get iter from correct bpt_tree according to inverse attribute
     if (transition.inverse) {
         min_ids[0] = current_state.object_id.id;
@@ -111,6 +112,7 @@ void PropertyPathBFSSimpleEnum::set_iter(
         iter = type_from_to_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
     }
     bpt_searches++;
+    return iter;
 }
 
 
@@ -119,7 +121,6 @@ void PropertyPathBFSSimpleEnum::reset() {
     queue<SearchState> empty;
     open.swap(empty);
     visited.clear();
-    iter = nullptr;
     is_first = false;
 
     if (std::holds_alternative<ObjectId>(start)) {

@@ -43,7 +43,6 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::queue<SearchState> open;
-    std::unique_ptr<BptIter<4>> iter = nullptr;
     bool is_first = false;  // True in first next call
 
     // Statistics
@@ -51,7 +50,7 @@ private:
     uint_fast32_t bpt_searches = 0;
 
     // Constructs iter according to transition
-    void set_iter(const TransitionId& transition, const SearchState& current_state);
+    std::unique_ptr<BptIter<4>>  set_iter(const TransitionId& transition, const SearchState& current_state);
 
 public:
     PropertyPathBFSSimpleEnum(BPlusTree<4>& type_from_to_edge,

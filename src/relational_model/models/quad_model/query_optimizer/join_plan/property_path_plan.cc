@@ -2,25 +2,20 @@
 
 #include <limits>
 
-// #include "relational_model/execution/binding_id_iter/property_paths/transitive_closure_check.h"
-// #include "relational_model/execution/binding_id_iter/property_paths/transitive_closure_enum.h"
+
 #include "base/parser/logical_plan/op/op_path.h"
 #include "relational_model/execution/binding_id_iter/property_paths/simple/property_path_bfs_check.h"
 #include "relational_model/execution/binding_id_iter/property_paths/simple/property_path_bfs_simple_enum.h"
-#include "relational_model/execution/binding_id_iter/property_paths/simple/property_path_dfs_simple_enum.h"
-#include "relational_model/execution/binding_id_iter/property_paths/simple/property_path_a_star_simple_enum.h"
 
 #include "relational_model/execution/binding_id_iter/property_paths/iter/property_path_bfs_iter_enum.h"
 #include "relational_model/execution/binding_id_iter/property_paths/iter/property_path_dfs_iter_enum.h"
 #include "relational_model/execution/binding_id_iter/property_paths/iter/property_path_a_star_iter_enum.h"
-//#include "relational_model/execution/binding_id_iter/property_paths/property_path_dfs_enum.h"
-//#include "relational_model/execution/binding_id_iter/property_paths/property_path_iddfs_check.h"
-//#include "relational_model/execution/binding_id_iter/property_paths/property_path_iddfs_enum.h"
+
 
 using namespace std;
 
 using PropertyPathCheck = PropertyPathBFSCheck;
-using PropertyPathEnum = PropertyPathDFSSimpleEnum;
+using PropertyPathEnum = PropertyPathBFSSimpleEnum;
 
 PropertyPathPlan::PropertyPathPlan(QuadModel &model, Id from, Id to, OpPath &path) :
     model(model),
