@@ -58,6 +58,7 @@ private:
     Id start;
     VarId end;
     PathAutomaton automaton;
+    bool is_first = false; // True in the first next call
 
 
     // Attributes determined in begin
@@ -70,7 +71,6 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::priority_queue<PriorityState> open;
-    bool is_first = false;  // True in the first call of next
     std::unique_ptr<BptIter<4>> iter = nullptr;
 
 
@@ -79,7 +79,7 @@ private:
     uint_fast32_t bpt_searches = 0;
 
     // Constructs iter with the transition label
-    void set_iter(const TransitionId& transition, const PriorityState* current_state);
+    void set_iter(const TransitionId& transition, const PriorityState& current_state);
 
 public:
     PropertyPathAStarSimpleEnum(BPlusTree<4>& type_from_to_edge,

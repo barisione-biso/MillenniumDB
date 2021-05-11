@@ -49,29 +49,28 @@ void PropertyPathDFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has
 
 
 bool PropertyPathDFSSimpleEnum::next() {
-    // Check if first state is final
-     if (is_first) {
+    // Check is first state is final
+    if (is_first && automaton.total_states > 1) {
         is_first = false;
         if (automaton.start_is_final) {
-            auto& current_state = open.top();
-            visited.emplace(automaton.final_state, current_state.object_id);
-            parent_binding->add(end, current_state.object_id);
+            results_found++;
+            parent_binding->add(end, open.top().object_id);
+            visited.emplace(automaton.final_state, open.top().object_id);
             return true;
         }
     }
     // DFS classic implementation
     while (open.size() > 0) {
-        auto& current_state = open.top();
+        auto current_state = open.top();
+        open.pop();
 
         // Expand node. Explores reachable nodes with automaton transitions
-        while (current_state.transition < automaton.transitions[current_state.state].size()) {
-            const auto& transition = automaton.transitions[current_state.state][current_state.transition];
+        for (const auto& transition : automaton.transitions[current_state.state]) {
+            // Constructs iter with current automaton transition
             set_iter(transition, current_state);
-            auto child_record = iter->next();
-
-            auto find_new_state = false; // True when new state added to open
 
             // Explore reachable nodes
+            auto child_record = iter->next();
             while (child_record != nullptr) {
                 auto next_state = SearchState(transition.to, ObjectId(child_record->ids[2]));
 
@@ -79,31 +78,16 @@ bool PropertyPathDFSSimpleEnum::next() {
                 if (visited.find(next_state) == visited.end()) {
                     open.push(next_state);
                     visited.insert(next_state);
-
-                    // Check if next_state is final
-                    if (next_state.state == automaton.final_state) {
-                        results_found++;
-                        parent_binding->add(end, next_state.object_id);
-                        return true;
-                    }
-
-                    // True to stop ehile current_state.transition loop
-                    find_new_state = true;
-                    break;
                 }
                 child_record = iter->next();
             }
-            // Stop expansion of current_state when new_state is added top open
-            // The idea is expand new_state in the next iteration, according to DFS algorithm
-            if (find_new_state) {
-                break;
-            }
-            // Update to search in a new transition
-            current_state.transition++;
         }
-        // Pop state when all transitions has been explored
-        if (current_state.transition >= automaton.transitions[current_state.state].size()) {
-            open.pop();
+
+        // Check if current_state is final
+        if (current_state.state == automaton.final_state) {
+            results_found++;
+            parent_binding->add(end, current_state.object_id);
+            return true;
         }
     }
     return false;
@@ -135,8 +119,8 @@ void PropertyPathDFSSimpleEnum::reset() {
     stack<SearchState> empty;
     open.swap(empty);
     visited.clear();
+    iter = nullptr;
 
-    is_first = true;
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
         auto start_state = SearchState(automaton.start, start_object_id);

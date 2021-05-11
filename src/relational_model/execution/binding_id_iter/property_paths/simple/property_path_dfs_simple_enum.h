@@ -42,9 +42,8 @@ private:
     // Structs for DFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::stack<SearchState> open;
-    // True in the first call of next
-    bool is_first = false;
     std::unique_ptr<BptIter<4>> iter = nullptr;
+    bool is_first = false;
 
     // Statistics
     uint_fast32_t results_found = 0;

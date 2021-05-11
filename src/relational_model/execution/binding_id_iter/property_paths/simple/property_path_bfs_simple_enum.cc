@@ -38,25 +38,24 @@ void PropertyPathBFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has
             open.emplace(automaton.start, start_object_id);
             visited.emplace(automaton.start, start_object_id);
         }
+        is_first = true;
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;
         max_ids[3] = 0xFFFFFFFFFFFFFFFF;
-        is_first = true;
         // pos 0 and 1 will be set at next()
     }
 }
 
 
 bool PropertyPathBFSSimpleEnum::next() {
-    // Check if first state is final
-    if (is_first) {
+    // Check is first state is final
+    if (is_first && automaton.total_states > 1) {
         is_first = false;
         if (automaton.start_is_final) {
-            auto& current_state = open.front();
-            // Avoid duplicates
-            visited.emplace(automaton.final_state, current_state.object_id);
-            parent_binding->add(end, current_state.object_id);
+            results_found++;
+            parent_binding->add(end, open.front().object_id);
+            visited.emplace(automaton.final_state, open.front().object_id);
             return true;
         }
     }
@@ -64,10 +63,8 @@ bool PropertyPathBFSSimpleEnum::next() {
     while (open.size() > 0) {
         auto& current_state = open.front();
         // Expand state. Explore reachable nodes with automaton transitions
-        while (current_state.transition < automaton.transitions[current_state.state].size()) {
-            const auto& transition = automaton.transitions[current_state.state][current_state.transition];
-            // Iter is obtained to explore the nodes that connect with
-            // a connection whose label matches the transition label
+        for (const auto& transition : automaton.transitions[current_state.state]) {
+            // Constructs iter with current automaton transition
             set_iter(transition, current_state);
             auto child_record = iter->next();
 
@@ -79,20 +76,18 @@ bool PropertyPathBFSSimpleEnum::next() {
                     // Add to open and visited set
                     open.push(next_state);
                     visited.insert(next_state);
-                    // If it is final returns inmediately
-                    if (next_state.state == automaton.final_state) {
-                        // This allows quickly get a first response
-                        results_found++;
-                        parent_binding->add(end, next_state.object_id);
-                        return true;
-                    }
                 }
                 child_record = iter->next();
             }
-            // Search to next transition
-            current_state.transition++;
         }
-        open.pop();
+        // Check if current state is final
+        if (current_state.state == automaton.final_state) {
+            results_found++;
+            parent_binding->add(end, current_state.object_id);
+            open.pop();  // Pop to visit next state
+            return true;
+        }
+        open.pop();  // Pop to visit next state
     }
     return false;
 }
@@ -124,6 +119,8 @@ void PropertyPathBFSSimpleEnum::reset() {
     queue<SearchState> empty;
     open.swap(empty);
     visited.clear();
+    iter = nullptr;
+    is_first = false;
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
@@ -136,7 +133,6 @@ void PropertyPathBFSSimpleEnum::reset() {
         open.emplace(automaton.start, start_object_id);
         visited.emplace(automaton.start, start_object_id);
     }
-    is_first = true;
 }
 
 
