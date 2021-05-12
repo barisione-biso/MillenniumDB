@@ -37,7 +37,6 @@ void PropertyPathBFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has
             open.emplace(automaton.start, start_object_id);
             visited.emplace(automaton.start, start_object_id);
         }
-        is_first = true;
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;
@@ -48,16 +47,6 @@ void PropertyPathBFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has
 
 
 bool PropertyPathBFSSimpleEnum::next() {
-    // Check is first state is final
-    if (is_first) {
-        is_first = false;
-        if (automaton.start_is_final) {
-            results_found++;
-            parent_binding->add(end, open.front().object_id);
-            visited.emplace(automaton.final_state, open.front().object_id);
-            return true;
-        }
-    }
     // BFS classic implementation
     while (open.size() > 0) {
         auto& current_state = open.front();
@@ -80,7 +69,9 @@ bool PropertyPathBFSSimpleEnum::next() {
             }
         }
         // Check if current state is final
-        if (current_state.state == automaton.final_state) {
+        if (current_state.state == automaton.final_state ||
+           (current_state.state == automaton.start && automaton.start_is_final))
+        {
             results_found++;
             parent_binding->add(end, current_state.object_id);
             open.pop();  // Pop to visit next state
@@ -120,7 +111,6 @@ void PropertyPathBFSSimpleEnum::reset() {
     queue<SearchState> empty;
     open.swap(empty);
     visited.clear();
-    is_first = false;
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
