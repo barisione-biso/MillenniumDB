@@ -56,6 +56,7 @@ bool PropertyPathDFSIterEnum::next() {
         if (automaton.start_is_final) {
             visited.emplace(automaton.final_state, open.top().object_id);
             parent_binding->add(end, open.top().object_id);
+            results_found++;
             return true;
         }
     }

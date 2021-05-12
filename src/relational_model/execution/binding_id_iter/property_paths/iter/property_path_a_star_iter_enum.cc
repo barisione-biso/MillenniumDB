@@ -63,6 +63,7 @@ bool PropertyPathAStarIterEnum::next() {
             auto& current_state = open.top();
             visited.emplace(automaton.final_state, current_state.object_id);
             parent_binding->add(end, current_state.object_id);
+            results_found++;
             return true;
         }
     }
