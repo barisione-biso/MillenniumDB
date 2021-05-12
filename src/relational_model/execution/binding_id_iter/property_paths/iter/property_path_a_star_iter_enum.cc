@@ -73,6 +73,7 @@ bool PropertyPathAStarIterEnum::next() {
             if (reached_automaton_state == automaton.final_state) {
                 // set binding;
                 parent_binding->add(end, reached_object_id);
+                results_found++;
                 return true;
             }
         } else {
@@ -145,7 +146,7 @@ void PropertyPathAStarIterEnum::set_iter() {
         max_ids[1] = new_state.object_id.id;
         new_state.iter = type_from_to_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
     }
-
+    bpt_searches++;
     open.pop();
     open.push(move(new_state));
 }

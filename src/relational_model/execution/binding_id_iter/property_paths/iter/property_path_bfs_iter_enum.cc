@@ -66,6 +66,7 @@ bool PropertyPathBFSIterEnum::next() {
             if (reached_automaton_state == automaton.final_state) {
                 // set binding;
                 parent_binding->add(end, reached_object_id);
+                results_found++;
                 return true;
             }
         } else {
@@ -133,6 +134,7 @@ void PropertyPathBFSIterEnum::set_iter(const StateKey& current_state) {
         max_ids[1] = current_state.object_id.id;
         iter = type_from_to_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
     }
+    bpt_searches++;
 }
 
 

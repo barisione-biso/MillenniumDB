@@ -24,7 +24,6 @@ PropertyPathBFSSimpleEnum::PropertyPathBFSSimpleEnum(BPlusTree<4>& type_from_to_
 
 
 void PropertyPathBFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has_next) {
-
     this->parent_binding = &parent_binding;
     if (parent_has_next) {
         // Add inital state to queue
@@ -50,7 +49,7 @@ void PropertyPathBFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has
 
 bool PropertyPathBFSSimpleEnum::next() {
     // Check is first state is final
-    if (is_first && automaton.total_states > 1) {
+    if (is_first) {
         is_first = false;
         if (automaton.start_is_final) {
             results_found++;
