@@ -95,7 +95,7 @@ bool BPlusTree<N>::check() const {
 
 /******************************* BptIter ********************************/
 template <std::size_t N>
-BptIter<N>::BptIter(SearchLeafResult<N>&& leaf_and_pos, const Record<N>& max) :
+BptIter<N>::BptIter(SearchLeafResult<N>&& leaf_and_pos, const Record<N>& max) noexcept :
     max          (max),
     current_pos  (leaf_and_pos.result_index),
     current_leaf (move(leaf_and_pos.leaf))
