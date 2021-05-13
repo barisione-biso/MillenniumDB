@@ -12,8 +12,6 @@ namespace common {
         namespace x3 = boost::spirit::x3;
 
         using x3::attr;
-        using x3::alpha;
-        using x3::alnum;
         using x3::char_;
         using x3::eol;
         using x3::eoi;
@@ -45,11 +43,10 @@ namespace common {
 
         // Grammar
         auto const node_name_def =
-            // lexeme[(alpha | char_('_')) >> *(alnum | char_('_'))];
-            lexeme[+(alnum | char_('_'))];
+            lexeme[char_("A-Za-z_") >> *char_("A-Za-z0-9_")];
 
         auto const var_name_def =
-            char_('?') >> alpha >> *(alnum | char_('_'));
+            char_('?') >> char_("A-Za-z") >> *char_("A-Za-z0-9_");
 
         auto const var_def =
             lexeme[var_name];

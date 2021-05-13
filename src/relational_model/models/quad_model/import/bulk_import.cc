@@ -21,7 +21,7 @@ BulkImport::BulkImport(const string& filename, QuadModel& model) :
     catalog                  (model.catalog()),
     node_labels              (OrderedFile<2>("node_labels.dat")),
     object_key_value         (OrderedFile<3>("object_key_value.dat")),
-    connections_ordered_file (OrderedFile<4>("connections_ordered_file.tmp")),
+    connections_ordered_file (OrderedFile<4>("connections_ordered_file.dat")),
     equal_from_to            (OrderedFile<3>("equal_from_to.dat")),
     equal_from_type          (OrderedFile<3>("equal_from_type.dat")),
     equal_to_type            (OrderedFile<3>("equal_to_type.dat")),
@@ -52,18 +52,22 @@ void BulkImport::start_import() {
         bool r = phrase_parse(file_iter, file_iter_end, import::import(), import::parser::skipper, import_line);
         if (r) {
             if (import_line.type() == typeid(import::ast::Node)) {
+                std::cout << "parsed node\n";
                 auto node_id = process_node( boost::get<import::ast::Node>(import_line) );
                 ids_stack.clear();
                 ids_stack.push_back(node_id);
             }
             else if (import_line.type() == typeid(import::ast::Edge)) {
+                std::cout << "parsed edge\n";
                 auto edge_id = process_edge( boost::get<import::ast::Edge>(import_line) );
                 ids_stack.clear();
                 ids_stack.push_back(edge_id);
             }
             else if (import_line.type() == typeid(import::ast::ImplicitEdge)) {
+                std::cout << "parsed implicit edge\n";
                 auto implicit_edge = boost::get<import::ast::ImplicitEdge>(import_line);
                 const auto nesting_lvl = implicit_edge.nesting_level();
+                std::cout << "nesting level: " << nesting_lvl << "\n";
 
                 if (ids_stack.size() == 0) {
                     throw logic_error("ERROR on line " + std::to_string(line_number)

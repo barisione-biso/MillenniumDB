@@ -26,7 +26,7 @@ public:
     static constexpr uint64_t VALUE_EXTERNAL_STR_MASK    = 0x04'00000000000000UL;
     static constexpr uint64_t VALUE_INLINE_STR_MASK      = 0x05'00000000000000UL;
 
-    static constexpr uint64_t VALUE_NEGATIVE_INT_MASK    = 0x06'00000000000000UL;
+    static constexpr uint64_t VALUE_NEGATIVE_INT_MASK    = 0x06'00000000000000UL; // TODO: debería tener complemento para que de verda queden ordenados
     static constexpr uint64_t VALUE_POSITIVE_INT_MASK    = 0x07'00000000000000UL;
 
     static_assert(VALUE_NEGATIVE_INT_MASK < VALUE_POSITIVE_INT_MASK,

@@ -13,7 +13,7 @@ template <std::size_t N> class OrderedFile;
 
 template <std::size_t N> class BptIter {
 public:
-    BptIter(SearchLeafResult<N>&& leaf_and_pos, const Record<N>& max);
+    BptIter(SearchLeafResult<N>&& leaf_and_pos, const Record<N>& max) noexcept;
     ~BptIter() = default;
     std::unique_ptr<Record<N>> next() noexcept;
 
