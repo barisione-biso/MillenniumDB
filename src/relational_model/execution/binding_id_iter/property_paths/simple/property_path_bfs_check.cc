@@ -9,13 +9,17 @@
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 
 using namespace std;
+using namespace BFSCheck;
 
 
-PropertyPathBFSCheck::PropertyPathBFSCheck(BPlusTree<4>& type_from_to_edge,
-                                     BPlusTree<4>& to_type_from_edge,
-                                     Id start,
-                                     Id end,
-                                     PathAutomaton automaton) :
+PropertyPathBFSCheck::PropertyPathBFSCheck(
+                                    QuadModel&    model,
+                                    BPlusTree<4>& type_from_to_edge,
+                                    BPlusTree<4>& to_type_from_edge,
+                                    Id start,
+                                    Id end,
+                                    PathAutomaton automaton) :
+    model             (model),
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
     start             (start),
@@ -30,15 +34,13 @@ void PropertyPathBFSCheck::begin(BindingId& parent_binding, bool parent_has_next
         // Add inital state to queue
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
-            auto start_state = SearchState(automaton.start, start_object_id);
-            open.push(start_state);
-            visited.insert(start_state);
+            open.emplace(automaton.start, start_object_id, nullptr);
+            visited.emplace(automaton.start, start_object_id, nullptr);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
-            auto start_state = SearchState(automaton.start, start_object_id);
-            open.push(start_state);
-            visited.insert(start_state);
+            open.emplace(automaton.start, start_object_id, nullptr);
+            visited.emplace(automaton.start, start_object_id, nullptr);
         }
 
         // Set end_object_id
@@ -63,7 +65,8 @@ bool PropertyPathBFSCheck::next() {
     if (is_first) {
         is_first = false;
         if (automaton.start_is_final && open.front().object_id == end_object_id) {
-            queue<SearchState> empty;
+            print_path(open.front());
+            queue<CheckState> empty;
             open.swap(empty);
             results_found++;
             return true;
@@ -73,20 +76,24 @@ bool PropertyPathBFSCheck::next() {
     while (open.size() > 0) {
         auto& current_state = open.front();
         // Expand state. Only visit nodes that automatons transitions indicates
-        while (current_state.transition < automaton.transitions[current_state.state].size()) {
-            const auto& transition = automaton.transitions[current_state.state][current_state.transition];
+        for (const auto& transition : automaton.transitions[current_state.state]) {
             set_iter(transition, current_state);
 
             // Explore matches nodes
             auto child_record = iter->next();
             while (child_record != nullptr) {
-                auto next_state = SearchState(transition.to, ObjectId(child_record->ids[2]));
+                auto next_state = CheckState(
+                    transition.to,
+                    ObjectId(child_record->ids[2]),
+                    visited.find(current_state).operator->()
+                );
 
                 // Check if next_state is final
                 if (next_state.state == automaton.final_state
                     && next_state.object_id == end_object_id )
                 {
-                    queue<SearchState> empty;
+                    print_path(current_state);
+                    queue<CheckState> empty;
                     open.swap(empty);
                     results_found++;
                     return true;
@@ -98,8 +105,6 @@ bool PropertyPathBFSCheck::next() {
                 }
                 child_record = iter->next();
             }
-        // Search to next transition
-        current_state.transition++;
         }
         open.pop();
     }
@@ -109,7 +114,7 @@ bool PropertyPathBFSCheck::next() {
 
 void PropertyPathBFSCheck::set_iter(
     const TransitionId& transition,
-    const SearchState& current_state) {
+    const CheckState& current_state) {
     // Get iter from correct bpt_tree according to inverse attribute
     if (transition.inverse) {
         min_ids[0] = current_state.object_id.id;
@@ -130,22 +135,21 @@ void PropertyPathBFSCheck::set_iter(
 
 void PropertyPathBFSCheck::reset() {
     // Empty open and visited
-    queue<SearchState> empty;
+    queue<CheckState> empty;
     open.swap(empty);
     visited.clear();
+    is_first = true;
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        auto start_state = SearchState(automaton.start, start_object_id);
-        open.push(start_state);
-        visited.insert(start_state);
+        open.emplace(automaton.start, start_object_id, nullptr);
+        visited.emplace(automaton.start, start_object_id, nullptr);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
-        auto start_state = SearchState(automaton.start, start_object_id);
-        open.push(start_state);
-        visited.insert(start_state);
+        open.emplace(automaton.start, start_object_id, nullptr);
+        visited.emplace(automaton.start, start_object_id, nullptr);
     }
 
     // Set end_object_id
@@ -167,4 +171,13 @@ void PropertyPathBFSCheck::analyze(int indent) const {
     }
     cout << "PropertyPathBFSCheck(bpt_searches: " << bpt_searches
          << ", found: " << results_found <<")\n";
+}
+
+void PropertyPathBFSCheck::print_path(CheckState& state) {
+    auto current_state = &state;
+    while (current_state != nullptr) {
+        cout << model.get_graph_object(current_state->object_id) << "<=";
+        current_state = const_cast<CheckState*>(current_state->previous);
+    }
+    cout << "\n";
 }
