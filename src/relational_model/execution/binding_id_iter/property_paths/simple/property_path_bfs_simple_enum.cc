@@ -9,7 +9,6 @@
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 
 using namespace std;
-using namespace BFSSimple;
 
 PropertyPathBFSSimpleEnum::PropertyPathBFSSimpleEnum(
                                     QuadModel&    model,
@@ -62,7 +61,7 @@ bool PropertyPathBFSSimpleEnum::next() {
 
             // Explore nodes
             while (child_record != nullptr) {
-                auto next_state = BFSState(
+                auto next_state = SearchState(
                     transition.to,
                     ObjectId(child_record->ids[2]),
                     visited.find(current_state).operator->()
@@ -94,7 +93,7 @@ bool PropertyPathBFSSimpleEnum::next() {
 
 unique_ptr<BptIter<4>>  PropertyPathBFSSimpleEnum::set_iter(
     const TransitionId& transition,
-    const BFSState& current_state) {
+    const SearchState& current_state) {
     unique_ptr<BptIter<4>> iter = nullptr;
     // Get iter from correct bpt_tree according to inverse attribute
     if (transition.inverse) {
@@ -117,7 +116,7 @@ unique_ptr<BptIter<4>>  PropertyPathBFSSimpleEnum::set_iter(
 
 void PropertyPathBFSSimpleEnum::reset() {
     // Empty open and visited
-    queue<BFSState> empty;
+    queue<SearchState> empty;
     open.swap(empty);
     visited.clear();
 
@@ -146,11 +145,11 @@ void PropertyPathBFSSimpleEnum::analyze(int indent) const {
          << ", found: " << results_found <<")\n";
 }
 
-void PropertyPathBFSSimpleEnum::print_path(BFSState& state) {
+void PropertyPathBFSSimpleEnum::print_path(SearchState& state) {
     auto current_state = &state;
     while (current_state != nullptr) {
         cout << model.get_graph_object(current_state->object_id) << "<=";
-        current_state = const_cast<BFSState*>(current_state->previous);
+        current_state = const_cast<SearchState*>(current_state->previous);
     }
     cout << "\n";
 }

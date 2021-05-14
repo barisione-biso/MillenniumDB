@@ -9,11 +9,12 @@
 struct SearchState {
     const uint32_t state;
     const ObjectId object_id;
-    uint32_t transition = 0;
+    const SearchState* previous;
 
-    SearchState(unsigned int state, ObjectId object_id) :
+    SearchState(unsigned int state, ObjectId object_id, const SearchState* previous) :
         state      (state),
-        object_id  (object_id) { }
+        object_id  (object_id),
+        previous   (previous) { }
 
     ~SearchState() = default;
 

@@ -9,7 +9,8 @@
 
 #include "base/binding/binding_id_iter.h"
 #include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
-//#include "relational_model/execution/binding_id_iter/property_paths/search_state.h"
+#include "relational_model/models/quad_model/quad_model.h"
+#include "relational_model/execution/binding_id_iter/property_paths/search_state.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
@@ -19,35 +20,13 @@ path that automaton object describes.
   * Explores graph using BFS algorithm
 */
 
-namespace BFSIterEnum {
-struct StateKey {
-    uint32_t state;
-    const ObjectId object_id;
-
-    StateKey(uint32_t state, ObjectId object_id) :
-        state     (state),
-        object_id (object_id) { }
-
-    bool operator==(const StateKey& other) const {
-        return state == other.state && object_id == other.object_id;
-    }
-};
-
-struct StateKeyHasher {
-    std::size_t operator() (const StateKey& lhs) const {
-        return lhs.state ^ lhs.object_id.id;
-    }
-};
-};
-
-
 
 class PropertyPathBFSIterEnum : public BindingIdIter {
     using Id = std::variant<VarId, ObjectId>;
 
 private:
     // Attributes determined in the constuctor
-
+    QuadModel&    model;
     BPlusTree<4>& type_from_to_edge;  // Used to search foward
     BPlusTree<4>& to_type_from_edge;  // Used to search backward
 
@@ -63,8 +42,8 @@ private:
      std::array<uint64_t, 4> max_ids;
 
     // Structs for BFS
-    std::unordered_set<BFSIterEnum::StateKey, BFSIterEnum::StateKeyHasher> visited;
-    std::queue<BFSIterEnum::StateKey> open;
+    std::unordered_set<SearchState, SearchStateHasher> visited;
+    std::queue<SearchState> open;
     bool first_next = true;
 
     std::unique_ptr<BptIter<4>> iter;
@@ -76,8 +55,14 @@ private:
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
+    bool current_state_has_next(const SearchState& current_state);
+    void set_iter(const SearchState& current_state);
+    void print_path(const SearchState& state);
+
 public:
-    PropertyPathBFSIterEnum(BPlusTree<4>& type_from_to_edge,
+    PropertyPathBFSIterEnum(
+                            QuadModel&    model,
+                            BPlusTree<4>& type_from_to_edge,
                             BPlusTree<4>& to_type_from_edge,
                             Id start,
                             VarId end,
@@ -89,8 +74,7 @@ public:
     void reset() override;
     void assign_nulls() override;
     bool next() override;
-    bool current_state_has_next(const BFSIterEnum::StateKey& current_state);
-    void set_iter(const BFSIterEnum::StateKey& current_state);
+
 };
 
 

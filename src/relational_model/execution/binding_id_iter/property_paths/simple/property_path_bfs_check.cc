@@ -9,7 +9,6 @@
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 
 using namespace std;
-using namespace BFSCheck;
 
 
 PropertyPathBFSCheck::PropertyPathBFSCheck(
@@ -66,7 +65,7 @@ bool PropertyPathBFSCheck::next() {
         is_first = false;
         if (automaton.start_is_final && open.front().object_id == end_object_id) {
             print_path(open.front());
-            queue<CheckState> empty;
+            queue<SearchState> empty;
             open.swap(empty);
             results_found++;
             return true;
@@ -82,7 +81,7 @@ bool PropertyPathBFSCheck::next() {
             // Explore matches nodes
             auto child_record = iter->next();
             while (child_record != nullptr) {
-                auto next_state = CheckState(
+                auto next_state = SearchState(
                     transition.to,
                     ObjectId(child_record->ids[2]),
                     visited.find(current_state).operator->()
@@ -92,8 +91,8 @@ bool PropertyPathBFSCheck::next() {
                 if (next_state.state == automaton.final_state
                     && next_state.object_id == end_object_id )
                 {
-                    print_path(current_state);
-                    queue<CheckState> empty;
+                    print_path(next_state);
+                    queue<SearchState> empty;
                     open.swap(empty);
                     results_found++;
                     return true;
@@ -114,7 +113,7 @@ bool PropertyPathBFSCheck::next() {
 
 void PropertyPathBFSCheck::set_iter(
     const TransitionId& transition,
-    const CheckState& current_state) {
+    const SearchState& current_state) {
     // Get iter from correct bpt_tree according to inverse attribute
     if (transition.inverse) {
         min_ids[0] = current_state.object_id.id;
@@ -135,7 +134,7 @@ void PropertyPathBFSCheck::set_iter(
 
 void PropertyPathBFSCheck::reset() {
     // Empty open and visited
-    queue<CheckState> empty;
+    queue<SearchState> empty;
     open.swap(empty);
     visited.clear();
     is_first = true;
@@ -173,11 +172,11 @@ void PropertyPathBFSCheck::analyze(int indent) const {
          << ", found: " << results_found <<")\n";
 }
 
-void PropertyPathBFSCheck::print_path(CheckState& state) {
+void PropertyPathBFSCheck::print_path(SearchState& state) {
     auto current_state = &state;
     while (current_state != nullptr) {
         cout << model.get_graph_object(current_state->object_id) << "<=";
-        current_state = const_cast<CheckState*>(current_state->previous);
+        current_state = const_cast<SearchState*>(current_state->previous);
     }
     cout << "\n";
 }

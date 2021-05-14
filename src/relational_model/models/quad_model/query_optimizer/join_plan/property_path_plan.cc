@@ -15,7 +15,7 @@
 using namespace std;
 
 using PropertyPathCheck = PropertyPathBFSCheck;
-using PropertyPathEnum = PropertyPathBFSSimpleEnum;
+using PropertyPathEnum = PropertyPathDFSIterEnum;
 
 PropertyPathPlan::PropertyPathPlan(QuadModel &model, Id from, Id to, OpPath &path) :
     model(model),
@@ -112,7 +112,8 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
         transform_automaton(automaton);
         if (to_assigned) {
             // bool case
-            return make_unique<PropertyPathCheck>(*model.type_from_to_edge,
+            return make_unique<PropertyPathCheck>(model,
+                                                  *model.type_from_to_edge,
                                                   *model.to_type_from_edge,
                                                   from,
                                                   to,

@@ -12,11 +12,14 @@ using namespace std;
 using namespace DFSIterEnum;
 
 
-PropertyPathDFSIterEnum::PropertyPathDFSIterEnum(BPlusTree<4>& type_from_to_edge,
-                                                 BPlusTree<4>& to_type_from_edge,
-                                                 Id start,
-                                                 VarId end,
-                                                 PathAutomaton automaton) :
+PropertyPathDFSIterEnum::PropertyPathDFSIterEnum(
+                                                QuadModel&    model,
+                                                BPlusTree<4>& type_from_to_edge,
+                                                BPlusTree<4>& to_type_from_edge,
+                                                Id start,
+                                                VarId end,
+                                                PathAutomaton automaton) :
+    model             (model),
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
     start             (start),
@@ -32,15 +35,14 @@ void PropertyPathDFSIterEnum::begin(BindingId& parent_binding, bool parent_has_n
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
             open.emplace(automaton.start, start_object_id);
-            visited.emplace(automaton.start, start_object_id);
+            visited.emplace(automaton.start, start_object_id, nullptr);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
             open.emplace(automaton.start, start_object_id);
-            visited.emplace(automaton.start, start_object_id);
+            visited.emplace(automaton.start, start_object_id, nullptr);
         }
         first_next = true;
-        //iter = nullptr;
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;
@@ -54,7 +56,13 @@ bool PropertyPathDFSIterEnum::next() {
     if (first_next) {
         first_next = false;
         if (automaton.start_is_final) {
-            visited.emplace(automaton.final_state, open.top().object_id);
+            visited.emplace(automaton.final_state, open.top().object_id, nullptr);
+            auto current_key = SearchState(
+                automaton.final_state,
+                open.top().object_id,
+                nullptr
+            );
+            print_path(current_key);
             parent_binding->add(end, open.top().object_id);
             results_found++;
             return true;
@@ -65,6 +73,12 @@ bool PropertyPathDFSIterEnum::next() {
         if (current_state_has_next(current_state)) {
             open.emplace(reached_automaton_state, reached_object_id);
             if (reached_automaton_state == automaton.final_state) {
+                auto current_key = SearchState(
+                    reached_automaton_state,
+                    reached_object_id,
+                    nullptr
+                );
+                print_path(*visited.find(current_key).operator->());
                 // set binding;
                 parent_binding->add(end, reached_object_id);
                 results_found++;
@@ -96,7 +110,12 @@ bool PropertyPathDFSIterEnum::current_state_has_next(State&  state) {
         while (child_record != nullptr) {
             auto next_object_id = ObjectId(child_record->ids[2]);
             auto next_automaton_state = transition.to;
-            auto next_state_key = StateKey(next_automaton_state, next_object_id);
+            auto current_key = SearchState(state.state, state.object_id, nullptr);
+            auto next_state_key = SearchState(
+                next_automaton_state,
+                next_object_id,
+                visited.find(current_key).operator->()
+            );
             // Check child is not already visited
             if (visited.find(next_state_key) == visited.end()) {
                 visited.insert(next_state_key);
@@ -148,13 +167,13 @@ void PropertyPathDFSIterEnum::reset() {
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
         open.emplace(automaton.start, start_object_id);
-        visited.emplace(automaton.start, ObjectId(start_object_id));
+        visited.emplace(automaton.start, ObjectId(start_object_id), nullptr);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
         open.emplace(automaton.start, start_object_id);
-        visited.emplace(automaton.start, ObjectId(start_object_id));
+        visited.emplace(automaton.start, ObjectId(start_object_id), nullptr);
     }
 }
 
@@ -170,4 +189,14 @@ void PropertyPathDFSIterEnum::analyze(int indent) const {
     }
     cout << "PropertyPathDFSIterEnum(bpt_searches: " << bpt_searches
          << ", found: " << results_found <<")\n";
+}
+
+
+void PropertyPathDFSIterEnum::print_path(const SearchState& state) {
+    auto current_state = &state;
+    while (current_state != nullptr) {
+        cout << model.get_graph_object(current_state->object_id) << "<=";
+        current_state = const_cast<SearchState*>(current_state->previous);
+    }
+    cout << "\n";
 }

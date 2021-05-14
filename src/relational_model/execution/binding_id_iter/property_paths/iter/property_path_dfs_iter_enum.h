@@ -9,7 +9,8 @@
 
 #include "base/binding/binding_id_iter.h"
 #include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
-//#include "relational_model/execution/binding_id_iter/property_paths/search_state.h"
+#include "relational_model/models/quad_model/quad_model.h"
+#include "relational_model/execution/binding_id_iter/property_paths/search_state.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
@@ -56,7 +57,7 @@ class PropertyPathDFSIterEnum : public BindingIdIter {
 
 private:
     // Attributes determined in the constuctor
-
+    QuadModel&    model;
     BPlusTree<4>& type_from_to_edge;  // Used to search foward
     BPlusTree<4>& to_type_from_edge;  // Used to search backward
 
@@ -72,7 +73,7 @@ private:
      std::array<uint64_t, 4> max_ids;
 
     // Structs for BFS
-    std::unordered_set<DFSIterEnum::StateKey, DFSIterEnum::StateKeyHasher> visited;
+    std::unordered_set<SearchState, SearchStateHasher> visited;
     std::stack<DFSIterEnum::State> open;
 
     bool first_next = true;
@@ -85,8 +86,14 @@ private:
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
+    bool current_state_has_next(DFSIterEnum::State& current_state);
+    void set_iter(DFSIterEnum::State& current_state);
+    void print_path(const SearchState& state);
+
 public:
-    PropertyPathDFSIterEnum(BPlusTree<4>& type_from_to_edge,
+    PropertyPathDFSIterEnum(
+                            QuadModel&    model,
+                            BPlusTree<4>& type_from_to_edge,
                             BPlusTree<4>& to_type_from_edge,
                             Id start,
                             VarId end,
@@ -98,8 +105,7 @@ public:
     void reset() override;
     void assign_nulls() override;
     bool next() override;
-    bool current_state_has_next(DFSIterEnum::State& current_state);
-    void set_iter(DFSIterEnum::State& current_state);
+
 };
 
 
