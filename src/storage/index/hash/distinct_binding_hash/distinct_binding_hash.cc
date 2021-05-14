@@ -18,7 +18,7 @@ template class DistinctBindingHash<ObjectId>;
 template <class T>
 DistinctBindingHash<T>::DistinctBindingHash(std::size_t tuple_size) :
     tuple_size      (tuple_size),
-    buckets_file_id (file_manager.get_file_id("tmp_buckets.dat"))  // TODO: use tmp files
+    buckets_file_id (file_manager.get_tmp_file_id())
 {
     // create directory with 2^global_depth empty buckets
     uint_fast32_t dir_size = 1 << global_depth;
@@ -35,8 +35,8 @@ DistinctBindingHash<T>::DistinctBindingHash(std::size_t tuple_size) :
 
 template <class T>
 DistinctBindingHash<T>::~DistinctBindingHash() {
-    //std::cout << file_manager.count_pages(buckets_file_id) << "\n";
-    file_manager.remove(buckets_file_id);
+    //TODO: file_manager.remove_tmp(buckets_file_id);
+    file_manager.remove(FileId(buckets_file_id.id));
 }
 
 

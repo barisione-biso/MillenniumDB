@@ -4,6 +4,8 @@
  * The FileId its just the index, so both lists must have the same size
  * and objects at the same index are related to each other.
  *
+ * TODO: comment about temp pages
+ *
  * All the other clases that need to work with files should use the FileManager to obtain a reference to a
  * fstream.
  *
@@ -63,6 +65,8 @@ private:
     std::queue<FileId> available_file_ids;
 
     std::map<std::string, FileId> filename2file_id;
+
+    uint_fast32_t tmp_filename_counter; // TODO: we may need infinite files
 
     // to avoid synchronization problems when establishing a new file_id in `get_file_id(filename)`
     std::mutex files_mutex;

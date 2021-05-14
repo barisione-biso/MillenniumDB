@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <queue>
 #include <map>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -17,7 +16,6 @@ using KeyValuePair = std::pair<std::vector<ObjectId>, std::vector<ObjectId>>;
 
 class KeyValueHash {
 public:
-    static uint32_t instances_count; // TODO: remove when temp files are working
     static constexpr uint_fast32_t DEFAULT_INITIAL_DEPTH = 8;
 
     KeyValueHash(std::size_t key_size, std::size_t value_size);
@@ -27,28 +25,32 @@ public:
     void reset();
     void insert(const std::vector<ObjectId>& key, const std::vector<ObjectId>& value);
 
+    inline uint_fast32_t get_depth() const noexcept { return depth; }
+
     inline uint_fast32_t get_bucket_size(uint_fast32_t bucket_number) const {
         return buckets_sizes[bucket_number];
     }
+
     KeyValuePair get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);
 
-    void split(); // split directory and redistribute every bucket
-    inline uint_fast32_t get_depth() const noexcept { return depth; }
+    // split directory and redistribute every bucket
+    void split();
+
     uint_fast32_t get_bucket(const std::vector<ObjectId>& key) const;
 
 private:
-    const std::size_t  key_size;
-    const std::size_t  value_size;
-    const uint32_t     max_tuples;
+    const std::size_t key_size;
+    const std::size_t value_size;
+    const uint32_t    max_tuples;
 
-    uint_fast32_t      last_page_number;
-    const FileId       buckets_file;
+    uint_fast32_t     last_page_number;
+    const TmpFileId   buckets_file;
 
-    uint64_t tuples_count;
+    uint64_t      tuples_count;
     uint_fast32_t depth;
 
-    std::vector<std::vector<uint_fast32_t>>   buckets_page_numbers;
-    std::vector<uint_fast32_t>                buckets_sizes;
+    std::vector<std::vector<uint_fast32_t>> buckets_page_numbers;
+    std::vector<uint_fast32_t>              buckets_sizes;
 
     std::queue<uint_fast32_t> available_pages;
 

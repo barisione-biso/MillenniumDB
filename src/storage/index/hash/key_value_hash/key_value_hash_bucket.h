@@ -12,6 +12,7 @@
 #include "storage/file_id.h"
 #include "storage/page.h"
 
+// TODO: use templates
 using KeyValuePair = std::pair<std::vector<ObjectId>, std::vector<ObjectId>>;
 
 
@@ -20,7 +21,7 @@ class KeyValueHashBucket {
 friend class KeyValueHash;
 
 public:
-    KeyValueHashBucket(Page& page, std::size_t key_size, std::size_t value_size);
+    KeyValueHashBucket(const TmpFileId file_id, const uint_fast32_t bucket_number, std::size_t key_size, std::size_t value_size);
     ~KeyValueHashBucket();
 
     void insert(const KeyValuePair& pair);

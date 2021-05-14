@@ -13,8 +13,8 @@ template class DistinctBindingHashBucket<ObjectId>;
 
 
 template <class T>
-DistinctBindingHashBucket<T>::DistinctBindingHashBucket(const FileId file_id, const uint_fast32_t bucket_number, std::size_t _tuple_size) :
-    page        (buffer_manager.get_page(file_id, bucket_number)),
+DistinctBindingHashBucket<T>::DistinctBindingHashBucket(const TmpFileId file_id, const uint_fast32_t bucket_number, std::size_t _tuple_size) :
+    page        (buffer_manager.get_tmp_page(file_id, bucket_number)),
     MAX_TUPLES  ( (Page::PAGE_SIZE - sizeof(*tuple_size) - sizeof(*tuple_count) - sizeof(local_depth))
                   / (2*sizeof(*hashes) + _tuple_size*sizeof(T) ) ),
 

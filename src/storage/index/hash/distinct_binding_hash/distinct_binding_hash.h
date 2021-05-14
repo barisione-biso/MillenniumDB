@@ -24,7 +24,7 @@ private:
     uint_fast8_t global_depth = DEFAULT_GLOBAL_DEPTH;
     std::size_t tuple_size;
 
-    const FileId buckets_file_id;
+    const TmpFileId buckets_file_id;
 
     // array of size 2^global_depth
     uint_fast32_t* dir;

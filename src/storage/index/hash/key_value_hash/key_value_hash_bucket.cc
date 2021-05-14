@@ -7,8 +7,9 @@
 
 using namespace std;
 
-KeyValueHashBucket::KeyValueHashBucket(Page& page, std::size_t key_size, std::size_t value_size) :
-    page        (page),
+KeyValueHashBucket::KeyValueHashBucket(const TmpFileId file_id, const uint_fast32_t bucket_number,
+                                        std::size_t key_size, std::size_t value_size) :
+    page        (buffer_manager.get_tmp_page(file_id, bucket_number)),
     key_size    (key_size),
     value_size  (value_size),
     tuple_count ( reinterpret_cast<uint32_t*>(page.get_bytes() ) ),

@@ -133,6 +133,55 @@ FileId FileManager::get_file_id(const string& filename) {
 }
 
 
+TmpFileId FileManager::get_tmp_file_id() {
+    std::lock_guard<std::mutex> lck(files_mutex);
+
+    string filename = "tmp" + std::to_string(tmp_filename_counter++);
+
+    if (!available_file_ids.empty()) {
+        const auto file_path = get_file_path(filename);
+        const auto res = available_file_ids.front();
+        available_file_ids.pop();
+
+        filenames[res.id] = filename;
+        filename2file_id.insert({ filename, res });
+        auto file = make_unique<fstream>();
+        if (!experimental::filesystem::exists(file_path)) {
+            // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
+            // so we close it and open it again without append mode
+            file->open(file_path, ios::out|ios::app);
+            if (file->fail()) {
+                throw std::runtime_error("Could not open file " + file_path);
+            }
+            file->close();
+        }
+        file->open(file_path, ios::in|ios::out|ios::binary);
+        opened_files[res.id] = move(file);
+        return TmpFileId(res.id);
+    }
+    else {
+        const auto file_path = get_file_path(filename);
+        const auto res = FileId(filenames.size());
+
+        filenames.push_back(filename);
+        filename2file_id.insert({ filename, res });
+        auto file = make_unique<fstream>();
+        if (!experimental::filesystem::exists(file_path)) {
+            // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
+            // so we close it and open it again without append mode
+            file->open(file_path, ios::out|ios::app);
+            if (file->fail()) {
+                throw std::runtime_error("Could not open file " + file_path);
+            }
+            file->close();
+        }
+        file->open(file_path, ios::in|ios::out|ios::binary);
+        opened_files.push_back(move(file));
+        return TmpFileId(res.id);
+    }
+}
+
+
 void FileManager::remove(const FileId file_id) {
     std::lock_guard<std::mutex> lck(files_mutex);
     const auto file_path = get_file_path(filenames[file_id.id]);
