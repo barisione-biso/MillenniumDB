@@ -47,6 +47,7 @@ tests/dbs/*.*
 tests/dbs/*
 tests/query_debug
 tests/manual_query_debug
+tests/outputs/*
 
 ### CMake ###
 CMakeLists.txt.user

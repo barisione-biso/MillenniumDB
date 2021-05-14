@@ -13,6 +13,7 @@ private:
     const uint64_t mask;
     const uint64_t max_count;
     uint64_t current_node = 0;
+    uint64_t results = 0;
 
     BindingId* parent_binding;
 

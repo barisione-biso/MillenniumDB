@@ -14,7 +14,7 @@
 #include "base/parser/logical_plan/op/op_label.h"
 #include "base/parser/logical_plan/op/op_property.h"
 #include "base/parser/logical_plan/op/op_property_path.h"
-#include "base/parser/logical_plan/op/op_transitive_closure.h"
+
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/path_constructor/path_constructor.h"

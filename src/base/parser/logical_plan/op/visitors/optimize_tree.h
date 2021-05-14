@@ -33,9 +33,9 @@ public:
     void visit(OpOrderBy&) override;
     void visit(OpGroupBy&) override;
     void visit(OpOptional&) override;
-    void visit(OpTransitiveClosure&) override;
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
+    void visit(OpDistinct&) override;
 
     void visit(OpPropertyPath&) override;
     void visit(OpPath&) override;

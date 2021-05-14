@@ -2,6 +2,7 @@
 
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_connection.h"
+#include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
@@ -64,7 +65,11 @@ void CheckVarNames::visit(OpGraphPatternRoot& op_graph_pattern_root) {
 }
 
 
-void CheckVarNames::visit(OpTransitiveClosure&)   { }
+void CheckVarNames::visit(OpDistinct& op_distinct) {
+    op_distinct.op->accept_visitor(*this);
+}
+
+
 void CheckVarNames::visit(OpConnection&)          { }
 void CheckVarNames::visit(OpConnectionType&)      { }
 void CheckVarNames::visit(OpLabel&)               { }
@@ -75,5 +80,5 @@ void CheckVarNames::visit(OpPath&)                { }
 void CheckVarNames::visit(OpPathAlternatives& )   { }
 void CheckVarNames::visit(OpPathSequence&)        { }
 void CheckVarNames::visit(OpPathAtom&)            { }
-void CheckVarNames::visit(OpPathKleeneStar&)       { }
-void CheckVarNames::visit(OpPathOptional&)         { }
+void CheckVarNames::visit(OpPathKleeneStar&)      { }
+void CheckVarNames::visit(OpPathOptional&)        { }

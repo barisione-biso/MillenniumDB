@@ -11,7 +11,6 @@
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/property_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/property_path_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/transitive_closure_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
 #include "base/parser/logical_plan/op/op_path.h"
@@ -307,14 +306,13 @@ void BindingIdIterVisitor::visit(OpLabel&) { }
 void BindingIdIterVisitor::visit(OpProperty&) { }
 void BindingIdIterVisitor::visit(OpConnection&) { }
 void BindingIdIterVisitor::visit(OpConnectionType&) { }
-void BindingIdIterVisitor::visit(OpTransitiveClosure&) { }
 void BindingIdIterVisitor::visit(OpUnjointObject&) { }
 void BindingIdIterVisitor::visit(OpGraphPatternRoot&) { }
 void BindingIdIterVisitor::visit(OpSelect&) { }
 void BindingIdIterVisitor::visit(OpFilter&) { }
 void BindingIdIterVisitor::visit(OpOrderBy&) { }
 void BindingIdIterVisitor::visit(OpGroupBy&) { }
-
+void BindingIdIterVisitor::visit(OpDistinct&) { }
 
 void BindingIdIterVisitor::visit(OpPath&)              { }
 void BindingIdIterVisitor::visit(OpPropertyPath&)      { }

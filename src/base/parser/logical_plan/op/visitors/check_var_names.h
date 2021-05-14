@@ -25,9 +25,9 @@ public:
     void visit(OpOrderBy&) override;
     void visit(OpGroupBy&) override;
     void visit(OpOptional&) override;
-    void visit(OpTransitiveClosure&) override;
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
+    void visit(OpDistinct&) override;
 
     void visit(OpPropertyPath&) override;
     void visit(OpPath&) override;
@@ -36,6 +36,7 @@ public:
     void visit(OpPathSequence&) override;
     void visit(OpPathKleeneStar&) override;
     void visit(OpPathOptional&) override;
+
 };
 
 #endif // BASE__CHECK_VAR_NAMES_EXISTS_H_

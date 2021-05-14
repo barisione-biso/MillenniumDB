@@ -1,0 +1,11 @@
+# Database Limits
+- Max Identifiable Nodes: 2<sup>56</sup> (7 bytes to address), also limited by the object file size.
+- Max Anonymous Nodes: 2<sup>56</sup> (7 bytes to address)
+- Max Connections: 2<sup>56</sup>
+- Max properties: TODO: are they limited by the B+Tree?
+- Max labels: distinct labels limited by object file size.  TODO: are they limited by the B+Tree?
+- Integer limts: TODO:
+- B+Tree pages: 2<sup>32</sup>
+- Object File Size: 2<sup>48</sup> bytes (limited by extendible_hash) TODO: may be less and collistions may be greater
+- Max hash (murmur3) collitions: TODO:
+    - TODO: collitions for tuples (hash distinct)?

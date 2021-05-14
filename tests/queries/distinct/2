@@ -1,0 +1,2 @@
+SELECT DISTINCT ?y
+MATCH (?x)->(?y)

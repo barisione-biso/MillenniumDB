@@ -1,0 +1,3 @@
+SELECT DISTINCT ?x
+MATCH (?x)->(?y)
+WHERE ?x != ?y

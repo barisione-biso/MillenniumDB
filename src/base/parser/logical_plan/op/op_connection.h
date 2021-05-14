@@ -27,18 +27,19 @@ public:
         visitor.visit(*this);
     }
 
-
     bool operator<(const OpConnection& other) const {
         if (from < other.from) {
             return true;
+        } else if (from > other.from) {
+            return false;
         } else if (to < other.to) {
             return true;
-        } else if (edge < other.edge) {
-            return true;
+        } else if (to > other.to) {
+            return false;
+        } else {
+            return edge < other.edge;
         }
-        return false;
     }
-
 
     std::set<std::string> get_var_names() const override {
         std::set<std::string> res;

@@ -20,9 +20,9 @@ void EdgeTableLookup::analyze(int indent) const {
 }
 
 
-void EdgeTableLookup::begin(BindingId& parent_binding, bool /*parent_has_next*/) {
-    already_looked = false;
+void EdgeTableLookup::begin(BindingId& parent_binding, bool parent_has_next) {
     this->parent_binding = &parent_binding;
+    already_looked = !parent_has_next;
 }
 
 
