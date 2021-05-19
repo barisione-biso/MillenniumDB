@@ -34,7 +34,7 @@ bool EdgeTableLookup::next() {
         ++lookups;
 
         auto edge_assignation = (*parent_binding)[edge];
-        if ( (QuadModel::VALUE_MASK & edge_assignation.id) != QuadModel::CONNECTION_MASK) {
+        if ( (QuadModel::TYPE_MASK & edge_assignation.id) != QuadModel::CONNECTION_MASK) {
             return false;
         }
         auto edge_id = QuadModel::VALUE_MASK & edge_assignation.id;

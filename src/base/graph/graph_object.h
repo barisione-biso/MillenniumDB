@@ -131,7 +131,7 @@ public:
     }
 
     static GraphObject make_edge(const uint64_t id) {
-        return GraphObject(AnonymousNode(id));
+        return GraphObject(Edge(id));
     }
 
     static GraphObject make_int(const int64_t i) {
