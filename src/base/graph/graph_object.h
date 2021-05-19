@@ -12,6 +12,7 @@
 #include "base/graph/edge.h"
 #include "base/graph/string_inlined.h"
 #include "base/graph/string_external.h"
+#include "base/graph/volatile_path.h"
 
 struct NullGraphObject {
     inline void operator=(const NullGraphObject&) { }
@@ -80,6 +81,7 @@ using GraphObjectVariant = std::variant<
         IdentifiableExternal,
         Edge,
         AnonymousNode,
+        VolatilePath,
         bool,
         StringInlined,
         StringExternal,
@@ -102,9 +104,14 @@ struct GraphObjectOstreamVisitor {
     void operator()(const NotFoundObject&)          const { os << "NotFoundObj"; }
     void operator()(const int64_t n)                const { os << n; }
     void operator()(const float f)                  const { os << f; }
-    void operator()(const bool b)                   const {
+
+    void operator()(const bool b) const {
         if (b) os << "true";
         else os << "false";
+    }
+
+    void operator()(const VolatilePath& p) const {
+        p.path_printer->print(os, p.path_id);
     }
 };
 
@@ -199,6 +206,11 @@ public:
     static GraphObject make_string_inlined(const char* str) {
         StringInlined string_inlined{ str };
         return GraphObject(string_inlined);
+    }
+
+    static GraphObject make_volatile_path(uint64_t path_id) {
+        VolatilePath p{ path_id };
+        return GraphObject(p);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const GraphObject& graph_obj) {

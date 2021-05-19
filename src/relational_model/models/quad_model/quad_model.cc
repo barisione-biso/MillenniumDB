@@ -5,6 +5,9 @@
 
 #include "base/graph/anonymous_node.h"
 #include "base/graph/edge.h"
+#include "base/graph/volatile_path.h"
+#include "base/graph/path_printer.h"
+#include "relational_model/execution/path_manager.h"
 #include "relational_model/models/quad_model/graph_object_visitor.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_iter_visitor.h"
 #include "storage/buffer_manager.h"
@@ -12,13 +15,19 @@
 
 using namespace std;
 
+PathPrinter* VolatilePath::path_printer = nullptr;
+
+
 QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size) {
     FileManager::init(db_folder);
     BufferManager::init(buffer_pool_size);
+    PathManager::init(*this);
 
     new (&catalog())       QuadCatalog("catalog.dat");                    // placement new
     new (&object_file())   ObjectFile("object_file.dat");                 // placement new
     new (&strings_hash())  ExtendibleHash(object_file(), "str_hash.dat"); // placement new
+
+    //VolatilePath::path_printer = &path_manager;
 
     node_table = make_unique<RandomAccessTable<1>>("nodes.table");
     edge_table = make_unique<RandomAccessTable<3>>("edges.table");
@@ -73,6 +82,7 @@ QuadModel::~QuadModel() {
     equal_from_type_inverted.reset();
     equal_to_type_inverted.reset();
 
+    path_manager.~PathManager();
     buffer_manager.~BufferManager();
     file_manager.~FileManager();
 }
@@ -295,6 +305,10 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) {
 
         case CONNECTION_MASK : {
             return GraphObject::make_edge(unmasked_id);
+        }
+
+        case VALUE_PATH_MASK : {
+            return GraphObject::make_volatile_path(unmasked_id);
         }
 
         default : {

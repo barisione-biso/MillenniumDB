@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
+#include "relational_model/execution/path_manager.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
@@ -73,7 +74,7 @@ bool PropertyPathAStarIterEnum::next() {
                 current_state.object_id,
                 nullptr
             );
-            print_path(current_key);
+            path_manager.set_path(visited.find(current_key).operator->(), 0);
             parent_binding->add(end, current_state.object_id);
             results_found++;
             return true;
@@ -90,7 +91,8 @@ bool PropertyPathAStarIterEnum::next() {
                     reached_object_id,
                     nullptr
                 );
-                print_path(*visited.find(current_key).operator->());
+
+                path_manager.set_path(visited.find(current_key).operator->(), 0); // TODO:
                 parent_binding->add(end, reached_object_id);
                 results_found++;
                 return true;

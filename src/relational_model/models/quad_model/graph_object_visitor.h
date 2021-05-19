@@ -19,6 +19,7 @@ struct GraphObjectVisitor {
     ObjectId operator()(const StringExternal& s)        const;
     ObjectId operator()(const NullGraphObject&)         const;
     ObjectId operator()(const NotFoundObject&)          const;
+    ObjectId operator()(const VolatilePath&)            const;
     ObjectId operator()(const int64_t n)                const;
     ObjectId operator()(const bool b)                   const;
     ObjectId operator()(const float f)                  const;

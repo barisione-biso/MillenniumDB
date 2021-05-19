@@ -4,9 +4,10 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
-#include "storage/index/record.h"
+#include "relational_model/execution/path_manager.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
+#include "storage/index/record.h"
 
 using namespace std;
 
@@ -64,7 +65,8 @@ bool PropertyPathBFSCheck::next() {
     if (is_first) {
         is_first = false;
         if (automaton.start_is_final && open.front().object_id == end_object_id) {
-            print_path(open.front());
+            // print_path(open.front());
+            path_manager.set_path(visited.find(open.front()).operator->(), 0);  // TODO:
             queue<SearchState> empty;
             open.swap(empty);
             results_found++;
@@ -87,21 +89,23 @@ bool PropertyPathBFSCheck::next() {
                     visited.find(current_state).operator->()
                 );
 
-                // Check if next_state is final
-                if (next_state.state == automaton.final_state
-                    && next_state.object_id == end_object_id )
-                {
-                    print_path(next_state);
-                    queue<SearchState> empty;
-                    open.swap(empty);
-                    results_found++;
-                    return true;
-                }
                 // Add to visited and queue
                 if (visited.find(next_state) == visited.end()) {
                     open.push(next_state);
                     visited.insert(next_state);
                 }
+
+                // Check if next_state is final
+                if (next_state.state == automaton.final_state
+                    && next_state.object_id == end_object_id )
+                {
+                    path_manager.set_path(visited.find(next_state).operator->(), 0);  // TODO:
+                    queue<SearchState> empty;
+                    open.swap(empty);
+                    results_found++;
+                    return true;
+                }
+
                 child_record = iter->next();
             }
         }

@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
+#include "relational_model/execution/path_manager.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
@@ -14,8 +15,8 @@ PropertyPathBFSSimpleEnum::PropertyPathBFSSimpleEnum(
                                     QuadModel&    model,
                                     BPlusTree<4>& type_from_to_edge,
                                     BPlusTree<4>& to_type_from_edge,
-                                    Id start,
-                                    VarId end,
+                                    Id            start,
+                                    VarId         end,
                                     PathAutomaton automaton) :
     model             (model),
     type_from_to_edge (type_from_to_edge),
@@ -81,6 +82,7 @@ bool PropertyPathBFSSimpleEnum::next() {
         {
             results_found++;
             print_path(current_state);
+            path_manager.set_path(visited.find(current_state).operator->(), 0); // TODO:
             parent_binding->add(end, current_state.object_id);
             open.pop();  // Pop to visit next state
             return true;
