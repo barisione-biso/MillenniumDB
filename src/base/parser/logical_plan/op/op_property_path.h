@@ -10,6 +10,7 @@
 
 class OpPropertyPath : public Op {
 public:
+    const std::string var;
     const std::string from;
     const std::string to;
     std::unique_ptr<OpPath> path;
@@ -21,7 +22,8 @@ public:
         return os;
     };
 
-    OpPropertyPath(std::string from, std::string to, std::unique_ptr<OpPath> path) :
+    OpPropertyPath(std::string var, std::string from, std::string to, std::unique_ptr<OpPath> path) :
+        var  (std::move(var)),
         from (std::move(from)),
         to   (std::move(to)),
         path (std::move(path))

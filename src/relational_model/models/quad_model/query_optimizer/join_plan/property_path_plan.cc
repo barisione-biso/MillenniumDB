@@ -17,33 +17,38 @@ using namespace std;
 using PropertyPathCheck = PropertyPathBFSCheck;
 using PropertyPathEnum = PropertyPathAStarIterEnum;
 
-PropertyPathPlan::PropertyPathPlan(QuadModel &model, Id from, Id to, OpPath &path) :
-    model(model),
-    from(from),
-    to(to),
-    path(path),
-    from_assigned(std::holds_alternative<ObjectId>(from)),
-    to_assigned(std::holds_alternative<ObjectId>(to)) { }
+PropertyPathPlan::PropertyPathPlan(QuadModel &model, VarId path_var, Id from, Id to, OpPath &path) :
+    model         (model),
+    path_var      (path_var),
+    from          (from),
+    to            (to),
+    path          (path),
+    from_assigned (std::holds_alternative<ObjectId>(from)),
+    to_assigned   (std::holds_alternative<ObjectId>(to)) { }
+
 
 PropertyPathPlan::PropertyPathPlan(const PropertyPathPlan &other) :
-    model(other.model),
-    from(other.from),
-    to(other.to),
-    path(other.path),
-    from_assigned(other.from_assigned),
-    to_assigned(other.to_assigned) { }
+    model         (other.model),
+    path_var      (other.path_var),
+    from          (other.from),
+    to            (other.to),
+    path          (other.path),
+    from_assigned (other.from_assigned),
+    to_assigned   (other.to_assigned) { }
+
 
 unique_ptr<JoinPlan> PropertyPathPlan::duplicate() {
     return make_unique<PropertyPathPlan>(*this);
 }
 
+
 double PropertyPathPlan::estimate_cost() {
-    if (!to_assigned && !from_assigned)
-    {
+    if (!to_assigned && !from_assigned) {
         return std::numeric_limits<double>::max();
     }
     return /*100.0 +*/ estimate_output_size();
 }
+
 
 void PropertyPathPlan::print(int indent, bool estimated_cost, std::vector<std::string> &var_names) {
     for (int i = 0; i < indent; ++i) {
@@ -72,12 +77,14 @@ void PropertyPathPlan::print(int indent, bool estimated_cost, std::vector<std::s
     }
 }
 
+
 double PropertyPathPlan::estimate_output_size() {
     // TODO: find a better estimation
     const auto total_connections = static_cast<double>(
         model.catalog().connections_count);
     return total_connections * total_connections;
 }
+
 
 uint64_t PropertyPathPlan::get_vars() {
     uint64_t result = 0;
@@ -89,6 +96,7 @@ uint64_t PropertyPathPlan::get_vars() {
     }
     return result;
 }
+
 
 void PropertyPathPlan::set_input_vars(uint64_t input_vars) {
     if (std::holds_alternative<VarId>(from)) {
@@ -112,7 +120,8 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
         transform_automaton(automaton);
         if (to_assigned) {
             // bool case
-            return make_unique<PropertyPathCheck>(model,
+            return make_unique<PropertyPathCheck>(model, // TODO: delete model
+                                                  // TODO: pass path_var
                                                   *model.type_from_to_edge,
                                                   *model.to_type_from_edge,
                                                   from,
@@ -120,7 +129,8 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
                                                   automaton);
         } else {
             // enum starting on from
-            return make_unique<PropertyPathEnum>(model,
+            return make_unique<PropertyPathEnum>(model, // TODO: delete model
+                                                // TODO: pass path_var
                                                  *model.type_from_to_edge,
                                                  *model.to_type_from_edge,
                                                  from,
@@ -133,8 +143,9 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
             auto inverted_path = path.invert();
             auto automaton = inverted_path->get_optimized_automaton();
             transform_automaton(automaton);
-            return make_unique<PropertyPathEnum>(model,
-                                                *model.type_from_to_edge,
+            return make_unique<PropertyPathEnum>(model, // TODO: delete model
+                                                 // TODO: pass path_var
+                                                 *model.type_from_to_edge,
                                                  *model.to_type_from_edge,
                                                  to,
                                                  std::get<VarId>(from),
@@ -145,6 +156,7 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
     }
     return nullptr;
 }
+
 
 void PropertyPathPlan::transform_automaton(PathAutomaton &automaton) {
     for (size_t i = 0; i < automaton.from_to_connections.size(); i++) {

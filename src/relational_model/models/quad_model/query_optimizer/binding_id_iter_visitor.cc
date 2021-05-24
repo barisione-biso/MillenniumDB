@@ -126,8 +126,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
             );
         }
     }
-    //
-    // TODO: property paths are only transitive closures for now
+
     for (auto& property_path : op_match.property_paths) {
         auto from_id = property_path.from[0] == '?'
                     ? (JoinPlan::Id) get_var_id(property_path.from)
@@ -137,11 +136,10 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
                     ? (JoinPlan::Id) get_var_id(property_path.to)
                     : (JoinPlan::Id) model.get_identifiable_object_id(property_path.to);
 
-        //auto automata = property_path.path->get_optimized_automaton();
 
-    //    //auto type_id = model.get_identifiable_object_id(property_path.type);
+        VarId path_var = get_var_id(property_path.var);
         base_plans.push_back(
-            make_unique<PropertyPathPlan>(model, from_id, to_id, *property_path.path)
+            make_unique<PropertyPathPlan>(model, path_var, from_id, to_id, *property_path.path)
         );
     }
 
