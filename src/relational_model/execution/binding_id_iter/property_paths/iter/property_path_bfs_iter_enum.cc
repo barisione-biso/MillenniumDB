@@ -58,7 +58,13 @@ bool PropertyPathBFSIterEnum::next() {
         first_next = false;
         if (automaton.start_is_final) {
             visited.emplace(automaton.final_state, open.front().object_id, nullptr);
-            print_path(open.front());
+            auto reached_key = SearchState(
+                    automaton.final_state,
+                    open.front().object_id,
+                    nullptr
+                );
+            auto path_id = path_manager.set_path(visited.find(reached_key).operator->(), 0);
+            parent_binding->add(end, path_id);
             parent_binding->add(end, open.front().object_id);
             results_found++;
             return true;
@@ -75,7 +81,8 @@ bool PropertyPathBFSIterEnum::next() {
                     reached_object_id,
                     nullptr
                 );
-                print_path(*visited.find(reached_key).operator->());
+                auto path_id = path_manager.set_path(visited.find(reached_key).operator->(), 0);
+                parent_binding->add(end, path_id);
                 parent_binding->add(end, reached_object_id);
                 results_found++;
                 return true;
@@ -115,7 +122,8 @@ bool PropertyPathBFSIterEnum::current_state_has_next(const SearchState&  current
             // Check child is not already visited
             if (visited.find(next_state_key) == visited.end()) {
                 visited.insert(next_state_key);
-                // Update nexrt state settings
+                path_manager.set_path(visited.find(next_state_key).operator->(), 0);
+                // Update next state settings
                 reached_automaton_state = transition.to;
                 reached_object_id = next_object_id;
                 return true;

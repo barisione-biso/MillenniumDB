@@ -74,7 +74,9 @@ bool PropertyPathAStarIterEnum::next() {
                 current_state.object_id,
                 nullptr
             );
-            path_manager.set_path(visited.find(current_key).operator->(), 0);
+            // set binding;
+            auto path_id = path_manager.set_path(visited.find(current_key).operator->(), 0);
+            parent_binding->add(end, path_id);
             parent_binding->add(end, current_state.object_id);
             results_found++;
             return true;
@@ -92,7 +94,8 @@ bool PropertyPathAStarIterEnum::next() {
                     nullptr
                 );
 
-                path_manager.set_path(visited.find(current_key).operator->(), 0); // TODO:
+                auto path_id = path_manager.set_path(visited.find(current_key).operator->(), 0); // TODO:
+                parent_binding->add(end, path_id);
                 parent_binding->add(end, reached_object_id);
                 results_found++;
                 return true;

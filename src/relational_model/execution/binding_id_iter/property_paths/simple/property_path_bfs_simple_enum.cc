@@ -81,8 +81,9 @@ bool PropertyPathBFSSimpleEnum::next() {
            (current_state.state == automaton.start && automaton.start_is_final))
         {
             results_found++;
-            print_path(current_state);
-            path_manager.set_path(visited.find(current_state).operator->(), 0); // TODO:
+            //print_path(current_state);
+            auto path_object_id = path_manager.set_path(visited.find(current_state).operator->(), 0); // TODO:
+            parent_binding->add(end, path_object_id);
             parent_binding->add(end, current_state.object_id);
             open.pop();  // Pop to visit next state
             return true;

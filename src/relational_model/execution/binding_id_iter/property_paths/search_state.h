@@ -10,11 +10,19 @@ struct SearchState {
     const uint32_t state;
     const ObjectId object_id;
     const SearchState* previous;
+    const bool direction;
 
     SearchState(unsigned int state, ObjectId object_id, const SearchState* previous) :
         state      (state),
         object_id  (object_id),
-        previous   (previous) { }
+        previous   (previous),
+        direction  (true) { }
+
+    SearchState(unsigned int state, ObjectId object_id, const SearchState* previous, const bool direction) :
+        state      (state),
+        object_id  (object_id),
+        previous   (previous),
+        direction  (direction) { }
 
     ~SearchState() = default;
 

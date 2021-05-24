@@ -15,7 +15,7 @@
 using namespace std;
 
 using PropertyPathCheck = PropertyPathBFSCheck;
-using PropertyPathEnum = PropertyPathDFSIterEnum;
+using PropertyPathEnum = PropertyPathAStarIterEnum;
 
 PropertyPathPlan::PropertyPathPlan(QuadModel &model, Id from, Id to, OpPath &path) :
     model(model),

@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
+#include "relational_model/execution/path_manager.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
@@ -35,12 +36,12 @@ void PropertyPathDFSIterEnum::begin(BindingId& parent_binding, bool parent_has_n
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
             open.emplace(automaton.start, start_object_id);
-            visited.emplace(automaton.start, start_object_id, nullptr);
+            visited.emplace(automaton.start, start_object_id, nullptr, true);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
             open.emplace(automaton.start, start_object_id);
-            visited.emplace(automaton.start, start_object_id, nullptr);
+            visited.emplace(automaton.start, start_object_id, nullptr, true);
         }
         first_next = true;
         min_ids[2] = 0;
@@ -56,13 +57,15 @@ bool PropertyPathDFSIterEnum::next() {
     if (first_next) {
         first_next = false;
         if (automaton.start_is_final) {
-            visited.emplace(automaton.final_state, open.top().object_id, nullptr);
             auto current_key = SearchState(
                 automaton.final_state,
                 open.top().object_id,
-                nullptr
+                nullptr,
+                true
             );
-            print_path(current_key);
+            visited.insert(current_key);
+            auto path_id = path_manager.set_path(visited.find(current_key).operator->(), 0);
+            parent_binding->add(end, path_id);
             parent_binding->add(end, open.top().object_id);
             results_found++;
             return true;
@@ -73,14 +76,18 @@ bool PropertyPathDFSIterEnum::next() {
         if (current_state_has_next(current_state)) {
             open.emplace(reached_automaton_state, reached_object_id);
             if (reached_automaton_state == automaton.final_state) {
+                //TODO: Create reached_state
                 auto current_key = SearchState(
                     reached_automaton_state,
                     reached_object_id,
-                    nullptr
+                    nullptr,
+                    true
                 );
-                print_path(*visited.find(current_key).operator->());
+                auto path_id = path_manager.set_path(visited.find(current_key).operator->(), 0);
                 // set binding;
+                parent_binding->add(end, path_id);
                 parent_binding->add(end, reached_object_id);
+                // TODO: Use new var id
                 results_found++;
                 return true;
             }
@@ -110,11 +117,12 @@ bool PropertyPathDFSIterEnum::current_state_has_next(State&  state) {
         while (child_record != nullptr) {
             auto next_object_id = ObjectId(child_record->ids[2]);
             auto next_automaton_state = transition.to;
-            auto current_key = SearchState(state.state, state.object_id, nullptr);
+            auto current_key = SearchState(state.state, state.object_id, nullptr, true);
             auto next_state_key = SearchState(
                 next_automaton_state,
                 next_object_id,
-                visited.find(current_key).operator->()
+                visited.find(current_key).operator->(),
+                transition.inverse
             );
             // Check child is not already visited
             if (visited.find(next_state_key) == visited.end()) {
@@ -167,13 +175,13 @@ void PropertyPathDFSIterEnum::reset() {
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
         open.emplace(automaton.start, start_object_id);
-        visited.emplace(automaton.start, ObjectId(start_object_id), nullptr);
+        visited.emplace(automaton.start, ObjectId(start_object_id), nullptr, true);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
         open.emplace(automaton.start, start_object_id);
-        visited.emplace(automaton.start, ObjectId(start_object_id), nullptr);
+        visited.emplace(automaton.start, ObjectId(start_object_id), nullptr, true);
     }
 }
 

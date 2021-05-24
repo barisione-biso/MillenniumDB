@@ -27,7 +27,7 @@ QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size) {
     new (&object_file())   ObjectFile("object_file.dat");                 // placement new
     new (&strings_hash())  ExtendibleHash(object_file(), "str_hash.dat"); // placement new
 
-    //VolatilePath::path_printer = &path_manager;
+    VolatilePath::path_printer = &path_manager;
 
     node_table = make_unique<RandomAccessTable<1>>("nodes.table");
     edge_table = make_unique<RandomAccessTable<3>>("edges.table");
