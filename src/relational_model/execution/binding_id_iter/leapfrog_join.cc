@@ -218,7 +218,7 @@ bool LeapfrogJoin::find_intersection_for_current_level() {
 void LeapfrogJoin::analyze(int indent) const {
     cout << std::string(indent, ' ');
     // TODO: put some useful stats
-    cout << "LeapfrogJoin()\n";
+    cout << "LeapfrogJoin()";
 }
 
 
