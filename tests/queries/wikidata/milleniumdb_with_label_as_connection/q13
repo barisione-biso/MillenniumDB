@@ -1,19 +1,9 @@
-// SELECT ?countryName (COUNT (DISTINCT ?neighbor) AS ?neighbors)
-// WHERE {
-//     <?country :P31 :Q3624078 ?i1> .
-//     FILTER NOT EXISTS { ?i1 :P582 ?endDate }
-//     ?country rs:label ?countryName
-//     FILTER(lang(?countryName)="en")
-//     OPTIONAL {
-//         <?country :P47 ?neighbor ?i2 >
-//         <?neighbor :P31 :Q3624078 ?i3> .
-//         FILTER NOT EXISTS { ?i3 :P582q ?endDate2 }
-//     }
-// }
-// GROUP BY(?countryName) ORDER BY DESC(?neighbors)
+// ORIGINAL: Current countries ordered by most neighbours
+// MODIFIED: GROUP BY and FILTER NOT EXISTS not supported
+// Countries and their neighbours
 SELECT ?countryName.string_value, ?neighborName.string_value
-MATCH (?country)-[?e1 :P31]->(Q3624078),
+MATCH (?country)-[:P31]->(Q3624078),
       (?country)-[:P47]->(?neighbor),
-      (?neighbor)-[?e2 :P31]->(Q3624078),
-      (?country)-[:Label]->(?countryName),
-      (?neighbor)-[:Label]->(?neighborName)
+      (?neighbor)-[:P31]->(Q3624078),
+      (?country)-[:Label {language:"en"}]->(?countryName),
+      (?neighbor)-[:Label {language:"en"}]->(?neighborName)

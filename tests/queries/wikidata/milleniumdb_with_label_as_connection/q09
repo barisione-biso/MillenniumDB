@@ -1,10 +1,6 @@
-// SELECT ?pop ?time
-// WHERE {
-//     <:Q64 wd:P1082 ?popS ?i> .
-//     ?popS :numericValue ?pop .
-//     ?i wd:P585q [ :time ?time ] .
-// } ORDER BY (?time)
+// Populations of Berlin, ordered by least recent
+// Wrong because BUG at qualifiers imported
 SELECT ?pop.amount, ?time.time
 MATCH (Q64)-[?e :P1082]->(?pop),
       (?e)-[:P585]->(?time)
-LIMIT 100
+ORDER BY ?time.time

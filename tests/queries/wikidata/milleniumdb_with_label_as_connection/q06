@@ -1,20 +1,12 @@
-// SELECT ?state ?label ?borders
-// WHERE {
-//     {
-//         SELECT ?state (COUNT(?neigh) as ?borders)
-//         WHERE {
-//             <?state :P31 :Q35657 ?i1> .
-//             <?neigh :P47 ?state _:i2> .
-//             <?neigh :P31 :Q35657 ?i3 > .
-//         }
-//         GROUP BY ?state
-//     }
-//     OPTIONAL { ?state rs:label ?label . FILTER(lang(?label) = "en") }
-// }
-// ORDER BY DESC(?borders)
-SELECT ?state, ?label.string_value
+// Original: US states ordered by number of neighbouring state
+// Modified: GROUP BY and Nested query not supported
+// US states and their neighbours
+SELECT ?state, ?neigh, ?state_label.string_value, ?neigh_label.string_value
 MATCH (?state)-[:P31]->(Q35657),
       (?neigh)-[:P47]->(?state),
-      (?neigh)-[:P31]->(?Q35657),
-      (?state)-[:Label]->(?label)
+      (?neigh)-[:P31]->(?Q35657)
+OPTIONAL {
+      (?state)-[:Label {language:"en"}]->(?state_label),
+      (?neigh)-[:Label {language:"en"}]->(?neigh_label)
+}
 LIMIT 100
