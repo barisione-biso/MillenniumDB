@@ -94,8 +94,8 @@ struct GraphObjectOstreamVisitor {
     GraphObjectOstreamVisitor(std::ostream& os) :
         os (os) { }
 
-    void operator()(const IdentifiableInlined& i)   const { os << '(' << i.id << ')'; }
-    void operator()(const IdentifiableExternal& i)  const { os << '(' << i.id << ')'; }
+    void operator()(const IdentifiableInlined& i)   const { os << i.id; }
+    void operator()(const IdentifiableExternal& i)  const { os << i.id; }
     void operator()(const Edge& e)                  const { os << "_e(" << e.id << ')'; }
     void operator()(const AnonymousNode& a)         const { os << "_a(" << a.id << ')'; }
     void operator()(const StringInlined& s)         const { os << '"' << s.id << '"'; }

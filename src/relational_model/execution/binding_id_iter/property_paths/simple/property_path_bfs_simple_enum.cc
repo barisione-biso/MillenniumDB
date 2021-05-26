@@ -65,7 +65,9 @@ bool PropertyPathBFSSimpleEnum::next() {
                 auto next_state = SearchState(
                     transition.to,
                     ObjectId(child_record->ids[2]),
-                    visited.find(current_state).operator->()
+                    visited.find(current_state).operator->(),
+                    transition.inverse,
+                    transition.label
                 );
                 // Check if this node has been already visited
                 if (visited.find(next_state) == visited.end()) {
@@ -83,7 +85,7 @@ bool PropertyPathBFSSimpleEnum::next() {
             results_found++;
             auto path_object_id = path_manager.set_path(visited.find(current_state).operator->(), path_var);
             parent_binding->add(path_var, path_object_id);
-            parent_binding->add(path_var, current_state.object_id);
+            parent_binding->add(end, current_state.object_id);
             open.pop();  // Pop to visit next state
             return true;
         }

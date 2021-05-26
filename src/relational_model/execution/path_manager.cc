@@ -33,21 +33,23 @@ void PathManager::print(std::ostream& os, uint64_t path_id) const {
     auto current_state = paths[0];
     std::vector<std::string> path_string;
     std::vector<bool> directions;
+    std::vector<ObjectId> labels;
     while (current_state != nullptr) {
        std::stringstream ss;
        ss << model.get_graph_object(current_state->object_id);
        path_string.push_back(ss.str());
        directions.push_back(current_state->direction);
+       labels.push_back(current_state->label_id);
        current_state = const_cast<SearchState*>(current_state->previous);
     }
-    os << path_string[path_string.size() - 1];
-    // TODO: Crear un puntero al automata. Añadir labels al print, manejar invertidos
-    // q1 = [:P1] => q2 = [^:P2] -> q3
+    os << "(" << path_string[path_string.size() - 1] << ")";
+
     for (int i = path_string.size() - 2; i >= 0; i--) {
         if (directions[i]) {
-            os << "<=[" << /*model.get_graph_object(label)*/ "" << "]=" << path_string[i];
+            os << "<=[:" << model.get_graph_object(labels[i]) << "]=";
         } else {
-            os << "=>" << path_string[i];
+            os << "=[:" << model.get_graph_object(labels[i]) << "]=>";
         }
+        os << "(" << path_string[i] << ")";
     }
 }

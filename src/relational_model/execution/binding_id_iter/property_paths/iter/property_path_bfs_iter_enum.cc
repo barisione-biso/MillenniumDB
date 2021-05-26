@@ -56,6 +56,7 @@ bool PropertyPathBFSIterEnum::next() {
     // Check if first node is final
     if (first_next) {
         first_next = false;
+        // TODO: Check if start node exists (Perhaps checks before create automaton)
         if (automaton.start_is_final) {
             visited.emplace(automaton.final_state, open.front().object_id, nullptr);
             auto reached_key = SearchState(
@@ -63,10 +64,9 @@ bool PropertyPathBFSIterEnum::next() {
                     open.front().object_id,
                     nullptr
                 );
-            // TODO:
             auto path_id = path_manager.set_path(visited.find(reached_key).operator->(), path_var);
             parent_binding->add(path_var, path_id);
-            parent_binding->add(path_var, open.front().object_id);
+            parent_binding->add(end, open.front().object_id);
             results_found++;
             return true;
         }
@@ -84,7 +84,7 @@ bool PropertyPathBFSIterEnum::next() {
                 );
                 auto path_id = path_manager.set_path(visited.find(reached_key).operator->(), path_var);
                 parent_binding->add(path_var, path_id);
-                parent_binding->add(path_var, reached_object_id);
+                parent_binding->add(end, reached_object_id);
                 results_found++;
                 return true;
             }
@@ -118,12 +118,13 @@ bool PropertyPathBFSIterEnum::current_state_has_next(const SearchState&  current
             auto next_state_key = SearchState(
                 next_automaton_state,
                 next_object_id,
-                visited.find(current_state).operator->()
+                visited.find(current_state).operator->(),
+                transition.inverse,
+                transition.label
                 );
             // Check child is not already visited
             if (visited.find(next_state_key) == visited.end()) {
                 visited.insert(next_state_key);
-                //path_manager.set_path(visited.find(next_state_key).operator->(), 0);
                 // Update next state settings
                 reached_automaton_state = transition.to;
                 reached_object_id = next_object_id;

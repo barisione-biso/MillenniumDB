@@ -85,7 +85,9 @@ bool PropertyPathBFSCheck::next() {
                 auto next_state = SearchState(
                     transition.to,
                     ObjectId(child_record->ids[2]),
-                    visited.find(current_state).operator->()
+                    visited.find(current_state).operator->(),
+                    transition.inverse,
+                    transition.label
                 );
 
                 // Add to visited and queue

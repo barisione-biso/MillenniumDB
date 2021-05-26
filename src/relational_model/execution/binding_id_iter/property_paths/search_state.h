@@ -11,18 +11,25 @@ struct SearchState {
     const ObjectId object_id;
     const SearchState* previous;
     const bool direction;
+    const ObjectId label_id;
 
     SearchState(unsigned int state, ObjectId object_id, const SearchState* previous) :
         state      (state),
         object_id  (object_id),
         previous   (previous),
-        direction  (true) { }
+        direction  (true),
+        label_id   (ObjectId(ObjectId::NULL_OBJECT_ID)) { }
 
-    SearchState(unsigned int state, ObjectId object_id, const SearchState* previous, const bool direction) :
+    SearchState(unsigned int state,
+                ObjectId object_id,
+                const SearchState* previous,
+                const bool direction,
+                ObjectId label_id) :
         state      (state),
         object_id  (object_id),
         previous   (previous),
-        direction  (direction) { }
+        direction  (direction),
+        label_id   (label_id) { }
 
     ~SearchState() = default;
 
