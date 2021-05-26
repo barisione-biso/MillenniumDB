@@ -9,7 +9,7 @@
 #include "base/binding/binding_id_iter.h"
 #include "relational_model/execution/binding_id_iter/hash_join/key_value_pair_hasher.h"
 #include "storage/index/hash/key_value_hash/key_value_hash.h"
-#include "storage/index/hash/murmur3.h"
+#include "storage/index/hash/hash_functions/hash_function_wrapper.h"
 #include "storage/page.h"
 
 
@@ -40,25 +40,32 @@ private:
 
     BindingId* parent_binding;
 
-    KeyValueHash lhs_hash;
-    KeyValueHash rhs_hash;
+    KeyValueHash<ObjectId, ObjectId> lhs_hash;
+    KeyValueHash<ObjectId, ObjectId> rhs_hash;
 
     bool enumerating_with_second_hash;
     bool enumerating_with_nested_loop;
     bool left_min;
-    SmallMultiMap small_hash;
+    std::unordered_multimap<std::vector<ObjectId>,
+                            std::vector<ObjectId>,
+                            KeyValuePairHasher> small_hash;
 
     uint_fast32_t current_pos_left;   // for nested loop
     uint_fast32_t current_pos_right;
     uint_fast32_t current_bucket;
-    SmallMultiMap::iterator current_pair_iter;  // for small hash
-    SmallMultiMap::iterator end_range_iter;
+    std::unordered_multimap<std::vector<ObjectId>,
+                            std::vector<ObjectId>,
+                            KeyValuePairHasher>::iterator current_pair_iter;  // for small hash
+    std::unordered_multimap<std::vector<ObjectId>,
+                            std::vector<ObjectId>,
+                            KeyValuePairHasher>::iterator end_range_iter;
 
     std::vector<ObjectId> current_key;
     std::vector<ObjectId> current_value;
-    KeyValuePair saved_pair;
+    std::pair<std::vector<ObjectId>, std::vector<ObjectId>> saved_pair;
 
-    void assign_binding(const KeyValuePair& lhs_pair, const KeyValuePair& rhs_pair);
+    void assign_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& lhs_pair,
+                        const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& rhs_pair);
 };
 
 #endif // RELATIONAL_MODEL__HASH_JOIN_H_

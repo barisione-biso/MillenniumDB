@@ -10,7 +10,7 @@
 #include "base/graph/graph_object.h"
 #include "storage/file_manager.h"
 #include "storage/index/hash/distinct_binding_hash/distinct_binding_hash_bucket.h"
-#include "storage/index/hash/murmur3.h"
+#include "storage/index/hash/hash_functions/hash_function_wrapper.h"
 
 template class DistinctBindingHash<GraphObject>;
 template class DistinctBindingHash<ObjectId>;

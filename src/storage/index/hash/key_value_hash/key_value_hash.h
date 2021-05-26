@@ -12,8 +12,7 @@
 #include "storage/index/object_file/object_file.h"
 #include "storage/index/hash/key_value_hash/key_value_hash_bucket.h"
 
-using KeyValuePair = std::pair<std::vector<ObjectId>, std::vector<ObjectId>>;
-
+template <class K, class V>
 class KeyValueHash {
 public:
     static constexpr uint_fast32_t DEFAULT_INITIAL_DEPTH = 8;
@@ -23,7 +22,7 @@ public:
 
     void begin(uint_fast32_t initial_depth = DEFAULT_INITIAL_DEPTH);
     void reset();
-    void insert(const std::vector<ObjectId>& key, const std::vector<ObjectId>& value);
+    void insert(const std::vector<K>& key, const std::vector<V>& value);
 
     inline uint_fast32_t get_depth() const noexcept { return depth; }
 
@@ -31,12 +30,13 @@ public:
         return buckets_sizes[bucket_number];
     }
 
-    KeyValuePair get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);
+    std::pair<std::vector<K>, std::vector<V>> get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);
+    //std::pair<K*, V*> get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);
 
     // split directory and redistribute every bucket
     void split();
 
-    uint_fast32_t get_bucket(const std::vector<ObjectId>& key) const;
+    uint_fast32_t get_bucket(const std::vector<K>& key) const;
 
 private:
     const std::size_t key_size;
@@ -55,7 +55,7 @@ private:
     std::queue<uint_fast32_t> available_pages;
 
     // NOTE: take care we are supposed to insert everything and then read (we are recycling this variable)
-    std::vector<std::unique_ptr<KeyValueHashBucket>> current_buckets_pages;
+    std::vector<std::unique_ptr<KeyValueHashBucket<K, V>>> current_buckets_pages;
 
     inline uint_fast32_t get_split_treshold() const noexcept { return max_tuples * (1 << depth); }
 };

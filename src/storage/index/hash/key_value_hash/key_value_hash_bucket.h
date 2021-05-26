@@ -12,21 +12,23 @@
 #include "storage/file_id.h"
 #include "storage/page.h"
 
-// TODO: use templates
-using KeyValuePair = std::pair<std::vector<ObjectId>, std::vector<ObjectId>>;
+//using KeyValuePair = std::pair<std::vector<ObjectId>, std::vector<ObjectId>>;
+template<class K, class V> class KeyValueHash;
 
-
+template <class K, class V>
 class KeyValueHashBucket {
 
-friend class KeyValueHash;
+friend class KeyValueHash<K, V>;
 
 public:
-    KeyValueHashBucket(const TmpFileId file_id, const uint_fast32_t bucket_number, std::size_t key_size, std::size_t value_size);
+    KeyValueHashBucket(const TmpFileId file_id, const uint_fast32_t bucket_number,
+                       std::size_t key_size, std::size_t value_size);
     ~KeyValueHashBucket();
 
-    void insert(const KeyValuePair& pair);
-    void insert_in_pos(const KeyValuePair& pair, uint_fast32_t pos);  // for split
-    KeyValuePair get_pair(uint_fast32_t current_pos) const;
+    void insert(const std::vector<K>& key, const std::vector<V>& value);
+    void insert_in_pos(const std::vector<K>& key, const std::vector<V>& value, uint_fast32_t pos);  // for split
+    std::pair<std::vector<K>, std::vector<V>> get_pair(uint_fast32_t current_pos) const; // TODO: can optimize without copying
+    //std::pair<K*, V*> get_pair(uint_fast32_t current_pos) const;
 
     inline uint_fast32_t get_tuple_count() const noexcept { return *tuple_count; }
     inline void set_tuple_count(uint_fast32_t value) const noexcept { *tuple_count = value; }
@@ -37,7 +39,7 @@ private:
     uint32_t   const key_size;
     uint32_t   const value_size;
     uint32_t*  const tuple_count;
-    ObjectId*  const tuples;
+    char*      const tuples;
 };
 
 #endif // STORAGE__KEY_VALUE_HASH_BUCKET_H_

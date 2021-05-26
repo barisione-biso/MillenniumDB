@@ -1,4 +1,4 @@
 // join de muchos con muchos
 SELECT ?x, ?y, ?z
 MATCH (?x)->(?y)->(?z)
-LIMIT 10000
+LIMIT 10000000

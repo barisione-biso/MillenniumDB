@@ -12,8 +12,7 @@ HashJoinInMemory::HashJoinInMemory(unique_ptr<BindingIdIter> lhs, unique_ptr<Bin
     rhs             (move(rhs)),
     left_vars       (left_vars),
     common_vars     (common_vars),
-    right_vars      (right_vars),
-    lhs_hash        (SmallMultiMap({}))  // empty initialization
+    right_vars      (right_vars)
     { }
 
 
@@ -84,7 +83,9 @@ bool HashJoinInMemory::next() {
 }
 
 
-void HashJoinInMemory::assign_binding(const KeyValuePair& left_pair, const KeyValuePair& right_pair) {
+void HashJoinInMemory::assign_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>> & left_pair,
+                                      const std::pair<std::vector<ObjectId>, std::vector<ObjectId>> & right_pair) {
+
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
         parent_binding->add(left_vars[i], left_pair.second[i]);
     }

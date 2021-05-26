@@ -13,9 +13,8 @@ HashJoin::HashJoin(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs,
     left_vars       (left_vars),
     common_vars     (common_vars),
     right_vars      (right_vars),
-    lhs_hash        (KeyValueHash(common_vars.size(), left_vars.size())),
-    rhs_hash        (KeyValueHash(common_vars.size(), right_vars.size())),
-    small_hash      (SmallMultiMap({}))  // empty initialization
+    lhs_hash        (KeyValueHash<ObjectId, ObjectId>(common_vars.size(), left_vars.size())),
+    rhs_hash        (KeyValueHash<ObjectId, ObjectId>(common_vars.size(), right_vars.size()))
     { }
 
 
@@ -201,7 +200,9 @@ bool HashJoin::next() {
 }
 
 
-void HashJoin::assign_binding(const KeyValuePair& left_pair, const KeyValuePair& right_pair) {
+void HashJoin::assign_binding(const pair<vector<ObjectId>, vector<ObjectId>> & left_pair,
+                              const pair<vector<ObjectId>, vector<ObjectId>> & right_pair) {
+
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
         parent_binding->add(left_vars[i], left_pair.second[i]);
     }

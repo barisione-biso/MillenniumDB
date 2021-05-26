@@ -35,15 +35,22 @@ private:
     BindingId* parent_binding;
 
     bool enumerating;
-    SmallMultiMap lhs_hash;  // asume left is the smallest one (from execution plan)
-    SmallMultiMap::iterator current_pair_iter;
-    SmallMultiMap::iterator end_range_iter;
+    std::unordered_multimap<std::vector<ObjectId>,
+                            std::vector<ObjectId>,
+                            KeyValuePairHasher> lhs_hash;  // asume left is the smallest one (from execution plan)
+    std::unordered_multimap<std::vector<ObjectId>,
+                            std::vector<ObjectId>,
+                            KeyValuePairHasher>::iterator current_pair_iter;
+    std::unordered_multimap<std::vector<ObjectId>,
+                            std::vector<ObjectId>,
+                            KeyValuePairHasher>::iterator end_range_iter;
 
     std::vector<ObjectId> current_key;
     std::vector<ObjectId> current_value;
-    KeyValuePair saved_pair;
+    std::pair<std::vector<ObjectId>, std::vector<ObjectId>> saved_pair;
 
-    void assign_binding(const KeyValuePair& lhs_pair, const KeyValuePair& rhs_pair);
+    void assign_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& lhs_pair,
+                        const std::pair<std::vector<ObjectId>, std::vector<ObjectId>> & rhs_pair);
 };
 
 #endif // RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_H_

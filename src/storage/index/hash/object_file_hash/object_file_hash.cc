@@ -8,7 +8,7 @@
 
 #include "storage/file_manager.h"
 #include "storage/index/hash/object_file_hash/object_file_hash_bucket.h"
-#include "storage/index/hash/murmur3.h"
+#include "storage/index/hash/hash_functions/hash_function_wrapper.h"
 
 
 ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filename) :
