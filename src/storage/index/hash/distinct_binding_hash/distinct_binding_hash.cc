@@ -35,8 +35,7 @@ DistinctBindingHash<T>::DistinctBindingHash(std::size_t tuple_size) :
 
 template <class T>
 DistinctBindingHash<T>::~DistinctBindingHash() {
-    //TODO: file_manager.remove_tmp(buckets_file_id);
-    file_manager.remove(FileId(buckets_file_id.id));
+    file_manager.remove_tmp(buckets_file_id);
 }
 
 

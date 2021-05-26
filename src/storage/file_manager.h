@@ -4,7 +4,7 @@
  * The FileId its just the index, so both lists must have the same size
  * and objects at the same index are related to each other.
  *
- * TODO: comment about temp pages
+ * TODO: comment about tmp pages
  *
  * All the other clases that need to work with files should use the FileManager to obtain a reference to a
  * fstream.
@@ -54,6 +54,9 @@ public:
 
     // delete the file represented by `file_id`, pages in buffer using that file_id are cleared
     void remove(const FileId file_id);
+
+    // delete the file represented by `tmp_file_id`, pages in private buffer using that tmp_file_id are cleared
+    void remove_tmp(const TmpFileId tmp_file_id);
 
 private:
     // folder where all the used files will be

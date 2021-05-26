@@ -25,8 +25,7 @@ KeyValueHash<K, V>::KeyValueHash(std::size_t key_size, std::size_t value_size) :
 template <class K, class V>
 KeyValueHash<K, V>::~KeyValueHash() {
     current_buckets_pages.clear();
-    // TODO:
-    file_manager.remove(FileId(buckets_file.id));
+    file_manager.remove_tmp(buckets_file);
 }
 
 

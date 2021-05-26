@@ -61,10 +61,16 @@ public:
     // reduces the count of objects using the page. Should be called when a object using the page is destroyed.
     void unpin(Page& page);
 
-    // invalidates all pages using `file_id`
+    // invalidates all pages using `file_id`in shared buffer
     void remove(FileId file_id);
 
+    // invalidates all pages using `tmp_file_id`in private buffer
+    void remove_tmp(TmpFileId tmp_file_id);
+
     constexpr auto get_buffer_pool_size() const noexcept { return buffer_pool_size; }
+
+    uint_fast32_t get_private_buffer_index();
+
 private:
     BufferManager(uint_fast32_t buffer_pool_size);
 
