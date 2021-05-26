@@ -12,15 +12,15 @@
 using namespace std;
 
 PropertyPathBFSSimpleEnum::PropertyPathBFSSimpleEnum(
-                                    QuadModel&    model,
                                     BPlusTree<4>& type_from_to_edge,
                                     BPlusTree<4>& to_type_from_edge,
+                                    VarId         path_var,
                                     Id            start,
                                     VarId         end,
                                     PathAutomaton automaton) :
-    model             (model),
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
+    path_var          (path_var),
     start             (start),
     end               (end),
     automaton         (automaton)
@@ -81,9 +81,8 @@ bool PropertyPathBFSSimpleEnum::next() {
            (current_state.state == automaton.start && automaton.start_is_final))
         {
             results_found++;
-            //print_path(current_state);
-            auto path_object_id = path_manager.set_path(visited.find(current_state).operator->(), 0); // TODO:
-            parent_binding->add(end, path_object_id);
+            auto path_object_id = path_manager.set_path(visited.find(current_state).operator->(), path_var);
+            parent_binding->add(path_var, path_object_id);
             parent_binding->add(end, current_state.object_id);
             open.pop();  // Pop to visit next state
             return true;
@@ -146,13 +145,4 @@ void PropertyPathBFSSimpleEnum::analyze(int indent) const {
     }
     cout << "PropertyPathBFSSimpleEnum(bpt_searches: " << bpt_searches
          << ", found: " << results_found <<")\n";
-}
-
-void PropertyPathBFSSimpleEnum::print_path(SearchState& state) {
-    auto current_state = &state;
-    while (current_state != nullptr) {
-        cout << model.get_graph_object(current_state->object_id) << "<=";
-        current_state = const_cast<SearchState*>(current_state->previous);
-    }
-    cout << "\n";
 }

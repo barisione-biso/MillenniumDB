@@ -57,9 +57,9 @@ class PropertyPathDFSIterEnum : public BindingIdIter {
 
 private:
     // Attributes determined in the constuctor
-    QuadModel&    model;
     BPlusTree<4>& type_from_to_edge;  // Used to search foward
     BPlusTree<4>& to_type_from_edge;  // Used to search backward
+    VarId path_var;
 
     Id start;
     VarId end;
@@ -88,13 +88,12 @@ private:
 
     bool current_state_has_next(DFSIterEnum::State& current_state);
     void set_iter(DFSIterEnum::State& current_state);
-    void print_path(const SearchState& state);
 
 public:
     PropertyPathDFSIterEnum(
-                            QuadModel&    model,
                             BPlusTree<4>& type_from_to_edge,
                             BPlusTree<4>& to_type_from_edge,
+                            VarId path_var,
                             Id start,
                             VarId end,
                             PathAutomaton automaton);

@@ -9,7 +9,9 @@ static typename std::aligned_storage<sizeof(PathManager), alignof(PathManager)>:
 PathManager& path_manager = reinterpret_cast<PathManager&>(path_manager_buf);
 
 PathManager::PathManager(QuadModel& model) :
-    model (model) { }
+    model (model) {
+        paths.push_back(nullptr);
+    }
 
 
 void PathManager::init(QuadModel& model) {
@@ -17,18 +19,18 @@ void PathManager::init(QuadModel& model) {
 }
 
 
-ObjectId PathManager::set_path(const SearchState* visited_pointer, uint_fast32_t property_path_id) {
-    //saved_visited_pointer = visited_pointer;
+ObjectId PathManager::set_path(const SearchState* visited_pointer, VarId path_var) {
     // TODO: Refactor visited pointer allocation
-    auto path_id = paths.size();
-    paths.push_back(visited_pointer);
+    auto path_id = 0;
+    paths[0] = visited_pointer;
+    //paths.push_back(visited_pointer);
     return ObjectId(GraphModel::VALUE_PATH_MASK | path_id);
 }
 
 
 void PathManager::print(std::ostream& os, uint64_t path_id) const {
-    //auto current_state = saved_visited_pointer; // TODO: set from path_id
-    auto current_state = paths[path_id];
+    // TODO: Use path_id
+    auto current_state = paths[0];
     std::vector<std::string> path_string;
     std::vector<bool> directions;
     while (current_state != nullptr) {
@@ -40,9 +42,10 @@ void PathManager::print(std::ostream& os, uint64_t path_id) const {
     }
     os << path_string[path_string.size() - 1];
     // TODO: Crear un puntero al automata. Añadir labels al print, manejar invertidos
+    // q1 = [:P1] => q2 = [^:P2] -> q3
     for (int i = path_string.size() - 2; i >= 0; i--) {
         if (directions[i]) {
-            os << "<=" << path_string[i];
+            os << "<=[" << /*model.get_graph_object(label)*/ "" << "]=" << path_string[i];
         } else {
             os << "=>" << path_string[i];
         }

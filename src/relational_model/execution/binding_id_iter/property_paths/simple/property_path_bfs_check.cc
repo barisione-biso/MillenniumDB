@@ -13,15 +13,15 @@ using namespace std;
 
 
 PropertyPathBFSCheck::PropertyPathBFSCheck(
-                                    QuadModel&    model,
                                     BPlusTree<4>& type_from_to_edge,
                                     BPlusTree<4>& to_type_from_edge,
+                                    VarId path_var,
                                     Id start,
                                     Id end,
                                     PathAutomaton automaton) :
-    model             (model),
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
+    path_var          (path_var),
     start             (start),
     end               (end),
     automaton         (automaton)
@@ -65,8 +65,7 @@ bool PropertyPathBFSCheck::next() {
     if (is_first) {
         is_first = false;
         if (automaton.start_is_final && open.front().object_id == end_object_id) {
-            // print_path(open.front());
-            path_manager.set_path(visited.find(open.front()).operator->(), 0);  // TODO:
+            //path_manager.set_path(visited.find(open.front()).operator->(), 0);  // TODO:
             queue<SearchState> empty;
             open.swap(empty);
             results_found++;
@@ -99,7 +98,7 @@ bool PropertyPathBFSCheck::next() {
                 if (next_state.state == automaton.final_state
                     && next_state.object_id == end_object_id )
                 {
-                    path_manager.set_path(visited.find(next_state).operator->(), 0);  // TODO:
+                    //path_manager.set_path(visited.find(next_state).operator->(), 0);  // TODO:
                     queue<SearchState> empty;
                     open.swap(empty);
                     results_found++;
@@ -174,13 +173,4 @@ void PropertyPathBFSCheck::analyze(int indent) const {
     }
     cout << "PropertyPathBFSCheck(bpt_searches: " << bpt_searches
          << ", found: " << results_found <<")\n";
-}
-
-void PropertyPathBFSCheck::print_path(SearchState& state) {
-    auto current_state = &state;
-    while (current_state != nullptr) {
-        cout << model.get_graph_object(current_state->object_id) << "<=";
-        current_state = const_cast<SearchState*>(current_state->previous);
-    }
-    cout << "\n";
 }

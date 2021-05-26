@@ -11,7 +11,7 @@ class PathManager : public PathPrinter {
 public:
     ~PathManager() = default;
 
-    ObjectId set_path(const SearchState* visited_pointer, uint_fast32_t property_path_id);
+    ObjectId set_path(const SearchState* visited_pointer, VarId path_var);
     void print(std::ostream& os, uint64_t path_id) const override;
 
     static void init(QuadModel& model);

@@ -14,15 +14,15 @@ using namespace DFSIterEnum;
 
 
 PropertyPathDFSIterEnum::PropertyPathDFSIterEnum(
-                                                QuadModel&    model,
                                                 BPlusTree<4>& type_from_to_edge,
                                                 BPlusTree<4>& to_type_from_edge,
+                                                VarId path_var,
                                                 Id start,
                                                 VarId end,
                                                 PathAutomaton automaton) :
-    model             (model),
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
+    path_var          (path_var),
     start             (start),
     end               (end),
     automaton         (automaton)
@@ -64,8 +64,8 @@ bool PropertyPathDFSIterEnum::next() {
                 true
             );
             visited.insert(current_key);
-            auto path_id = path_manager.set_path(visited.find(current_key).operator->(), 0);
-            parent_binding->add(end, path_id);
+            auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var);
+            parent_binding->add(path_var, path_id);
             parent_binding->add(end, open.top().object_id);
             results_found++;
             return true;
@@ -83,9 +83,9 @@ bool PropertyPathDFSIterEnum::next() {
                     nullptr,
                     true
                 );
-                auto path_id = path_manager.set_path(visited.find(current_key).operator->(), 0);
+                auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var);
                 // set binding;
-                parent_binding->add(end, path_id);
+                parent_binding->add(path_var, path_id);
                 parent_binding->add(end, reached_object_id);
                 // TODO: Use new var id
                 results_found++;
@@ -197,14 +197,4 @@ void PropertyPathDFSIterEnum::analyze(int indent) const {
     }
     cout << "PropertyPathDFSIterEnum(bpt_searches: " << bpt_searches
          << ", found: " << results_found <<")\n";
-}
-
-
-void PropertyPathDFSIterEnum::print_path(const SearchState& state) {
-    auto current_state = &state;
-    while (current_state != nullptr) {
-        cout << model.get_graph_object(current_state->object_id) << "<=";
-        current_state = const_cast<SearchState*>(current_state->previous);
-    }
-    cout << "\n";
 }

@@ -13,15 +13,15 @@ using namespace std;
 
 
 PropertyPathBFSIterEnum::PropertyPathBFSIterEnum(
-                                                QuadModel&    model,
                                                 BPlusTree<4>& type_from_to_edge,
                                                 BPlusTree<4>& to_type_from_edge,
+                                                VarId path_var,
                                                 Id start,
                                                 VarId end,
                                                 PathAutomaton automaton) :
-    model             (model),
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
+    path_var          (path_var),
     start             (start),
     end               (end),
     automaton         (automaton)
@@ -63,8 +63,9 @@ bool PropertyPathBFSIterEnum::next() {
                     open.front().object_id,
                     nullptr
                 );
-            auto path_id = path_manager.set_path(visited.find(reached_key).operator->(), 0);
-            parent_binding->add(end, path_id);
+            // TODO:
+            auto path_id = path_manager.set_path(visited.find(reached_key).operator->(), path_var);
+            parent_binding->add(path_var, path_id);
             parent_binding->add(end, open.front().object_id);
             results_found++;
             return true;
@@ -81,8 +82,8 @@ bool PropertyPathBFSIterEnum::next() {
                     reached_object_id,
                     nullptr
                 );
-                auto path_id = path_manager.set_path(visited.find(reached_key).operator->(), 0);
-                parent_binding->add(end, path_id);
+                auto path_id = path_manager.set_path(visited.find(reached_key).operator->(), path_var);
+                parent_binding->add(path_var, path_id);
                 parent_binding->add(end, reached_object_id);
                 results_found++;
                 return true;
@@ -122,7 +123,7 @@ bool PropertyPathBFSIterEnum::current_state_has_next(const SearchState&  current
             // Check child is not already visited
             if (visited.find(next_state_key) == visited.end()) {
                 visited.insert(next_state_key);
-                path_manager.set_path(visited.find(next_state_key).operator->(), 0);
+                //path_manager.set_path(visited.find(next_state_key).operator->(), 0);
                 // Update next state settings
                 reached_automaton_state = transition.to;
                 reached_object_id = next_object_id;
@@ -194,14 +195,4 @@ void PropertyPathBFSIterEnum::analyze(int indent) const {
     }
     cout << "PropertyPathBFSIterEnum(bpt_searches: " << bpt_searches
          << ", found: " << results_found <<")\n";
-}
-
-
-void PropertyPathBFSIterEnum::print_path(const SearchState& state) {
-    auto current_state = &state;
-    while (current_state != nullptr) {
-        cout << model.get_graph_object(current_state->object_id) << "<=";
-        current_state = const_cast<SearchState*>(current_state->previous);
-    }
-    cout << "\n";
 }

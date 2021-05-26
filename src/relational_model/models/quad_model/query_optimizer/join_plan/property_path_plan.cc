@@ -15,7 +15,7 @@
 using namespace std;
 
 using PropertyPathCheck = PropertyPathBFSCheck;
-using PropertyPathEnum = PropertyPathAStarIterEnum;
+using PropertyPathEnum = PropertyPathBFSSimpleEnum;
 
 PropertyPathPlan::PropertyPathPlan(QuadModel &model, VarId path_var, Id from, Id to, OpPath &path) :
     model         (model),
@@ -120,19 +120,17 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
         transform_automaton(automaton);
         if (to_assigned) {
             // bool case
-            return make_unique<PropertyPathCheck>(model, // TODO: delete model
-                                                  // TODO: pass path_var
-                                                  *model.type_from_to_edge,
+            return make_unique<PropertyPathCheck>(*model.type_from_to_edge,
                                                   *model.to_type_from_edge,
+                                                  path_var,
                                                   from,
                                                   to,
                                                   automaton);
         } else {
             // enum starting on from
-            return make_unique<PropertyPathEnum>(model, // TODO: delete model
-                                                // TODO: pass path_var
-                                                 *model.type_from_to_edge,
+            return make_unique<PropertyPathEnum>(*model.type_from_to_edge,
                                                  *model.to_type_from_edge,
+                                                 path_var,
                                                  from,
                                                  std::get<VarId>(to),
                                                  automaton);
@@ -143,10 +141,9 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
             auto inverted_path = path.invert();
             auto automaton = inverted_path->get_optimized_automaton();
             transform_automaton(automaton);
-            return make_unique<PropertyPathEnum>(model, // TODO: delete model
-                                                 // TODO: pass path_var
-                                                 *model.type_from_to_edge,
+            return make_unique<PropertyPathEnum>(*model.type_from_to_edge,
                                                  *model.to_type_from_edge,
+                                                 path_var,
                                                  to,
                                                  std::get<VarId>(from),
                                                  automaton);
