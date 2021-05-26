@@ -83,7 +83,7 @@ bool PropertyPathBFSSimpleEnum::next() {
             results_found++;
             auto path_object_id = path_manager.set_path(visited.find(current_state).operator->(), path_var);
             parent_binding->add(path_var, path_object_id);
-            parent_binding->add(end, current_state.object_id);
+            parent_binding->add(path_var, current_state.object_id);
             open.pop();  // Pop to visit next state
             return true;
         }

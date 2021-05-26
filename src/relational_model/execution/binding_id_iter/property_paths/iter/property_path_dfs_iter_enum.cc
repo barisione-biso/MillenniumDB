@@ -66,7 +66,7 @@ bool PropertyPathDFSIterEnum::next() {
             visited.insert(current_key);
             auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var);
             parent_binding->add(path_var, path_id);
-            parent_binding->add(end, open.top().object_id);
+            parent_binding->add(path_var, open.top().object_id);
             results_found++;
             return true;
         }
@@ -86,7 +86,7 @@ bool PropertyPathDFSIterEnum::next() {
                 auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var);
                 // set binding;
                 parent_binding->add(path_var, path_id);
-                parent_binding->add(end, reached_object_id);
+                parent_binding->add(path_var, reached_object_id);
                 // TODO: Use new var id
                 results_found++;
                 return true;
