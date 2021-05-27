@@ -15,18 +15,32 @@ class LeapfrogIter {
 public:
     virtual ~LeapfrogIter() = default;
 
-    virtual void up() = 0; // TODO: podría no ser virtual?
+    virtual void up() { level--; }
     virtual void down() = 0;
     virtual bool open_terms() = 0;
     virtual bool next() = 0;
     virtual bool seek(uint64_t key) = 0;
     virtual uint64_t get_key() const = 0;
 
-    virtual const std::vector<VarId>& get_intersection_vars() = 0; // TODO: podría no ser virtual?
-    virtual const std::vector<VarId>& get_enumeration_vars() = 0;  // TODO: podría no ser virtual?
+    inline const std::vector<VarId>& get_intersection_vars() { return intersection_vars; }
+    inline const std::vector<VarId>& get_enumeration_vars()  { return enumeration_vars; }
 
     // will consume all tuples and write them into the buffer. Invalidates the current_leaf
     virtual void enum_no_intersection(TupleBuffer& buffer) = 0;
+
+protected:
+    const std::vector<VarId> intersection_vars;
+    const std::vector<VarId> enumeration_vars;
+    const std::vector<ObjectId> terms;
+
+    int_fast32_t level = -1; // can go from -1 to N-1
+
+    LeapfrogIter(const std::vector<VarId> intersection_vars,
+                 const std::vector<VarId> enumeration_vars,
+                 const std::vector<ObjectId> terms) :
+        intersection_vars (std::move(intersection_vars)),
+        enumeration_vars  (std::move(enumeration_vars)),
+        terms             (std::move(terms)) { }
 };
 
 
@@ -40,10 +54,7 @@ public:
 
     ~LeapfrogIterImpl() = default;
 
-    inline void up() override { level--; }
     inline uint64_t get_key() const override { return (*current_tuple)[level]; }
-    inline const std::vector<VarId>& get_intersection_vars() override { return intersection_vars; }
-    inline const std::vector<VarId>& get_enumeration_vars() override { return enumeration_vars; }
 
     // Increases the level and sets the current_tuple
     void down() override;
@@ -55,7 +66,7 @@ public:
 
     bool next_enumeration();
 
-    // Sets the current tuple with the a record that has a greater or equal key at the current level
+    // Sets the current tuple with a record that has a greater or equal key at the current level
     // returns false if there is no such record
     bool seek(uint64_t key) override;
 
@@ -64,19 +75,10 @@ public:
     bool open_terms() override;
 
 private:
-    // const BPlusTree<N>& btree;
-
-    const std::vector<ObjectId> terms;
-
-    const std::vector<VarId> intersection_vars;
-
-    const std::vector<VarId> enumeration_vars;
-
     std::unique_ptr<Record<N>> current_tuple;
 
-    int_fast32_t level; // can go from -1 to N-1
-
     std::unique_ptr<BPlusTreeLeaf<N>> current_leaf;
+
     uint32_t current_pos_in_leaf;
 
     std::stack<std::unique_ptr<BPlusTreeDir<N>>> directory_stack;

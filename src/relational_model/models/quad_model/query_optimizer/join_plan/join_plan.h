@@ -28,6 +28,10 @@ public:
         return (get_vars() & other.get_vars()) == 0;
     }
 
+    bool cartesian_product_needed(const uint64_t input_vars) {
+        return (get_vars() & input_vars) == 0;
+    }
+
     // TODO: using 64 bits limits the number of variables up to 64
     // TODO: Change uint64_t to std::set<VarId>
     // virtual void set_input_vars(const std::set<VarId>& input_vars) = 0;

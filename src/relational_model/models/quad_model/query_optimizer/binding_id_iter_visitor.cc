@@ -162,8 +162,8 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
         throw QuerySemanticException("Empty plan");
     }
 
-    // try to use leapfrog if possible
-    // tmp = try_get_leapfrog_plan(base_plans, binding_size);
+    // try to use leapfrog if possible // TODO: only use when having more than 1 base plan?
+    tmp = try_get_leapfrog_plan(base_plans, var_names, binding_size, input_vars);
 
     if (tmp == nullptr){
         if (base_plans.size() <= MAX_SELINGER_PLANS) {
@@ -282,19 +282,92 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
 
 
 unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vector<unique_ptr<JoinPlan>>& base_plans,
-                                                                      const size_t binding_size)
+                                                                      vector<string>& var_names,
+                                                                      const size_t binding_size,
+                                                                      uint64_t _input_vars)
 {
+    const auto base_plans_size = base_plans.size();
+    assert(base_plans_size > 0);
+    vector<unique_ptr<JoinPlan>> ordered_plans;
+    vector<bool> base_plan_selected(base_plans_size, false);
+
     vector<VarId> intersection_vars;
     set<VarId> enumeration_vars;
     set<VarId> intersection_vars_set;
 
-    // TODO: me gustaría ordenar base plans (o recorerlo en un orden de indice distinto para no duplicar/mover unique_ptrs)
-    for (const auto& plan : base_plans) {
+    // TODO:
+    uint64_t input_vars = _input_vars;
+
+    // choose the first scan
+    int best_index = 0;
+    double best_cost = std::numeric_limits<double>::max();
+    for (size_t j = 0; j < base_plans_size; j++) {
+        base_plans[j]->set_input_vars(input_vars);
+        auto current_element_cost = base_plans[j]->estimate_cost();
+        if (current_element_cost < best_cost) {
+            best_cost = current_element_cost;
+            best_index = j;
+        }
+    }
+    base_plan_selected[best_index] = true;
+    // cout << "selected index " << best_index << "\n";
+    ordered_plans.push_back(base_plans[best_index]->duplicate());
+
+    // choose the next scan and make a IndexNestedLoopJoin
+    for (size_t i = 1; i < base_plans_size; i++) {
+        best_index = 0;
+        best_cost = std::numeric_limits<double>::max();
+        unique_ptr<JoinPlan> best_step_plan = nullptr;
+
+        for (size_t j = 0; j < base_plans_size; j++) {
+            if (!base_plan_selected[j]
+                && !base_plans[j]->cartesian_product_needed(input_vars) )
+            {
+                auto duplicated_plan = base_plans[j]->duplicate();
+                duplicated_plan->set_input_vars(input_vars);
+                auto cost = duplicated_plan->estimate_cost();
+
+                if (cost < best_cost) {
+                    best_cost = cost;
+                    best_index = j;
+                    best_step_plan = move(duplicated_plan);
+                }
+            }
+        }
+
+        // All elements would form a cross product, iterate again, allowing cross products
+        if (best_cost == std::numeric_limits<double>::max()) {
+            best_index = 0;
+
+            for (size_t j = 0; j < base_plans_size; j++) {
+                if (base_plan_selected[j]) {
+                    continue;
+                }
+                auto duplicated_plan = base_plans[j]->duplicate();
+                duplicated_plan->set_input_vars(input_vars);
+                auto cost = duplicated_plan->estimate_cost();
+
+                if (cost < best_cost) {
+                    best_cost = cost;
+                    best_index = j;
+                    best_step_plan = move(duplicated_plan);
+                }
+            }
+        }
+        base_plan_selected[best_index] = true;
+        input_vars |= best_step_plan->get_vars();
+        // cout << "selected index " << best_index << "\n";
+        ordered_plans.push_back(move(best_step_plan));
+    }
+
+    // set intersection and enumeration vars
+    for (const auto& plan : ordered_plans) {
         auto encoded_vars = plan->get_vars();
         for (std::size_t i = 0; i < binding_size; i++) {
             if ((encoded_vars & (1UL << i)) != 0) {
                 VarId var(i);
                 // cout << "VarId(" << i << ")\n";
+                // cout << "seeing " << var_names[i] << "\n";
                 // Var is in enumeration_vars
                 if (enumeration_vars.find(var) != enumeration_vars.end()) {
                     enumeration_vars.erase(var);
@@ -310,8 +383,18 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
         }
     }
 
+    cout << "Var order: [";
+    for (const auto& var : intersection_vars) {
+        cout << " " << var_names[var.id];
+    }
+
+    for (const auto& var : enumeration_vars) {
+        cout << " " << var_names[var.id];
+    }
+    cout << " ]\n";
+
     // Segunda pasada ahora si creando los LFIters
-    std::vector<std::unique_ptr<LeapfrogIter>> leapfrog_iters;
+    vector<unique_ptr<LeapfrogIter>> leapfrog_iters;
     for (const auto& plan : base_plans) {
         auto lf_iter = plan->get_leapfrog_iter(intersection_vars);
         if (lf_iter == nullptr) {
@@ -325,6 +408,7 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
     for (const auto& var : enumeration_vars) {
         var_order.push_back(var);
     }
+
     return make_unique<LeapfrogJoin>(move(leapfrog_iters), move(var_order)); // TODO: generate global order?
 }
 

@@ -19,7 +19,7 @@ void LeapfrogJoin::begin(BindingId& parent_binding, bool parent_has_next) {
     this->parent_binding = &parent_binding;
 
     if (!parent_has_next) {
-        // level = base_level - 1;
+        // level = base_level - 1 so next() will return false
         return;
     }
 
@@ -90,7 +90,7 @@ bool LeapfrogJoin::next() {
                     // We are in a previous intersection, so we need to move the last iterator forward
                     // to avoid having the same intersection
                     if (!iters_for_var[level][iters_for_var[level].size() - 1]->next()) {
-                        cout << "TODO: esto puede estar mal\n";
+                        cout << "TODO: esto puede estar mal\n"; // TODO: porque?
                         return false;
                     }
                 }

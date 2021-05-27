@@ -61,7 +61,9 @@ public:
     //     const std::size_t binding_size);
     std::unique_ptr<BindingIdIter> try_get_leapfrog_plan(
         const std::vector<std::unique_ptr<JoinPlan>>& base_plans,
-        const std::size_t binding_size);
+        std::vector<std::string>& var_names,
+        const std::size_t binding_size,
+        uint64_t input_vars);
 
 };
 

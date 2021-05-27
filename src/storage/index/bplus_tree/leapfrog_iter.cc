@@ -12,15 +12,11 @@ template class LeapfrogIterImpl<4>;
 using namespace std;
 
 template <size_t N>
-LeapfrogIterImpl<N>::LeapfrogIterImpl(const BPlusTree<N>& btree,
+LeapfrogIterImpl<N>::LeapfrogIterImpl(const BPlusTree<N>&         btree,
                                       const std::vector<ObjectId> terms,
-                                      const std::vector<VarId> intersection_vars,
-                                      const std::vector<VarId> enumeration_vars) :
-    // btree             (btree),
-    terms             (move(terms)),
-    intersection_vars (move(intersection_vars)),
-    enumeration_vars  (move(enumeration_vars)),
-    level             (-1)
+                                      const std::vector<VarId>    intersection_vars,
+                                      const std::vector<VarId>    enumeration_vars) :
+    LeapfrogIter (move(intersection_vars), move(enumeration_vars), move(terms))
 {
     auto root = btree.get_root();
     directory_stack.push( move(root) );
@@ -48,10 +44,7 @@ LeapfrogIterImpl<N>::LeapfrogIterImpl(const BPlusTree<N>& btree,
     }
 }
 
-/*
- * No es simplemente aumentar el level, hay que asegurarse de que se este en el primer record del level
- * y para esto es necesaria una busqueda en el B+tree
- */
+
 template <size_t N>
 void LeapfrogIterImpl<N>::down() {
     assert(current_tuple != nullptr);
@@ -72,7 +65,6 @@ void LeapfrogIterImpl<N>::down() {
         max[i] = UINT64_MAX;
     }
 
-    // TODO: estoy suponiendo que simepre encuentro algo, pero que pasa con los B+trees vacios
     internal_search(Record<N>(min), Record<N>(max));
 }
 
@@ -115,9 +107,12 @@ bool LeapfrogIterImpl<N>::seek(uint64_t key) {
         max[i] = (*current_tuple)[i];
     }
 
-    min[level] = (key > (*current_tuple)[level])
-                ? key
-                : ((*current_tuple)[level] + 1); // if the given key is already greater we still need to go forward
+    // TODO: borrar
+    if ((*current_tuple)[level] > key) {
+        throw logic_error("se supone que el seek va siempre hacia adelante?");
+    }
+
+    min[level] = key;
     max[level] = UINT64_MAX;
 
     // after level min is 0 and max is unbound
@@ -133,8 +128,8 @@ bool LeapfrogIterImpl<N>::seek(uint64_t key) {
 template <std::size_t N>
 bool LeapfrogIterImpl<N>::internal_search(const Record<N>& min, const Record<N>& max) {
     assert(current_leaf != nullptr);
+
     // if leaf.min <= min <= leaf.max, search inside the leaf and return
-    // if (current_leaf != nullptr && current_leaf->check_range(min)) {
     if (current_leaf->check_range(min)) {
         auto new_current_pos_in_leaf = current_leaf->search_index(min);
         // check new_current_pos_in_leaf is a valid position
@@ -205,7 +200,6 @@ void LeapfrogIterImpl<N>::enum_no_intersection(TupleBuffer& buffer) {
         max[i] = UINT64_MAX;
     }
 
-    // BptIter it(SearchLeafResult<N>(move(current_leaf), current_pos_in_leaf), Record<N>(max)); // TODO: al mover current_leaf lka 2da vez muere
     BptIter it = BptIter(SearchLeafResult<N>(current_leaf->duplicate(), current_pos_in_leaf),
                          Record<N>(max));
     auto record = it.next();
@@ -217,9 +211,6 @@ void LeapfrogIterImpl<N>::enum_no_intersection(TupleBuffer& buffer) {
         buffer.append_tuple(tuple);
         record = it.next();
     }
-    // TODO: update current_tuple and current_leaf? no se si se puede porque me paso en 1 con el while anterior
-    // y si justo quedo en una pagina nueva no tengo puntero para ir hacia atras
-    // cout << "Intersection tuple count: " << buffer.get_tuple_count() << "\n";
 }
 
 
@@ -227,14 +218,8 @@ template <size_t N>
 bool LeapfrogIterImpl<N>::open_terms() {
     for (const auto& term : terms) {
         down();
-        // There exists the possibility that after down()
-        // it ended up finding the term. Calling seek() would move forward
-        if (get_key() != term.id && !seek(term.id)) {
+        if (!seek(term.id) || get_key() != term.id) {
             return false;
-        } else {
-            if (get_key() != term.id) {
-                return false;
-            }
         }
     }
     return true;
