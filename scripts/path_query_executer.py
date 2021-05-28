@@ -46,7 +46,7 @@ def run_query(query_path: str, n_test: int, skip: int, port: int):
                 resume.sort()
                 resume.pop(0)
                 resume.pop(len(resume)- 1)
-            mean = str(sum(resume) / len(resume)).replace(".", ",")
+            mean = str(round(sum(resume) / len(resume), 4)).replace(".", ",")
             print(f'{test_name}: {mean}')
 
 
