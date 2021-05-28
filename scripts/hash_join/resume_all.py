@@ -6,10 +6,15 @@ alg_names = [
     "grace_murmur",
     "grace_google_city",
     "grace_clhash",
-    #"in_memory",
+    "grace_farmhash",
+    #"in_memory_murmur",
+    #"in_memory_google_city"
+    #"in_memory_clhash",
+    #"in_memory_farmhash",
     #"in_memory2_murmur",
     #"in_memory2_google_city"
     #"in_memory2_clhash",
+    #"in_memory2_farmhash",
     ]
 
 all_tests = {}

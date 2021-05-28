@@ -1,8 +1,9 @@
+#ifndef STORAGE__HASH_FUNCTION_WRAPPER_H_
+#define STORAGE__HASH_FUNCTION_WRAPPER_H_
 #include "storage/index/hash/hash_functions/murmur3.h"
 #include "storage/index/hash/hash_functions/clhash.h"
 #include "storage/index/hash/hash_functions/google_cityhash.h"
-#ifndef STORAGE__HASH_FUNCTION_WRAPPER_H_
-#define STORAGE__HASH_FUNCTION_WRAPPER_H_
+#include "storage/index/hash/hash_functions/farmhash.h"
 
 template <class T>
 uint64_t hash_function_wrapper(const T* key, uint_fast32_t key_size) {
@@ -18,7 +19,10 @@ uint64_t hash_function_wrapper(const T* key, uint_fast32_t key_size) {
     //assert(vechash == arrayhash);
 
     // cityhash:
-    return CityHash64(reinterpret_cast<const char*>(key), key_size * sizeof(T));
+    //return CityHash64(reinterpret_cast<const char*>(key), key_size * sizeof(T));
+
+    // farmhash
+    return util::Hash64(reinterpret_cast<const char*>(key), key_size * sizeof(T));
 }
 
 template <class T>
@@ -36,5 +40,8 @@ uint64_t hash_function_wrapper_2(const T* key, uint_fast32_t key_size) {
 
     // cityhash:
     //return CityHash64(reinterpret_cast<const char*>(key), key_size * sizeof(T));
+
+    //farmhash
+    //
 }
 #endif // STORAGE__HASH_FUNCTION_WRAPPER_H_
