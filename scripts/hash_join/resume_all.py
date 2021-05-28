@@ -5,7 +5,7 @@ alg_names = [
     #"quad",
     "grace_murmur",
     "grace_google_city",
-    #"grace_clhash",
+    "grace_clhash",
     #"in_memory",
     #"in_memory2_murmur",
     #"in_memory2_google_city"

@@ -8,8 +8,13 @@
 
 struct KeyValuePairHasher {
     uint64_t operator()(const std::vector<ObjectId>& key) const {
-        // TODO: mask or shift
-        return hash_function_wrapper(key.data(), key.size()) >> 10;
+        return hash_function_wrapper(key.data(), key.size());
+    }
+};
+
+struct KeyValuePairHasher2 {
+    uint64_t operator()(const std::vector<ObjectId>& key) const {
+        return hash_function_wrapper_2(key.data(), key.size());
     }
 };
 

@@ -12,7 +12,6 @@
 #include "storage/file_id.h"
 #include "storage/page.h"
 
-//using KeyValuePair = std::pair<std::vector<ObjectId>, std::vector<ObjectId>>;
 template<class K, class V> class KeyValueHash;
 
 template <class K, class V>

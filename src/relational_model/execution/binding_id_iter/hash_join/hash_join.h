@@ -48,17 +48,17 @@ private:
     bool left_min;
     std::unordered_multimap<std::vector<ObjectId>,
                             std::vector<ObjectId>,
-                            KeyValuePairHasher> small_hash;
+                            KeyValuePairHasher2> small_hash;
 
     uint_fast32_t current_pos_left;   // for nested loop
     uint_fast32_t current_pos_right;
     uint_fast32_t current_bucket;
     std::unordered_multimap<std::vector<ObjectId>,
                             std::vector<ObjectId>,
-                            KeyValuePairHasher>::iterator current_pair_iter;  // for small hash
+                            KeyValuePairHasher2>::iterator current_pair_iter;  // for small hash
     std::unordered_multimap<std::vector<ObjectId>,
                             std::vector<ObjectId>,
-                            KeyValuePairHasher>::iterator end_range_iter;
+                            KeyValuePairHasher2>::iterator end_range_iter;
 
     std::vector<ObjectId> current_key;
     std::vector<ObjectId> current_value;
