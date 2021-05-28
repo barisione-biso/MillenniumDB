@@ -35,7 +35,7 @@ def run_query(query_path: str, n_test: int, skip: int, port: int):
             for _ in range(n_test):
                 t_start = time()
                 query_execution = subprocess.Popen(
-                    ['./build/Release/bin/query', f'{query_path}{folder}/{test_name}'], '-p', f'{port}',
+                    ['./build/Release/bin/query', f'{query_path}{folder}/{test_name}', '-p', f'{port}'],
                     stdout=subprocess.DEVNULL)
                 query_execution.wait()
 
