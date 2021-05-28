@@ -20,7 +20,7 @@ def run_query(query_path: str, n_test: int, skip: int, port: int):
     test_sets = os.listdir(query_path)
     # Each set is a query with that returns full o a percent of a query
     for folder in test_sets:
-        tests_files = os.listdir(f'{query_path}{folder}')
+        tests_files = os.listdir(f'{query_path}/{folder}')
         print(f'<<<<<<<<<<<< {folder} >>>>>>>>>>>>')
         tests_files.sort()
         for test_name in tests_files:
