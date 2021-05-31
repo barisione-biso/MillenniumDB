@@ -2,6 +2,7 @@ import subprocess
 import sys
 import os
 from time import time
+from time import sleep
 import signal
 
 '''
@@ -23,11 +24,9 @@ TODO: Generate limit 100, 1000
 
 def start_server(name: str, bd_path: str, buffer_size: int, port: int):
     server_process = subprocess.Popen(
-                    [f'tests/path_enum_servers/{name}_server',
-                    f'{bd_path}',
-                    '-p', f'{port}',
-                    '-b', f'{buffer_size}'],
-                    stdout=subprocess.DEVNULL)
+                    [f'tests/path_enum_servers/{name}_server -d {bd_path} -p {port} -b {buffer_size}'],
+                    shell=True,
+                    preexec_fn=os.setsid)
     return server_process
 
 
@@ -60,6 +59,7 @@ def run(query_path: str, n_test: int, skip: int, port: int, pre_run: int, resume
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 execution_time = time() - t_start
                 n_results, __ = query_execution.communicate()
+                query_execution.stdout.close()
                 n_results = n_results.decode('utf-8').split('\n')
                 if len(n_results) > 4:
                     n_results = int(n_results[-4].split(' ')[1])
@@ -73,7 +73,7 @@ def run(query_path: str, n_test: int, skip: int, port: int, pre_run: int, resume
                     print(f'ERROR: {server}:{test_name} output size is not consistent')
                 execution_times.append(execution_time)
 
-            if skip:
+            if skip and len(execution_times) > 2:
                 execution_times.sort()
                 execution_times.pop(0)
                 execution_times.pop(len(execution_times)- 1)
@@ -136,14 +136,16 @@ if len(sys.argv) > 7:
 servers_list = ['bfs_simple', 'bfs', 'dfs', 'astar']
 resume_executions = dict()
 for server in servers_list:
+    server_process = start_server(server, bd_path, buffer, port)
+    sleep(10)
     try:
-        server_process = start_server(server, bd_path, buffer, port)
         run(path_folder, n_test, skip, port, pre_run, resume_executions, server)
-        server_process.send_signal(signal.SIGTERM)
+        os.killpg(server_process.pid, signal.SIGINT)
 
     except Exception as error:
-        server_process.send_signal(signal.SIGTERM)
+        os.killpg(server_process.pid, signal.SIGINT)
         resume_executions[server] = dict()
+        print(error)
         sys.exit()
 
 check_consistency(resume_executions)
