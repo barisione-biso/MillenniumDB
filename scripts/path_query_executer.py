@@ -153,5 +153,9 @@ for server in servers_list:
         print(error)
         sys.exit()
 
+remove_out_file = subprocess.Popen(
+                ['rm', '.out_query.txt'],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 check_consistency(resume_executions)
 make_csv(resume_executions, servers_list)
