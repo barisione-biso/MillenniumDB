@@ -54,23 +54,27 @@ def run(query_path: str, n_test: int, skip: int, port: int, pre_run: int, resume
             # Run a query and take the time
             for _ in range(n_test):
                 t_start = time()
-                query_execution = subprocess.Popen(
-                    ['./build/Release/bin/query', f'{query_path}{folder}/{test_name}', '-p', f'{port}'],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                with open('.tmp_query.txt', 'w') as file:
+                    query_execution = subprocess.Popen(
+                        ['./build/Release/bin/query', f'{query_path}{folder}/{test_name}', '-p', f'{port}'],
+                        stdout=file, stderr=subprocess.DEVNULL)
+                    query_execution.wait()
                 execution_time = time() - t_start
-                n_results, __ = query_execution.communicate()
-                query_execution.stdout.close()
-                n_results = n_results.decode('utf-8').split('\n')
-                if len(n_results) > 4:
+                read_output = subprocess.Popen(['tail', '-4', '.tmp_query.txt'],
+                    stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+
+                out, __ = read_output.communicate()
+                n_results = out.decode('utf-8').split('\n')
+                if len(n_results) == 4:
                     n_results = int(n_results[-4].split(' ')[1])
                 else:
                     n_results = 0
-
 
                 if resume[f_test_name][server]['size'] is None:
                     resume[f_test_name][server]['size'] = n_results
                 elif resume[f_test_name][server]['size'] != n_results:
                     print(f'ERROR: {server}:{test_name} output size is not consistent')
+
                 execution_times.append(execution_time)
 
             if skip and len(execution_times) > 2:
@@ -137,7 +141,8 @@ servers_list = ['bfs_simple', 'bfs', 'dfs', 'astar']
 resume_executions = dict()
 for server in servers_list:
     server_process = start_server(server, bd_path, buffer, port)
-    sleep(10)
+    # Wait for server launch. TODO: Adjust param according to server
+    sleep(30)
     try:
         run(path_folder, n_test, skip, port, pre_run, resume_executions, server)
         os.killpg(server_process.pid, signal.SIGINT)
