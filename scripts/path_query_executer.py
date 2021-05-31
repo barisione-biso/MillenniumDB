@@ -15,8 +15,6 @@ the time of the following 5 executions
 
 '''
 '''
-TODO: Save resume in csv
-TODO: ADD new queries
 TODO: Generate limit 100, 1000
 '''
 
@@ -51,7 +49,7 @@ def run(query_path: str, n_test: int, skip: int, port: int, pre_run: int, resume
             for _ in range(pre_run):
                 query_execution = subprocess.Popen(
                     ['./build/Release/bin/query', f'{query_path}{folder}/{test_name}', '-p', f'{port}'],
-                    stdout=subprocess.DEVNULL)
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 query_execution.wait()
 
             # Run a query and take the time
@@ -126,7 +124,7 @@ port        = 8080
 buffer      = 100000
 
 if len(sys.argv) > 5:
-    pre_run = int(sys.argv[6])
+    pre_run = int(sys.argv[5])
 
 if len(sys.argv) > 6:
     port = int(sys.argv[6])
