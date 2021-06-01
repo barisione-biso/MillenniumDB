@@ -2,3 +2,6 @@
 
 SELECT *
 MATCH (?p)=[:P20/:P131+]=>(Q142)
+
+LIMIT 10000
+

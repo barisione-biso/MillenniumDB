@@ -4,3 +4,5 @@
 
 SELECT *
 MATCH (?disease)=[:P279+]=>(Q504775)
+
+LIMIT 6
