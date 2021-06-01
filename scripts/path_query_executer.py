@@ -65,7 +65,7 @@ def run(query_path: str, n_test: int, skip: int, port: int, pre_run: int, resume
 
                 out, __ = read_output.communicate()
                 n_results = out.decode('utf-8').split('\n')
-                if len(n_results) == 4:
+                if len(n_results) >= 4:
                     n_results = int(n_results[-4].split(' ')[1])
                 else:
                     n_results = 0
