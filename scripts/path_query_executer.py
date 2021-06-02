@@ -60,6 +60,7 @@ def run(query_path: str, n_test: int, skip: int, port: int, pre_run: int, resume
                         stdout=file, stderr=subprocess.DEVNULL)
                     query_execution.wait()
                 execution_time = time() - t_start
+
                 read_output = subprocess.Popen(['tail', '-4', '.tmp_query.txt'],
                     stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
 
@@ -81,7 +82,7 @@ def run(query_path: str, n_test: int, skip: int, port: int, pre_run: int, resume
                 execution_times.sort()
                 execution_times.pop(0)
                 execution_times.pop(len(execution_times)- 1)
-            resume[f_test_name][server]['mean'] = str(round(sum(execution_times) / len(execution_times), 4)).replace(".", ".")
+            resume[f_test_name][server]['mean'] = str(round(sum(execution_times) / len(execution_times), 4))
 
 
 def check_consistency(resume: dict):
@@ -89,7 +90,9 @@ def check_consistency(resume: dict):
         for server in resume[test]:
             for server_2 in resume[test]:
                 if resume[test][server]['size'] != resume[test][server_2]['size']:
-                    print(f'ERROR: {test} has not output consistency between {server} and {server_2}')
+                    size_1 = resume[test][server]['size']
+                    size_2 = resume[test][server_2]['size']
+                    print(f'ERROR: {test} has not output consistency between {server} ({size_1} out size) and {server_2} ({size_2} out size)')
 
 
 def make_csv(resume: dict, servers: list):
@@ -97,7 +100,9 @@ def make_csv(resume: dict, servers: list):
         for s in servers:
             file.write(f';{s}')
         file.write(';output size\n')
-        for test in resume:
+        resume_keys = list(resume.keys())
+        resume_keys.sort()
+        for test in resume_keys:
             file.write(f'{test}')
             output_size = 0
             for s in servers:
@@ -142,7 +147,7 @@ resume_executions = dict()
 for server in servers_list:
     server_process = start_server(server, bd_path, buffer, port)
     # Wait for server launch. TODO: Adjust param according to server
-    sleep(30)
+    sleep(1)
     try:
         run(path_folder, n_test, skip, port, pre_run, resume_executions, server)
         os.killpg(server_process.pid, signal.SIGINT)
