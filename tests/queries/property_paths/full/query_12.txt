@@ -2,5 +2,5 @@
  // based on annotations in the Disease ontology
  //--> runs fast on the server
 
-SELECT *
+SELECT ?disease
 MATCH (?disease)=[:P279+]=>(Q504775)

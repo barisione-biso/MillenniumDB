@@ -1,4 +1,4 @@
-SELECT *
+SELECT ?z
 
 // hasta donde llegar en tren desde un lugar ubicado en holanda
 MATCH (Q55)=[(^:P131)* / :P81*]=>(?z)
