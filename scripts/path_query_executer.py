@@ -147,7 +147,7 @@ resume_executions = dict()
 for server in servers_list:
     server_process = start_server(server, bd_path, buffer, port)
     # Wait for server launch. TODO: Adjust param according to server
-    sleep(1)
+    sleep(30)
     try:
         run(path_folder, n_test, skip, port, pre_run, resume_executions, server)
         os.killpg(server_process.pid, signal.SIGINT)
