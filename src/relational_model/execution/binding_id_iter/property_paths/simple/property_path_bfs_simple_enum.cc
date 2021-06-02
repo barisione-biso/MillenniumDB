@@ -41,6 +41,7 @@ void PropertyPathBFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has
             open.emplace(automaton.start, start_object_id, nullptr);
             visited.emplace(automaton.start, start_object_id, nullptr);
         }
+        is_first = true;
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;
@@ -79,16 +80,27 @@ bool PropertyPathBFSSimpleEnum::next() {
             }
         }
         // Check if current state is final
-        if (current_state.state == automaton.final_state ||
-           (current_state.state == automaton.start && automaton.start_is_final))
-        {
+        if (current_state.state == automaton.final_state ) {
             results_found++;
             auto path_object_id = path_manager.set_path(visited.find(current_state).operator->(), path_var);
             parent_binding->add(path_var, path_object_id);
             parent_binding->add(end, current_state.object_id);
             open.pop();  // Pop to visit next state
             return true;
+        } else if (is_first) {
+            is_first = false;
+            if (current_state.state == automaton.start &&
+                automaton.start_is_final)
+                {
+                    results_found++;
+                    auto path_object_id = path_manager.set_path(visited.find(current_state).operator->(), path_var);
+                    parent_binding->add(path_var, path_object_id);
+                    parent_binding->add(end, current_state.object_id);
+                    open.pop();  // Pop to visit next state
+                    return true;
+                }
         }
+
         open.pop();  // Pop to visit next state
     }
     return false;
@@ -135,6 +147,7 @@ void PropertyPathBFSSimpleEnum::reset() {
         open.emplace(automaton.start, start_object_id, nullptr);
         visited.emplace(automaton.start, start_object_id, nullptr);
     }
+    is_first = true;
 }
 
 
