@@ -6,8 +6,8 @@
 #include <tuple>
 
 #include "base/parser/logical_plan/op/op_path.h"
-#include "base/parser/logical_plan/op/visitors/simplify_property_path.h"
-#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
+#include "base/parser/logical_plan/op/property_paths/path_denull.h"
+#include "base/parser/logical_plan/op/property_paths/path_automaton.h"
 
 class OpPathKleeneStar : public OpPath {
 public:
@@ -15,7 +15,7 @@ public:
 
     OpPathKleeneStar(std::unique_ptr<OpPath> path) :
         //path  (std::move(path))
-        path  ( SimplifyPropertyPath::denull(std::move(path)) )
+        path  ( PathDenull::denull(std::move(path)) )
         { }
 
     OpPathKleeneStar(const OpPathKleeneStar& other) :

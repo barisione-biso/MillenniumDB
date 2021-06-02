@@ -4,6 +4,10 @@
 #include "base/parser/grammar/query/query_ast.h"
 #include "base/parser/logical_plan/op/op_path.h"
 
+/*
+TODO: Explain class, delete unnecesary include
+*/
+
 class PathConstructor {
 public:
     PathConstructor() = default;

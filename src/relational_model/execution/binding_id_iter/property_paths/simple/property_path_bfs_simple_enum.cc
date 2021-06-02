@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
-#include "relational_model/execution/path_manager.h"
+#include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
@@ -91,14 +91,15 @@ bool PropertyPathBFSSimpleEnum::next() {
             is_first = false;
             if (current_state.state == automaton.start &&
                 automaton.start_is_final)
-                {
-                    results_found++;
-                    auto path_object_id = path_manager.set_path(visited.find(current_state).operator->(), path_var);
-                    parent_binding->add(path_var, path_object_id);
-                    parent_binding->add(end, current_state.object_id);
-                    open.pop();  // Pop to visit next state
-                    return true;
-                }
+            {
+                // TODO: Check if start exists in bd
+                results_found++;
+                auto path_object_id = path_manager.set_path(visited.find(current_state).operator->(), path_var);
+                parent_binding->add(path_var, path_object_id);
+                parent_binding->add(end, current_state.object_id);
+                open.pop();  // Pop to visit next state
+                return true;
+            }
         }
 
         open.pop();  // Pop to visit next state

@@ -8,6 +8,10 @@
 
 #include "base/ids/object_id.h"
 
+/*
+TODO: Explain classes and delete unnecesary includes
+*/
+
 struct Transition {
     uint32_t from;
     uint32_t to;
@@ -40,6 +44,9 @@ struct TransitionId {
 
 
 class PathAutomaton {
+    /*
+    TODO: Explain how automaton works. Explain when empty structs will be filled
+    */
 
 public:
     std::vector<std::vector<Transition>> from_to_connections;
@@ -53,7 +60,7 @@ public:
     uint32_t total_states = 1;
     bool start_is_final = false;
 
-    PathAutomaton();
+    PathAutomaton()  = default;
     ~PathAutomaton() = default;
 
     void print();
@@ -79,29 +86,29 @@ public:
 
     inline void add_end_state(uint32_t state) { end.insert(state); }
 
-    private:
-        // Check if two states are mergeable and do the merge.
-        void delete_mergeable_states();
+private:
+    // Check if two states are mergeable and do the merge.
+    void delete_mergeable_states();
 
-        // set returned  of ep. closure of 's' doesn't include s for avoid
-        // redundant iteration during optimization.
-        std::set<uint32_t> get_epsilon_closure(uint32_t state);
+    // set returned  of ep. closure of 's' doesn't include s for avoid
+    // redundant iteration during optimization.
+    std::set<uint32_t> get_epsilon_closure(uint32_t state);
 
-        // Delete states that can not be reached from start
-        void delete_unreachable_states();
+    // Delete states that can not be reached from start
+    void delete_unreachable_states();
 
-        // Absortion states cannot reach a any final state
-        void delete_absortion_states();
+    // Absortion states cannot reach a any final state
+    void delete_absortion_states();
 
-        // Return a set with reachable states from start.
-        std::set<uint32_t> get_reachable_states_from_start();
+    // Return a set with reachable states from start.
+    std::set<uint32_t> get_reachable_states_from_start();
 
-        // Return a set with reachable states from a state in end set.
-        std::set<uint32_t> get_reachable_states_from_end();
+    // Return a set with reachable states from a state in end set.
+    std::set<uint32_t> get_reachable_states_from_end();
 
-        // Connections from source or to source will be from or to destiny.
-        // Be careful, all source transitions will be removed
-        void merge_states(uint32_t destiny, uint32_t source);
+    // Connections from source or to source will be from or to destiny.
+    // Be careful, all source transitions will be removed
+    void merge_states(uint32_t destiny, uint32_t source);
 
 };
 

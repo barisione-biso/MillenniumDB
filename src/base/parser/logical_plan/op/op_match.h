@@ -1,6 +1,8 @@
 #ifndef BASE__OP_MATCH_H_
 #define BASE__OP_MATCH_H_
 
+// TODO: Revisar includes
+
 #include <iostream>
 #include <map>
 #include <memory>
@@ -17,7 +19,7 @@
 
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op.h"
-#include "base/parser/logical_plan/path_constructor/path_constructor.h"
+#include "base/parser/logical_plan/op/property_paths/path_constructor.h"
 
 class OpMatch : public Op {
 public:

@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
-#include "relational_model/execution/path_manager.h"
+#include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
@@ -64,6 +64,7 @@ bool PropertyPathAStarIterEnum::next() {
     if (is_first) {
         is_first = false;
         if (automaton.start_is_final) {
+            // TODO: Check if start exists in bd
             auto& current_state = open.top();
             visited.emplace(
                 automaton.final_state,
@@ -74,7 +75,6 @@ bool PropertyPathAStarIterEnum::next() {
                 current_state.object_id,
                 nullptr
             );
-            // TODO:
             // set binding;
             auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var);
             parent_binding->add(path_var, path_id);

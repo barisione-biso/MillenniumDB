@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 
-#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
+#include "base/parser/logical_plan/op/property_paths/path_automaton.h"
 
 class OpPathAtom : public OpPath {
 public:

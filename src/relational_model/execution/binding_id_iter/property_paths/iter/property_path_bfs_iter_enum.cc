@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
-#include "relational_model/execution/path_manager.h"
+#include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
@@ -56,8 +56,9 @@ bool PropertyPathBFSIterEnum::next() {
     // Check if first node is final
     if (first_next) {
         first_next = false;
-        // TODO: Check if start node exists (Perhaps checks before create automaton)
+        
         if (automaton.start_is_final) {
+            // TODO: Check if start node exists (Perhaps checks before create automaton)
             visited.emplace(automaton.final_state, open.front().object_id, nullptr);
             auto reached_key = SearchState(
                     automaton.final_state,

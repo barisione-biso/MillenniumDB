@@ -8,9 +8,6 @@
 using namespace std;
 
 
-PathAutomaton::PathAutomaton() { }
-
-
 void PathAutomaton::print() {
      for (size_t i = 0; i < from_to_connections.size(); i++) {
         for (auto& t : from_to_connections[i]) {
@@ -92,24 +89,8 @@ void PathAutomaton::add_epsilon_transition(uint32_t from, uint32_t to) {
 
 
 void PathAutomaton::optimize_automata() {
+    // TODO: Comment algorithm
     delete_mergeable_states();
-    // Por cada transición epsilon del autómata de la forma (a)=[]=>(b):
-    // calcular clausura epsilon de (b) si aún no se ha hecho
-    // por cada estado (s) en la clausura epsilon de (b):
-    //     si (s) es final, marcar (a) como final
-    //     por cada transición desde (s), de la forma (s)=[l]=>(t):
-    //         crear transicion (a)=[l]=>(t)
-    //         // la transicion (s)=[l]=>(t) no se borra
-    // se borra la transicion epsilon (a)=[]=>(b)
-
-    // Ahora que se eliminaron todas las transiciones epsilon se pueden eliminar los estados
-    // que no son alcanzables desde el estado inicial y los estados de los cuales no puedo llegar
-    // a un estado final
-    // Esto se hace con 2 pasadas DFS/BFS visitando nodos y marcandolos.
-    // Primero una pasada partiendo en el estado inicial y llendo hacia adelante.
-    // Luego otra pasada partierndo en todos los estados finales y llendo hacia atras.
-    // Se eliminan las transiciones que salen o llegan a los nodos no visitados.
-    // TODO: Revisar si la clausura se calcula de a o de b
     for (size_t a = 0; a < from_to_connections.size(); a++) {
         auto epsilon_closure = get_epsilon_closure(a);
         for (const auto s : epsilon_closure) {
@@ -117,9 +98,7 @@ void PathAutomaton::optimize_automata() {
                 end.insert(a);
             }
         }
-        // TODO: use vector iterator for more readable code
         for (size_t i = 0; i < from_to_connections[a].size();) {
-            // from_to_connections[a][i] transition: (a)=[]=>(b)
             if (from_to_connections[a][i].label.empty()) {
                 for (const auto s : epsilon_closure) {
                     for (const auto& t : from_to_connections[s]) {

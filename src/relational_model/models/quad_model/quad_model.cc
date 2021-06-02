@@ -7,7 +7,7 @@
 #include "base/graph/edge.h"
 #include "base/graph/volatile_path.h"
 #include "base/graph/path_printer.h"
-#include "relational_model/execution/path_manager.h"
+#include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 #include "relational_model/models/quad_model/graph_object_visitor.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_iter_visitor.h"
 #include "storage/buffer_manager.h"

@@ -1,5 +1,7 @@
-#include "simplify_property_path.h"
+#include "path_denull.h"
 
+
+// TODO: Revisar includes si son necesarios
 #include <cassert>
 #include <iostream>
 
@@ -12,7 +14,7 @@
 
 using namespace std;
 
-unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPath> path) {
+unique_ptr<OpPath> PathDenull::denull(unique_ptr<OpPath> path) {
     // return accept_denull( move(path) );
     auto res = accept_denull( move(path) );
     assert(res != nullptr);
@@ -20,7 +22,7 @@ unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPath> path) {
 }
 
 
-unique_ptr<OpPath> SimplifyPropertyPath::accept_denull(unique_ptr<OpPath> path) {
+unique_ptr<OpPath> PathDenull::accept_denull(unique_ptr<OpPath> path) {
     auto type = path->type();
 
     switch (type) {
@@ -73,12 +75,12 @@ unique_ptr<OpPath> SimplifyPropertyPath::accept_denull(unique_ptr<OpPath> path) 
 }
 
 
-unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathKleeneStar> kleene_star) {
+unique_ptr<OpPath> PathDenull::denull(unique_ptr<OpPathKleeneStar> kleene_star) {
     return move( kleene_star->path ); // ((:P1*)*)*
 }
 
 
-unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathAlternatives> op_path_alternatives) {
+unique_ptr<OpPath> PathDenull::denull(unique_ptr<OpPathAlternatives> op_path_alternatives) {
     if (!op_path_alternatives->nullable()) {
         return op_path_alternatives;
     }
@@ -90,7 +92,7 @@ unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathAlternatives> o
 }
 
 
-unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathSequence> path_sequence) {
+unique_ptr<OpPath> PathDenull::denull(unique_ptr<OpPathSequence> path_sequence) {
     if (!path_sequence->nullable()) {
         return path_sequence;
     }
@@ -102,10 +104,10 @@ unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathSequence> path_
 
 }
 
-unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathAtom> atom) {
+unique_ptr<OpPath> PathDenull::denull(unique_ptr<OpPathAtom> atom) {
     return atom;
 }
 
-unique_ptr<OpPath> SimplifyPropertyPath::denull(unique_ptr<OpPathOptional> optional) {
+unique_ptr<OpPath> PathDenull::denull(unique_ptr<OpPathOptional> optional) {
     return move(optional->path);
 }

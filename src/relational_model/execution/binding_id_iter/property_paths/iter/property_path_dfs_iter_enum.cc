@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
-#include "relational_model/execution/path_manager.h"
+#include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 #include "storage/index/record.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
@@ -57,6 +57,7 @@ bool PropertyPathDFSIterEnum::next() {
     if (first_next) {
         first_next = false;
         if (automaton.start_is_final) {
+            // TODO: Check if start exists in bd
             auto current_key = SearchState(
                 automaton.final_state,
                 open.top().object_id,
@@ -77,7 +78,6 @@ bool PropertyPathDFSIterEnum::next() {
         if (current_state_has_next(current_state)) {
             open.emplace(reached_automaton_state, reached_object_id);
             if (reached_automaton_state == automaton.final_state) {
-                //TODO: Create reached_state
                 auto current_key = SearchState(
                     reached_automaton_state,
                     reached_object_id,
@@ -89,7 +89,6 @@ bool PropertyPathDFSIterEnum::next() {
                 // set binding;
                 parent_binding->add(path_var, path_id);
                 parent_binding->add(end, reached_object_id);
-                // TODO: Use new var id
                 results_found++;
                 return true;
             }

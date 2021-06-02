@@ -3,7 +3,7 @@
 
 #include "relational_model/models/quad_model/quad_model.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
-#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
+#include "base/parser/logical_plan/op/property_paths/path_automaton.h"
 
 
 class PropertyPathPlan : public JoinPlan {

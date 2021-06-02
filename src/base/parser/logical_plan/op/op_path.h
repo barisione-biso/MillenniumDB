@@ -2,7 +2,8 @@
 #define BASE__OP_PATH_H_
 
 #include "base/parser/logical_plan/op/op.h"
-#include "base/parser/logical_plan/op/path_automaton/path_automaton.h"
+#include "base/parser/logical_plan/op/property_paths/path_automaton.h"
+
 
 enum class OpPathType {
     OP_PATH_ALTERNATIVES,
@@ -28,6 +29,7 @@ public:
 
     // TODO: Make protected
     virtual PathAutomaton get_automaton() const = 0;
+
     PathAutomaton get_optimized_automaton() const {
         auto automaton = get_automaton();
         automaton.optimize_automata();
