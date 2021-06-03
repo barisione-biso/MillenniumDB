@@ -1,7 +1,5 @@
 #7 queries 3 times each, repeat with nested loop,  this script makew table to test times results
 
-## TODO: automatizar generación de archivos en un solo script
-
 import re
 from statistics import mean
 

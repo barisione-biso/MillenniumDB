@@ -2,19 +2,19 @@ import sys
 
 folder= sys.argv[1]
 alg_names = [
-    #"quad",
+    "quad",
     "grace_murmur",
-    "grace_google_city",
     "grace_clhash",
+    "grace_google_city",
     "grace_farmhash",
-    #"in_memory_murmur",
-    #"in_memory_google_city"
-    #"in_memory_clhash",
-    #"in_memory_farmhash",
-    #"in_memory2_murmur",
-    #"in_memory2_google_city"
-    #"in_memory2_clhash",
-    #"in_memory2_farmhash",
+    "memory_murmur",
+    "memory_clhash",
+    "memory_google_city",
+    "memory_farmhash",
+    "memory2_murmur",
+    "memory2_clhash",
+    "memory2_google_city",
+    "memory2_farmhash"
     ]
 
 all_tests = {}

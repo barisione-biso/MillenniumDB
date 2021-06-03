@@ -1,5 +1,4 @@
 ## Se asume que se generaron los archivos out_hash{i} y out_ordered{i} previamente
-## TODO:
 ## automatizar generación de archivos en un solo script
 
 for i in range(1, 13):

@@ -3,7 +3,10 @@ The file manager is a global object that manages all the interactions with files
 
 - The global object is initialized when a model (e.g. `QuadModel`) is constructed.
 
-- When working with files, you need to ask for a FileId.
+- When working with files, you need to ask for a FileId or TmpFile.
+
+    - If you want to use your private buffer (depends on each thread) then you need to ask for a TmpFile,
+    otherwise you can ask for a FileId
 
     - Most of the time you use the FileId ID to ask for pages in the `buffer_manager`.
 
