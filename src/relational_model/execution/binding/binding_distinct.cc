@@ -13,8 +13,7 @@ BindingDistinct::BindingDistinct(GraphModel& model, Binding& child_binding) :
 
 
 std::ostream& BindingDistinct::print_to_ostream(std::ostream& os) const {
-    // TODO:
-    return os;
+    return os << child_binding;
 }
 
 

@@ -99,7 +99,7 @@ unique_ptr<BindingIdIter> HashJoinPlan::get_binding_id_iter(std::size_t binding_
         }
     }
 
-    return make_unique<HashJoin>( //<HashJoinInMemory2>
+    return make_unique<HashJoin>( //<HashJoin-InMemory-2>
         lhs->get_binding_id_iter(binding_size),
         rhs->get_binding_id_iter(binding_size),
         move(left_vars),

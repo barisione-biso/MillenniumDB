@@ -13,8 +13,8 @@ uint64_t hash_function_wrapper(const T* key, uint_fast32_t key_size) {
     // return hash_[0];
 
     // clhash:
-    //clhasher h(UINT64_C(0x23a23cf5033c3c81),UINT64_C(0xb3816f6a2c68e530));
-    //return h(key, key_size);  // arrayhash
+    // clhasher h(UINT64_C(0x23a23cf5033c3c81),UINT64_C(0xb3816f6a2c68e530));
+    // return h(key, key_size);  // arrayhash
     //??return h(key); //vechash
     //assert(vechash == arrayhash);
 
@@ -30,7 +30,7 @@ uint64_t hash_function_wrapper_2(const T* key, uint_fast32_t key_size) {
     //murmur:
     uint64_t hash_[2];
     MurmurHash3_x64_128(key, key_size * sizeof(T), 0, hash_);
-    return hash_[0];
+    return hash_[1];
 
     // clhash:
     //clhasher h(UINT64_C(0x23a23cf5033c3c81),UINT64_C(0xb3816f6a2c68e530));

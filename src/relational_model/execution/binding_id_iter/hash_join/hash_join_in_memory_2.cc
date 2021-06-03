@@ -38,7 +38,6 @@ void HashJoinInMemory2::begin(BindingId& _parent_binding, bool parent_has_next) 
     }
 
     current_value.resize(right_vars.size());
-    saved_pair = make_pair(current_key, current_value);  // init sizes
     enumerating = false;
 }
 
@@ -47,7 +46,7 @@ bool HashJoinInMemory2::next() {
     while (true) {
         if (enumerating) {
             auto left_pair = lhs_hash.get_pair(current_bucket, current_bucket_pos);
-            while (left_pair.first != saved_pair.first) {  // TODO: maybe we can use current key instead savedpair
+            while (left_pair.first != current_key) {
                 current_bucket_pos++;
                 if (current_bucket_pos >= lhs_hash.get_bucket_size(current_bucket)) {
                     enumerating = false;
@@ -58,7 +57,10 @@ bool HashJoinInMemory2::next() {
             if (!enumerating) {
                 continue;
             }
-            assign_binding(left_pair, saved_pair);
+            // set lhs binding
+            for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
+                parent_binding->add(left_vars[i], left_pair.second[i]);
+            }
             current_bucket_pos++;
             if (current_bucket_pos >= lhs_hash.get_bucket_size(current_bucket)) {
                 enumerating = false;
@@ -68,36 +70,28 @@ bool HashJoinInMemory2::next() {
         else {
             if (rhs->next()) {
                 for (size_t i = 0; i < common_vars.size(); i++) {
-                    saved_pair.first[i] = (*parent_binding)[common_vars[i]];
+                    current_key[i] = (*parent_binding)[common_vars[i]];
                 }
                 for (size_t i = 0; i < right_vars.size(); i++) {
-                    saved_pair.second[i] = (*parent_binding)[right_vars[i]];
+                    current_value[i] = (*parent_binding)[right_vars[i]];
                 }
                 current_bucket_pos = 0;
-                current_bucket = lhs_hash.get_bucket(saved_pair.first);
+                current_bucket = lhs_hash.get_bucket(current_key);
                 if (lhs_hash.get_bucket_size(current_bucket) > 0) {
                     enumerating = true;
+                    // set rhs binding
+                    for (uint_fast32_t i = 0; i < common_vars.size(); i++) {
+                        parent_binding->add(common_vars[i], current_key[i]);
+                    }
+                    for (uint_fast32_t i = 0; i < right_vars.size(); i++) {
+                        parent_binding->add(right_vars[i], current_value[i]);
+                    }
                 }
             }
             else {
                 return false;
             }
         }
-    }
-}
-
-
-void HashJoinInMemory2::assign_binding(const pair<vector<ObjectId>,vector<ObjectId>> & left_pair,
-                                       const pair<vector<ObjectId>,vector<ObjectId>>& right_pair) {
-
-    for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
-        parent_binding->add(left_vars[i], left_pair.second[i]);
-    }
-    for (uint_fast32_t i = 0; i < common_vars.size(); i++) {
-        parent_binding->add(common_vars[i], left_pair.first[i]);
-    }
-    for (uint_fast32_t i = 0; i < right_vars.size(); i++) {
-        parent_binding->add(right_vars[i], right_pair.second[i]);
     }
 }
 

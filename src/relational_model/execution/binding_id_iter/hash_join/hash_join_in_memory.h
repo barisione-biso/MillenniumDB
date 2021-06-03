@@ -12,12 +12,12 @@
 
 class HashJoinInMemory : public BindingIdIter {
 public:
-    HashJoinInMemory (std::unique_ptr<BindingIdIter> lhs,
-             std::unique_ptr<BindingIdIter> rhs,
-             std::vector<VarId> left_vars,
-             std::vector<VarId> common_vars,
-             std::vector<VarId> right_vars);
-    ~HashJoinInMemory () = default;
+    HashJoinInMemory(std::unique_ptr<BindingIdIter> lhs,
+                     std::unique_ptr<BindingIdIter> rhs,
+                     std::vector<VarId>             left_vars,
+                     std::vector<VarId>             common_vars,
+                     std::vector<VarId>             right_vars);
+    ~HashJoinInMemory() = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
@@ -47,10 +47,6 @@ private:
 
     std::vector<ObjectId> current_key;
     std::vector<ObjectId> current_value;
-    std::pair<std::vector<ObjectId>, std::vector<ObjectId>> saved_pair;
-
-    void assign_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& lhs_pair,
-                        const std::pair<std::vector<ObjectId>, std::vector<ObjectId>> & rhs_pair);
 };
 
 #endif // RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_H_

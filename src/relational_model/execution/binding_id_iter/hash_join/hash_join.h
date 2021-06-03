@@ -14,15 +14,22 @@
 
 
 class HashJoin : public BindingIdIter {
+    enum class State {
+        ENUM_WITH_ITER,
+        ENUM_WITH_SECOND_HASH,
+        ENUM_WITH_NESTED_LOOP,
+        NOT_ENUM
+    };
+
 public:
 
     static constexpr uint_fast32_t MAX_SIZE_SMALL_HASH = Page::PAGE_SIZE*1024;
 
     HashJoin(std::unique_ptr<BindingIdIter> lhs,
              std::unique_ptr<BindingIdIter> rhs,
-             std::vector<VarId> left_vars,
-             std::vector<VarId> common_vars,
-             std::vector<VarId> right_vars);
+             std::vector<VarId>             left_vars,
+             std::vector<VarId>             common_vars,
+             std::vector<VarId>             right_vars);
     ~HashJoin() = default;
 
     void analyze(int indent = 0) const override;
@@ -42,10 +49,10 @@ private:
 
     KeyValueHash<ObjectId, ObjectId> lhs_hash;
     KeyValueHash<ObjectId, ObjectId> rhs_hash;
+    uint_fast32_t total_buckets;
 
-    bool enumerating_with_second_hash;
-    bool enumerating_with_nested_loop;
-    bool left_min;
+    State current_state = State::NOT_ENUM;
+    bool left_min = false;
     std::unordered_multimap<std::vector<ObjectId>,
                             std::vector<ObjectId>,
                             KeyValuePairHasher2> small_hash;
@@ -60,12 +67,13 @@ private:
                             std::vector<ObjectId>,
                             KeyValuePairHasher2>::iterator end_range_iter;
 
-    std::vector<ObjectId> current_key;
-    std::vector<ObjectId> current_value;
+    //std::vector<ObjectId> current_key;
+    //std::vector<ObjectId> current_value;
     std::pair<std::vector<ObjectId>, std::vector<ObjectId>> saved_pair;
 
-    void assign_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& lhs_pair,
-                        const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& rhs_pair);
+    void assign_left_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& lhs_pair);
+    void assign_key_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& my_pair);
+    void assign_right_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& rhs_pair);
 };
 
 #endif // RELATIONAL_MODEL__HASH_JOIN_H_

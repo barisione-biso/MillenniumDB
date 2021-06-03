@@ -6,13 +6,16 @@
 
 using namespace std;
 
-HashJoinInMemory::HashJoinInMemory(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs,
-        std::vector<VarId> left_vars, std::vector<VarId> common_vars, std::vector<VarId> right_vars) :
-    lhs             (move(lhs)),
-    rhs             (move(rhs)),
-    left_vars       (left_vars),
-    common_vars     (common_vars),
-    right_vars      (right_vars)
+HashJoinInMemory::HashJoinInMemory(unique_ptr<BindingIdIter> lhs,
+                                   unique_ptr<BindingIdIter> rhs,
+                                   vector<VarId> left_vars,
+                                   vector<VarId> common_vars,
+                                   vector<VarId> right_vars) :
+    lhs         (move(lhs)),
+    rhs         (move(rhs)),
+    left_vars   (left_vars),
+    common_vars (common_vars),
+    right_vars  (right_vars)
     { }
 
 
@@ -36,7 +39,7 @@ void HashJoinInMemory::begin(BindingId& _parent_binding, bool parent_has_next) {
     }
 
     current_value.resize(right_vars.size());
-    saved_pair = make_pair(current_key, current_value);  // init sizes
+    // saved_pair = make_pair(current_key, current_value);  // init sizes
 
     current_pair_iter = lhs_hash.end();
     end_range_iter = lhs_hash.end();
@@ -47,53 +50,43 @@ void HashJoinInMemory::begin(BindingId& _parent_binding, bool parent_has_next) {
 bool HashJoinInMemory::next() {
     while (true) {
         if (enumerating) {
-            if (current_pair_iter != end_range_iter) {
-                assign_binding(*current_pair_iter, saved_pair);
-                ++current_pair_iter;
-                if (current_pair_iter == end_range_iter) {
-                    enumerating = false;
-                }
-                return true;
+            assert(current_pair_iter != end_range_iter);
+            // set binding from lhs
+            for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
+                parent_binding->add(left_vars[i], current_pair_iter->second[i]);
             }
-            else {
-                auto range = lhs_hash.equal_range(saved_pair.first);
-                current_pair_iter = range.first;
-                end_range_iter = range.second;
-                if (current_pair_iter == end_range_iter) {
-                    enumerating = false;
-                }
-
+            ++current_pair_iter;
+            if (current_pair_iter == end_range_iter) {
+                enumerating = false;
             }
+            return true;
         }
         else {
             if (rhs->next()) {
                 for (size_t i = 0; i < common_vars.size(); i++) {
-                    saved_pair.first[i] = (*parent_binding)[common_vars[i]];
+                    current_key[i] = (*parent_binding)[common_vars[i]];
                 }
                 for (size_t i = 0; i < right_vars.size(); i++) {
-                    saved_pair.second[i] = (*parent_binding)[right_vars[i]];
+                    current_value[i] = (*parent_binding)[right_vars[i]];
                 }
-                enumerating = true;
+                auto range = lhs_hash.equal_range(current_key);
+                current_pair_iter = range.first;
+                end_range_iter = range.second;
+                if (current_pair_iter != end_range_iter) {
+                    // set binding from rhs
+                    for (uint_fast32_t i = 0; i < common_vars.size(); i++) {
+                        parent_binding->add(common_vars[i], current_key[i]);
+                    }
+                    for (uint_fast32_t i = 0; i < right_vars.size(); i++) {
+                        parent_binding->add(right_vars[i], current_value[i]);
+                    }
+                    enumerating = true;
+                }
             }
             else {
                 return false;
             }
         }
-    }
-}
-
-
-void HashJoinInMemory::assign_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>> & left_pair,
-                                      const std::pair<std::vector<ObjectId>, std::vector<ObjectId>> & right_pair) {
-
-    for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
-        parent_binding->add(left_vars[i], left_pair.second[i]);
-    }
-    for (uint_fast32_t i = 0; i < common_vars.size(); i++) {
-        parent_binding->add(common_vars[i], left_pair.first[i]);
-    }
-    for (uint_fast32_t i = 0; i < right_vars.size(); i++) {
-        parent_binding->add(right_vars[i], right_pair.second[i]);
     }
 }
 

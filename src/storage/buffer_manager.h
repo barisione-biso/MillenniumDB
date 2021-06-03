@@ -7,9 +7,12 @@
  * to call it.
  *
  * A mutex object is used to prevent conflict between different threads when asking for a page or
- * unpining a page.
+ * unpining a page (shared buffer).
  *
- * TODO: comment about shared and private buffer
+ * When asked for a page it can be done with a FileId or a TmpFileId, in the first case, the page returned will be
+ * a page from the shared buffer. In the second case, the page will be returned from the private buffer of current thread
+ * (that asked for it). Private and shared buffer doesn't need to have the same sizes. All buffers (shared and each private)
+ * have the same sistems for pages replacement.
  */
 
 #ifndef STORAGE__BUFFER_MANAGER_H_

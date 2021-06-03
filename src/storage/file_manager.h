@@ -4,10 +4,12 @@
  * The FileId its just the index, so both lists must have the same size
  * and objects at the same index are related to each other.
  *
- * TODO: comment about tmp pages
- *
  * All the other clases that need to work with files should use the FileManager to obtain a reference to a
  * fstream.
+ *
+ * This can be done with temporary or permanent files, using 'get_tmp_file_id' or 'get_file_id', in the first case, the
+ * file_manager will ask for a pages in the private buffer of the specific thread, in the second case the file_maneger
+ * will ask for pages to the shared or public buffer.
  *
  * `file_manager` is a global object and is available when this file is included. Before using it, somebody
  * needs to call the method FileManager::init(), usually is the responsability of the model (e.g. RelationalModel)

@@ -12,12 +12,12 @@
 
 class HashJoinInMemory2 : public BindingIdIter {
 public:
-    HashJoinInMemory2 (std::unique_ptr<BindingIdIter> lhs,
-             std::unique_ptr<BindingIdIter> rhs,
-             std::vector<VarId> left_vars,
-             std::vector<VarId> common_vars,
-             std::vector<VarId> right_vars);
-    ~HashJoinInMemory2 () = default;
+    HashJoinInMemory2(std::unique_ptr<BindingIdIter> lhs,
+                      std::unique_ptr<BindingIdIter> rhs,
+                      std::vector<VarId>             left_vars,
+                      std::vector<VarId>             common_vars,
+                      std::vector<VarId>             right_vars);
+    ~HashJoinInMemory2() = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
@@ -34,19 +34,17 @@ private:
 
     BindingId* parent_binding;
 
+    // true if we found a value from rhs (current_key and current_value) and we got a pre-match (same hash to lhs bucket).
+    // In this state we have to iterate over all the keys in that bucket (`current_bucket`) to check if
+    // they have the same key. Once the iterating is over, enumerating turns into false.
     bool enumerating;
-    KeyValueHash<ObjectId, ObjectId> lhs_hash;  // asume left is the smallest one (from execution plan)
+
+    KeyValueHash<ObjectId, ObjectId> lhs_hash;  // asumming lhs is the smaller one (from execution plan)
     uint_fast32_t current_bucket;
     uint_fast32_t current_bucket_pos;
-    //MultiMap::iterator current_pair_iter;
-    //MultiMap::iterator end_range_iter;
 
     std::vector<ObjectId> current_key;
     std::vector<ObjectId> current_value;
-    std::pair<std::vector<ObjectId>, std::vector<ObjectId>>  saved_pair;
-
-    void assign_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>> & lhs_pair,
-                        const std::pair<std::vector<ObjectId>, std::vector<ObjectId>> & rhs_pair);
 };
 
 #endif // RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_2_H_
