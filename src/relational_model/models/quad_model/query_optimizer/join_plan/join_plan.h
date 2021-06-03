@@ -39,7 +39,10 @@ public:
     virtual uint64_t get_vars() = 0;
 
     virtual std::unique_ptr<BindingIdIter> get_binding_id_iter(std::size_t binding_size) = 0;
-    virtual std::unique_ptr<LeapfrogIter> get_leapfrog_iter(const std::vector<VarId>& intersection_vars) = 0;
+
+    virtual std::unique_ptr<LeapfrogIter> get_leapfrog_iter(const std::set<VarId>&    assigned_vars,
+                                                            const std::vector<VarId>& local_var_order,
+                                                            uint_fast32_t             enumeration_level) = 0;
     virtual std::unique_ptr<JoinPlan> duplicate() = 0;
 
     virtual void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) = 0;

@@ -17,7 +17,12 @@ public:
     void set_input_vars(const uint64_t input_vars) override;
 
     std::unique_ptr<BindingIdIter> get_binding_id_iter(std::size_t binding_size) override;
-    std::unique_ptr<LeapfrogIter> get_leapfrog_iter(const std::vector<VarId>& /*intersection_vars*/) override { return nullptr; }
+
+    std::unique_ptr<LeapfrogIter> get_leapfrog_iter(const std::set<VarId>&    /*assigned_vars*/,
+                                                    const std::vector<VarId>& /*var_order*/,
+                                                    uint_fast32_t             /*enumeration_level*/) override
+                                                    { return nullptr; }
+
     std::unique_ptr<JoinPlan> duplicate() override;
 
     void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) override;

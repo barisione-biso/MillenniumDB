@@ -6,27 +6,26 @@
 
 using namespace std;
 
-LeapfrogJoin::LeapfrogJoin(vector<unique_ptr<LeapfrogIter>> leapfrog_iters,
-                           vector<VarId> var_order) :
-    leapfrog_iters    (move(leapfrog_iters)),
-    var_order         (move(var_order)),
-    base_level        (0), // TODO: base_level != 0 when having optionals?
-    level             (base_level - 1)
+LeapfrogJoin::LeapfrogJoin(vector<unique_ptr<LeapfrogIter>> _leapfrog_iters,
+                           vector<VarId>                    _var_order,
+                           int_fast32_t                     _enumeration_level) :
+    leapfrog_iters    (move(_leapfrog_iters)),
+    var_order         (move(_var_order)),
+    enumeration_level (_enumeration_level),
+    level             (-1)
     { }
 
 
-void LeapfrogJoin::begin(BindingId& parent_binding, bool parent_has_next) {
-    this->parent_binding = &parent_binding;
+void LeapfrogJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
+    parent_binding = &_parent_binding;
 
     if (!parent_has_next) {
         // level = base_level - 1 so next() will return false
         return;
     }
 
-    // TODO: para optionals, si base_level > 0, ver parent_binding y setear iteradores correspondientes?
-
-    // initialize iters_for_var and enumeration_level
-    for (size_t i = 0; i < var_order.size(); i++) { // TODO: para optionals, si base_level > 0, i = base_level?
+    // initialize iters_for_var
+    for (size_t i = 0; i < var_order.size(); i++) {
         vector<LeapfrogIter*> iter_list;
         for (const auto& leapfrog_iter : leapfrog_iters) {
             // add iter to the list if it contains the var
@@ -40,7 +39,6 @@ void LeapfrogJoin::begin(BindingId& parent_binding, bool parent_has_next) {
         if (iter_list.size() > 0) {
             iters_for_var.push_back(move(iter_list));
         } else {
-            enumeration_level = i;
             break;
         }
     }
@@ -54,13 +52,12 @@ void LeapfrogJoin::begin(BindingId& parent_binding, bool parent_has_next) {
     // open terms
     bool open_terms = true;
     for (auto& lf_iter : leapfrog_iters) {
-        if (!lf_iter->open_terms()) {
+        if (!lf_iter->open_terms(*parent_binding)) {
             open_terms = false;
             break;
         }
     }
 
-    cout << "base_level: " << base_level << "\n";
     cout << "enumeration_level: " << enumeration_level << "\n";
 
     if (open_terms) {
@@ -77,27 +74,26 @@ bool LeapfrogJoin::next() {
     // cout << "next called\n";
     // cout << "level: " << level << "\n";
 
-    while (level >= base_level) {
+    while (level >= 0) {
         while (level < enumeration_level) {
             // We try to bind the variable for the current level
             if (find_intersection_for_current_level()) {
                 down();
             } else {
-                if (level == base_level) {
+                if (level == 0) {
                     return false;
                 } else {
                     up();
                     // We are in a previous intersection, so we need to move the last iterator forward
                     // to avoid having the same intersection
                     if (!iters_for_var[level][iters_for_var[level].size() - 1]->next()) {
-                        cout << "TODO: esto puede estar mal\n"; // TODO: porque?
                         return false;
                     }
                 }
             }
         }
-        // TODO: me pude saltar el llenado de buffers, ej: MATCH (?y :forsworn) base_level = 0 y enumeration_level = 0
-        // at this point level == enumeration_level
+        assert(level == enumeration_level);
+
         // check if enumeration is not over
         for (size_t i = 0; i < buffers.size(); i++) {
             if (buffer_pos[i]+1 < (int_fast32_t) buffers[i]->get_tuple_count()) {
@@ -114,15 +110,15 @@ bool LeapfrogJoin::next() {
             }
         }
 
-        // when enumeration is over backtrack to previous level
-        level--; // go back to last enumeration_level
+        // when enumeration is over backtrack to previous level (not through up())
+        level--;
 
         if (iters_for_var.size() == 0) {
             return false;
         } else {
-            while (level >= base_level
-                   && !iters_for_var[level][iters_for_var[level].size() -  1]->next())
-            {
+            // We are in a previous intersection, so we need to move the last iterator forward
+            // to avoid having the same intersection
+            while (level >= 0 && !iters_for_var[level][iters_for_var[level].size() -  1]->next()) {
                 up();
             }
         }
@@ -132,10 +128,17 @@ bool LeapfrogJoin::next() {
 
 
 void LeapfrogJoin::reset() {
-    while (level >= 0) { // TODO: when using optionals level should start at base_level?
-        up();
+    bool open_terms = true;
+    for (auto& lf_iter : leapfrog_iters) {
+        if (!lf_iter->open_terms(*parent_binding)) {
+            open_terms = false;
+            break;
+        }
     }
-    down();
+    level = -1;
+    if (open_terms) {
+        down();
+    }
 }
 
 
@@ -223,7 +226,7 @@ void LeapfrogJoin::analyze(int indent) const {
 
 
 void LeapfrogJoin::assign_nulls() {
-    for (uint_fast32_t lvl = base_level; lvl < var_order.size(); lvl++) {
+    for (uint_fast32_t lvl = 0; lvl < var_order.size(); lvl++) {
         parent_binding->add(var_order[lvl], ObjectId::get_null());
     }
 }

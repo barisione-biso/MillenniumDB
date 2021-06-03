@@ -192,32 +192,73 @@ unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter(std::size_t binding_
 }
 
 
-unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const vector<VarId>& global_intersection_vars) {
-    vector<ObjectId> terms;
+unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const std::set<VarId>& assigned_vars,
+                                                         const vector<VarId>&   var_order,
+                                                         uint_fast32_t          enumeration_level)
+{
+    vector<unique_ptr<ScanRange>> initial_ranges;
     vector<VarId> intersection_vars;
     vector<VarId> enumeration_vars;
 
     // index = INT32_MAX means enumeration, index = -1 means term
-    int_fast32_t obj_index   = std::holds_alternative<ObjectId>(object) ? -1 : INT32_MAX;
-    int_fast32_t key_index   = std::holds_alternative<ObjectId>(key)    ? -1 : INT32_MAX;
-    int_fast32_t value_index = std::holds_alternative<ObjectId>(value)  ? -1 : INT32_MAX;
+    int_fast32_t obj_index, key_index, value_index;
 
-    // set index if they are in global_intersection_vars
-    for (size_t i = 0; i < global_intersection_vars.size(); i++) {
-        if (obj_index == INT32_MAX && std::get<VarId>(object) == global_intersection_vars[i]) {
+    // Assign obj_index
+    if (std::holds_alternative<ObjectId>(object)) {
+        obj_index = -1;
+    } else {
+        auto search = assigned_vars.find(std::get<VarId>(object));
+        if (search == assigned_vars.end()) {
+            obj_index = INT32_MAX;
+        } else {
+            obj_index = -1;
+        }
+    }
+
+    // Assign key_index
+    if (std::holds_alternative<ObjectId>(key)) {
+        key_index = -1;
+    } else {
+        auto search = assigned_vars.find(std::get<VarId>(key));
+        if (search == assigned_vars.end()) {
+            key_index = INT32_MAX;
+        } else {
+            key_index = -1;
+        }
+    }
+
+    // Assign value_index
+    if (std::holds_alternative<ObjectId>(value)) {
+        value_index = -1;
+    } else {
+        auto search = assigned_vars.find(std::get<VarId>(value));
+        if (search == assigned_vars.end()) {
+            value_index = INT32_MAX;
+        } else {
+            value_index = -1;
+        }
+    }
+
+    // search for vars marked as enumeraion (INT32_MAX) that are intersection
+    // and assign them the correct index
+    for (size_t i = 0; i < enumeration_level; i++) {
+        if (obj_index == INT32_MAX && std::get<VarId>(object) == var_order[i]) {
             obj_index = i;
         }
-        if (key_index == INT32_MAX && std::get<VarId>(key) == global_intersection_vars[i]) {
+        if (key_index == INT32_MAX && std::get<VarId>(key) == var_order[i]) {
             key_index = i;
         }
-        if (value_index == INT32_MAX && std::get<VarId>(value) == global_intersection_vars[i]) {
+        if (value_index == INT32_MAX && std::get<VarId>(value) == var_order[i]) {
             value_index = i;
         }
     }
 
-    auto assign = [&terms, &enumeration_vars, &intersection_vars](int_fast32_t& index, Id id) -> void {
+    auto assign = [&initial_ranges, &enumeration_vars, &intersection_vars]
+                  (int_fast32_t& index, Id id)
+                  -> void
+    {
         if (index == -1) {
-            terms.push_back(std::get<ObjectId>(id));
+            initial_ranges.push_back(ScanRange::get(id, true));
         } else if (index == INT32_MAX) {
             enumeration_vars.push_back(std::get<VarId>(id));
         } else {
@@ -233,7 +274,7 @@ unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const vector<VarId>& gl
 
         return make_unique<LeapfrogIterImpl<3>>(
             *model.object_key_value,
-            move(terms),
+            move(initial_ranges),
             move(intersection_vars),
             move(enumeration_vars)
         );
@@ -246,7 +287,7 @@ unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const vector<VarId>& gl
 
         return make_unique<LeapfrogIterImpl<3>>(
             *model.key_value_object,
-            move(terms),
+            move(initial_ranges),
             move(intersection_vars),
             move(enumeration_vars)
         );

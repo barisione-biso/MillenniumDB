@@ -4,6 +4,7 @@
 #include <stack>
 #include <vector>
 
+#include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_dir.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
@@ -17,7 +18,7 @@ public:
 
     virtual void up() { level--; }
     virtual void down() = 0;
-    virtual bool open_terms() = 0;
+    virtual bool open_terms(BindingId& input_binding) = 0;
     virtual bool next() = 0;
     virtual bool seek(uint64_t key) = 0;
     virtual uint64_t get_key() const = 0;
@@ -29,28 +30,28 @@ public:
     virtual void enum_no_intersection(TupleBuffer& buffer) = 0;
 
 protected:
+    const std::vector<std::unique_ptr<ScanRange>> initial_ranges;
     const std::vector<VarId> intersection_vars;
     const std::vector<VarId> enumeration_vars;
-    const std::vector<ObjectId> terms;
 
     int_fast32_t level = -1; // can go from -1 to N-1
 
-    LeapfrogIter(const std::vector<VarId> intersection_vars,
-                 const std::vector<VarId> enumeration_vars,
-                 const std::vector<ObjectId> terms) :
-        intersection_vars (std::move(intersection_vars)),
-        enumeration_vars  (std::move(enumeration_vars)),
-        terms             (std::move(terms)) { }
+    LeapfrogIter(std::vector<std::unique_ptr<ScanRange>> _initial_ranges,
+                 std::vector<VarId>                      _intersection_vars,
+                 std::vector<VarId>                      _enumeration_vars) :
+        initial_ranges    (std::move(_initial_ranges)),
+        intersection_vars (std::move(_intersection_vars)),
+        enumeration_vars  (std::move(_enumeration_vars)) { }
 };
 
 
 template <std::size_t N>
 class LeapfrogIterImpl : public LeapfrogIter {
 public:
-    LeapfrogIterImpl(const BPlusTree<N>& btree,
-                     const std::vector<ObjectId> terms,
-                     const std::vector<VarId> intersection_vars,
-                     const std::vector<VarId> enumeration_vars);
+    LeapfrogIterImpl(const BPlusTree<N>&                           btree,
+                     const std::vector<std::unique_ptr<ScanRange>> initial_ranges,
+                     const std::vector<VarId>                      intersection_vars,
+                     const std::vector<VarId>                      enumeration_vars);
 
     ~LeapfrogIterImpl() = default;
 
@@ -72,7 +73,9 @@ public:
 
     void enum_no_intersection(TupleBuffer& buffer) override;
 
-    bool open_terms() override;
+
+    // returns true if the terms and parent_binding were found
+    bool open_terms(BindingId& input_binding) override;
 
 private:
     std::unique_ptr<Record<N>> current_tuple;

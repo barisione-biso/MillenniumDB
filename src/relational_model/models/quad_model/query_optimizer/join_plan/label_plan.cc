@@ -149,28 +149,58 @@ unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter(std::size_t binding_siz
 }
 
 
-unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(const vector<VarId>& global_intersection_vars) {
-    vector<ObjectId> terms;
+unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(const std::set<VarId>& assigned_vars,
+                                                      const vector<VarId>&   var_order,
+                                                      uint_fast32_t          enumeration_level)
+{
+    vector<unique_ptr<ScanRange>> initial_ranges;
     vector<VarId> intersection_vars;
     vector<VarId> enumeration_vars;
 
     // index = INT32_MAX means enumeration, index = -1 means term
-    int_fast32_t node_index  = std::holds_alternative<ObjectId>(node)  ? -1 : INT32_MAX;
-    int_fast32_t label_index = std::holds_alternative<ObjectId>(label) ? -1 : INT32_MAX;
+    int_fast32_t node_index, label_index;
 
-    // set index if they are in global_intersection_vars
-    for (size_t i = 0; i < global_intersection_vars.size(); i++) {
-        if (node_index == INT32_MAX && std::get<VarId>(node) == global_intersection_vars[i]) {
+    // Assign node_index
+    if (std::holds_alternative<ObjectId>(node)) {
+        node_index = -1;
+    } else {
+        auto search = assigned_vars.find(std::get<VarId>(node));
+        if (search == assigned_vars.end()) {
+            node_index = INT32_MAX;
+        } else {
+            node_index = -1;
+        }
+    }
+
+    // Assign label_index
+    if (std::holds_alternative<ObjectId>(label)) {
+        label_index = -1;
+    } else {
+        auto search = assigned_vars.find(std::get<VarId>(label));
+        if (search == assigned_vars.end()) {
+            label_index = INT32_MAX;
+        } else {
+            label_index = -1;
+        }
+    }
+
+    // search for vars marked as enumeraion (INT32_MAX) that are intersection
+    // and assign them the correct index
+    for (size_t i = 0; i < enumeration_level; i++) {
+        if (node_index == INT32_MAX && std::get<VarId>(node) == var_order[i]) {
             node_index = i;
         }
-        if (label_index == INT32_MAX && std::get<VarId>(label) == global_intersection_vars[i]) {
+        if (label_index == INT32_MAX && std::get<VarId>(label) == var_order[i]) {
             label_index = i;
         }
     }
 
-    auto assign = [&terms, &enumeration_vars, &intersection_vars](int_fast32_t& index, Id id) -> void {
+    auto assign = [&initial_ranges, &enumeration_vars, &intersection_vars]
+                  (int_fast32_t& index, Id id)
+                  -> void
+    {
         if (index == -1) {
-            terms.push_back(std::get<ObjectId>(id));
+            initial_ranges.push_back(ScanRange::get(id, true));
         } else if (index == INT32_MAX) {
             enumeration_vars.push_back(std::get<VarId>(id));
         } else {
@@ -180,12 +210,12 @@ unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(const vector<VarId>& globa
 
     // node_label
     if (node_index <= label_index) {
-        assign(node_index, node);
+        assign(node_index,  node);
         assign(label_index, label);
 
         return make_unique<LeapfrogIterImpl<2>>(
             *model.node_label,
-            move(terms),
+            move(initial_ranges),
             move(intersection_vars),
             move(enumeration_vars)
         );
@@ -193,11 +223,11 @@ unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(const vector<VarId>& globa
     // to_type_from_edge
     else {
         assign(label_index, label);
-        assign(node_index, node);
+        assign(node_index,  node);
 
         return make_unique<LeapfrogIterImpl<2>>(
             *model.label_node,
-            move(terms),
+            move(initial_ranges),
             move(intersection_vars),
             move(enumeration_vars)
         );

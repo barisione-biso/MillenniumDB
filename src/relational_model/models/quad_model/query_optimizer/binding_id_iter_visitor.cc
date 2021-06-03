@@ -163,9 +163,9 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     }
 
     // try to use leapfrog if possible // TODO: only use when having more than 1 base plan?
-    tmp = try_get_leapfrog_plan(base_plans, var_names, binding_size, input_vars);
+    // tmp = try_get_leapfrog_plan(base_plans, var_names, binding_size, input_vars);
 
-    if (tmp == nullptr){
+    if (tmp == nullptr) {
         if (base_plans.size() <= MAX_SELINGER_PLANS) {
             SelingerOptimizer selinger_optimizer(move(base_plans), var_names, input_vars);
             root_plan = selinger_optimizer.get_plan();
@@ -177,7 +177,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
         const auto new_assigned_vars = root_plan->get_vars();
         for (std::size_t i = 0; i < binding_size; i++) {
             if ((new_assigned_vars & (1UL << i)) != 0) {
-                assigned_vars.insert(VarId(i));
+                assigned_vars.emplace(i);
             }
         }
 
@@ -284,7 +284,7 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
 unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vector<unique_ptr<JoinPlan>>& base_plans,
                                                                       vector<string>& var_names,
                                                                       const size_t binding_size,
-                                                                      uint64_t _input_vars)
+                                                                      uint64_t input_vars)
 {
     const auto base_plans_size = base_plans.size();
     assert(base_plans_size > 0);
@@ -293,10 +293,8 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
 
     vector<VarId> intersection_vars;
     set<VarId> enumeration_vars;
+    set<VarId> assigned_vars_set(assigned_vars.begin(), assigned_vars.end());
     set<VarId> intersection_vars_set;
-
-    // TODO:
-    uint64_t input_vars = _input_vars;
 
     // choose the first scan
     int best_index = 0;
@@ -366,37 +364,43 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
         for (std::size_t i = 0; i < binding_size; i++) {
             if ((encoded_vars & (1UL << i)) != 0) {
                 VarId var(i);
-                // cout << "VarId(" << i << ")\n";
-                // cout << "seeing " << var_names[i] << "\n";
-                // Var is in enumeration_vars
-                if (enumeration_vars.find(var) != enumeration_vars.end()) {
-                    enumeration_vars.erase(var);
-                    intersection_vars_set.insert(var);
-                    intersection_vars.push_back(var);
+                // only consider variables not present in assigned_vars
+                if (assigned_vars_set.find(var) == assigned_vars_set.end()) {
+                    // Var is in enumeration_vars
+                    if (enumeration_vars.find(var) != enumeration_vars.end()) {
+                        enumeration_vars.erase(var);
+                        intersection_vars_set.insert(var);
+                        intersection_vars.push_back(var);
+                    }
+                    // Var is not in intersection vars
+                    else if (intersection_vars_set.find(var) == intersection_vars_set.end()) {
+                        enumeration_vars.insert(var);
+                    }
+                    // else var is already in intersection_vars, do nothing
                 }
-                // Var is not in intersection vars
-                else if (intersection_vars_set.find(var) == intersection_vars_set.end()) {
-                    enumeration_vars.insert(var);
-                }
-                // else var is already in intersection_vars, do nothing
             }
         }
     }
 
-    cout << "Var order: [";
-    for (const auto& var : intersection_vars) {
-        cout << " " << var_names[var.id];
+    vector<VarId> var_order = intersection_vars; // TODO: move?
+    for (const auto& var : enumeration_vars) {
+        var_order.push_back(var);
     }
 
-    for (const auto& var : enumeration_vars) {
+    const auto enumeration_level = intersection_vars.size();
+
+    cout << "Var order: [";
+    for (const auto& var : var_order) {
         cout << " " << var_names[var.id];
     }
     cout << " ]\n";
 
+    cout << "   enumeration_level: " << enumeration_level << "\n";
+
     // Segunda pasada ahora si creando los LFIters
     vector<unique_ptr<LeapfrogIter>> leapfrog_iters;
     for (const auto& plan : base_plans) {
-        auto lf_iter = plan->get_leapfrog_iter(intersection_vars);
+        auto lf_iter = plan->get_leapfrog_iter(assigned_vars, var_order, enumeration_level);
         if (lf_iter == nullptr) {
             return nullptr;
         } else {
@@ -404,12 +408,12 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
         }
     }
 
-    auto var_order = move(intersection_vars);
-    for (const auto& var : enumeration_vars) {
-        var_order.push_back(var);
+    // At this point we know it won't return nullptr so we can change assigned_vars
+    for (const auto& var : var_order) {
+        assigned_vars.insert(var);
     }
 
-    return make_unique<LeapfrogJoin>(move(leapfrog_iters), move(var_order)); // TODO: generate global order?
+    return make_unique<LeapfrogJoin>(move(leapfrog_iters), move(var_order), enumeration_level);
 }
 
 

@@ -12,11 +12,13 @@ template class LeapfrogIterImpl<4>;
 using namespace std;
 
 template <size_t N>
-LeapfrogIterImpl<N>::LeapfrogIterImpl(const BPlusTree<N>&         btree,
-                                      const std::vector<ObjectId> terms,
-                                      const std::vector<VarId>    intersection_vars,
-                                      const std::vector<VarId>    enumeration_vars) :
-    LeapfrogIter (move(intersection_vars), move(enumeration_vars), move(terms))
+LeapfrogIterImpl<N>::LeapfrogIterImpl(const BPlusTree<N>&           btree,
+                                      vector<unique_ptr<ScanRange>> _initial_ranges,
+                                      vector<VarId>                 _intersection_vars,
+                                      vector<VarId>                 _enumeration_vars) :
+    LeapfrogIter (move(_initial_ranges),
+                  move(_intersection_vars),
+                  move(_enumeration_vars))
 {
     auto root = btree.get_root();
     directory_stack.push( move(root) );
@@ -105,11 +107,6 @@ bool LeapfrogIterImpl<N>::seek(uint64_t key) {
     for (int_fast32_t i = 0; i < level; i++) {
         min[i] = (*current_tuple)[i];
         max[i] = (*current_tuple)[i];
-    }
-
-    // TODO: borrar
-    if ((*current_tuple)[level] > key) {
-        throw logic_error("se supone que el seek va siempre hacia adelante?");
     }
 
     min[level] = key;
@@ -206,7 +203,7 @@ void LeapfrogIterImpl<N>::enum_no_intersection(TupleBuffer& buffer) {
     while (record != nullptr) {
         vector<ObjectId> tuple;
         for (size_t i = 0; i < enumeration_vars.size(); i++) {
-            tuple.push_back( ObjectId(record->ids[terms.size() + intersection_vars.size() + i]) );
+            tuple.push_back( ObjectId(record->ids[initial_ranges.size() + intersection_vars.size() + i]) );
         }
         buffer.append_tuple(tuple);
         record = it.next();
@@ -215,12 +212,23 @@ void LeapfrogIterImpl<N>::enum_no_intersection(TupleBuffer& buffer) {
 
 
 template <size_t N>
-bool LeapfrogIterImpl<N>::open_terms() {
-    for (const auto& term : terms) {
-        down();
-        if (!seek(term.id) || get_key() != term.id) {
-            return false;
-        }
+bool LeapfrogIterImpl<N>::open_terms(BindingId& input_binding) {
+    assert(current_tuple != nullptr);
+    array<uint64_t, N> min;
+    array<uint64_t, N> max;
+
+    // before level min and max are equal to the current_record
+    size_t i = 0;
+    for (; i < initial_ranges.size(); i++) {
+        min[i] = initial_ranges[i]->get_min(input_binding);
+        max[i] = initial_ranges[i]->get_max(input_binding);
     }
-    return true;
+
+    for (; i < N; i++) {
+        min[i] = 0;
+        max[i] = UINT64_MAX;
+    }
+
+    level = initial_ranges.size() - 1;
+    return internal_search(Record<N>(min), Record<N>(max));
 }

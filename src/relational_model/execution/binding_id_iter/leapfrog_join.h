@@ -11,7 +11,8 @@
 class LeapfrogJoin : public BindingIdIter {
 public:
     LeapfrogJoin(std::vector<std::unique_ptr<LeapfrogIter>> leapfrog_iters,
-                 std::vector<VarId> var_order);
+                 std::vector<VarId> var_order,
+                 int_fast32_t enumeration_level);
     ~LeapfrogJoin() = default;
 
     void analyze(int indent = 0) const override;
@@ -23,20 +24,19 @@ public:
 private:
     std::vector<std::unique_ptr<LeapfrogIter>> leapfrog_iters;
 
-    // TODO: will var_order contain variables of the parant node at optionals?
-    std::vector<VarId> var_order; // contains variables from intersection_vars and enumeration_vars
+    // At first it contains variables from intersection_vars
+    // then it contains variables from enumeration_vars
+    std::vector<VarId> var_order;
 
     BindingId* parent_binding;
 
-    const int_fast32_t base_level; // how many variables in local will be set from outside.
-                                   // TODO: may change when including optionals?
+    const int_fast32_t enumeration_level;
 
-    int_fast32_t level; // level starts at base_level, and will vary between [base_level, enumeration_level]
-                        // when level-(base_level-1) means there is no more tuples left
+    // level will vary between [0, enumeration_level]
+    // when level=-1 means there is no more tuples left
+    int_fast32_t level;
 
-    int_fast32_t enumeration_level;
-
-    // iters_for_var[i] is a list of (not-null) pointers of iterators for the variable var_order[i].
+    // iters_for_var[i] is a list of (not-null) pointers of iterators for the variable at var_order[base_level+i].
     std::vector<std::vector<LeapfrogIter*>> iters_for_var;
 
     std::vector<std::unique_ptr<TupleBuffer>> buffers;
