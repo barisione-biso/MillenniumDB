@@ -171,8 +171,7 @@ The following classes inherit from BindingIdIter:
 - `NodeTableEnum`: Creates an iterator that goes through the node table, enumerating the results.
 - `ObjectEnum`: Creates an iterator that iterates until a limit is reached.
 - `OptionalNode`: Creates an iterator that involves its main pattern iterator and its child patterns' iterators, joining them in order through the Index Left Outer Join algorithm.
-- `TransitiveClosureCheck`: Creates an iterator over a set pair of nodes, and returns any pair of nodes that are connected by a transitive closure.
-- `TransitiveClosureEnum`: Creates an iterator over a pair of nodes where one is set and the other is not, and iterates over the ingoing paths (if the `to` node is set) or outgoing paths (if the `from` node is set).
+TODO: Add property path enum and check.
 - `Union`: Creates an iterator over a list of iterators (`iters`) and consumes each iterator of the list in order. It does not filter duplicates.
 
 ## 3.3. Generation<a id="physical-plan-generation"></a>

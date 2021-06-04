@@ -14,6 +14,17 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
+/*
+PropertyPathAStarIterEnum enumerates paths from or to a specifc node.
+Uses an heuristic always extract the nearest automaton state to
+final state.
+The paths returned are optimal thanks to AStar optimal
+property.
+
+Precaution with the hit time due to multiple extract and push
+to open for some atribute modification
+*/
+
 
 namespace AStarIterEnum {
 

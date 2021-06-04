@@ -1,38 +1,114 @@
 # Contents:
-- [Property Paths Queries](#Property-Paths-Queries)
-- [Classes](#Classes)
-    - [Property Path Constructor](##Property-Path-Constructor)
-    - [OpPath](##OpPath)
-    - [Path Automaton](##Path-Automaton)
+1. [Property Paths Queries](#Property-Paths-Queries)
+     [Introduction](##Introduction)
+    - [Building a query](##Building-a-query)
+    - [Paths returned](##Paths-returned)
+    - [Getting the path](##Getting-the-path)
+2. [Advanced](#Advanced)
+    - [Parsing Phase](##Parsing-Phase)
+        - [Property Path Constructor](###Property-Path-Constructor)
+        - [OpPath](###OpPath)
+        - [Path Automaton](###Path-Automaton)
 
 
 # Property Paths Queries
+## Introduction
 
-Property paths queries are like:
+Property paths queries refers to path between to nodes
+or all the paths that start from or reach to specific node. In the query, you have to use a regular expresion to describe de desired path:
 
 `
-SELECT (?x)
- MATCH (?x)=[:P1 / :P2]=>(?y)
+SELECT *
+ MATCH (Q1)=[:P1 / :P2]=>(?y)
 `
 
-There are 7 operators defined:
+## Building a query
+
+There are 7 basic expresions to build a regular expresion that describes a path:
 
 - `:P1 / : P2`: Sequence. `P1` and `P2` must be in the path.
 - `:P1 | :P2`: Alternative. `P1` or (exclusive) `P2` must be in the path.
-- `:P1*`: Kleene Start. Refers a path with 0 or more `:P1`.
+- `:P1*`: Kleene Start. Refers a path with 0 or more `:P1`. Always return at least one node
 - `:P1?`: Optional: Refers a path with 0 or one `P1`
 - `:P1+`: Refers to a path with one or more `P1`
 - `^:P1`: Inverse operator.
 - `:P1{a,b}`: Refers a path that `P1` appears more or equal than a times and less or equal that b times.
 
+You have to fix (or define) a node of start or end:
+
+`
+SELECT *
+ MATCH (?x)=[:P1 / :P2]=>(?y)  // Fails, a start and end node is not defined
+`
+
+`
+SELECT *
+ MATCH (Q1)=[:P1 / :P2]=>(?y)  // Correct, start is fixed
+`
+
+`
+SELECT *
+ MATCH (?x)=[:P1 / :P2]=>(Q1)  // Correct, end is fixed
+`
+
+`
+SELECT *
+ MATCH (?x :label_node)=[:P1 / :P2]=>(?y)  // Correct, start is fixed
+`
+
+## Paths returned
+
+As you can see, queries that defines a property path, return paths between a node or that start or reach to specifc node. But are all posible paths returned?
+
+The answer is depend of the operator that you use. Imagine you have the following graph as database (aux node is not relevant for the example):
+
+```
+Q1=[:P1]=>(aux)=>[:P2]=>Q2
+Q1=[:P1]=>(aux)=>[:P2]=>Q3
+Q1=[:P3]=>(aux)=>[:P3]=>(aux)=>[:P3]=>(aux)=>[:P3]=>(aux)=>[:P4]=>(Q2)
+```
+
+You can do the following query:
+
+`
+SELECT * (Q1)=[:P1 / :P2]=>(?x)
+`
+
+The two first paths will be returned, in this case __all__ the paths will be founded. Now, a example with a Kleene Star operator
+
+`
+SELECT * (Q1)=[:P3* / :P4]=>(?x)
+`
+
+You can think that third path will be returned. Kleene Star operator allows that P3 appears many times in a path. But the path finding do not work like this. If you want the third path, you have to make a query like:
+
+
+`
+SELECT * (Q1)=[:P3* / :P3* / :P3* /:P3* / :P4]=>(?x)
+`
+`
+SELECT * (Q1)=[:P3{3,4} / :P4]=>(?x)
+`
+
+## Getting the path
+
+In the query you can recover the path:
+
+`
+SELECT my_path (Q1)=[my_path? :P1 / :P2]=>(?x)
+`
+
+# Advanced
+
+The following guide is intended for someone who will be working on the MilleniumDB engine.
+
 
 Property Paths queries are handled in `OpMatch`. First the querie is parsed to a OpPath class, that will be used to construct a finite automaton that represents the semantic of the querie. Finally, the automaton is passed to a binding_id_iter class that use the automaton to check if the path to a node matches with the path asked in the querie.
 
-# Classes
-## Property Path Constructor
+## Parsing Phase
 
-Ubicated at `src/base/parser/logical_plan/path_constructor/`
-
+The objetive of this fase is generate an automaton that accepts the regular expression described in the query.
+### Property Path Constructor
 
 The objetive of this module is transform a grammar object into a __OpPath__ subclass to allow use Op interface.
 
@@ -63,18 +139,13 @@ OpPathAlternatives(
 );
 ```
 
-### - Path Constructor Optimization
-
-Path Constructor uses a module called `SimplifyPropertyPath` ubicated at `src/base/parser/logical_plan/op/visitors/simplify_property_path.h`.
-
-This module allows to path constructor reduce queries like:
-
+PathConstructor uses a module called `DenullPath` to transforms queries with redundant Kleene Star:
 ```
 SELECT (?x)
 MATCH (?x)=[(:P1*)*]=>(?y)
 ```
 
-To queries without redundant kleene star operator
+Into queries without redundant kleene star operator
 
 ```
 SELECT (?x)
@@ -93,10 +164,9 @@ A node is nullable if:
 When a path is nullable, it will be replace by it child. In the case of alternative, only nullable elements will be replaced.
 
 
-## OpPath
-Ubicated in `src/base/parser/logical_plan/op/op_path.h`
+### OpPath
 
-Uses `Op` interface, but add more methods:
+Implements `Op` interface. Implements some important additional methods:
 
 - `bool nullable()`: Return __true__ if it path is nullable. Nullable paths are discused in [optimization section](#Optimizations).
 
@@ -105,10 +175,9 @@ Uses `Op` interface, but add more methods:
 - `OpPathType type()`: Returns a the type of op path. Types are described [later](###OpPath-Types).
 - `void invert()`: Recursively inverts each path.
 - `PathAutomaton get_automaton()`: Returns a non deterministic automaton with epsilon transitions  that describe the path. Automaton construction is described in [Path Automaton section](##Path-Automaton).
+- - `PathAutomaton get_transformed_automaton()`: Return a automaton without epsilon transitions.
 
-
-
-### OpPath Types
+#### OpPath Types
 
 - OpPathAlternatives: Used for `|` operator. Have a vector of OpPaths that represents the alternatives.
 - OpPathSequence: Used for `/` operator. Have a vector of OpPaths that represents the sequence.
@@ -119,7 +188,7 @@ Uses `Op` interface, but add more methods:
 The `:P1+` is transformed to `:P1 / :P1*` which is equivalent. The `:P1{a,b}` is transformed to `:P1 / ... {a times} / :P1 / :P1? ... {b - a times} / :P1?. `
 
 
-## Path Automaton
+### Path Automaton
 
 PathAutomaton class is used to represent the semantic of a property path querie.
 The main attributes of this class are
@@ -177,14 +246,11 @@ According with the OpPathSequence automaton schema. `A` and `B` automatons will 
 
 
 
-### Path Automaton Optimizations
+#### Path Automaton Transformations
 
-To make automaton more efficient, after generate the automatons, the next optimizations will be applied
+Path Automaton have 4 transformations:
 
-
-Path Automaton have 4 optimizations:
-
-### Mergeable states
+#### Mergeable states
 
 A state `s` is mergeable with `v` in the following cases:
 - Has only one transition that starts from `s`, and the transitions is epsilon and reach to `v`.
@@ -194,7 +260,7 @@ A state `s` is mergeable with `v` in the following cases:
 
 This reduce the number of states of the automaton.
 
-### Replace epsilon transitions
+#### Replace epsilon transitions
 
 This step is no always a optimization, because can increase the number of connections, but delete all epsilon transitions.
 
@@ -206,11 +272,11 @@ For each `v` in the epsilon closure, if `v` connect with w by a non-epsilon tran
 
 
 
-## Delete unreachable states from start
+### Delete unreachable states from start
 
 Delete all states that cannot be reached from start node. In the last example, v will be erased.
 
 
-## Transform to one final state
+### Transform to one final state
 
 Delete all states that cannot reachs to end.

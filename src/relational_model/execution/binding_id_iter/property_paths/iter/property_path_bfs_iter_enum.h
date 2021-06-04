@@ -15,9 +15,13 @@
 #include "storage/index/bplus_tree/bplus_tree.h"
 
 /*
-PropertyPathBFSCheck  returns nodes that can be reached by 'start' or reach to 'end' by a
-path that automaton object describes.
-  * Explores graph using BFS algorithm
+
+PropertyPathBFSIterEnum enumerates paths from or to a specifc node,
+using BFS algorithm, thus paths returned are optimal.
+
+Precaution with the exponencial memory usage of open due to
+ramification of BFS
+
 */
 
 

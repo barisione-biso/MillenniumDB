@@ -7,6 +7,9 @@
 #include "relational_model/execution/binding_id_iter/property_paths/search_state.h"
 
 
+// PathManager converts a path into a object id
+
+
 class PathManager : public PathPrinter {
 public:
     ~PathManager() = default;
@@ -19,8 +22,6 @@ public:
 private:
     QuadModel& model; // TODO: ojala fuese GraphModel
     PathManager(QuadModel& model);
-
-    //const SearchState* saved_visited_pointer;
     std::vector<const SearchState*> paths;
 };
 

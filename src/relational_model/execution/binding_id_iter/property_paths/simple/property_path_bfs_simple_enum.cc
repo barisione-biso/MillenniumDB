@@ -87,7 +87,7 @@ bool PropertyPathBFSSimpleEnum::next() {
             parent_binding->add(end, current_state.object_id);
             open.pop();  // Pop to visit next state
             return true;
-        } else if (is_first) {
+        } else if (is_first) { // If start state is final
             is_first = false;
             if (current_state.state == automaton.get_start() &&
                 automaton.start_is_final)

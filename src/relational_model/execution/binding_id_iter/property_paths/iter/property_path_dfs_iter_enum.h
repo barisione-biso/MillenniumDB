@@ -14,10 +14,16 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
+/*
+PropertyPathDFSIterEnum enumerates paths from or to a specifc node
+using DFS algorithm.
+
+Open memory usage is linear, but no optimal path is guaranteed. This can
+ralentize the search due to long paths that must be constructed
+*/
 
 
 namespace DFSIterEnum {
-
 struct State {
     const uint32_t state;
     const ObjectId object_id;
@@ -29,6 +35,7 @@ struct State {
         object_id (object_id) { }
 
 };
+
 
 struct StateKey {
     uint32_t state;
@@ -43,13 +50,13 @@ struct StateKey {
     }
 };
 
+
 struct StateKeyHasher {
     std::size_t operator() (const StateKey& lhs) const {
         return lhs.state ^ lhs.object_id.id;
     }
 };
 };
-
 
 
 class PropertyPathDFSIterEnum : public BindingIdIter {

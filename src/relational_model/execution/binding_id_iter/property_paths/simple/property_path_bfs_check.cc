@@ -65,7 +65,8 @@ bool PropertyPathBFSCheck::next() {
     if (is_first) {
         is_first = false;
         if (automaton.start_is_final && open.front().object_id == end_object_id) {
-            //path_manager.set_path(visited.find(open.front()).operator->(), 0);  // TODO:
+            auto path_id = path_manager.set_path(visited.find(open.front()).operator->(), path_var);
+            parent_binding->add(path_var, path_id);
             queue<SearchState> empty;
             open.swap(empty);
             results_found++;
@@ -100,7 +101,8 @@ bool PropertyPathBFSCheck::next() {
                 if (next_state.state == automaton.get_final_state()
                     && next_state.object_id == end_object_id )
                 {
-                    //path_manager.set_path(visited.find(next_state).operator->(), 0);  // TODO:
+                    auto path_id = path_manager.set_path(visited.find(next_state).operator->(), path_var);
+                    parent_binding->add(path_var, path_id);
                     queue<SearchState> empty;
                     open.swap(empty);
                     results_found++;
