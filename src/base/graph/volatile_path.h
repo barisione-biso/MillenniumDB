@@ -6,6 +6,9 @@
 #include <ostream>
 #include "base/graph/path_printer.h"
 
+/*
+TODO: Explain class
+*/
 
 class VolatilePath {
 public:

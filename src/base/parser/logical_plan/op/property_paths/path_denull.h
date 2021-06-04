@@ -4,7 +4,11 @@
 #include <memory>
 
 /*
-TODO: Explain class
+PathDenull is used to delete redundant operators, in particular
+removes extra KleeneStar, Optional and ? operators.
+
+PathDenull only will be called when  OpPathKleeneStar or OpPathOptional
+classes are constructed. Recursively look by a redundant operator
 */
 
 class OpPath;

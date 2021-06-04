@@ -35,20 +35,20 @@ void PropertyPathAStarIterEnum::begin(BindingId& parent_binding, bool parent_has
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
             open.emplace(
-                automaton.start,
+                automaton.get_start(),
                 start_object_id,
-                automaton.distance_to_final[automaton.start]
+                automaton.distance_to_final[automaton.get_start()]
             );
-            visited.emplace(automaton.start, start_object_id, nullptr);
+            visited.emplace(automaton.get_start(), start_object_id, nullptr);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
             open.emplace(
-                automaton.start,
+                automaton.get_start(),
                 start_object_id,
-                automaton.distance_to_final[automaton.start]
+                automaton.distance_to_final[automaton.get_start()]
             );
-            visited.emplace(automaton.start, start_object_id, nullptr);
+            visited.emplace(automaton.get_start(), start_object_id, nullptr);
         }
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
@@ -67,11 +67,11 @@ bool PropertyPathAStarIterEnum::next() {
             // TODO: Check if start exists in bd
             auto& current_state = open.top();
             visited.emplace(
-                automaton.final_state,
+                automaton.get_final_state(),
                 current_state.object_id,
                 nullptr);
             auto current_key = SearchState(
-                automaton.final_state,
+                automaton.get_final_state(),
                 current_state.object_id,
                 nullptr
             );
@@ -87,7 +87,7 @@ bool PropertyPathAStarIterEnum::next() {
         if (current_state_has_next()) {
             auto& current_state = open.top();
             open.emplace(reached_automaton_state, reached_object_id, current_state.priority);
-            if (reached_automaton_state == automaton.final_state) {
+            if (reached_automaton_state == automaton.get_final_state()) {
                 // set binding;
                 auto current_key = SearchState(
                     reached_automaton_state,
@@ -95,7 +95,7 @@ bool PropertyPathAStarIterEnum::next() {
                     nullptr
                 );
 
-                auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var); // TODO:
+                auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var);
                 parent_binding->add(path_var, path_id);
                 parent_binding->add(end, reached_object_id);
                 results_found++;
@@ -195,20 +195,20 @@ void PropertyPathAStarIterEnum::reset() {
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
         open.emplace(
-            automaton.start,
+            automaton.get_start(),
             start_object_id,
-            automaton.distance_to_final[automaton.start]);
-        visited.emplace(automaton.start, start_object_id, nullptr);
+            automaton.distance_to_final[automaton.get_start()]);
+        visited.emplace(automaton.get_start(), start_object_id, nullptr);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
         open.emplace(
-            automaton.start,
+            automaton.get_start(),
             start_object_id,
-            automaton.distance_to_final[automaton.start]
+            automaton.distance_to_final[automaton.get_start()]
         );
-        visited.emplace(automaton.start, start_object_id, nullptr);
+        visited.emplace(automaton.get_start(), start_object_id, nullptr);
     }
     is_first = true;
 }

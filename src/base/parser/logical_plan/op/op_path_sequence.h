@@ -81,10 +81,10 @@ public:
         for (size_t i = 1; i < sequence.size(); i++) {
             auto seq_automaton = sequence[i]->get_automaton();
             sequence_automaton.rename_and_merge(seq_automaton);
-            for (auto& end_state : sequence_automaton.end) {
-                sequence_automaton.add_epsilon_transition(end_state, seq_automaton.start);
+            for (const auto& end_state : sequence_automaton.end_states) {
+                sequence_automaton.add_epsilon_transition(end_state, seq_automaton.get_start());
             }
-            sequence_automaton.end = std::move(seq_automaton.end);
+            sequence_automaton.end_states = std::move(seq_automaton.end_states);
         }
         return sequence_automaton;
     }

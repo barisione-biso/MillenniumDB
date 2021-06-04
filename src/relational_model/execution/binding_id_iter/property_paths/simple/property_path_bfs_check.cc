@@ -34,13 +34,13 @@ void PropertyPathBFSCheck::begin(BindingId& parent_binding, bool parent_has_next
         // Add inital state to queue
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
-            open.emplace(automaton.start, start_object_id, nullptr);
-            visited.emplace(automaton.start, start_object_id, nullptr);
+            open.emplace(automaton.get_start(), start_object_id, nullptr);
+            visited.emplace(automaton.get_start(), start_object_id, nullptr);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
-            open.emplace(automaton.start, start_object_id, nullptr);
-            visited.emplace(automaton.start, start_object_id, nullptr);
+            open.emplace(automaton.get_start(), start_object_id, nullptr);
+            visited.emplace(automaton.get_start(), start_object_id, nullptr);
         }
 
         // Set end_object_id
@@ -97,7 +97,7 @@ bool PropertyPathBFSCheck::next() {
                 }
 
                 // Check if next_state is final
-                if (next_state.state == automaton.final_state
+                if (next_state.state == automaton.get_final_state()
                     && next_state.object_id == end_object_id )
                 {
                     //path_manager.set_path(visited.find(next_state).operator->(), 0);  // TODO:
@@ -146,14 +146,14 @@ void PropertyPathBFSCheck::reset() {
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        open.emplace(automaton.start, start_object_id, nullptr);
-        visited.emplace(automaton.start, start_object_id, nullptr);
+        open.emplace(automaton.get_start(), start_object_id, nullptr);
+        visited.emplace(automaton.get_start(), start_object_id, nullptr);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
-        open.emplace(automaton.start, start_object_id, nullptr);
-        visited.emplace(automaton.start, start_object_id, nullptr);
+        open.emplace(automaton.get_start(), start_object_id, nullptr);
+        visited.emplace(automaton.get_start(), start_object_id, nullptr);
     }
 
     // Set end_object_id

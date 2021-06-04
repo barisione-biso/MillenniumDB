@@ -116,7 +116,7 @@ void PropertyPathPlan::set_input_vars(uint64_t input_vars) {
 
 unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*binding_size*/) {
     if (from_assigned) {
-        auto automaton = path.get_optimized_automaton();
+        auto automaton = path.get_transformed_automaton();
         transform_automaton(automaton);
         if (to_assigned) {
             // bool case
@@ -139,7 +139,7 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
         if (to_assigned) {
             // enum starting on to
             auto inverted_path = path.invert();
-            auto automaton = inverted_path->get_optimized_automaton();
+            auto automaton = inverted_path->get_transformed_automaton();
             transform_automaton(automaton);
             return make_unique<PropertyPathEnum>(*model.type_from_to_edge,
                                                  *model.to_type_from_edge,

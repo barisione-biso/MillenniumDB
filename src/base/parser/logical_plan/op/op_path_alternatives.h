@@ -78,12 +78,13 @@ public:
 
     PathAutomaton get_automaton() const override {
         auto alternative_automaton = PathAutomaton();
-        for (auto& alternative : alternatives) {
+        for (const auto& alternative : alternatives) {
             auto automaton = alternative->get_automaton();
             alternative_automaton.rename_and_merge(automaton);
-            alternative_automaton.add_epsilon_transition(alternative_automaton.start, automaton.start);
-            for(auto& end_state : automaton.end) {
-                alternative_automaton.end.insert(end_state);
+            auto start_state = alternative_automaton.get_start();
+            alternative_automaton.add_epsilon_transition(start_state, start_state);
+            for(const auto& end_state : automaton.end_states) {
+                alternative_automaton.end_states.insert(end_state);
             }
         }
         return alternative_automaton;

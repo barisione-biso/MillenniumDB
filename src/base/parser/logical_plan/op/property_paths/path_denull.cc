@@ -1,9 +1,6 @@
 #include "path_denull.h"
 
-
-// TODO: Revisar includes si son necesarios
 #include <cassert>
-#include <iostream>
 
 #include "base/parser/logical_plan/op/op_path.h"
 #include "base/parser/logical_plan/op/op_path_alternatives.h"
@@ -15,7 +12,6 @@
 using namespace std;
 
 unique_ptr<OpPath> PathDenull::denull(unique_ptr<OpPath> path) {
-    // return accept_denull( move(path) );
     auto res = accept_denull( move(path) );
     assert(res != nullptr);
     return res;

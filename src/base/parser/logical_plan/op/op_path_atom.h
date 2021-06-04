@@ -57,9 +57,8 @@ public:
 
     PathAutomaton get_automaton() const override {
         auto automaton = PathAutomaton();
-        automaton.end.insert(1);
+        automaton.end_states.insert(1);
         automaton.connect(Transition(0, 1, atom, inverse));
-        automaton.total_states = 2;
         return automaton;
     }
 

@@ -34,13 +34,13 @@ void PropertyPathBFSIterEnum::begin(BindingId& parent_binding, bool parent_has_n
         // Add inital state to queue
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
-            open.emplace(automaton.start, start_object_id, nullptr);
-            visited.emplace(automaton.start, start_object_id, nullptr);
+            open.emplace(automaton.get_start(), start_object_id, nullptr);
+            visited.emplace(automaton.get_start(), start_object_id, nullptr);
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
-            open.emplace(automaton.start, start_object_id, nullptr);
-            visited.emplace(automaton.start, start_object_id, nullptr);
+            open.emplace(automaton.get_start(), start_object_id, nullptr);
+            visited.emplace(automaton.get_start(), start_object_id, nullptr);
         }
         first_next = true;
         iter = nullptr;
@@ -56,12 +56,12 @@ bool PropertyPathBFSIterEnum::next() {
     // Check if first node is final
     if (first_next) {
         first_next = false;
-        
+
         if (automaton.start_is_final) {
             // TODO: Check if start node exists (Perhaps checks before create automaton)
-            visited.emplace(automaton.final_state, open.front().object_id, nullptr);
+            visited.emplace(automaton.get_final_state(), open.front().object_id, nullptr);
             auto reached_key = SearchState(
-                    automaton.final_state,
+                    automaton.get_final_state(),
                     open.front().object_id,
                     nullptr
                 );
@@ -76,7 +76,7 @@ bool PropertyPathBFSIterEnum::next() {
         auto& current_state = open.front();
         if (current_state_has_next(current_state)) {
             open.emplace(reached_automaton_state, reached_object_id, nullptr);
-            if (reached_automaton_state == automaton.final_state) {
+            if (reached_automaton_state == automaton.get_final_state()) {
                 // set binding;
                 auto reached_key = SearchState(
                     reached_automaton_state,
@@ -174,14 +174,14 @@ void PropertyPathBFSIterEnum::reset() {
     iter = nullptr;
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        open.emplace(automaton.start, start_object_id, nullptr);
-        visited.emplace(automaton.start, ObjectId(start_object_id), nullptr);
+        open.emplace(automaton.get_start(), start_object_id, nullptr);
+        visited.emplace(automaton.get_start(), ObjectId(start_object_id), nullptr);
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
-        open.emplace(automaton.start, start_object_id, nullptr);
-        visited.emplace(automaton.start, ObjectId(start_object_id), nullptr);
+        open.emplace(automaton.get_start(), start_object_id, nullptr);
+        visited.emplace(automaton.get_start(), ObjectId(start_object_id), nullptr);
     }
 }
 

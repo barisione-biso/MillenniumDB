@@ -30,9 +30,9 @@ public:
     // TODO: Make protected
     virtual PathAutomaton get_automaton() const = 0;
 
-    PathAutomaton get_optimized_automaton() const {
+    PathAutomaton get_transformed_automaton() const {
         auto automaton = get_automaton();
-        automaton.optimize_automata();
+        automaton.transform_automaton();
         return automaton;
     }
 };

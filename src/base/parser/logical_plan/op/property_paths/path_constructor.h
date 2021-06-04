@@ -5,7 +5,8 @@
 #include "base/parser/logical_plan/op/op_path.h"
 
 /*
-TODO: Explain class, delete unnecesary include
+PathConstructor takes the a object that represents a property path
+according to the grammar and transform it in a OpPath
 */
 
 class PathConstructor {

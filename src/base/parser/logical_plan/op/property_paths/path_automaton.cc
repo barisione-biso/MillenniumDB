@@ -20,7 +20,7 @@ void PathAutomaton::print() {
     }
     cout << "start is final: " << (start_is_final ? "true" : "false") << "\n";
     cout << "end states: { ";
-    for (auto& state : end) {
+    for (auto& state : end_states) {
         cout << state << "  ";
     }
     cout << "}\n";
@@ -40,11 +40,11 @@ void PathAutomaton::rename_and_merge(PathAutomaton& other) {
 
     // Rename 'other' start and end states
     set<uint32_t> new_end;
-    for (auto& end_state : other.end) {
+    for (auto& end_state : other.end_states) {
         new_end.insert(total_states + end_state);
     }
     other.start += total_states;
-    other.end = move(new_end);
+    other.end_states = move(new_end);
 
     // Add 'other' states count to this automaton
     total_states += other.total_states;
@@ -80,6 +80,8 @@ void PathAutomaton::connect(Transition transition) {
         from_to_connections[transition.from].push_back(transition);
         to_from_connections[transition.to].push_back(transition);
     }
+    // Update number of states
+    total_states = from_to_connections.size();
 }
 
 
@@ -88,42 +90,41 @@ void PathAutomaton::add_epsilon_transition(uint32_t from, uint32_t to) {
 }
 
 
-void PathAutomaton::optimize_automata() {
-    // TODO: Comment algorithm
-    delete_mergeable_states();
-    for (size_t a = 0; a < from_to_connections.size(); a++) {
-        auto epsilon_closure = get_epsilon_closure(a);
+void PathAutomaton::delete_epsilon_transitions() {
+    for (size_t state = 0; state < from_to_connections.size(); state++) {
+        // For each state, get his epsilon closure
+        auto epsilon_closure = get_epsilon_closure(state);
+        // If a end state is in closure, then state will be in end_state
         for (const auto s : epsilon_closure) {
-            if (end.find(s) != end.end()) {
-                end.insert(a);
+            if (end_states.find(s) != end_states.end()) {
+                end_states.insert(state);
             }
         }
-        for (size_t i = 0; i < from_to_connections[a].size();) {
-            if (from_to_connections[a][i].label.empty()) {
+        // Each epsilon transition of state will be replaced
+        // by a non epsilon transition that reachs
+        size_t transition_n = 0;
+        while (transition_n < from_to_connections[state].size()) {
+            // Epsilon transitions has empty labels
+            if (from_to_connections[state][transition_n].label.empty()) {
+                // Before delete transition, connect 'state' to states that
+                // states of epsilon closure reaches without a epsilon transition
                 for (const auto s : epsilon_closure) {
                     for (const auto& t : from_to_connections[s]) {
+                        // Connect only if t is not epsilon transition. Always a state
+                        // s connect with another state by a non epsilon transition.
                         if (!t.label.empty()) {
-                            connect(Transition(a, t.to, t.label, t.inverse));
+                            connect(Transition(state, t.to, t.label, t.inverse));
                         }
                     }
                 }
                 // delete epsilon transition
-                from_to_connections[a].erase(from_to_connections[a].begin() + i);
+                from_to_connections[state].erase(
+                    from_to_connections[state].begin() + transition_n);
             } else {
-                i++;
+                transition_n++;
             }
         }
     }
-    delete_unreachable_states();
-    if (end.size() == 1) {
-        final_state = *end.begin();
-        start_is_final = final_state == start;
-    } else {
-        set_final_state();
-    }
-    end.clear();
-    delete_absortion_states();
-    calculate_distance_to_final_state();
 }
 
 
@@ -193,13 +194,14 @@ set<uint32_t> PathAutomaton::get_epsilon_closure(uint32_t state) {
 void PathAutomaton::delete_unreachable_states() {
     // Get reachable states from start state
     auto reachable_states = get_reachable_states_from_start();
+    // Avoid iterate over start state
     for (size_t i = 1; i < from_to_connections.size(); i++) {
         // Check if 'i0 is reachable from start
         if (reachable_states.find(i) == reachable_states.end()) {
             // Delete all transitions from and to 'i' if is not reachable
             from_to_connections[i].clear();
             to_from_connections[i].clear();
-            end.erase(i);
+            end_states.erase(i);
             for (size_t j = 0; j < from_to_connections.size(); j++) {
                 auto iterator = from_to_connections[j].begin();
                 while (iterator != from_to_connections[j].end()) {
@@ -298,8 +300,8 @@ set<uint32_t> PathAutomaton::get_reachable_states_from_end() {
 
 
 void PathAutomaton::merge_states(uint32_t destiny, uint32_t source) {
-    if (end.find(source) != end.end()) {
-        end.insert(destiny);
+    if (end_states.find(source) != end_states.end()) {
+        end_states.insert(destiny);
     }
     // Redirect source=[x]=>v to destiny=[x]=>v
     for (const auto& t : from_to_connections[source]) {
@@ -345,7 +347,7 @@ void PathAutomaton::set_final_state() {
     final_state = total_states;
     total_states++;
     // Set start state as final
-    if (end.find(start) != end.end()) {
+    if (end_states.find(start) != end_states.end()) {
         start_is_final = true;
     }
     // Redirect state that reach to end's state to final_state
@@ -353,7 +355,7 @@ void PathAutomaton::set_final_state() {
     for (size_t i = 0; i < from_to_connections.size(); i++) {
         for (size_t j = 0; j < from_to_connections[i].size(); j++) {
             const auto& t = from_to_connections[i][j];
-            if (end.find(t.to) != end.end()) {
+            if (end_states.find(t.to) != end_states.end()) {
                 connect(Transition(t.from, final_state, t.label, t.inverse));
             }
         }
@@ -383,4 +385,29 @@ void PathAutomaton::calculate_distance_to_final_state() {
             }
         }
     }
+}
+
+void PathAutomaton::transform_automaton() {
+    // Reduce size by deletion of mergeable states
+    delete_mergeable_states();
+
+    // Transform into automaton without epsilon transitions
+    delete_epsilon_transitions();
+
+    // Delete states that can no be reached by start state
+    delete_unreachable_states();
+
+    // Set of final state
+    if (end_states.size() == 1) {
+        final_state = *end_states.begin();
+        start_is_final = final_state == start;
+    } else {
+        set_final_state();
+    }
+    end_states.clear();
+
+    // After set final_state, end_states may be unnecesary
+    delete_absortion_states();
+
+    calculate_distance_to_final_state();
 }
