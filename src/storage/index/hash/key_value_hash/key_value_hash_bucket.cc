@@ -7,6 +7,7 @@
 
 using namespace std;
 
+// alignment works well for <ObjectId, ObjectId> but need to analyze for other cases
 template class KeyValueHashBucket<ObjectId, ObjectId>;
 
 template <class K, class V>
@@ -15,8 +16,8 @@ KeyValueHashBucket<K, V>::KeyValueHashBucket(const TmpFileId file_id, const uint
     page        (buffer_manager.get_tmp_page(file_id, bucket_number)),
     key_size    (key_size),
     value_size  (value_size),
-    tuple_count ( reinterpret_cast<uint32_t*>(page.get_bytes() ) ),
-    tuples      ( reinterpret_cast<char*>(page.get_bytes() + sizeof(uint32_t)) )
+    tuple_count ( reinterpret_cast<uint64_t*>(page.get_bytes() ) ),
+    tuples      ( reinterpret_cast<char*>(page.get_bytes() + sizeof(uint64_t)) )
     {}
 
 

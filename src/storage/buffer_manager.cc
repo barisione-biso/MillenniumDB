@@ -17,7 +17,7 @@ BufferManager& buffer_manager = reinterpret_cast<BufferManager&>(buffer_manager_
 
 BufferManager::BufferManager(uint_fast32_t buffer_pool_size) :
     buffer_pool_size          (buffer_pool_size),
-    private_buffer_pool_size  (buffer_pool_size/3),  // TODO: change this to parameter
+    private_buffer_pool_size  (buffer_pool_size),  // TODO: change this to parameter
     max_private_buffers       (10),  // TODO: change this to parameter
     buffer_pool               (new Page[buffer_pool_size]),
     private_buffer_pool       (new Page[private_buffer_pool_size * max_private_buffers]),
@@ -188,7 +188,6 @@ uint_fast32_t BufferManager::get_private_buffer_index() {
     auto thread_pos_it = thread2index.find(this_id);
     if (thread_pos_it == thread2index.end()) {
         // new thread
-        std::cout << "thread: " << this_id << "\n";
         if (available_private_positions.empty()) {
             throw std::runtime_error("To many threads, not enough private buffer space");
         }

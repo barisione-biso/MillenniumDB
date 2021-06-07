@@ -1,11 +1,9 @@
-#include "hash_join_plan.h"
-#include "relational_model/execution/binding_id_iter/hash_join/hash_join.h"
-#include "relational_model/execution/binding_id_iter/hash_join/hash_join_in_memory.h"
-#include "relational_model/execution/binding_id_iter/hash_join/hash_join_in_memory_2.h"
+#include "hash_join_in_buffer_plan.h"
+#include "relational_model/execution/binding_id_iter/hash_join/hash_join_in_buffer.h"
 
 using namespace std;
 
-HashJoinPlan::HashJoinPlan(unique_ptr<JoinPlan> _lhs, unique_ptr<JoinPlan> _rhs) :
+HashJoinInBufferPlan::HashJoinInBufferPlan(unique_ptr<JoinPlan> _lhs, unique_ptr<JoinPlan> _rhs) :
     lhs(move(_lhs)), rhs(move(_rhs))
 {
     // TODO:
@@ -14,19 +12,19 @@ HashJoinPlan::HashJoinPlan(unique_ptr<JoinPlan> _lhs, unique_ptr<JoinPlan> _rhs)
 }
 
 
-HashJoinPlan::HashJoinPlan(const HashJoinPlan& other) :
+HashJoinInBufferPlan::HashJoinInBufferPlan(const HashJoinInBufferPlan& other) :
     lhs         (other.lhs->duplicate()),
     rhs         (other.rhs->duplicate()),
     output_size (other.output_size),
     cost        (other.cost) { }
 
 
-unique_ptr<JoinPlan> HashJoinPlan::duplicate() {
-    return make_unique<HashJoinPlan>(*this);
+unique_ptr<JoinPlan> HashJoinInBufferPlan::duplicate() {
+    return make_unique<HashJoinInBufferPlan>(*this);
 }
 
 
-void HashJoinPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
+void HashJoinInBufferPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
@@ -46,7 +44,7 @@ void HashJoinPlan::print(int indent, bool estimated_cost, std::vector<std::strin
 }
 
 
-double HashJoinPlan::estimate_cost() {
+double HashJoinInBufferPlan::estimate_cost() {
     // auto lhs_output_size = lhs->estimate_output_size();
     // if (lhs_output_size > 1) {
     //     return lhs->estimate_cost() + ((lhs->estimate_output_size()) * rhs->estimate_cost());
@@ -58,18 +56,18 @@ double HashJoinPlan::estimate_cost() {
 }
 
 
-double HashJoinPlan::estimate_output_size() {
+double HashJoinInBufferPlan::estimate_output_size() {
     // return lhs->estimate_output_size() * rhs->estimate_output_size();
     return output_size;
 }
 
 
-uint64_t HashJoinPlan::get_vars() {
+uint64_t HashJoinInBufferPlan::get_vars() {
     return lhs->get_vars() | rhs->get_vars();
 }
 
 
-void HashJoinPlan::set_input_vars(uint64_t /*input_var_order*/) {
+void HashJoinInBufferPlan::set_input_vars(uint64_t /*input_var_order*/) {
     // lhs->set_input_vars(input_var_order);
     // auto left_var_order = lhs->get_var_order();
     // rhs->set_input_vars(left_var_order);
@@ -77,7 +75,7 @@ void HashJoinPlan::set_input_vars(uint64_t /*input_var_order*/) {
 }
 
 
-unique_ptr<BindingIdIter> HashJoinPlan::get_binding_id_iter(std::size_t binding_size) {
+unique_ptr<BindingIdIter> HashJoinInBufferPlan::get_binding_id_iter(std::size_t binding_size) {
     auto common_vars_bitmap = lhs->get_vars() & rhs->get_vars();
     auto not_commons = ~common_vars_bitmap;
     auto left_vars_bitmap = lhs->get_vars() & not_commons;
@@ -99,7 +97,7 @@ unique_ptr<BindingIdIter> HashJoinPlan::get_binding_id_iter(std::size_t binding_
         }
     }
 
-    return make_unique<HashJoin>( //<HashJoin-InMemory-2>
+    return make_unique<HashJoinInBuffer>(
         lhs->get_binding_id_iter(binding_size),
         rhs->get_binding_id_iter(binding_size),
         move(left_vars),

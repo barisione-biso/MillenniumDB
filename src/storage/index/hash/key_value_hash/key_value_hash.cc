@@ -17,7 +17,7 @@ template <class K, class V>
 KeyValueHash<K, V>::KeyValueHash(std::size_t key_size, std::size_t value_size) :
     key_size        (key_size),
     value_size      (value_size),
-    max_tuples      ( (Page::PAGE_SIZE - sizeof(uint32_t)) / (key_size*sizeof(K) + value_size*sizeof(V)) ),
+    max_tuples      ( (Page::PAGE_SIZE - sizeof(uint64_t)) / (key_size*sizeof(K) + value_size*sizeof(V)) ),
     buckets_file    ( file_manager.get_tmp_file_id())
     { }
 

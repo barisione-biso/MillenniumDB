@@ -1,5 +1,5 @@
-#ifndef RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_2_H_
-#define RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_2_H_
+#ifndef RELATIONAL_MODEL__HASH_JOIN_IN_BUFFER_H_
+#define RELATIONAL_MODEL__HASH_JOIN_IN_BUFFER_H_
 
 #include <memory>
 #include <vector>
@@ -10,14 +10,14 @@
 #include "storage/index/hash/key_value_hash/key_value_hash.h"
 
 
-class HashJoinInMemory2 : public BindingIdIter {
+class HashJoinInBuffer : public BindingIdIter {
 public:
-    HashJoinInMemory2(std::unique_ptr<BindingIdIter> lhs,
+    HashJoinInBuffer(std::unique_ptr<BindingIdIter> lhs,
                       std::unique_ptr<BindingIdIter> rhs,
                       std::vector<VarId>             left_vars,
                       std::vector<VarId>             common_vars,
                       std::vector<VarId>             right_vars);
-    ~HashJoinInMemory2() = default;
+    ~HashJoinInBuffer() = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
@@ -47,4 +47,4 @@ private:
     std::vector<ObjectId> current_value;
 };
 
-#endif // RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_2_H_
+#endif // RELATIONAL_MODEL__HASH_JOIN_IN_BUFFER_H_

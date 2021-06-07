@@ -1,4 +1,4 @@
-#include "hash_join_in_memory_2.h"
+#include "hash_join_in_buffer.h"
 
 #include <iostream>
 
@@ -6,7 +6,7 @@
 
 using namespace std;
 
-HashJoinInMemory2::HashJoinInMemory2(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs,
+HashJoinInBuffer::HashJoinInBuffer(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs,
         std::vector<VarId> left_vars, std::vector<VarId> common_vars, std::vector<VarId> right_vars) :
     lhs             (move(lhs)),
     rhs             (move(rhs)),
@@ -17,7 +17,7 @@ HashJoinInMemory2::HashJoinInMemory2(unique_ptr<BindingIdIter> lhs, unique_ptr<B
     { }
 
 
-void HashJoinInMemory2::begin(BindingId& _parent_binding, bool parent_has_next) {
+void HashJoinInBuffer::begin(BindingId& _parent_binding, bool parent_has_next) {
     this->parent_binding = &_parent_binding;
 
     lhs->begin(_parent_binding, parent_has_next);
@@ -42,7 +42,7 @@ void HashJoinInMemory2::begin(BindingId& _parent_binding, bool parent_has_next) 
 }
 
 
-bool HashJoinInMemory2::next() {
+bool HashJoinInBuffer::next() {
     while (true) {
         if (enumerating) {
             auto left_pair = lhs_hash.get_pair(current_bucket, current_bucket_pos);
@@ -96,7 +96,7 @@ bool HashJoinInMemory2::next() {
 }
 
 
-void HashJoinInMemory2::reset() {
+void HashJoinInBuffer::reset() {
     lhs->reset();
     rhs->reset();
 
@@ -117,17 +117,17 @@ void HashJoinInMemory2::reset() {
 }
 
 
-void HashJoinInMemory2::assign_nulls() {
+void HashJoinInBuffer::assign_nulls() {
     rhs->assign_nulls();
     lhs->assign_nulls();
 }
 
 
-void HashJoinInMemory2::analyze(int indent) const {
+void HashJoinInBuffer::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
          cout << ' ';
     }
-    cout << "HashJoinInMemory2(\n";
+    cout << "HashJoinInBuffer(\n";
     lhs->analyze(indent + 2);
     cout << ",\n";
     rhs->analyze(indent + 2);

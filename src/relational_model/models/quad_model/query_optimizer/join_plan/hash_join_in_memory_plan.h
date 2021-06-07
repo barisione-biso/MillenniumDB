@@ -1,14 +1,14 @@
-#ifndef RELATIONAL_MODEL__HASH_JOIN_PLAN_H_
-#define RELATIONAL_MODEL__HASH_JOIN_PLAN_H_
+#ifndef RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_PLAN_H_
+#define RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_PLAN_H_
 
 #include "base/graph/graph_object.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 
-class HashJoinPlan : public JoinPlan {
+class HashJoinInMemoryPlan : public JoinPlan {
 public:
-    HashJoinPlan(const HashJoinPlan& other);
-    HashJoinPlan(std::unique_ptr<JoinPlan> lhs, std::unique_ptr<JoinPlan> rhs);
-    ~HashJoinPlan() = default;
+    HashJoinInMemoryPlan(const HashJoinInMemoryPlan& other);
+    HashJoinInMemoryPlan(std::unique_ptr<JoinPlan> lhs, std::unique_ptr<JoinPlan> rhs);
+    ~HashJoinInMemoryPlan() = default;
 
     double estimate_cost() override;
     double estimate_output_size() override;
@@ -28,4 +28,4 @@ private:
     double cost;
 };
 
-#endif // RELATIONAL_MODEL__HASH_JOIN_PLAN_H_
+#endif // RELATIONAL_MODEL__HASH_JOIN_IN_MEMORY_PLAN_H_

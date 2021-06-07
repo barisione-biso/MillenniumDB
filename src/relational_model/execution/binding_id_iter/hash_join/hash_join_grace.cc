@@ -1,4 +1,4 @@
-#include "hash_join.h"
+#include "hash_join_grace.h"
 
 #include <iostream>
 
@@ -6,7 +6,7 @@
 
 using namespace std;
 
-HashJoin::HashJoin(unique_ptr<BindingIdIter> lhs,
+HashJoinGrace::HashJoinGrace(unique_ptr<BindingIdIter> lhs,
                    unique_ptr<BindingIdIter> rhs,
                    vector<VarId> left_vars,
                    vector<VarId> common_vars,
@@ -21,7 +21,7 @@ HashJoin::HashJoin(unique_ptr<BindingIdIter> lhs,
     { }
 
 
-void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
+void HashJoinGrace::begin(BindingId& _parent_binding, bool parent_has_next) {
     this->parent_binding = &_parent_binding;
 
     lhs->begin(_parent_binding, parent_has_next);
@@ -69,7 +69,7 @@ void HashJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
 }
 
 
-bool HashJoin::next() {
+bool HashJoinGrace::next() {
     // tengo que ver en que estado estoy:
     // 1) estoy enumerando con iterador
     // 2) ya estoy enumerando resultados de un bucket con el 2do hash
@@ -214,26 +214,26 @@ bool HashJoin::next() {
 }
 
 
-void HashJoin::assign_left_binding(const pair<vector<ObjectId>, vector<ObjectId>>& left_pair) {
+void HashJoinGrace::assign_left_binding(const pair<vector<ObjectId>, vector<ObjectId>>& left_pair) {
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
         parent_binding->add(left_vars[i], left_pair.second[i]);
     }
 }
 
-void HashJoin::assign_right_binding(const pair<vector<ObjectId>, vector<ObjectId>>& right_pair) {
+void HashJoinGrace::assign_right_binding(const pair<vector<ObjectId>, vector<ObjectId>>& right_pair) {
     for (uint_fast32_t i = 0; i < right_vars.size(); i++) {
         parent_binding->add(right_vars[i], right_pair.second[i]);
     }
 }
 
-void HashJoin::assign_key_binding(const pair<vector<ObjectId>, vector<ObjectId>>& my_pair) {
+void HashJoinGrace::assign_key_binding(const pair<vector<ObjectId>, vector<ObjectId>>& my_pair) {
     for (uint_fast32_t i = 0; i < common_vars.size(); i++) {
         parent_binding->add(common_vars[i], my_pair.first[i]);
     }
 }
 
 
-void HashJoin::reset() {
+void HashJoinGrace::reset() {
     // analogous to begin
     lhs->reset();
     rhs->reset();
@@ -268,17 +268,17 @@ void HashJoin::reset() {
 }
 
 
-void HashJoin::assign_nulls() {
+void HashJoinGrace::assign_nulls() {
     rhs->assign_nulls();
     lhs->assign_nulls();
 }
 
 
-void HashJoin::analyze(int indent) const {
+void HashJoinGrace::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
          cout << ' ';
     }
-    cout << "HashJoin(\n";
+    cout << "HashJoinGrace(\n";
     lhs->analyze(indent + 2);
     cout << ",\n";
     rhs->analyze(indent + 2);

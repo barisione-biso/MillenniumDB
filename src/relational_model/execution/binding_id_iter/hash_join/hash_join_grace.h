@@ -1,5 +1,5 @@
-#ifndef RELATIONAL_MODEL__HASH_JOIN_H_
-#define RELATIONAL_MODEL__HASH_JOIN_H_
+#ifndef RELATIONAL_MODEL__HASH_JOIN_GRACE_H_
+#define RELATIONAL_MODEL__HASH_JOIN_GRACE_H_
 
 #include <memory>
 #include <vector>
@@ -13,7 +13,7 @@
 #include "storage/page.h"
 
 
-class HashJoin : public BindingIdIter {
+class HashJoinGrace : public BindingIdIter {
     enum class State {
         ENUM_WITH_ITER,
         ENUM_WITH_SECOND_HASH,
@@ -25,12 +25,12 @@ public:
 
     static constexpr uint_fast32_t MAX_SIZE_SMALL_HASH = Page::PAGE_SIZE*1024;
 
-    HashJoin(std::unique_ptr<BindingIdIter> lhs,
+    HashJoinGrace(std::unique_ptr<BindingIdIter> lhs,
              std::unique_ptr<BindingIdIter> rhs,
              std::vector<VarId>             left_vars,
              std::vector<VarId>             common_vars,
              std::vector<VarId>             right_vars);
-    ~HashJoin() = default;
+    ~HashJoinGrace() = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
@@ -76,4 +76,4 @@ private:
     void assign_right_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& rhs_pair);
 };
 
-#endif // RELATIONAL_MODEL__HASH_JOIN_H_
+#endif // RELATIONAL_MODEL__HASH_JOIN_GRACE_H_

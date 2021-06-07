@@ -37,7 +37,7 @@ private:
 
     uint32_t   const key_size;
     uint32_t   const value_size;
-    uint32_t*  const tuple_count;
+    uint64_t*  const tuple_count;  // we use 64 bits for alignment
     char*      const tuples;
 };
 
