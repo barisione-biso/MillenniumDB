@@ -54,26 +54,28 @@ struct TransitionId {
 };
 
 
+/*
+PathAutomaton represents a No Deterministic Finite Automaton
+with epsilon transitions. This class builds an automaton, and transform
+it into an automaton without epsilon transitions.
 
+The automaton is built using Thompson Algorithm, each operator allowed by the
+language is represented in the corresponding OpPath subclass.
+
+There are some methods used to reduce the automaton, but it's
+no guaranteed that the automaton will be optimal or deterministic.
+TODO: Explain better final state.
+TODO: Explain automaton transformations
+The final
+automaton will have at maximum two final states, the start state and a auxiliary
+state that is added to be final state.
+
+States of automaton are not emulated by a specific class. A state is only
+represented by a number i, that indicates that the transitions of this
+state are stored in the i position of the from_to_connections, to_from_connections
+and transitions vectors.
+*/
 class PathAutomaton {
-    /*
-    PathAutomaton represents a No Deterministic Finite Automaton
-    with epsilon transitions. This class build and automaton, and transform
-    it into a automaton without epsilon transitions.
-
-    The automaton is build using Thompson Algorithm, each operator allowed by the
-    language is represented in the corresponding OpPath subclass
-
-    There are some methods used for reduce the automaton, but the it's
-    no guaranteed that the automaton will be optimal or deterministic. The final
-    automaton will have only two final states, the start state and a auxiliary
-    state that is added.
-
-    States of automaton are not emulated by a specific class. A state is only
-    represented by a number i, that indicates that the transitions of this
-    state are stored in the i position of the from_to_connections, to_from_connections
-    and transitions vectors.
-    */
 private:
 
     // Transitions that starts from a state (stored in i-position).
@@ -87,6 +89,9 @@ private:
 
     // Number of states
     uint32_t total_states = 1;
+
+    // the binding id iter operator
+    std::vector<std::vector<TransitionId>> transitions;
 
     // Check if two states are mergeable and merge them if is posible.
     void delete_mergeable_states();
@@ -131,9 +136,6 @@ public:
     // End states before of the transformation to automaton transformation
     std::set<uint32_t> end_states;
 
-    // the binding id iter operator
-    std::vector<std::vector<TransitionId>> transitions;
-
     // True if the start state is final
     bool start_is_final = false;
 
@@ -146,10 +148,10 @@ public:
     ~PathAutomaton() = default;
 
     // Access  and modify attibute methods
-    inline std::vector<TransitionId> get_state_transitions(size_t state) { return transitions[state]; }
-    inline uint32_t get_start() { return start; }
-    inline uint32_t get_total_states() { return total_states; }
-    inline uint32_t get_final_state() { return final_state; }
+    inline std::vector<TransitionId> get_state_transitions(size_t state) const noexcept{ return transitions[state]; }
+    inline uint32_t get_start() const noexcept { return start; }
+    inline uint32_t get_total_states() const noexcept  { return total_states; }
+    inline uint32_t get_final_state() const noexcept  { return final_state; }
 
     void print();
 

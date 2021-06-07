@@ -58,36 +58,38 @@ SELECT *
 
 ## Paths returned
 
+TODO: Explain relation with RDF.
 As you can see, queries that defines a property path, return paths between a node or that start or reach to specifc node. But are all posible paths returned?
 
 The answer is depend of the operator that you use. Imagine you have the following graph as database (aux node is not relevant for the example):
 
 ```
-Q1=[:P1]=>(aux)=>[:P2]=>Q2
-Q1=[:P1]=>(aux)=>[:P2]=>Q3
-Q1=[:P3]=>(aux)=>[:P3]=>(aux)=>[:P3]=>(aux)=>[:P3]=>(aux)=>[:P4]=>(Q2)
+(Q1)=[:P1]=>(aux)=>[:P2]=>(Q2)
+(Q1)=[:P1]=>(aux)=>[:P2]=>(Q3)
+(Q1)=[:P3]=>(aux)=>[:P3]=>(aux)=>[:P3]=>(aux)=>[:P3]=>(aux)=>[:P4]=>(Q2)
 ```
 
 You can do the following query:
 
 `
-SELECT * (Q1)=[:P1 / :P2]=>(?x)
+SELECT *
+MATCH (Q1)=[:P1 / :P2]=>(?x)
 `
 
 The two first paths will be returned, in this case __all__ the paths will be founded. Now, a example with a Kleene Star operator
 
 `
-SELECT * (Q1)=[:P3* / :P4]=>(?x)
+SELECT * MATCH (Q1)=[:P3* / :P4]=>(?x)
 `
 
 You can think that third path will be returned. Kleene Star operator allows that P3 appears many times in a path. But the path finding do not work like this. If you want the third path, you have to make a query like:
 
 
 `
-SELECT * (Q1)=[:P3* / :P3* / :P3* /:P3* / :P4]=>(?x)
+SELECT * MATCH (Q1)=[:P3* / :P3* / :P3* /:P3* / :P4]=>(?x)
 `
 `
-SELECT * (Q1)=[:P3{3,4} / :P4]=>(?x)
+SELECT * MATCH (Q1)=[:P3{3,4} / :P4]=>(?x)
 `
 
 ## Getting the path

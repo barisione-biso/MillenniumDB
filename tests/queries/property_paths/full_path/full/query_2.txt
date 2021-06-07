@@ -1,0 +1,4 @@
+SELECT *
+
+// Todos los lugares ubicados en un país miembro de NATO
+MATCH (?territory)=[:P131* / :P463]=>(Q7184)
