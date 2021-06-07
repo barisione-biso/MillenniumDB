@@ -5,16 +5,16 @@ alg_names = [
     "quad",
     "grace_murmur",
     "grace_clhash",
-    "grace_google_city",
+    "grace_cityhash",
     "grace_farmhash",
     "memory_murmur",
     "memory_clhash",
-    "memory_google_city",
+    "memory_cityhash",
     "memory_farmhash",
-    "memory2_murmur",
-    "memory2_clhash",
-    "memory2_google_city",
-    "memory2_farmhash"
+    "buffer_murmur",
+    "buffer_clhash",
+    "buffer_cityhash",
+    "buffer_farmhash"
     ]
 
 all_tests = {}
