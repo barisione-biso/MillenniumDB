@@ -90,9 +90,6 @@ private:
     // Number of states
     uint32_t total_states = 1;
 
-    // the binding id iter operator
-    std::vector<std::vector<TransitionId>> transitions;
-
     // Check if two states are mergeable and merge them if is posible.
     void delete_mergeable_states();
 
@@ -132,6 +129,9 @@ public:
 
     // Transitions that reaches to a state (stored in i-position).
     std::vector<std::vector<Transition>> to_from_connections;
+
+    // the binding id iter operator
+    std::vector<std::vector<TransitionId>> transitions;
 
     // End states before of the transformation to automaton transformation
     std::set<uint32_t> end_states;
