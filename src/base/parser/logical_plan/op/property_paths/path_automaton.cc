@@ -30,10 +30,12 @@ void PathAutomaton::print() {
 
 void PathAutomaton::rename_and_merge(PathAutomaton& other) {
     // Add and rename 'other' states to this automaton
+    auto initial_states = total_states;
     for (size_t i = 0; i < other.from_to_connections.size(); i++) {
-        auto new_connection = vector<Transition>();
         for (auto& t : other.from_to_connections[i]) {
-            auto transition = Transition(t.from + total_states, t.to + total_states, t.label, t.inverse);
+            auto transition = Transition(
+                t.from + initial_states,
+                t.to + initial_states, t.label, t.inverse);
             connect(transition);
         }
     }
@@ -41,13 +43,10 @@ void PathAutomaton::rename_and_merge(PathAutomaton& other) {
     // Rename 'other' start and end states
     set<uint32_t> new_end;
     for (auto& end_state : other.end_states) {
-        new_end.insert(total_states + end_state);
+        new_end.insert(initial_states + end_state);
     }
-    other.start += total_states;
+    other.start = initial_states;
     other.end_states = move(new_end);
-
-    // Add 'other' states count to this automaton
-    total_states += other.total_states;
 }
 
 
@@ -344,6 +343,7 @@ void PathAutomaton::merge_states(uint32_t destiny, uint32_t source) {
 }
 
 void PathAutomaton::set_final_state() {
+    total_states = from_to_connections.size();
     final_state = total_states;
     total_states++;
     // Set start state as final
