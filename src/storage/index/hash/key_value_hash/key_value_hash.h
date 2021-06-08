@@ -31,6 +31,8 @@ public:
     }
 
     std::pair<std::vector<K>, std::vector<V>> get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);
+    K* get_key(uint_fast32_t current_bucket, uint_fast32_t current_pos);
+    V* get_value(uint_fast32_t current_bucket, uint_fast32_t current_pos);
     //std::pair<K*, V*> get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);
 
     // split directory and redistribute every bucket

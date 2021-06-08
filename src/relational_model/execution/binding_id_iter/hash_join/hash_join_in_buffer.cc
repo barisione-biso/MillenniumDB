@@ -45,21 +45,36 @@ void HashJoinInBuffer::begin(BindingId& _parent_binding, bool parent_has_next) {
 bool HashJoinInBuffer::next() {
     while (true) {
         if (enumerating) {
-            auto left_pair = lhs_hash.get_pair(current_bucket, current_bucket_pos);
-            while (left_pair.first != current_key) {
+            bool match_found = true;
+            ObjectId* left_key = lhs_hash.get_key(current_bucket, current_bucket_pos);
+            for (uint_fast32_t i = 0; i < current_key.size(); i++) {
+                if (current_key[i] != left_key[i]) {
+                    match_found = false;
+                    break;
+                }
+            }
+            while (!match_found) { //(left_key != current_key) {
                 current_bucket_pos++;
                 if (current_bucket_pos >= lhs_hash.get_bucket_size(current_bucket)) {
                     enumerating = false;
                     break;
                 }
-                left_pair = lhs_hash.get_pair(current_bucket, current_bucket_pos);
+                left_key = lhs_hash.get_key(current_bucket, current_bucket_pos);
+                match_found = true;
+                for (uint_fast32_t i = 0; i < current_key.size(); i++) {
+                    if (current_key[i] != left_key[i]) {
+                        match_found = false;
+                        break;
+                    }
+                }
             }
             if (!enumerating) {
                 continue;
             }
             // set lhs binding
+            ObjectId* left_value = lhs_hash.get_key(current_bucket, current_bucket_pos);
             for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
-                parent_binding->add(left_vars[i], left_pair.second[i]);
+                parent_binding->add(left_vars[i], left_value[i]);
             }
             current_bucket_pos++;
             if (current_bucket_pos >= lhs_hash.get_bucket_size(current_bucket)) {

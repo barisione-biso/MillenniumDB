@@ -11,13 +11,19 @@ using namespace std;
 template class KeyValueHashBucket<ObjectId, ObjectId>;
 
 template <class K, class V>
-KeyValueHashBucket<K, V>::KeyValueHashBucket(const TmpFileId file_id, const uint_fast32_t bucket_number,
-                                        std::size_t key_size, std::size_t value_size) :
+KeyValueHashBucket<K, V>::KeyValueHashBucket(TmpFileId     file_id,
+                                             uint_fast32_t bucket_number,
+                                             std::size_t   _key_size,
+                                             std::size_t   _value_size,
+                                             uint32_t      _max_tuples) :
+
     page        (buffer_manager.get_tmp_page(file_id, bucket_number)),
-    key_size    (key_size),
-    value_size  (value_size),
+    key_size    (_key_size),
+    value_size  (_value_size),
+    max_tuples  (_max_tuples),
     tuple_count ( reinterpret_cast<uint64_t*>(page.get_bytes() ) ),
-    tuples      ( reinterpret_cast<char*>(page.get_bytes() + sizeof(uint64_t)) )
+    keys        ( reinterpret_cast<K*>(page.get_bytes() + sizeof(uint64_t)) ),
+    values      ( reinterpret_cast<V*>(page.get_bytes() + sizeof(uint64_t) + (sizeof(K) * key_size * max_tuples) ))
     {}
 
 
@@ -30,15 +36,11 @@ KeyValueHashBucket<K, V>::~KeyValueHashBucket() {
 
 template <class K, class V>
 void KeyValueHashBucket<K, V>::insert(const vector<K>& key, const vector<V>& value) {
-    K* p_k = reinterpret_cast<K*>(&tuples[(key_size*sizeof(K) + value_size*sizeof(V)) * (*tuple_count)]);
     for (uint_fast16_t i = 0; i < key_size; i++) {
-        *p_k = key[i];
-        p_k++;
+        keys[(key_size * (*tuple_count)) + i] = key[i];
     }
-    V* p_v = reinterpret_cast<V*>(p_k);
     for (uint_fast16_t i = 0; i < value_size; i++) {
-        *p_v = value[i];
-        p_v++;
+        values[(value_size * (*tuple_count)) + i] = value[i];
     }
     ++(*tuple_count);
     page.make_dirty();
@@ -47,15 +49,11 @@ void KeyValueHashBucket<K, V>::insert(const vector<K>& key, const vector<V>& val
 
 template <class K, class V>
 void KeyValueHashBucket<K, V>::insert_in_pos(const vector<K>& key, const vector<V>& value, uint_fast32_t pos) {
-    K* p_k = reinterpret_cast<K*>(&tuples[(key_size*sizeof(K) + value_size*sizeof(V)) * pos]);
     for (uint_fast16_t i = 0; i < key_size; i++) {
-        *p_k = key[i];
-        p_k++;
+        keys[(key_size * pos) + i] = key[i];
     }
-    V* p_v = reinterpret_cast<V*>(p_k);
     for (uint_fast16_t i = 0; i < value_size; i++) {
-        *p_v = value[i];
-        p_v++;
+        values[(value_size * pos) + i] = value[i];
     }
     page.make_dirty();
 }
@@ -65,17 +63,13 @@ template <class K, class V>
 pair<vector<K>, vector<V>> KeyValueHashBucket<K, V>::get_pair(std::uint_fast32_t pos) const {
     std::vector<K> key;
     std::vector<V> value;
-    key.reserve(key_size);
-    value.reserve(value_size);
-    K* p_k = reinterpret_cast<K*>(&tuples[(key_size*sizeof(K) + value_size*sizeof(V)) * pos]);
+    key.resize(key_size);
+    value.resize(value_size);
     for (uint_fast16_t i = 0; i < key_size; i++) {
-        key.push_back(*p_k);
-        p_k++;
+        key[i] = keys[(key_size * pos) + i];
     }
-    V* p_v = reinterpret_cast<V*>(p_k);
     for (uint_fast16_t i = 0; i < value_size; i++) {
-        value.push_back(*p_v);
-        p_v++;
+        value[i] = values[(value_size * pos) + i];
     }
-    return make_pair(key, value);
+    return make_pair(move(key), move(value));
 }

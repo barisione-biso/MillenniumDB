@@ -20,13 +20,18 @@ class KeyValueHashBucket {
 friend class KeyValueHash<K, V>;
 
 public:
-    KeyValueHashBucket(const TmpFileId file_id, const uint_fast32_t bucket_number,
-                       std::size_t key_size, std::size_t value_size);
+    KeyValueHashBucket(TmpFileId     file_id,
+                       uint_fast32_t bucket_number,
+                       std::size_t   key_size,
+                       std::size_t   value_size,
+                       uint32_t      max_tuples);
     ~KeyValueHashBucket();
 
     void insert(const std::vector<K>& key, const std::vector<V>& value);
     void insert_in_pos(const std::vector<K>& key, const std::vector<V>& value, uint_fast32_t pos);  // for split
     std::pair<std::vector<K>, std::vector<V>> get_pair(uint_fast32_t current_pos) const; // TODO: can optimize without copying
+    inline K* get_key(uint_fast32_t current_pos) const { return &keys[current_pos*key_size]; }
+    inline V* get_value(uint_fast32_t current_pos) const { return &values[current_pos*value_size]; }
     //std::pair<K*, V*> get_pair(uint_fast32_t current_pos) const;
 
     inline uint_fast32_t get_tuple_count() const noexcept { return *tuple_count; }
@@ -37,8 +42,10 @@ private:
 
     uint32_t   const key_size;
     uint32_t   const value_size;
+    uint32_t   const max_tuples;
     uint64_t*  const tuple_count;  // we use 64 bits for alignment
-    char*      const tuples;
+    K*         const keys;
+    V*         const values;
 };
 
 #endif // STORAGE__KEY_VALUE_HASH_BUCKET_H_
