@@ -46,7 +46,7 @@ bool HashJoinInBuffer::next() {
     while (true) {
         if (enumerating) {
             bool match_found = true;
-            ObjectId* left_key = lhs_hash.get_key(current_bucket, current_bucket_pos);
+            auto left_key = lhs_hash.get_key(current_bucket, current_bucket_pos);
             for (uint_fast32_t i = 0; i < current_key.size(); i++) {
                 if (current_key[i] != left_key[i]) {
                     match_found = false;
@@ -72,7 +72,7 @@ bool HashJoinInBuffer::next() {
                 continue;
             }
             // set lhs binding
-            ObjectId* left_value = lhs_hash.get_key(current_bucket, current_bucket_pos);
+            auto left_value = lhs_hash.get_value(current_bucket, current_bucket_pos);
             for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
                 parent_binding->add(left_vars[i], left_value[i]);
             }

@@ -71,9 +71,9 @@ private:
     //std::vector<ObjectId> current_value;
     std::pair<std::vector<ObjectId>, std::vector<ObjectId>> saved_pair;
 
-    void assign_left_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& lhs_pair);
-    void assign_key_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& my_pair);
-    void assign_right_binding(const std::pair<std::vector<ObjectId>, std::vector<ObjectId>>& rhs_pair);
+    void assign_left_binding(const std::vector<ObjectId>& lhs_value);
+    void assign_key_binding(const std::vector<ObjectId>& my_key);
+    void assign_right_binding(const std::vector<ObjectId>& rhs_value);
 };
 
 #endif // RELATIONAL_MODEL__HASH_JOIN_GRACE_H_

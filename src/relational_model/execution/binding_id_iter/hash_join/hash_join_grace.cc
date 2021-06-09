@@ -80,11 +80,11 @@ bool HashJoinGrace::next() {
         {
             case State::ENUM_WITH_ITER: {
                 assert(current_pair_iter != end_range_iter);
-                if (left_min) { // solo asignar iter (left)
-                    assign_left_binding(*current_pair_iter);
+                if (left_min) { // solo asignar valor de iter (left)
+                    assign_left_binding((*current_pair_iter).second);
                 }
-                else { // solo asignar iter (right)
-                    assign_right_binding(*current_pair_iter);
+                else { // solo asignar valor de iter (right)
+                    assign_right_binding((*current_pair_iter).second);
                 }
                 ++current_pair_iter;
                 if (current_pair_iter == end_range_iter) {
@@ -97,6 +97,9 @@ bool HashJoinGrace::next() {
                     // Sets the iterator for left hash (small one)
                     while (current_pos_right < rhs_hash.get_bucket_size(current_bucket)) {
                         saved_pair = rhs_hash.get_pair(current_bucket, current_pos_right);
+                        // TODO: ask for this
+                        //auto key_ptr = rhs_hash.get_key(current_bucket, current_pos_right);
+                        //saved_pair.first = vector<ObjectId>(key_ptr, key_ptr + common_vars.size());
                         current_pos_right++;  // after get pair and before posible return
                         auto range = small_hash.equal_range(saved_pair.first);
                         current_pair_iter = range.first;
@@ -104,9 +107,10 @@ bool HashJoinGrace::next() {
 
                         if (current_pair_iter != end_range_iter) {
                             current_state = State::ENUM_WITH_ITER;
-                            // assign right pair, saved key
-                            assign_right_binding(saved_pair);
-                            assign_key_binding(saved_pair);
+                            //assign right pair, saved key
+                            //auto value_ptr = rhs_hash.get_value(current_bucket, current_pos_right - 1);
+                            assign_right_binding(saved_pair.second);
+                            assign_key_binding(saved_pair.first);
                             break;
                         }
                     }
@@ -123,8 +127,8 @@ bool HashJoinGrace::next() {
                         if (current_pair_iter != end_range_iter) {
                             current_state = State::ENUM_WITH_ITER;
                             // assign left pair, saved key
-                            assign_left_binding(saved_pair);
-                            assign_key_binding(saved_pair);
+                            assign_left_binding(saved_pair.second);
+                            assign_key_binding(saved_pair.first);
                             break;
                         }
                     }
@@ -138,17 +142,34 @@ bool HashJoinGrace::next() {
             }
             case State::ENUM_WITH_NESTED_LOOP: {
                 if (current_pos_left < lhs_hash.get_bucket_size(current_bucket)) {
-                    auto left_pair = lhs_hash.get_pair(current_bucket, current_pos_left);
+                    //auto left_pair = lhs_hash.get_pair(current_bucket, current_pos_left);
+                    auto left_key = lhs_hash.get_key(current_bucket, current_pos_left);
                     auto left_assigned = false;
                     while (current_pos_right < rhs_hash.get_bucket_size(current_bucket)) {
-                        auto right_pair = rhs_hash.get_pair(current_bucket, current_pos_right);
-                        if (left_pair.first == right_pair.first) {
+                        //auto right_pair = rhs_hash.get_pair(current_bucket, current_pos_right);
+                        auto right_key = rhs_hash.get_key(current_bucket, current_pos_right);
+                        auto match = true;
+                        for (uint_fast32_t i=0; i<common_vars.size(); i++) {
+                            if (left_key[i] != right_key[i]) {
+                                match = false;
+                                break;
+                            }
+                        }
+                        if (match) {
+                            auto left_value = lhs_hash.get_value(current_bucket, current_pos_left);
+                            auto right_value = rhs_hash.get_value(current_bucket, current_pos_right);
                             if (!left_assigned) {
-                                assign_left_binding(left_pair);
-                                assign_key_binding(left_pair);
+                                for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
+                                    parent_binding->add(left_vars[i], left_value[i]);
+                                }
+                                for (uint_fast32_t i = 0; i < common_vars.size(); i++) {
+                                    parent_binding->add(common_vars[i], left_key[i]);
+                                }
                                 left_assigned = true;
                             }
-                            assign_right_binding(right_pair);
+                            for (uint_fast32_t i = 0; i < right_vars.size(); i++) {
+                                parent_binding->add(right_vars[i], right_value[i]);
+                            }
                             current_pos_right++;
                             return true;
                         } else {
@@ -214,21 +235,21 @@ bool HashJoinGrace::next() {
 }
 
 
-void HashJoinGrace::assign_left_binding(const pair<vector<ObjectId>, vector<ObjectId>>& left_pair) {
+void HashJoinGrace::assign_left_binding(const vector<ObjectId>& left_value) {
     for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
-        parent_binding->add(left_vars[i], left_pair.second[i]);
+        parent_binding->add(left_vars[i], left_value[i]);
     }
 }
 
-void HashJoinGrace::assign_right_binding(const pair<vector<ObjectId>, vector<ObjectId>>& right_pair) {
+void HashJoinGrace::assign_right_binding(const vector<ObjectId>& right_value) {
     for (uint_fast32_t i = 0; i < right_vars.size(); i++) {
-        parent_binding->add(right_vars[i], right_pair.second[i]);
+        parent_binding->add(right_vars[i], right_value[i]);
     }
 }
 
-void HashJoinGrace::assign_key_binding(const pair<vector<ObjectId>, vector<ObjectId>>& my_pair) {
+void HashJoinGrace::assign_key_binding(const vector<ObjectId>& my_key) {
     for (uint_fast32_t i = 0; i < common_vars.size(); i++) {
-        parent_binding->add(common_vars[i], my_pair.first[i]);
+        parent_binding->add(common_vars[i], my_key[i]);
     }
 }
 
