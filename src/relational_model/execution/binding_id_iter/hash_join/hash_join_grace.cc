@@ -28,8 +28,6 @@ void HashJoinGrace::begin(BindingId& _parent_binding, bool parent_has_next) {
     rhs->begin(_parent_binding, parent_has_next);
 
     saved_pair = make_pair(vector<ObjectId>(common_vars.size()), vector<ObjectId>(left_vars.size()));
-    //current_key   = std::vector<ObjectId>(common_vars.size());
-    //current_value = std::vector<ObjectId>(left_vars.size());
     lhs_hash.begin();
     while (lhs->next()){
         // save left keys and value
@@ -42,7 +40,6 @@ void HashJoinGrace::begin(BindingId& _parent_binding, bool parent_has_next) {
         lhs_hash.insert(saved_pair.first, saved_pair.second);
     }
     // recycle current_value for saving right hash
-    //current_value = std::vector<ObjectId>(right_vars.size());
     saved_pair.second.resize(right_vars.size());
     auto left_depth = lhs_hash.get_depth();
     rhs_hash.begin(left_depth);
@@ -61,6 +58,10 @@ void HashJoinGrace::begin(BindingId& _parent_binding, bool parent_has_next) {
         lhs_hash.split();
         left_depth = lhs_hash.get_depth();
     }
+    // sort buckets for faster comparison, we assume the insertion process is over
+    // TODO: it would be faster to sort only the smaller bucket for each bucket position
+    lhs_hash.sort_buckets();
+    rhs_hash.sort_buckets();
 
     current_bucket = 0;
     current_state = State::NOT_ENUM;
@@ -261,7 +262,6 @@ void HashJoinGrace::reset() {
 
     saved_pair.second.resize(left_vars.size());
     lhs_hash.reset();
-    rhs_hash.reset();
     while (lhs->next()) {
         for (size_t i = 0; i < common_vars.size(); i++) {
             saved_pair.first[i] = (*parent_binding)[common_vars[i]];
@@ -271,6 +271,8 @@ void HashJoinGrace::reset() {
         }
         lhs_hash.insert(saved_pair.first, saved_pair.second);
     }
+    auto left_depth = lhs_hash.get_depth();
+    rhs_hash.reset(left_depth);
     saved_pair.second.resize(right_vars.size());
     while (rhs->next()) {
         for (size_t i = 0; i < common_vars.size(); i++) {
@@ -281,11 +283,21 @@ void HashJoinGrace::reset() {
         }
         rhs_hash.insert(saved_pair.first, saved_pair.second);
     }
+    auto right_depth = rhs_hash.get_depth();
+    // split if different size
+    while (right_depth > left_depth) {
+        lhs_hash.split();
+        left_depth = lhs_hash.get_depth();
+    }
+    // sort buckets for faster comparison, we assume the insertion process is over
+    // TODO: it would be faster to sort only the smaller bucket for each bucket position
+    lhs_hash.sort_buckets();
+    rhs_hash.sort_buckets();
 
     current_bucket = 0;
     current_state = State::NOT_ENUM;
     left_min = false;
-    //total_buckets = (1 << lhs_hash.get_depth());  // rhs_hash and lhs_hash should have the same depth
+    total_buckets = (1 << lhs_hash.get_depth());  // rhs_hash and lhs_hash should have the same depth
 }
 
 

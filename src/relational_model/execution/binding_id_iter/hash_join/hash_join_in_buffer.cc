@@ -36,6 +36,8 @@ void HashJoinInBuffer::begin(BindingId& _parent_binding, bool parent_has_next) {
         }
         lhs_hash.insert(current_key, current_value);
     }
+    // sort buckets for faster comparison, we assume the insertion process is over
+    lhs_hash.sort_buckets();
 
     current_value.resize(right_vars.size());
     enumerating = false;
@@ -45,33 +47,17 @@ void HashJoinInBuffer::begin(BindingId& _parent_binding, bool parent_has_next) {
 bool HashJoinInBuffer::next() {
     while (true) {
         if (enumerating) {
-            bool match_found = true;
+            //bool match_found = true;
             auto left_key = lhs_hash.get_key(current_bucket, current_bucket_pos);
             for (uint_fast32_t i = 0; i < current_key.size(); i++) {
                 if (current_key[i] != left_key[i]) {
-                    match_found = false;
-                    break;
-                }
-            }
-            while (!match_found) { //(left_key != current_key) {
-                current_bucket_pos++;
-                if (current_bucket_pos >= lhs_hash.get_bucket_size(current_bucket)) {
                     enumerating = false;
                     break;
-                }
-                left_key = lhs_hash.get_key(current_bucket, current_bucket_pos);
-                match_found = true;
-                for (uint_fast32_t i = 0; i < current_key.size(); i++) {
-                    if (current_key[i] != left_key[i]) {
-                        match_found = false;
-                        break;
-                    }
                 }
             }
             if (!enumerating) {
                 continue;
             }
-            // set lhs binding
             auto left_value = lhs_hash.get_value(current_bucket, current_bucket_pos);
             for (uint_fast32_t i = 0; i < left_vars.size(); i++) {
                 parent_binding->add(left_vars[i], left_value[i]);
@@ -90,9 +76,9 @@ bool HashJoinInBuffer::next() {
                 for (size_t i = 0; i < right_vars.size(); i++) {
                     current_value[i] = (*parent_binding)[right_vars[i]];
                 }
-                current_bucket_pos = 0;
                 current_bucket = lhs_hash.get_bucket(current_key);
-                if (lhs_hash.get_bucket_size(current_bucket) > 0) {
+                // TODO: find first match
+                if (lhs_hash.find_first(current_key, current_bucket, &current_bucket_pos)) {
                     enumerating = true;
                     // set rhs binding
                     for (uint_fast32_t i = 0; i < common_vars.size(); i++) {
@@ -127,6 +113,9 @@ void HashJoinInBuffer::reset() {
         }
         lhs_hash.insert(current_key, current_value);
     }
+    // sort buckets for faster comparison, we assume the insertion process is over
+    lhs_hash.sort_buckets();
+
     current_value = std::vector<ObjectId>(right_vars.size());
     enumerating = false;
 }

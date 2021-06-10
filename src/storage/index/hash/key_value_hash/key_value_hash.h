@@ -21,8 +21,10 @@ public:
     ~KeyValueHash();
 
     void begin(uint_fast32_t initial_depth = DEFAULT_INITIAL_DEPTH);
-    void reset();
+    void reset(uint_fast32_t new_depth = DEFAULT_INITIAL_DEPTH);
     void insert(const std::vector<K>& key, const std::vector<V>& value);
+    void sort_buckets();
+    bool find_first(const std::vector<K>& current_key, uint_fast32_t current_bucket, uint_fast32_t* current_bucket_pos);
 
     inline uint_fast32_t get_depth() const noexcept { return depth; }
 

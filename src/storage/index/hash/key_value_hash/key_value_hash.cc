@@ -57,9 +57,15 @@ void KeyValueHash<K, V>::begin(uint_fast32_t initial_depth) {
 
 
 template <class K, class V>
-void KeyValueHash<K, V>::reset() {
+void KeyValueHash<K, V>::reset(uint_fast32_t new_depth) {
+    depth = new_depth;
     const uint_fast32_t number_of_buckets = 1 << depth; // 2^depth
     last_page_number = -1;
+
+    buckets_sizes.resize(number_of_buckets);
+    current_buckets_pages.resize(number_of_buckets);
+    buckets_page_numbers.resize(number_of_buckets);
+
     for (uint_fast32_t i = 0; i < number_of_buckets; ++i) {
         current_buckets_pages[i] = std::make_unique<KeyValueHashBucket<K, V>>(
                 buckets_file, ++last_page_number, key_size, value_size, max_tuples
@@ -117,7 +123,7 @@ void KeyValueHash<K, V>::insert(const std::vector<K>& key, const std::vector<V>&
 
 
 template <class K, class V>
-pair<vector<K>, vector<V>> KeyValueHash<K, V>::get_pair(uint_fast32_t bucket_number,uint_fast32_t current_pos) {
+pair<vector<K>, vector<V>> KeyValueHash<K, V>::get_pair(uint_fast32_t bucket_number, uint_fast32_t current_pos) {
     assert(current_pos <= buckets_sizes[bucket_number]);
     uint32_t bucket_page_number = current_pos / max_tuples;
     uint32_t real_page_number = buckets_page_numbers[bucket_number][bucket_page_number];
@@ -280,4 +286,78 @@ uint64_t KeyValueHash<K, V>::get_bucket(const std::vector<K>& key) const {
     uint64_t mask = (1 << depth) - 1;
     uint64_t bucket_number = hash_ & mask;  // suffix = bucket_number in this case
     return bucket_number;
+}
+
+
+template <class K, class V>
+void KeyValueHash<K, V>::sort_buckets(){
+    const uint_fast32_t number_of_buckets = 1 << depth; // 2^depth
+    for (uint_fast32_t i=0; i<number_of_buckets; i++) {
+        // TODO:
+    }
+}
+
+
+template <class K, class V>
+bool KeyValueHash<K, V>::find_first(const std::vector<K>& current_key, uint_fast32_t bucket_number,
+                                    uint_fast32_t* current_bucket_pos) {
+    if (buckets_sizes[bucket_number] == 0) {
+        return false;
+    }
+    // initial
+    uint_fast32_t curr_max = buckets_sizes[bucket_number] - 1;
+    uint_fast32_t curr_min = 0;
+    uint_fast32_t curr_pos = curr_min + ((curr_max - curr_min)/2);
+    uint_fast32_t bucket_page_number = curr_pos / max_tuples;
+
+    uint32_t real_page_number = buckets_page_numbers[bucket_number][bucket_page_number];
+    if (current_buckets_pages[bucket_number]->page.get_page_number() != real_page_number) {
+        current_buckets_pages[bucket_number] = std::make_unique<KeyValueHashBucket<K, V>>(
+            buckets_file, real_page_number, key_size, value_size, max_tuples
+        );
+    }
+    uint32_t page_pos = curr_pos % max_tuples;
+    K* key_ptr = current_buckets_pages[bucket_number]->get_key(page_pos);
+
+    while (true) {
+        auto key_ptr_smaller = false;
+        for (uint_fast32_t i=0; i<key_size; i++) {
+            if (key_ptr[i] < current_key[i]) {
+                key_ptr_smaller = true;
+                break;
+            }
+        }
+        if (key_ptr_smaller) {
+            curr_min = curr_pos + 1;
+        }
+        else { //equal or bigger
+            curr_max = curr_pos;
+        }
+        // set new curr_pos
+        uint_fast32_t curr_pos = curr_min + ((curr_max - curr_min)/2);
+        if (curr_min > curr_max) {
+            return false;
+        }
+        if (curr_pos == curr_min && curr_pos == curr_max) {
+            for (uint_fast32_t i=0; i<key_size; i++) {
+                if (key_ptr[i] != current_key[i]) {
+                    return false;
+                }
+            }
+            break;
+        }
+        // set new key
+        bucket_page_number = curr_pos / max_tuples;
+        real_page_number = buckets_page_numbers[bucket_number][bucket_page_number];
+        if (current_buckets_pages[bucket_number]->page.get_page_number() != real_page_number) {
+            current_buckets_pages[bucket_number] = std::make_unique<KeyValueHashBucket<K, V>>(
+                buckets_file, real_page_number, key_size, value_size, max_tuples
+            );
+        }
+        page_pos = curr_pos % max_tuples;
+        key_ptr = current_buckets_pages[bucket_number]->get_key(page_pos);
+    }
+
+    *current_bucket_pos = curr_pos;
+    return true;
 }
