@@ -47,6 +47,10 @@ struct SearchState {
     bool operator==(const SearchState& other) const {
         return state == other.state && object_id.id == other.object_id.id;
     }
+
+    SearchState duplicate() const {
+        return SearchState(state, object_id, previous, direction, label_id);
+    }
 };
 
 

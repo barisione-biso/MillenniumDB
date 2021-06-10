@@ -4,6 +4,7 @@
 
 
 #include "base/parser/logical_plan/op/op_path.h"
+#include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 #include "relational_model/execution/binding_id_iter/property_paths/simple/property_path_bfs_check.h"
 #include "relational_model/execution/binding_id_iter/property_paths/simple/property_path_bfs_simple_enum.h"
 
@@ -66,6 +67,7 @@ void PropertyPathPlan::print(int indent, bool estimated_cost, std::vector<std::s
         cout << ", to: " << var_names[std::get<VarId>(to).id];
     }
     // TODO: Print del to_string del property_paths
+    cout << ", Path: " <<  var_names[path_var.id];
     cout << ")";
 
     if (estimated_cost) {
@@ -114,7 +116,7 @@ void PropertyPathPlan::set_input_vars(uint64_t input_vars) {
 }
 
 
-unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*binding_size*/) {
+unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t binding_size) {
     if (from_assigned) {
         auto automaton = path.get_transformed_automaton();
         transform_automaton(automaton);
@@ -155,6 +157,7 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t /*bi
 }
 
 
+// TODO: Change name and explain
 void PropertyPathPlan::transform_automaton(PathAutomaton &automaton) {
     for (size_t i = 0; i < automaton.from_to_connections.size(); i++) {
         vector<TransitionId> transition_id_vector;
