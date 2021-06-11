@@ -33,13 +33,33 @@ void PropertyPathBFSSimpleEnum::begin(BindingId& parent_binding, bool parent_has
         // Add inital state to queue
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
-            open.emplace(automaton.get_start(), start_object_id, nullptr);
-            visited.emplace(automaton.get_start(), start_object_id, nullptr);
+            open.emplace(
+                automaton.get_start(),
+                start_object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
+            visited.emplace(
+                automaton.get_start(),
+                start_object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
-            open.emplace(automaton.get_start(), start_object_id, nullptr);
-            visited.emplace(automaton.get_start(), start_object_id, nullptr);
+            open.emplace(
+                automaton.get_start(),
+                start_object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
+            visited.emplace(
+                automaton.get_start(),
+                start_object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
         }
         is_first = true;
         min_ids[2] = 0;
@@ -139,14 +159,34 @@ void PropertyPathBFSSimpleEnum::reset() {
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        open.emplace(automaton.get_start(), start_object_id, nullptr);
-        visited.emplace(automaton.get_start(), start_object_id, nullptr);
+        open.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
+        visited.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
-        open.emplace(automaton.get_start(), start_object_id, nullptr);
-        visited.emplace(automaton.get_start(), start_object_id, nullptr);
+        open.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
+        visited.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
     }
     is_first = true;
 }

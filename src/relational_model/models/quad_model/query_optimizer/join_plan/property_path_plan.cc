@@ -116,7 +116,7 @@ void PropertyPathPlan::set_input_vars(uint64_t input_vars) {
 }
 
 
-unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t binding_size) {
+unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t) {
     if (from_assigned) {
         auto automaton = path.get_transformed_automaton();
         transform_automaton(automaton);

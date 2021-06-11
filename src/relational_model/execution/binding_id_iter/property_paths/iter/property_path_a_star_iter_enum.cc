@@ -39,7 +39,12 @@ void PropertyPathAStarIterEnum::begin(BindingId& parent_binding, bool parent_has
                 start_object_id,
                 automaton.distance_to_final[automaton.get_start()]
             );
-            visited.emplace(automaton.get_start(), start_object_id, nullptr);
+            visited.emplace(
+                automaton.get_start(),
+                start_object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
@@ -48,7 +53,12 @@ void PropertyPathAStarIterEnum::begin(BindingId& parent_binding, bool parent_has
                 start_object_id,
                 automaton.distance_to_final[automaton.get_start()]
             );
-            visited.emplace(automaton.get_start(), start_object_id, nullptr);
+            visited.emplace(
+                automaton.get_start(),
+                start_object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
         }
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
@@ -66,15 +76,14 @@ bool PropertyPathAStarIterEnum::next() {
         if (automaton.start_is_final) {
             // TODO: Check if start exists in bd
             auto& current_state = open.top();
-            visited.emplace(
-                automaton.get_final_state(),
-                current_state.object_id,
-                nullptr);
             auto current_key = SearchState(
                 automaton.get_final_state(),
                 current_state.object_id,
-                nullptr
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID)
             );
+            visited.insert(current_key);
             // set binding;
             auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var);
             parent_binding->add(path_var, path_id);
@@ -92,7 +101,9 @@ bool PropertyPathAStarIterEnum::next() {
                 auto current_key = SearchState(
                     reached_automaton_state,
                     reached_object_id,
-                    nullptr
+                    nullptr,
+                    true,
+                    ObjectId(ObjectId::NULL_OBJECT_ID)
                 );
 
                 auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var);
@@ -128,8 +139,11 @@ bool PropertyPathAStarIterEnum::current_state_has_next() {
             auto next_object_id = ObjectId(child_record->ids[2]);
             auto next_automaton_state = transition.to;
             auto current_key = SearchState(
-                current_state->state, current_state->object_id, nullptr
-            );
+                current_state->state,
+                current_state->object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
             auto next_state_key = SearchState(
                 next_automaton_state,
                 next_object_id,
@@ -198,7 +212,12 @@ void PropertyPathAStarIterEnum::reset() {
             automaton.get_start(),
             start_object_id,
             automaton.distance_to_final[automaton.get_start()]);
-        visited.emplace(automaton.get_start(), start_object_id, nullptr);
+        visited.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
 
     } else {
         auto start_var_id = std::get<VarId>(start);
@@ -208,7 +227,12 @@ void PropertyPathAStarIterEnum::reset() {
             start_object_id,
             automaton.distance_to_final[automaton.get_start()]
         );
-        visited.emplace(automaton.get_start(), start_object_id, nullptr);
+        visited.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
     }
     is_first = true;
 }

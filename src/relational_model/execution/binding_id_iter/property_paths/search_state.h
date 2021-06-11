@@ -13,14 +13,6 @@ struct SearchState {
     const bool direction;
     const ObjectId label_id;
 
-    // TODO: Delete constructor
-    SearchState(unsigned int state, ObjectId object_id, const SearchState* previous) :
-        state      (state),
-        object_id  (object_id),
-        previous   (previous),
-        direction  (true),
-        label_id   (ObjectId(ObjectId::NULL_OBJECT_ID)) { }
-
     SearchState(unsigned int state,
                 ObjectId object_id,
                 const SearchState* previous,

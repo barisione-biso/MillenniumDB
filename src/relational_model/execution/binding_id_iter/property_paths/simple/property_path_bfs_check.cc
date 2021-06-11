@@ -34,13 +34,33 @@ void PropertyPathBFSCheck::begin(BindingId& parent_binding, bool parent_has_next
         // Add inital state to queue
         if (std::holds_alternative<ObjectId>(start)) {
             auto start_object_id = std::get<ObjectId>(start);
-            open.emplace(automaton.get_start(), start_object_id, nullptr);
-            visited.emplace(automaton.get_start(), start_object_id, nullptr);
+            open.emplace(
+                automaton.get_start(),
+                start_object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
+            visited.emplace(
+                automaton.get_start(),
+                start_object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
         } else {
             auto start_var_id = std::get<VarId>(start);
             auto start_object_id = parent_binding[start_var_id];
-            open.emplace(automaton.get_start(), start_object_id, nullptr);
-            visited.emplace(automaton.get_start(), start_object_id, nullptr);
+            open.emplace(
+                automaton.get_start(),
+                start_object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
+            visited.emplace(
+                automaton.get_start(),
+                start_object_id,
+                nullptr,
+                true,
+                ObjectId(ObjectId::NULL_OBJECT_ID));
         }
 
         // Set end_object_id
@@ -65,7 +85,8 @@ bool PropertyPathBFSCheck::next() {
     if (is_first) {
         is_first = false;
         if (automaton.start_is_final && open.front().object_id == end_object_id) {
-            auto path_id = path_manager.set_path(visited.find(open.front()).operator->(), path_var);
+            auto path_id = path_manager.set_path(
+                visited.find(open.front()).operator->(), path_var);
             parent_binding->add(path_var, path_id);
             queue<SearchState> empty;
             open.swap(empty);
@@ -88,8 +109,7 @@ bool PropertyPathBFSCheck::next() {
                     ObjectId(child_record->ids[2]),
                     visited.find(current_state).operator->(),
                     transition.inverse,
-                    transition.label
-                );
+                    transition.label);
 
                 // Add to visited and queue
                 if (visited.find(next_state) == visited.end()) {
@@ -101,14 +121,14 @@ bool PropertyPathBFSCheck::next() {
                 if (next_state.state == automaton.get_final_state()
                     && next_state.object_id == end_object_id )
                 {
-                    auto path_id = path_manager.set_path(visited.find(next_state).operator->(), path_var);
+                    auto path_id = path_manager.set_path(
+                        visited.find(next_state).operator->(), path_var);
                     parent_binding->add(path_var, path_id);
                     queue<SearchState> empty;
                     open.swap(empty);
                     results_found++;
                     return true;
                 }
-
                 child_record = iter->next();
             }
         }
@@ -148,14 +168,34 @@ void PropertyPathBFSCheck::reset() {
 
     if (std::holds_alternative<ObjectId>(start)) {
         auto start_object_id = std::get<ObjectId>(start);
-        open.emplace(automaton.get_start(), start_object_id, nullptr);
-        visited.emplace(automaton.get_start(), start_object_id, nullptr);
+        open.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
+        visited.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
 
     } else {
         auto start_var_id = std::get<VarId>(start);
         auto start_object_id = (*parent_binding)[start_var_id];
-        open.emplace(automaton.get_start(), start_object_id, nullptr);
-        visited.emplace(automaton.get_start(), start_object_id, nullptr);
+        open.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
+        visited.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
     }
 
     // Set end_object_id
