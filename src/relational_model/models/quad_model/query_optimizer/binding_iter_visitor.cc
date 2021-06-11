@@ -108,7 +108,7 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
     const auto binding_size = var_name2var_id.size();
 
     // TODO: Pass materialize = true or false in correct case
-    path_manager.begin(binding_size, true);
+    path_manager.begin(binding_size, false);
 
     vector<unique_ptr<BindingIdIter>> optional_children;
 

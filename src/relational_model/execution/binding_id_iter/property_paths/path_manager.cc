@@ -33,7 +33,6 @@ void PathManager::init(QuadModel& model) {
 }
 
 void PathManager::begin(size_t binding_size, bool materialize) {
-    // TODO: Assert: available_index cannot be empty
     // Get next available index
     std::thread::id thread_id = std::this_thread::get_id();
     uint_fast32_t index;
@@ -112,7 +111,6 @@ ObjectId PathManager::set_path(const SearchState* visited_pointer, VarId path_va
                 states_set.insert(new_state).first.operator->());
         }
         // Points to last element of set
-        // TODO: Check avoid to set.find
         uint64_t path_id = paths[index].size();
         paths[index].push_back(states_set.find(*visited_pointer).operator->());
         return ObjectId(GraphModel::VALUE_PATH_MASK | path_id);

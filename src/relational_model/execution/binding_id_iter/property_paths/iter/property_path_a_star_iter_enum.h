@@ -87,7 +87,7 @@ private:
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
-    bool current_state_has_next();
+    std::unordered_set<SearchState, SearchStateHasher>::iterator current_state_has_next();
     void set_iter(); // modifies open.top()
 
 public:

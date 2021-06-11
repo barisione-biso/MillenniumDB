@@ -35,27 +35,6 @@ struct State {
         object_id (object_id) { }
 
 };
-
-
-struct StateKey {
-    uint32_t state;
-    const ObjectId object_id;
-
-    StateKey(uint32_t state, ObjectId object_id) :
-        state     (state),
-        object_id (object_id) { }
-
-    bool operator==(const StateKey& other) const {
-        return state == other.state && object_id == other.object_id;
-    }
-};
-
-
-struct StateKeyHasher {
-    std::size_t operator() (const StateKey& lhs) const {
-        return lhs.state ^ lhs.object_id.id;
-    }
-};
 };
 
 
@@ -93,7 +72,9 @@ private:
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
-    bool current_state_has_next(DFSIterEnum::State& current_state);
+    std::unordered_set<SearchState, SearchStateHasher>::iterator
+        current_state_has_next(DFSIterEnum::State& current_state);
+
     void set_iter(DFSIterEnum::State& current_state);
 
 public:

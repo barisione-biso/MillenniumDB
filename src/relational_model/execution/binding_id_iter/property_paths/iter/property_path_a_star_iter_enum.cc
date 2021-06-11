@@ -83,9 +83,9 @@ bool PropertyPathAStarIterEnum::next() {
                 true,
                 ObjectId(ObjectId::NULL_OBJECT_ID)
             );
-            visited.insert(current_key);
             // set binding;
-            auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var);
+            auto path_id = path_manager.set_path(
+                visited.insert(current_key).first.operator->(), path_var);
             parent_binding->add(path_var, path_id);
             parent_binding->add(end, current_state.object_id);
             results_found++;
@@ -93,20 +93,13 @@ bool PropertyPathAStarIterEnum::next() {
         }
     }
     while (open.size() > 0) {
-        if (current_state_has_next()) {
+        auto reached_state = current_state_has_next();
+        if (reached_state != visited.end()) {
             auto& current_state = open.top();
             open.emplace(reached_automaton_state, reached_object_id, current_state.priority);
             if (reached_automaton_state == automaton.get_final_state()) {
                 // set binding;
-                auto current_key = SearchState(
-                    reached_automaton_state,
-                    reached_object_id,
-                    nullptr,
-                    true,
-                    ObjectId(ObjectId::NULL_OBJECT_ID)
-                );
-
-                auto path_id = path_manager.set_path(visited.find(current_key).operator->(), path_var);
+                auto path_id = path_manager.set_path(reached_state.operator->(), path_var);
                 parent_binding->add(path_var, path_id);
                 parent_binding->add(end, reached_object_id);
                 results_found++;
@@ -120,14 +113,14 @@ bool PropertyPathAStarIterEnum::next() {
 }
 
 
-bool PropertyPathAStarIterEnum::current_state_has_next() {
+std::unordered_set<SearchState, SearchStateHasher>::iterator PropertyPathAStarIterEnum::current_state_has_next() {
     auto current_state = &open.top();
     if (current_state->iter == nullptr) {
         if (current_state->transition < automaton.transitions[current_state->state].size()) {
             set_iter();
             current_state = &open.top(); // set_iter modifies open.top()
         } else {
-            return false;
+            return visited.end();
         }
     }
 
@@ -152,12 +145,14 @@ bool PropertyPathAStarIterEnum::current_state_has_next() {
                 transition.label
                 );
             // Check child is not already visited
-            if (visited.find(next_state_key) == visited.end()) {
+            auto inserted_state = visited.insert(next_state_key);
+            // Inserted_state.second = true if only if state was inserted
+            if (inserted_state.second) {
                 visited.insert(next_state_key);
                 // Update next state settings
                 reached_automaton_state = transition.to;
                 reached_object_id = next_object_id;
-                return true;
+                return inserted_state.first;
             }
             child_record = current_state->iter->next();
         }
@@ -167,7 +162,7 @@ bool PropertyPathAStarIterEnum::current_state_has_next() {
             current_state = &open.top(); // set_iter modifies open.top()
         }
     }
-    return false;
+    return visited.end();
 }
 
 

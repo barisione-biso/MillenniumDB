@@ -85,8 +85,8 @@ bool PropertyPathBFSIterEnum::next() {
                     nullptr,
                     true,
                     ObjectId(ObjectId::NULL_OBJECT_ID));
-            visited.insert(reached_key);
-            auto path_id = path_manager.set_path(visited.find(reached_key).operator->(), path_var);
+            auto path_id = path_manager.set_path(
+                visited.insert(reached_key).first.operator->(), path_var);
             parent_binding->add(path_var, path_id);
             parent_binding->add(end, open.front().object_id);
             results_found++;
@@ -95,7 +95,9 @@ bool PropertyPathBFSIterEnum::next() {
     }
     while (open.size() > 0) {
         auto& current_state = open.front();
-        if (current_state_has_next(current_state)) {
+        auto state_reached = current_state_has_next(current_state);
+        // If has next state then state_reached does not point to visited.end()
+        if (state_reached != visited.end()) {
             open.emplace(
                 reached_automaton_state,
                 reached_object_id,
@@ -104,13 +106,7 @@ bool PropertyPathBFSIterEnum::next() {
                 ObjectId(ObjectId::NULL_OBJECT_ID));
             if (reached_automaton_state == automaton.get_final_state()) {
                 // set binding;
-                auto reached_key = SearchState(
-                    reached_automaton_state,
-                    reached_object_id,
-                    nullptr,
-                    true,
-                    ObjectId(ObjectId::NULL_OBJECT_ID));
-                auto path_id = path_manager.set_path(visited.find(reached_key).operator->(), path_var);
+                auto path_id = path_manager.set_path(state_reached.operator->(), path_var);
                 parent_binding->add(path_var, path_id);
                 parent_binding->add(end, reached_object_id);
                 results_found++;
@@ -125,12 +121,12 @@ bool PropertyPathBFSIterEnum::next() {
 }
 
 
-bool PropertyPathBFSIterEnum::current_state_has_next(const SearchState&  current_state) {
+std::unordered_set<SearchState, SearchStateHasher>::iterator PropertyPathBFSIterEnum::current_state_has_next(const SearchState&  current_state) {
     if (iter == nullptr) { // if is first time that State is explore
         current_transition = 0;
-        // Check automaton has transitions
+        // Check automaton state has transitions
         if (current_transition >= automaton.transitions[current_state.state].size()) {
-            return false;
+            return visited.end();
         }
         // Constructs iter
         set_iter(current_state);
@@ -151,12 +147,14 @@ bool PropertyPathBFSIterEnum::current_state_has_next(const SearchState&  current
                 transition.label
                 );
             // Check child is not already visited
-            if (visited.find(next_state_key) == visited.end()) {
-                visited.insert(next_state_key);
+            auto inserted_state = visited.insert(next_state_key);
+            // Inserted_state.second = true if only if state was inserted
+            if (inserted_state.second) {
                 // Update next state settings
                 reached_automaton_state = transition.to;
                 reached_object_id = next_object_id;
-                return true;
+                // Return pointer to state in visited
+                return inserted_state.first;
             }
             child_record = iter->next();
         }
@@ -166,7 +164,7 @@ bool PropertyPathBFSIterEnum::current_state_has_next(const SearchState&  current
             set_iter(current_state);
         }
     }
-    return false;
+    return visited.end();
 }
 
 
