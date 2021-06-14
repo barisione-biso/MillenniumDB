@@ -42,6 +42,8 @@ private:
     std::vector<std::unique_ptr<TupleBuffer>> buffers;
     std::vector<int_fast32_t> buffer_pos;
 
+    uint_fast32_t results_found = 0;
+
     void up();
     void down();
     bool find_intersection_for_current_level();

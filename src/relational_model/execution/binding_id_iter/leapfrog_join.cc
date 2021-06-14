@@ -20,7 +20,7 @@ void LeapfrogJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
     parent_binding = &_parent_binding;
 
     if (!parent_has_next) {
-        // level = base_level - 1 so next() will return false
+        // level = - 1 so next() will return false
         return;
     }
 
@@ -98,6 +98,7 @@ bool LeapfrogJoin::next() {
         for (size_t i = 0; i < buffers.size(); i++) {
             if (buffer_pos[i]+1 < (int_fast32_t) buffers[i]->get_tuple_count()) {
                 buffer_pos[i]++;
+                // set binding for enumerating vars
                 buffers[i]->assign_to_binding(*parent_binding, buffer_pos[i]);
 
                 while (i > 0) {
@@ -105,7 +106,7 @@ bool LeapfrogJoin::next() {
                     buffer_pos[i] = 0;
                     buffers[i]->assign_to_binding(*parent_binding, buffer_pos[i]);
                 }
-                // set binding for enumerating vars
+                results_found++;
                 return true;
             }
         }
@@ -220,8 +221,7 @@ bool LeapfrogJoin::find_intersection_for_current_level() {
 
 void LeapfrogJoin::analyze(int indent) const {
     cout << std::string(indent, ' ');
-    // TODO: put some useful stats
-    cout << "LeapfrogJoin()";
+    cout << "LeapfrogJoin(found: " << results_found << ")";
 }
 
 

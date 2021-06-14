@@ -213,7 +213,7 @@ unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(const std::set<VarId>& ass
         assign(node_index,  node);
         assign(label_index, label);
 
-        return make_unique<LeapfrogIterImpl<2>>(
+        return make_unique<LeapfrogBptIter<2>>(
             *model.node_label,
             move(initial_ranges),
             move(intersection_vars),
@@ -225,7 +225,7 @@ unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(const std::set<VarId>& ass
         assign(label_index, label);
         assign(node_index,  node);
 
-        return make_unique<LeapfrogIterImpl<2>>(
+        return make_unique<LeapfrogBptIter<2>>(
             *model.label_node,
             move(initial_ranges),
             move(intersection_vars),

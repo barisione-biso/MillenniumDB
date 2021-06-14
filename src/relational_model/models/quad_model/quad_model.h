@@ -48,7 +48,7 @@ public:
     }
 
     std::unique_ptr<RandomAccessTable<1>> node_table;
-    std::unique_ptr<RandomAccessTable<3>> edge_table;
+    std::unique_ptr<RandomAccessTable<3>> edge_table; // edge_table[edge] => (from, to, type)
 
     std::unique_ptr<BPlusTree<2>>   node_label;
     std::unique_ptr<BPlusTree<2>>   label_node;

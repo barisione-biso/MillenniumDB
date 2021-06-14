@@ -5,17 +5,17 @@
 
 #include "storage/buffer_manager.h"
 
-template class LeapfrogIterImpl<2>;
-template class LeapfrogIterImpl<3>;
-template class LeapfrogIterImpl<4>;
+template class LeapfrogBptIter<2>;
+template class LeapfrogBptIter<3>;
+template class LeapfrogBptIter<4>;
 
 using namespace std;
 
 template <size_t N>
-LeapfrogIterImpl<N>::LeapfrogIterImpl(const BPlusTree<N>&           btree,
-                                      vector<unique_ptr<ScanRange>> _initial_ranges,
-                                      vector<VarId>                 _intersection_vars,
-                                      vector<VarId>                 _enumeration_vars) :
+LeapfrogBptIter<N>::LeapfrogBptIter(const BPlusTree<N>&           btree,
+                                    vector<unique_ptr<ScanRange>> _initial_ranges,
+                                    vector<VarId>                 _intersection_vars,
+                                    vector<VarId>                 _enumeration_vars) :
     LeapfrogIter (move(_initial_ranges),
                   move(_intersection_vars),
                   move(_enumeration_vars))
@@ -23,12 +23,13 @@ LeapfrogIterImpl<N>::LeapfrogIterImpl(const BPlusTree<N>&           btree,
     auto root = btree.get_root();
     directory_stack.push( move(root) );
 
-    // there is a border case when nothing id done, but enumeration, so we must
+    // there is a border case when nothing is done, but enumeration, so we must
     // position at the first record
     array<uint64_t, N> min;
     for (size_t i = 0; i < N; i++) {
         min[i] = 0;
     }
+
     auto leaf_and_pos = directory_stack.top()->search_leaf(directory_stack, min);
     current_leaf = move(leaf_and_pos.leaf);
     assert(current_leaf != nullptr);
@@ -48,7 +49,7 @@ LeapfrogIterImpl<N>::LeapfrogIterImpl(const BPlusTree<N>&           btree,
 
 
 template <size_t N>
-void LeapfrogIterImpl<N>::down() {
+void LeapfrogBptIter<N>::down() {
     assert(current_tuple != nullptr);
     level++;
 
@@ -72,7 +73,7 @@ void LeapfrogIterImpl<N>::down() {
 
 
 template <size_t N>
-bool LeapfrogIterImpl<N>::next() {
+bool LeapfrogBptIter<N>::next() {
     assert(current_tuple != nullptr);
     array<uint64_t, N> min;
     array<uint64_t, N> max;
@@ -98,7 +99,7 @@ bool LeapfrogIterImpl<N>::next() {
 
 
 template <size_t N>
-bool LeapfrogIterImpl<N>::seek(uint64_t key) {
+bool LeapfrogBptIter<N>::seek(uint64_t key) {
     assert(current_tuple != nullptr);
     array<uint64_t, N> min;
     array<uint64_t, N> max;
@@ -123,7 +124,7 @@ bool LeapfrogIterImpl<N>::seek(uint64_t key) {
 
 // updates current_leaf, current_tuple and current_pos_in_leaf only when returns true;
 template <std::size_t N>
-bool LeapfrogIterImpl<N>::internal_search(const Record<N>& min, const Record<N>& max) {
+bool LeapfrogBptIter<N>::internal_search(const Record<N>& min, const Record<N>& max) {
     assert(current_leaf != nullptr);
 
     // if leaf.min <= min <= leaf.max, search inside the leaf and return
@@ -184,7 +185,7 @@ bool LeapfrogIterImpl<N>::internal_search(const Record<N>& min, const Record<N>&
 
 
 template <size_t N>
-void LeapfrogIterImpl<N>::enum_no_intersection(TupleBuffer& buffer) {
+void LeapfrogBptIter<N>::enum_no_intersection(TupleBuffer& buffer) {
     assert(current_leaf != nullptr);
     assert(current_tuple != nullptr);
     buffer.reset();
@@ -212,7 +213,7 @@ void LeapfrogIterImpl<N>::enum_no_intersection(TupleBuffer& buffer) {
 
 
 template <size_t N>
-bool LeapfrogIterImpl<N>::open_terms(BindingId& input_binding) {
+bool LeapfrogBptIter<N>::open_terms(BindingId& input_binding) {
     assert(current_tuple != nullptr);
     array<uint64_t, N> min;
     array<uint64_t, N> max;

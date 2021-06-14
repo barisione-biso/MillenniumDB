@@ -272,7 +272,7 @@ unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const std::set<VarId>& 
         assign(key_index,   key);
         assign(value_index, value);
 
-        return make_unique<LeapfrogIterImpl<3>>(
+        return make_unique<LeapfrogBptIter<3>>(
             *model.object_key_value,
             move(initial_ranges),
             move(intersection_vars),
@@ -285,7 +285,7 @@ unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const std::set<VarId>& 
         assign(value_index, value);
         assign(obj_index,   object);
 
-        return make_unique<LeapfrogIterImpl<3>>(
+        return make_unique<LeapfrogBptIter<3>>(
             *model.key_value_object,
             move(initial_ranges),
             move(intersection_vars),

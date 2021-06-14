@@ -163,7 +163,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     }
 
     // try to use leapfrog if possible // TODO: only use when having more than 1 base plan?
-    // tmp = try_get_leapfrog_plan(base_plans, var_names, binding_size, input_vars);
+    tmp = try_get_leapfrog_plan(base_plans, var_names, binding_size, input_vars);
 
     if (tmp == nullptr) {
         if (base_plans.size() <= MAX_SELINGER_PLANS) {
@@ -296,7 +296,7 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
     set<VarId> assigned_vars_set(assigned_vars.begin(), assigned_vars.end());
     set<VarId> intersection_vars_set;
 
-    // choose the first scan
+    // choose the first plan
     int best_index = 0;
     double best_cost = std::numeric_limits<double>::max();
     for (size_t j = 0; j < base_plans_size; j++) {
@@ -311,7 +311,7 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
     // cout << "selected index " << best_index << "\n";
     ordered_plans.push_back(base_plans[best_index]->duplicate());
 
-    // choose the next scan and make a IndexNestedLoopJoin
+    // choose the next plan
     for (size_t i = 1; i < base_plans_size; i++) {
         best_index = 0;
         best_cost = std::numeric_limits<double>::max();
@@ -391,7 +391,7 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
 
     cout << "Var order: [";
     for (const auto& var : var_order) {
-        cout << " " << var_names[var.id];
+        cout << " " << var_names[var.id] << "(" << var.id << ")";
     }
     cout << " ]\n";
 
