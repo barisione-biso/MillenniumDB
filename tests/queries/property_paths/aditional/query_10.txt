@@ -1,0 +1,7 @@
+
+// All the rivers that are tributaries to Danube:
+
+SELECT ?river
+MATCH
+  (?river)=[^:P974+]=>(Q1653),
+  (?river)=[:P31/:P279*]=>(Q4022)

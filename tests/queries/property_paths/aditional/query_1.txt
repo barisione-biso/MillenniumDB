@@ -1,0 +1,5 @@
+// All science professions:
+
+SELECT ?creature
+MATCH (?creature)=[:P131 / :P279*]=>(Q901)
+

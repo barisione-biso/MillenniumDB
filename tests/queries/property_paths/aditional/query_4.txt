@@ -1,0 +1,5 @@
+
+// (crashes, but works with some limits)
+
+SELECT ?creature
+MATCH (?creature)=[:P31]=>(Q5)
