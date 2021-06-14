@@ -3,5 +3,5 @@
 
 SELECT ?river
 MATCH (?river)=[:P4614+]=>(Q12299139),
-      (?river)=[:P31]=>(Q4022)
-}
+      (?river)-[:P31]->(Q4022)
+

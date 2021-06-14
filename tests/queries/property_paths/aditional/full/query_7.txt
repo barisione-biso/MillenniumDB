@@ -1,8 +1,4 @@
-
-// --> works well on the server
-
 SELECT ?river
 MATCH (?river)=[:P4614+]=>(Q12299139),
       (?river)=[:P31 / :P279*]=>(Q4022)
 
-// --> timeout
