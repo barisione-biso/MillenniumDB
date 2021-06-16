@@ -119,7 +119,7 @@ void PropertyPathPlan::set_input_vars(uint64_t input_vars) {
 unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t) {
     if (from_assigned) {
         auto automaton = path.get_transformed_automaton();
-        transform_automaton(automaton);
+        set_automaton_transition_id(automaton);
         if (to_assigned) {
             // bool case
             return make_unique<PropertyPathCheck>(*model.type_from_to_edge,
@@ -142,7 +142,7 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t) {
             // enum starting on to
             auto inverted_path = path.invert();
             auto automaton = inverted_path->get_transformed_automaton();
-            transform_automaton(automaton);
+            set_automaton_transition_id(automaton);
             return make_unique<PropertyPathEnum>(*model.type_from_to_edge,
                                                  *model.to_type_from_edge,
                                                  path_var,
@@ -158,7 +158,7 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t) {
 
 
 // TODO: Change name and explain
-void PropertyPathPlan::transform_automaton(PathAutomaton &automaton) {
+void PropertyPathPlan::set_automaton_transition_id(PathAutomaton &automaton) {
     for (size_t i = 0; i < automaton.from_to_connections.size(); i++) {
         vector<TransitionId> transition_id_vector;
         for (const auto &t : automaton.from_to_connections[i]) {

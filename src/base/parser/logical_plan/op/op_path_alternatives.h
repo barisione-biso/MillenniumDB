@@ -82,7 +82,7 @@ public:
             auto automaton = alternative->get_automaton();
             alternative_automaton.rename_and_merge(automaton);
             auto start_state = alternative_automaton.get_start();
-            alternative_automaton.add_epsilon_transition(start_state, start_state);
+            alternative_automaton.add_epsilon_transition(start_state, automaton.get_start());
             for(const auto& end_state : automaton.end_states) {
                 alternative_automaton.end_states.insert(end_state);
             }
