@@ -122,7 +122,8 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t) {
         set_automaton_transition_id(automaton);
         if (to_assigned) {
             // bool case
-            return make_unique<PropertyPathCheck>(*model.type_from_to_edge,
+            return make_unique<PropertyPathCheck>(*model.nodes,
+                                                  *model.type_from_to_edge,
                                                   *model.to_type_from_edge,
                                                   path_var,
                                                   from,
@@ -130,7 +131,8 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t) {
                                                   automaton);
         } else {
             // enum starting on from
-            return make_unique<PropertyPathEnum>(*model.type_from_to_edge,
+            return make_unique<PropertyPathEnum>(*model.nodes,
+                                                 *model.type_from_to_edge,
                                                  *model.to_type_from_edge,
                                                  path_var,
                                                  from,
@@ -143,7 +145,8 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t) {
             auto inverted_path = path.invert();
             auto automaton = inverted_path->get_transformed_automaton();
             set_automaton_transition_id(automaton);
-            return make_unique<PropertyPathEnum>(*model.type_from_to_edge,
+            return make_unique<PropertyPathEnum>(*model.nodes,
+                                                 *model.type_from_to_edge,
                                                  *model.to_type_from_edge,
                                                  path_var,
                                                  to,

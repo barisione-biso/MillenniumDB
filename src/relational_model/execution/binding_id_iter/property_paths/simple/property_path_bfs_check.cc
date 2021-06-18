@@ -13,12 +13,14 @@ using namespace std;
 
 
 PropertyPathBFSCheck::PropertyPathBFSCheck(
+                                    BPlusTree<1>& nodes,
                                     BPlusTree<4>& type_from_to_edge,
                                     BPlusTree<4>& to_type_from_edge,
                                     VarId path_var,
                                     Id start,
                                     Id end,
                                     PathAutomaton automaton) :
+    nodes             (nodes),
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
     path_var          (path_var),
@@ -84,9 +86,20 @@ bool PropertyPathBFSCheck::next() {
     // Check if first node is end state
     if (is_first) {
         is_first = false;
-        if (automaton.start_is_final && open.front().object_id == end_object_id) {
+
+        auto current_state = open.front();
+        auto node_iter = nodes.get_range(
+            Record<1>({current_state.object_id.id}),
+            Record<1>({current_state.object_id.id}));
+        // Return false if node does not exists in bd
+        if (node_iter->next() == nullptr) {
+            queue<SearchState> empty;
+            open.swap(empty);
+            return false;
+        }
+        if (automaton.start_is_final && (current_state.object_id == end_object_id)) {
             auto path_id = path_manager.set_path(
-                visited.find(open.front()).operator->(), path_var);
+                visited.find(current_state).operator->(), path_var);
             parent_binding->add(path_var, path_id);
             queue<SearchState> empty;
             open.swap(empty);

@@ -29,7 +29,7 @@ QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size) {
 
     VolatilePath::path_printer = &path_manager;
 
-    node_table = make_unique<RandomAccessTable<1>>("nodes.table");
+    nodes = make_unique<BPlusTree<1>>("nodes");
     edge_table = make_unique<RandomAccessTable<3>>("edges.table");
 
     // Create BPT
@@ -60,7 +60,7 @@ QuadModel::~QuadModel() {
     object_file().~ObjectFile();
     catalog().~QuadCatalog();
 
-    node_table.reset();
+    nodes.reset();
     edge_table.reset();
 
     label_node.reset();

@@ -13,12 +13,14 @@ using namespace std;
 using namespace AStarIterEnum;
 
 PropertyPathAStarIterEnum::PropertyPathAStarIterEnum(
+                                    BPlusTree<1>& nodes,
                                     BPlusTree<4>& type_from_to_edge,
                                     BPlusTree<4>& to_type_from_edge,
                                     VarId path_var,
                                     Id start,
                                     VarId end,
                                     PathAutomaton automaton) :
+    nodes             (nodes),
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
     path_var          (path_var),
@@ -73,9 +75,15 @@ void PropertyPathAStarIterEnum::begin(BindingId& parent_binding, bool parent_has
 bool PropertyPathAStarIterEnum::next() {
     if (is_first) {
         is_first = false;
+        auto& current_state = open.top();
+        auto start_node_iter = nodes.get_range(
+            Record<1>({current_state.object_id.id}),
+            Record<1>({current_state.object_id.id}));
+        // Return false if node does not exists in bd
+        if (start_node_iter->next() == nullptr) {
+            return false;
+        }
         if (automaton.start_is_final) {
-            // TODO: Check if start exists in bd
-            auto& current_state = open.top();
             auto current_key = SearchState(
                 automaton.get_final_state(),
                 current_state.object_id,

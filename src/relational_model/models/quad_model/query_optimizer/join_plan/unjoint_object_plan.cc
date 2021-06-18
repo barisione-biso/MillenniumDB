@@ -59,9 +59,10 @@ void UnjointObjectPlan::set_input_vars(uint64_t) {
 
 unique_ptr<BindingIdIter> UnjointObjectPlan::get_binding_id_iter(std::size_t binding_size) {
     vector<unique_ptr<BindingIdIter>> iters;
-    iters.push_back(
-        make_unique<NodeTableEnum>(binding_size, object_var_id, *model.node_table)
-    );
+    // TODO:
+    //iters.push_back(
+    //    make_unique<NodeTableEnum>(binding_size, object_var_id, *model.node_table)
+    //);
     iters.push_back(
         make_unique<ObjectEnum>(binding_size, object_var_id, QuadModel::ANONYMOUS_NODE_MASK, model.catalog().anonymous_nodes_count)
     );

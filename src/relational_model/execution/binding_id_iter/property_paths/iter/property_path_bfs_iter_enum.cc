@@ -13,12 +13,14 @@ using namespace std;
 
 
 PropertyPathBFSIterEnum::PropertyPathBFSIterEnum(
+                                                BPlusTree<1>& nodes,
                                                 BPlusTree<4>& type_from_to_edge,
                                                 BPlusTree<4>& to_type_from_edge,
                                                 VarId path_var,
                                                 Id start,
                                                 VarId end,
                                                 PathAutomaton automaton) :
+    nodes             (nodes),
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
     path_var          (path_var),
@@ -77,8 +79,17 @@ bool PropertyPathBFSIterEnum::next() {
     if (first_next) {
         first_next = false;
 
+        auto current_state = open.front();
+        auto node_iter = nodes.get_range(
+            Record<1>({current_state.object_id.id}),
+            Record<1>({current_state.object_id.id}));
+        // Return false if node does not exists in bd
+        if (node_iter->next() == nullptr) {
+            open.pop();
+            return false;
+        }
+
         if (automaton.start_is_final) {
-            // TODO: Check if start node exists (Perhaps checks before create automaton)
             auto reached_key = SearchState(
                     automaton.get_final_state(),
                     open.front().object_id,

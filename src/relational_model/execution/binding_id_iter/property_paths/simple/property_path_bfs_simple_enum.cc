@@ -12,12 +12,14 @@
 using namespace std;
 
 PropertyPathBFSSimpleEnum::PropertyPathBFSSimpleEnum(
+                                    BPlusTree<1>& nodes,
                                     BPlusTree<4>& type_from_to_edge,
                                     BPlusTree<4>& to_type_from_edge,
                                     VarId         path_var,
                                     Id            start,
                                     VarId         end,
                                     PathAutomaton automaton) :
+    nodes             (nodes),
     type_from_to_edge (type_from_to_edge),
     to_type_from_edge (to_type_from_edge),
     path_var          (path_var),
@@ -109,6 +111,14 @@ bool PropertyPathBFSSimpleEnum::next() {
             return true;
         } else if (is_first) { // If start state is final
             is_first = false;
+            auto start_node_iter = nodes.get_range(
+            Record<1>({current_state.object_id.id}),
+            Record<1>({current_state.object_id.id}));
+            // Return false if node does not exists in bd
+            if (start_node_iter->next() == nullptr) {
+                open.pop();
+                return false;
+            }
             if (current_state.state == automaton.get_start() &&
                 automaton.start_is_final)
             {
@@ -121,7 +131,6 @@ bool PropertyPathBFSSimpleEnum::next() {
                 return true;
             }
         }
-
         open.pop();  // Pop to visit next state
     }
     return false;
