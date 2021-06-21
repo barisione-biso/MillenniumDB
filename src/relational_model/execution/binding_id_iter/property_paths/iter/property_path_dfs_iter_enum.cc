@@ -14,47 +14,38 @@ using namespace DFSIterEnum;
 
 
 PropertyPathDFSIterEnum::PropertyPathDFSIterEnum(
-                                                BPlusTree<1>& nodes,
-                                                BPlusTree<4>& type_from_to_edge,
-                                                BPlusTree<4>& to_type_from_edge,
-                                                VarId path_var,
-                                                Id start,
-                                                VarId end,
-                                                PathAutomaton automaton) :
-    nodes             (nodes),
-    type_from_to_edge (type_from_to_edge),
-    to_type_from_edge (to_type_from_edge),
-    path_var          (path_var),
-    start             (start),
-    end               (end),
-    automaton         (automaton)
+                                                BPlusTree<1>& _nodes,
+                                                BPlusTree<4>& _type_from_to_edge,
+                                                BPlusTree<4>& _to_type_from_edge,
+                                                VarId _path_var,
+                                                Id _start,
+                                                VarId _end,
+                                                PathAutomaton _automaton) :
+    nodes             (_nodes),
+    type_from_to_edge (_type_from_to_edge),
+    to_type_from_edge (_to_type_from_edge),
+    path_var          (_path_var),
+    start             (_start),
+    end               (_end),
+    automaton         (_automaton)
     { }
 
 
-void PropertyPathDFSIterEnum::begin(BindingId& parent_binding, bool parent_has_next) {
-    this->parent_binding = &parent_binding;
+void PropertyPathDFSIterEnum::begin(BindingId& _parent_binding, bool parent_has_next) {
+    parent_binding = &_parent_binding;
     if (parent_has_next) {
         // Add inital state to queue
-        if (std::holds_alternative<ObjectId>(start)) {
-            auto start_object_id = std::get<ObjectId>(start);
-            open.emplace(automaton.get_start(), start_object_id);
-            visited.emplace(
-                automaton.get_start(),
-                start_object_id,
-                nullptr,
-                true,
-                ObjectId(ObjectId::NULL_OBJECT_ID));
-        } else {
-            auto start_var_id = std::get<VarId>(start);
-            auto start_object_id = parent_binding[start_var_id];
-            open.emplace(automaton.get_start(), start_object_id);
-            visited.emplace(
-                automaton.get_start(),
-                start_object_id,
-                nullptr,
-                true,
-                ObjectId(ObjectId::NULL_OBJECT_ID));
-        }
+        ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
+            std::get<ObjectId>(start) :
+            (*parent_binding)[std::get<VarId>(start)]);
+
+        open.emplace(automaton.get_start(), start_object_id);
+        visited.emplace(
+            automaton.get_start(),
+            start_object_id,
+            nullptr,
+            true,
+            ObjectId(ObjectId::NULL_OBJECT_ID));
         first_next = true;
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
@@ -77,7 +68,6 @@ bool PropertyPathDFSIterEnum::next() {
             return false;
         }
         if (automaton.start_is_final) {
-            // TODO: Check if start exists in bd
             auto current_key = SearchState(
                 automaton.get_final_state(),
                 open.top().object_id,
@@ -195,17 +185,17 @@ void PropertyPathDFSIterEnum::reset() {
     visited.clear();
 
     first_next = true;
-    if (std::holds_alternative<ObjectId>(start)) {
-        auto start_object_id = std::get<ObjectId>(start);
-        open.emplace(automaton.get_start(), start_object_id);
-        visited.emplace(automaton.get_start(), ObjectId(start_object_id), nullptr, true, ObjectId(ObjectId::NULL_OBJECT_ID));
+    ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
+        std::get<ObjectId>(start) :
+        (*parent_binding)[std::get<VarId>(start)]);
 
-    } else {
-        auto start_var_id = std::get<VarId>(start);
-        auto start_object_id = (*parent_binding)[start_var_id];
-        open.emplace(automaton.get_start(), start_object_id);
-        visited.emplace(automaton.get_start(), ObjectId(start_object_id), nullptr, true, ObjectId(ObjectId::NULL_OBJECT_ID));
-    }
+    open.emplace(automaton.get_start(), start_object_id);
+    visited.emplace(
+        automaton.get_start(),
+        start_object_id,
+        nullptr,
+        true,
+        ObjectId(ObjectId::NULL_OBJECT_ID));
 }
 
 
