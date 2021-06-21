@@ -67,9 +67,11 @@ public:
             return new_automaton;
         }
         else {
+            // Connects all end states to start state
             for (const auto& end_state : path_automaton.end_states) {
                 path_automaton.add_epsilon_transition(end_state, path_automaton.get_start());
             }
+            // Makes start state final
             path_automaton.end_states.insert(path_automaton.get_start());
             return path_automaton;
         }

@@ -56,8 +56,10 @@ public:
     OpPathType type() const { return OpPathType::OP_PATH_ATOM; }
 
     PathAutomaton get_automaton() const override {
+        // Create a simple automaton
         auto automaton = PathAutomaton();
         automaton.end_states.insert(1);
+        // Connect states with atom as label
         automaton.connect(Transition(0, 1, atom, inverse));
         return automaton;
     }

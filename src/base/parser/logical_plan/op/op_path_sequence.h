@@ -78,13 +78,16 @@ public:
 
     PathAutomaton get_automaton() const override {
         auto sequence_automaton = sequence[0]->get_automaton();
+        // For each sequence child create and automaton
         for (size_t i = 1; i < sequence.size(); i++) {
-            auto seq_automaton = sequence[i]->get_automaton();
-            sequence_automaton.rename_and_merge(seq_automaton);
+            auto child_automaton = sequence[i]->get_automaton();
+            sequence_automaton.rename_and_merge(child_automaton);
+            // Connect end state of sequence automaton to start of child
             for (const auto& end_state : sequence_automaton.end_states) {
-                sequence_automaton.add_epsilon_transition(end_state, seq_automaton.get_start());
+                sequence_automaton.add_epsilon_transition(end_state, child_automaton.get_start());
             }
-            sequence_automaton.end_states = std::move(seq_automaton.end_states);
+            // Replace sequence automaton's end states by child's end states
+            sequence_automaton.end_states = std::move(child_automaton.end_states);
         }
         return sequence_automaton;
     }

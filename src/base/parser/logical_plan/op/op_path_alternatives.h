@@ -78,12 +78,16 @@ public:
 
     PathAutomaton get_automaton() const override {
         auto alternative_automaton = PathAutomaton();
+        // For each alternative create an automaton
         for (const auto& alternative : alternatives) {
-            auto automaton = alternative->get_automaton();
-            alternative_automaton.rename_and_merge(automaton);
+            auto child_automaton = alternative->get_automaton();
+            alternative_automaton.rename_and_merge(child_automaton);
             auto start_state = alternative_automaton.get_start();
-            alternative_automaton.add_epsilon_transition(start_state, automaton.get_start());
-            for(const auto& end_state : automaton.end_states) {
+            // Connects start state with child start
+            alternative_automaton.add_epsilon_transition(
+                start_state, child_automaton.get_start());
+            // Child end state is end state of alternative automaton
+            for(const auto& end_state : child_automaton.end_states) {
                 alternative_automaton.end_states.insert(end_state);
             }
         }
