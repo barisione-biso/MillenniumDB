@@ -80,14 +80,16 @@ bool LeapfrogJoin::next() {
             if (find_intersection_for_current_level()) {
                 down();
             } else {
-                if (level == 0) {
-                    return false;
-                } else {
-                    up();
-                    // We are in a previous intersection, so we need to move the last iterator forward
-                    // to avoid having the same intersection
-                    if (!iters_for_var[level][iters_for_var[level].size() - 1]->next()) {
+                // We are in a previous intersection, so we need to move the last iterator forward
+                // to avoid having the same intersection
+                while (true) {
+                    if (level == 0) {
                         return false;
+                    } else {
+                        up();
+                        if (iters_for_var[level][iters_for_var[level].size() - 1]->next()) {
+                            break;
+                        }
                     }
                 }
             }
