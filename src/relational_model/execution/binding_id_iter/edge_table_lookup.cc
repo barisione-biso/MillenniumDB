@@ -42,7 +42,7 @@ bool EdgeTableLookup::next() {
 
         auto record = table[edge_id - 1]; // first edge has the id 1, and its inserted at pos 0 in the table
 
-        // if mask was and edge this should not be nullptr
+        // if mask was an edge this should not be nullptr
         assert(record != nullptr);
 
         auto check_id = [] (BindingId& binding, Id id, ObjectId obj_id) -> bool {
