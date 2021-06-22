@@ -55,25 +55,28 @@ struct TransitionId {
 
 
 /*
-PathAutomaton represents a No Deterministic Finite Automaton
-with epsilon transitions. This class builds an automaton, and transform
-it into an automaton without epsilon transitions.
+  PathAutomaton  represents  a  No  Deterministic  Finite  Automaton   with  epsilon
+transitions.  This  class  builds  an  automaton, and transform it into an automaton
+without epsilon transitions.
 
-The automaton is built using Thompson Algorithm, each operator allowed by the
+The  automaton  is  built  using  Thompson  Algorithm,  each operator allowed by the
 language is represented in the corresponding OpPath subclass.
 
-There are some methods used to reduce the automaton, but it's
-no guaranteed that the automaton will be optimal or deterministic.
-TODO: Explain better final state.
-TODO: Explain automaton transformations
-The final
-automaton will have at maximum two final states, the start state and a auxiliary
-state that is added to be final state.
+There are some methods used  to  transform  the  automaton  into a  final automaton.
+The final automaton does not have  epsilon  transitions  and  as  maximum  two final
+states. All transformations and the description of this are handled in the following
+methods:
+ 1.  delete_mergeable_states
+ 2.  delete_epsilon_transitions
+ 3.  set_final_state
+ 4.  delete_absortion_states
 
-States of automaton are not emulated by a specific class. A state is only
-represented by a number i, that indicates that the transitions of this
-state are stored in the i position of the from_to_connections, to_from_connections
-and transitions vectors.
+States of automaton are not emulated by a specific class. A state is only represented
+by a number i,  that indicates that the transitions of this state are stored in the i
+position of the from_to_connections, to_from_connections and transitions vectors.
+
+Final the distance to a final state is computed, this metric can be used as heuristic
+by a path finder algorithm to select the state which is nearest to final state.
 */
 class PathAutomaton {
 private:
@@ -90,37 +93,39 @@ private:
     // Number of states
     uint32_t total_states = 1;
 
+    // ----- Methods to handle automaton transformations -----
+
     // Check if two states are mergeable and merge them if is posible.
     void delete_mergeable_states();
 
-    // Return  epsilon closure of state
-    // state is not included to avoid redundant iteration
-    std::set<uint32_t> get_epsilon_closure(uint32_t state);
+    // Delete epsilon transitions of the automaton
+    void delete_epsilon_transitions();
 
     // Delete states that can not be reached from start
     void delete_unreachable_states();
 
+    // Collapse end states to generate a unique final state
+    void set_final_state();
+
     // Delete states that can not reach to any state of end_states set
     void delete_absortion_states();
 
-    // Return a set with reachable states from start.
-    std::set<uint32_t> get_reachable_states_from_start();
+    // ----- Auxilary methods -----
 
-    // Return a set with reachable states from a state in end set.
-    std::set<uint32_t> get_reachable_states_from_end();
+    // Return epsilon closure of state state is not included
+    std::set<uint32_t> get_epsilon_closure(uint32_t state);
 
-    // Connections that starts or reachs to source will be start or reach to destiny
+    // Return reachable states from 'source', 'inverse'=false use
+    // from_to_connections and 'inverse'=true use to_from_connections
+    std::set<uint32_t>get_reachable_states(uint32_t source, bool inverse);
+
+    // Connections that starts or reachs to 'source' will be start or reach to 'destiny'
     void merge_states(uint32_t destiny, uint32_t source);
 
     // Compute the minimum distance between final_state and a state of the automaton
     void calculate_distance_to_final_state();
 
-    // Add a extra state which is final, end set will be cleared. If start is in end,
-    // start_is_final will be true
-    void set_final_state();
 
-    // Delete epsilon transitions of the automaton
-    void delete_epsilon_transitions();
 
 public:
 
@@ -148,7 +153,6 @@ public:
     ~PathAutomaton() = default;
 
     // Access  and modify attibute methods
-    inline std::vector<TransitionId> get_state_transitions(size_t state) const noexcept{ return transitions[state]; }
     inline uint32_t get_start() const noexcept { return start; }
     inline uint32_t get_total_states() const noexcept  { return total_states; }
     inline uint32_t get_final_state() const noexcept  { return final_state; }
@@ -165,8 +169,7 @@ public:
     // Add a transition (from, to, "", false)
     void add_epsilon_transition(uint32_t from, uint32_t to);
 
-    // Delete the epsilon transitions, and apply some methods to reduce
-    // automaton size. Optimal or final deterministic automaton is not guaranteed
+    // Apply transformations to get final automaton
     void transform_automaton();
 
 
