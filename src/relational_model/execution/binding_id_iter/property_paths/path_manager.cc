@@ -105,7 +105,6 @@ ObjectId PathManager::set_path(const SearchState* visited_pointer, VarId path_va
                 current_state->label_id
             );
             missing_states.pop();
-            // TODO: search fon redundant find in a set in binding_id_iter path enum and check
             // Previous points to path manager set
             previous = const_cast<SearchState*>(
                 states_set.insert(new_state).first.operator->());

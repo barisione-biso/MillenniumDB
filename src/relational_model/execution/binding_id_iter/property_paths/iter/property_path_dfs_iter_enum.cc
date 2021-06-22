@@ -34,6 +34,8 @@ PropertyPathDFSIterEnum::PropertyPathDFSIterEnum(
 void PropertyPathDFSIterEnum::begin(BindingId& _parent_binding, bool parent_has_next) {
     parent_binding = &_parent_binding;
     if (parent_has_next) {
+        first_next = true;
+
         // Add inital state to queue
         ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
             std::get<ObjectId>(start) :
@@ -46,7 +48,6 @@ void PropertyPathDFSIterEnum::begin(BindingId& _parent_binding, bool parent_has_
             nullptr,
             true,
             ObjectId(ObjectId::NULL_OBJECT_ID));
-        first_next = true;
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;
@@ -183,8 +184,9 @@ void PropertyPathDFSIterEnum::reset() {
     stack<State> empty;
     open.swap(empty);
     visited.clear();
-
     first_next = true;
+
+    // Add start object id to open and visited
     ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
         std::get<ObjectId>(start) :
         (*parent_binding)[std::get<VarId>(start)]);

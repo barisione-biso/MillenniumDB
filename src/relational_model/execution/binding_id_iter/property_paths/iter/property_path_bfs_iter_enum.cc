@@ -11,7 +11,6 @@
 
 using namespace std;
 // TODO: Revisión global del código
-// TODO: Añadir _ en constructor
 
 PropertyPathBFSIterEnum::PropertyPathBFSIterEnum(
                                                 BPlusTree<1>& _nodes,
@@ -34,6 +33,11 @@ PropertyPathBFSIterEnum::PropertyPathBFSIterEnum(
 void PropertyPathBFSIterEnum::begin(BindingId& _parent_binding, bool parent_has_next) {
     parent_binding = &_parent_binding;
     if (parent_has_next) {
+        // First next = true allow to next method knows if is doing the first iteration
+        first_next = true;
+
+        iter = nullptr;
+        // Add start object id to open and visited
         ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
             std::get<ObjectId>(start) :
             (*parent_binding)[std::get<VarId>(start)]);
@@ -49,8 +53,6 @@ void PropertyPathBFSIterEnum::begin(BindingId& _parent_binding, bool parent_has_
             nullptr,
             true,
             ObjectId(ObjectId::NULL_OBJECT_ID));
-        first_next = true;
-        iter = nullptr;
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;
@@ -109,6 +111,7 @@ bool PropertyPathBFSIterEnum::next() {
                 return true;
             }
         } else {
+            // Pop and visit next state
             iter = nullptr;
             open.pop();
         }
@@ -190,9 +193,10 @@ void PropertyPathBFSIterEnum::reset() {
     queue<SearchState> empty;
     open.swap(empty);
     visited.clear();
-
     first_next = true;
     iter = nullptr;
+
+    // Add start object id to open and visited
     ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
         std::get<ObjectId>(start) :
         (*parent_binding)[std::get<VarId>(start)]);

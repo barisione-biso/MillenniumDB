@@ -33,6 +33,9 @@ PropertyPathAStarIterEnum::PropertyPathAStarIterEnum(
 void PropertyPathAStarIterEnum::begin(BindingId& _parent_binding, bool parent_has_next) {
     parent_binding = &_parent_binding;
     if (parent_has_next) {
+        // Is_first = true allow next method knows if that iteration is the first
+        is_first = true;
+        // Create and add start object id
         ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
             std::get<ObjectId>(start) :
             (*parent_binding)[std::get<VarId>(start)]);
@@ -51,7 +54,6 @@ void PropertyPathAStarIterEnum::begin(BindingId& _parent_binding, bool parent_ha
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;
         max_ids[3] = 0xFFFFFFFFFFFFFFFF;
-        is_first = true;
         // pos 0 and 1 will be set at next()
     }
 }
@@ -160,15 +162,19 @@ std::unordered_set<SearchState, SearchStateHasher>::iterator PropertyPathAStarIt
 
 
 void PropertyPathAStarIterEnum::set_iter() {
+    // Get pointer from priority queue
     auto current_state = &open.top();
+    // Create a copy of current state
     PriorityIterState new_state(current_state->state, current_state->object_id, current_state->priority);
+    // Sets the transition index that will be read
     if (current_state->iter != nullptr) {
         new_state.transition = current_state->transition + 1;
     } else {
         new_state.transition = 0;
     }
-
+    // Get transition
     const auto& transition = automaton.transitions[new_state.state][new_state.transition];
+    // Construct iter
     if (transition.inverse) {
         min_ids[0] = new_state.object_id.id;
         max_ids[0] = new_state.object_id.id;
@@ -183,7 +189,10 @@ void PropertyPathAStarIterEnum::set_iter() {
         new_state.iter = type_from_to_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
     }
     bpt_searches++;
+    // Remove current_state of priority queue
     open.pop();
+    // Insert new_state. It wil be inserted first in the priority queue,
+    // because has the same priority of current_state (That was first)
     open.push(move(new_state));
 }
 
@@ -193,7 +202,9 @@ void PropertyPathAStarIterEnum::reset() {
     priority_queue<PriorityIterState> empty;
     open.swap(empty);
     visited.clear();
+    is_first = true;
 
+    // Add start object id to open and visited
     ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
         std::get<ObjectId>(start) :
         (*parent_binding)[std::get<VarId>(start)]);
@@ -208,7 +219,6 @@ void PropertyPathAStarIterEnum::reset() {
         nullptr,
         true,
         ObjectId(ObjectId::NULL_OBJECT_ID));
-    is_first = true;
 }
 
 

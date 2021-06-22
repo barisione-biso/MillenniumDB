@@ -160,8 +160,10 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(std::size_t) {
 }
 
 
-// TODO: Change name and explain
 void PropertyPathPlan::set_automaton_transition_id(PathAutomaton &automaton) {
+    // For each Transition instance in from_to vector, creates a TransitionId
+    // instance that have an object id object of string label. It will be stored
+    // in transition attribute of automaton
     for (size_t i = 0; i < automaton.from_to_connections.size(); i++) {
         vector<TransitionId> transition_id_vector;
         for (const auto &t : automaton.from_to_connections[i]) {

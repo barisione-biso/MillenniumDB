@@ -31,10 +31,13 @@ PropertyPathBFSSimpleEnum::PropertyPathBFSSimpleEnum(
 
 void PropertyPathBFSSimpleEnum::begin(BindingId& _parent_binding, bool parent_has_next) {
     parent_binding = &_parent_binding;
+    // Add start object object if only if parent has next
     if (parent_has_next) {
+        // Create start object id
         ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
             std::get<ObjectId>(start) :
             (*parent_binding)[std::get<VarId>(start)]);
+        // Add start object to open and visited
         open.emplace(
             automaton.get_start(),
             start_object_id,
@@ -47,6 +50,7 @@ void PropertyPathBFSSimpleEnum::begin(BindingId& _parent_binding, bool parent_ha
             nullptr,
             true,
             ObjectId(ObjectId::NULL_OBJECT_ID));
+        // Mark is_first = true to next methods knows when is first iteration
         is_first = true;
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
@@ -94,6 +98,7 @@ bool PropertyPathBFSSimpleEnum::next() {
             open.pop();  // Pop to visit next state
             return true;
         } else if (is_first) { // If start state is final
+            // is_first = false to enter only in the first iteration
             is_first = false;
             auto start_node_iter = nodes.get_range(
                 Record<1>({current_state.object_id.id}),
@@ -149,6 +154,9 @@ void PropertyPathBFSSimpleEnum::reset() {
     queue<SearchState> empty;
     open.swap(empty);
     visited.clear();
+    is_first = true;
+
+    // Add start object id to open and visited structures
     ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
         std::get<ObjectId>(start) :
         (*parent_binding)[std::get<VarId>(start)]);
@@ -164,7 +172,6 @@ void PropertyPathBFSSimpleEnum::reset() {
         nullptr,
         true,
         ObjectId(ObjectId::NULL_OBJECT_ID));
-    is_first = true;
 }
 
 

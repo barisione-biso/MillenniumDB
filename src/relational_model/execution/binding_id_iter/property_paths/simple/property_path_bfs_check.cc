@@ -32,10 +32,13 @@ PropertyPathBFSCheck::PropertyPathBFSCheck(
 
 void PropertyPathBFSCheck::begin(BindingId& _parent_binding, bool parent_has_next) {
     parent_binding = &_parent_binding;
+    // Init open and visited if only if parent has next
     if (parent_has_next) {
+        // Init start object id
         ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
             std::get<ObjectId>(start) :
             (*parent_binding)[std::get<VarId>(start)]);
+        // Add to open and visited structures
         open.emplace(
             automaton.get_start(),
             start_object_id,
@@ -129,6 +132,7 @@ bool PropertyPathBFSCheck::next() {
                 child_record = iter->next();
             }
         }
+        // Pop to visit next state
         open.pop();
     }
     return false;
@@ -157,15 +161,16 @@ void PropertyPathBFSCheck::set_iter(
 
 
 void PropertyPathBFSCheck::reset() {
-    // Empty open and visited
+    // Empty structures
     queue<SearchState> empty;
     open.swap(empty);
     visited.clear();
     is_first = true;
+
+    // Add start object id to structures
     ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
         std::get<ObjectId>(start) :
         (*parent_binding)[std::get<VarId>(start)]
-
     );
     open.emplace(
         automaton.get_start(),
