@@ -120,19 +120,17 @@ There is an important difference between  arrows `-[]->` and `=[]=>`. In this gu
 
 Imagine that you have a bd like the following:
 ```
-A name:Alexis Sánchez
-B name:Arturo Vidal
-A->B :teammate team:Colo Colo
-A->B :teammate team:Inter Milan
+A->B :P1 prop:1
+A->B :P1 prop:1
 ```
 Then you have the following query:
 
  ```
  SELECT *
- MATCH (?x)=[:teammate]=>(B)
+ MATCH (?x)=[:P1]=>(B)
  ```
 
-This query asks about property paths, then as we can see the output does not repeat the same node in the output, then only one path will exists in the output. In out language, your are asking for all the team mates of Arturo Vidal, Alexis Sánchez has been two times team mate of Arturo, but it does not make sense return the same person two times (because you asks only by team mates)
+This query asks about property paths, then as we can see the output does not repeat the same node in the output, then only one path will exists in the output, this makes sense because although the edges have a different value for `prop` attribute, they are the same property path.
 
  Now, if you do the following query:
 
@@ -141,7 +139,7 @@ This query asks about property paths, then as we can see the output does not rep
  MATCH (?x)-[:teammate]->(B)
  ```
 
-This query asks about all connections or edges with `teammate` label. The semantic of this is like: _Give me all edges with `teammate` label that points to `B` node_. In this query, the output will be the two edges, because both are different edges.
+In this query, you ask for edges, not a property path. Then in the output the two paths will be returned (That means that `A` nodes will be duplicated).
 
 ## Getting the path
 
