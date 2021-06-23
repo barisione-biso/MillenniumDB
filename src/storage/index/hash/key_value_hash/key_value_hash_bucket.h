@@ -1,4 +1,4 @@
-#ifndef STORAGE__KEY_VALUE_HASH_BUCKET_H_
+#ifndef STORAGE__KEY_VALUE_HASH_BUCKET_H_ // TODO: KEY_VALUE_HASH_PAGE
 #define STORAGE__KEY_VALUE_HASH_BUCKET_H_
 
 #include <cstdint>
@@ -29,10 +29,12 @@ public:
 
     void insert(const std::vector<K>& key, const std::vector<V>& value);
     void insert_in_pos(const std::vector<K>& key, const std::vector<V>& value, uint_fast32_t pos);  // for split
+    void insert_with_pointers(const K* key, const V* value);  // for merge
     std::pair<std::vector<K>, std::vector<V>> get_pair(uint_fast32_t current_pos) const; // TODO: can optimize without copying
     inline K* get_key(uint_fast32_t current_pos) const { return &keys[current_pos*key_size]; }
     inline V* get_value(uint_fast32_t current_pos) const { return &values[current_pos*value_size]; }
-    //std::pair<K*, V*> get_pair(uint_fast32_t current_pos) const;
+    void sort();
+    void partition(uint_fast32_t min_pos, uint_fast32_t max_pos);
 
     inline uint_fast32_t get_tuple_count() const noexcept { return *tuple_count; }
     inline void set_tuple_count(uint_fast32_t value) const noexcept { *tuple_count = value; }

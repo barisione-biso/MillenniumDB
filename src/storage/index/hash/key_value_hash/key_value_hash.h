@@ -41,6 +41,8 @@ public:
     void split();
 
     uint_fast32_t get_bucket(const std::vector<K>& key) const;
+    void check_order();
+    void sort_bucket(uint_fast32_t bucket_number);
 
 private:
     const std::size_t key_size;
@@ -59,6 +61,7 @@ private:
     std::queue<uint_fast32_t> available_pages;
 
     // NOTE: take care we are supposed to insert everything and then read (we are recycling this variable)
+    // TODO: tratar de no tener tantas paginas pinneadas a la vez
     std::vector<std::unique_ptr<KeyValueHashBucket<K, V>>> current_buckets_pages;
 
     inline uint_fast32_t get_split_treshold() const noexcept { return max_tuples * (1 << depth); }

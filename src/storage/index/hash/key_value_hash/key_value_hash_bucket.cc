@@ -1,6 +1,7 @@
 #include "key_value_hash_bucket.h"
 
 #include <cstring>
+#include <iostream>
 
 #include "storage/buffer_manager.h"
 #include "base/ids/object_id.h"
@@ -60,9 +61,22 @@ void KeyValueHashBucket<K, V>::insert_in_pos(const vector<K>& key, const vector<
 
 
 template <class K, class V>
+void KeyValueHashBucket<K, V>::insert_with_pointers(const K* key, const V* value) {
+    for (uint_fast16_t i = 0; i < key_size; i++) {
+        keys[(key_size * (*tuple_count)) + i] = key[i];
+    }
+    for (uint_fast16_t i = 0; i < value_size; i++) {
+        values[(value_size * (*tuple_count)) + i] = value[i];
+    }
+    ++(*tuple_count);
+    page.make_dirty();
+}
+
+
+template <class K, class V>
 pair<vector<K>, vector<V>> KeyValueHashBucket<K, V>::get_pair(std::uint_fast32_t pos) const {
-    std::vector<K> key;
-    std::vector<V> value;
+    vector<K> key;
+    vector<V> value;
     key.resize(key_size);
     value.resize(value_size);
     for (uint_fast16_t i = 0; i < key_size; i++) {
@@ -72,4 +86,105 @@ pair<vector<K>, vector<V>> KeyValueHashBucket<K, V>::get_pair(std::uint_fast32_t
         value[i] = values[(value_size * pos) + i];
     }
     return make_pair(move(key), move(value));
+}
+
+
+template <class K, class V>
+void KeyValueHashBucket<K, V>::sort() {
+    if (*tuple_count > 1) {
+        partition(0, (*tuple_count) - 1);
+    }
+}
+
+
+template <class K, class V>
+void KeyValueHashBucket<K, V>::partition(uint_fast32_t min_pos, uint_fast32_t max_pos) {
+    if (max_pos <= min_pos) {
+        return;
+    }
+    // TODO: maybe counting/radic sort may be faster, we have to many repeated numbers
+    vector<K> pivot_key;
+    vector<V> pivot_value;
+    pivot_key.resize(key_size);
+    pivot_value.resize(value_size);
+    for (uint_fast16_t i = 0; i < key_size; i++) {
+        pivot_key[i] = keys[(key_size * max_pos) + i];
+    }
+    for (uint_fast16_t i = 0; i < value_size; i++) {
+        pivot_value[i] = values[(value_size * max_pos) + i];
+    }
+
+    vector<K> aux_key;
+    vector<V> aux_value;
+    aux_key.resize(key_size);
+    aux_value.resize(value_size);
+
+    uint_fast32_t insert_min_pos = min_pos;
+    uint_fast32_t insert_max_pos =  max_pos - 1;
+
+    while (insert_min_pos != insert_max_pos) {
+        bool smaller = false;
+        for (uint_fast16_t i = 0; i < key_size; i++) {
+            if (keys[(key_size * insert_max_pos) + i] < pivot_key[i]) {  // 212 //121
+                smaller = true;
+                break;
+            }
+            else if (keys[(key_size * insert_max_pos) + i] > pivot_key[i]) {
+                break;
+            }
+        }
+        for (uint_fast16_t i = 0; i < key_size; i++) {
+            aux_key[i] = keys[(key_size * insert_max_pos) + i];
+        }
+        for (uint_fast16_t i = 0; i < value_size; i++) {
+            aux_value[i] = values[(value_size * insert_max_pos) + i];
+        }
+        if (smaller) { // swap curr_pos (max) with insert_min_pos
+            for (uint_fast16_t i = 0; i < key_size; i++) {
+                keys[(key_size * insert_max_pos) + i] = keys[(key_size * insert_min_pos) + i];
+            }
+            for (uint_fast16_t i = 0; i < value_size; i++) {
+                values[(value_size * insert_max_pos) + i] = values[(value_size * insert_min_pos) + i];
+            }
+            for (uint_fast16_t i = 0; i < key_size; i++) {
+                keys[(key_size * insert_min_pos) + i] = aux_key[i];
+            }
+            for (uint_fast16_t i = 0; i < value_size; i++) {
+                values[(value_size * insert_min_pos) + i] = aux_value[i];
+            }
+            insert_min_pos += 1;
+        }
+        else {  // insert_max_pos is equal or bigger
+            insert_max_pos -= 1;
+        }
+    }
+    // check last, compare with pivot this time
+    bool smaller = false;
+    for (uint_fast16_t i = 0; i < key_size; i++) {
+        if (keys[(key_size * insert_max_pos) + i] < pivot_key[i]) {
+            smaller = true;
+        }
+    }
+    if (smaller) { // change next with pivot
+        insert_min_pos += 1;
+    }
+    // insert_min_pos is where the pivot is inserted now
+    for (uint_fast16_t i = 0; i < key_size; i++) {
+        keys[(key_size * max_pos) + i] = keys[(key_size * insert_min_pos) + i];
+    }
+    for (uint_fast16_t i = 0; i < value_size; i++) {
+        values[(value_size * max_pos) + i] = values[(value_size * insert_min_pos) + i];
+    }
+    for (uint_fast16_t i = 0; i < key_size; i++) {
+        keys[(key_size * insert_min_pos) + i] = pivot_key[i];
+    }
+    for (uint_fast16_t i = 0; i < value_size; i++) {
+        values[(value_size * insert_min_pos) + i] = pivot_value[i];
+    }
+    if (insert_min_pos != 0) {
+        partition(min_pos, insert_min_pos - 1);
+    }
+    if (insert_min_pos < max_pos) {
+        partition(insert_min_pos + 1, max_pos);
+    }
 }

@@ -60,8 +60,8 @@ void HashJoinGrace::begin(BindingId& _parent_binding, bool parent_has_next) {
     }
     // sort buckets for faster comparison, we assume the insertion process is over
     // TODO: it would be faster to sort only the smaller bucket for each bucket position
-    lhs_hash.sort_buckets();
-    rhs_hash.sort_buckets();
+    // lhs_hash.sort_buckets();
+    // rhs_hash.sort_buckets();
 
     current_bucket = 0;
     current_state = State::NOT_ENUM;
@@ -98,9 +98,6 @@ bool HashJoinGrace::next() {
                     // Sets the iterator for left hash (small one)
                     while (current_pos_right < rhs_hash.get_bucket_size(current_bucket)) {
                         saved_pair = rhs_hash.get_pair(current_bucket, current_pos_right);
-                        // TODO: ask for this
-                        //auto key_ptr = rhs_hash.get_key(current_bucket, current_pos_right);
-                        //saved_pair.first = vector<ObjectId>(key_ptr, key_ptr + common_vars.size());
                         current_pos_right++;  // after get pair and before posible return
                         auto range = small_hash.equal_range(saved_pair.first);
                         current_pair_iter = range.first;
@@ -109,7 +106,6 @@ bool HashJoinGrace::next() {
                         if (current_pair_iter != end_range_iter) {
                             current_state = State::ENUM_WITH_ITER;
                             //assign right pair, saved key
-                            //auto value_ptr = rhs_hash.get_value(current_bucket, current_pos_right - 1);
                             assign_right_binding(saved_pair.second);
                             assign_key_binding(saved_pair.first);
                             break;
@@ -142,6 +138,7 @@ bool HashJoinGrace::next() {
                 break;
             }
             case State::ENUM_WITH_NESTED_LOOP: {
+                // TODO: optimize this if ordered search works good in buffer join
                 if (current_pos_left < lhs_hash.get_bucket_size(current_bucket)) {
                     //auto left_pair = lhs_hash.get_pair(current_bucket, current_pos_left);
                     auto left_key = lhs_hash.get_key(current_bucket, current_pos_left);
@@ -195,7 +192,8 @@ bool HashJoinGrace::next() {
                     current_pos_left = 0;
                     current_pos_right = 0;
                     if (left_min) {
-                        if (left_size < MAX_SIZE_SMALL_HASH) {
+                        if (false) {
+                        //if (left_size < MAX_SIZE_SMALL_HASH) {
                             // Add lhs results to small hash
                             small_hash.clear();
                             while (current_pos_left < lhs_hash.get_bucket_size(current_bucket)) {
@@ -206,11 +204,13 @@ bool HashJoinGrace::next() {
                             current_state = State::ENUM_WITH_SECOND_HASH;
                         }
                         else {
+                            // TODO: xhs_hash.sort_bucket(current_bucket);
                             current_state = State::ENUM_WITH_NESTED_LOOP;
                         }
                     }
                     else {
-                        if (right_size < MAX_SIZE_SMALL_HASH) {
+                        if (false) {
+                        //if (right_size < MAX_SIZE_SMALL_HASH) {
                             // Add lhs results to small hash
                             small_hash.clear();
                             while (current_pos_right < rhs_hash.get_bucket_size(current_bucket)) {
@@ -221,6 +221,7 @@ bool HashJoinGrace::next() {
                             current_state = State::ENUM_WITH_SECOND_HASH;
                         }
                         else {
+                            // TODO: xhs_hash.sort_bucket(current_bucket);
                             current_state = State::ENUM_WITH_NESTED_LOOP;
                         }
                     }

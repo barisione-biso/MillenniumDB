@@ -4,16 +4,17 @@ folder= sys.argv[1]
 alg_names = [
     "quad",
     "grace_murmur",
-    "grace_clhash",
-    "grace_cityhash",
+    "new_buffer_farmhash",
+    #"grace_clhash",
+    #"grace_cityhash",
     "grace_farmhash",
     "memory_murmur",
-    "memory_clhash",
-    "memory_cityhash",
+    #"memory_clhash",
+    #"memory_cityhash",
     "memory_farmhash",
     "buffer_murmur",
-    "buffer_clhash",
-    "buffer_cityhash",
+    #"buffer_clhash",
+    #"buffer_cityhash",
     "buffer_farmhash"
     ]
 
