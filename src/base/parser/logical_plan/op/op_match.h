@@ -1,13 +1,7 @@
 #ifndef BASE__OP_MATCH_H_
 #define BASE__OP_MATCH_H_
 
-// TODO: Revisar includes
-
-#include <iostream>
-#include <map>
-#include <memory>
 #include <set>
-#include <utility>
 #include <vector>
 
 #include "base/parser/logical_plan/exceptions.h"

@@ -42,7 +42,6 @@ struct PriorityIterState {
 
 
     bool operator<(const PriorityIterState& rhs) const noexcept {
-        // TODO:
         if (priority == rhs.priority) {
             if (iter != nullptr && rhs.iter == nullptr) {
                 return false;

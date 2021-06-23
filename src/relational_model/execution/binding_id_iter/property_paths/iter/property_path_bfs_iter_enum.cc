@@ -10,7 +10,6 @@
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 
 using namespace std;
-// TODO: Revisión global del código
 
 PropertyPathBFSIterEnum::PropertyPathBFSIterEnum(
                                                 BPlusTree<1>& _nodes,
