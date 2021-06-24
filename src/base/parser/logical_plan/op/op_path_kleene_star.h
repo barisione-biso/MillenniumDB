@@ -13,8 +13,8 @@ class OpPathKleeneStar : public OpPath {
 public:
     std::unique_ptr<OpPath> path;
 
-    OpPathKleeneStar(std::unique_ptr<OpPath> path) :
-        path  ( PathDenull::denull(std::move(path)) )
+    OpPathKleeneStar(std::unique_ptr<OpPath> _path) :
+        path  ( PathDenull::denull(std::move(_path)) )
         { }
 
     OpPathKleeneStar(const OpPathKleeneStar& other) :

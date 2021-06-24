@@ -12,9 +12,9 @@ public:
     std::string atom;
     bool inverse;
 
-    OpPathAtom(std::string atom, bool inverse) :
-        atom    (atom),
-        inverse (inverse)
+    OpPathAtom(std::string _atom, bool _inverse) :
+        atom    (_atom),
+        inverse (_inverse)
         { }
 
     OpPathAtom(const OpPathAtom& other) :
@@ -28,9 +28,9 @@ public:
 
     std::string to_string() const override {
         if (inverse) {
-            return "^" + atom;
+            return "^:" + atom;
         }
-        return atom;
+        return ":" + atom;
     }
 
     std::set<std::string> get_var_names() const override {

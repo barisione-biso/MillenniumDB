@@ -12,7 +12,7 @@
 #include "base/graph/edge.h"
 #include "base/graph/string_inlined.h"
 #include "base/graph/string_external.h"
-#include "base/graph/volatile_path.h"
+#include "base/graph/path.h"
 
 struct NullGraphObject {
     inline void operator=(const NullGraphObject&) { }
@@ -81,7 +81,7 @@ using GraphObjectVariant = std::variant<
         IdentifiableExternal,
         Edge,
         AnonymousNode,
-        VolatilePath,
+        Path,
         bool,
         StringInlined,
         StringExternal,
@@ -110,7 +110,7 @@ struct GraphObjectOstreamVisitor {
         else os << "false";
     }
 
-    void operator()(const VolatilePath& p) const {
+    void operator()(const Path& p) const {
         p.path_printer->print(os, p.path_id);
     }
 };
@@ -208,8 +208,8 @@ public:
         return GraphObject(string_inlined);
     }
 
-    static GraphObject make_volatile_path(uint64_t path_id) {
-        VolatilePath p{ path_id };
+    static GraphObject make_path(uint64_t path_id) {
+        Path p{ path_id };
         return GraphObject(p);
     }
 

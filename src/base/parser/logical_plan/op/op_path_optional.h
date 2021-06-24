@@ -11,8 +11,8 @@ class OpPathOptional : public OpPath {
 public:
     std::unique_ptr<OpPath> path;
 
-    OpPathOptional(std::unique_ptr<OpPath> path) :
-        path   (move(path)) { }
+    OpPathOptional(std::unique_ptr<OpPath> _path) :
+        path (move(_path)) { }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
