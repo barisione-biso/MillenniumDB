@@ -31,13 +31,14 @@ private:
     BPlusTree<4>& type_from_to_edge;  // Used to search foward
     BPlusTree<4>& to_type_from_edge;  // Used to search backward
     VarId         path_var;
-    Id start;
-    Id end;
+    Id            start;
+    Id            end;
     PathAutomaton automaton;
 
     // Attributes determined in begin
-    ObjectId end_object_id;
     BindingId* parent_binding;
+    ObjectId end_object_id;
+    bool is_first;  // true in the first call of next
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
     std::array<uint64_t, 4> min_ids;
@@ -46,33 +47,29 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::queue<SearchState> open;
-    bool is_first = false;  // // True in the first call of next
-    std::unique_ptr<BptIter<4>> iter = nullptr;
+    std::unique_ptr<BptIter<4>> iter;
 
     // Statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
     // Constructs iter according to transition
-    void set_iter(
-        const TransitionId& transition,
-        const SearchState& current_state);
+    void set_iter(const TransitionId& transition, const SearchState& current_state);
 
 public:
-    PropertyPathBFSCheck(
-                        BPlusTree<1>& nodes,
-                        BPlusTree<4>& type_from_to_edge,
-                        BPlusTree<4>& to_type_from_edge,
-                        VarId path_var,
-                        Id start,
-                        Id end,
-                        PathAutomaton automaton);
+    PropertyPathBFSCheck(BPlusTree<1>& nodes,
+                         BPlusTree<4>& type_from_to_edge,
+                         BPlusTree<4>& to_type_from_edge,
+                         VarId         path_var,
+                         Id            start,
+                         Id            end,
+                         PathAutomaton automaton);
     ~PropertyPathBFSCheck() = default;
 
     void analyze(int indent = 0) const override;
     void begin(BindingId& parent_binding, bool parent_has_next) override;
     void reset() override;
-    void assign_nulls() override;
+    inline void assign_nulls() override { };
     bool next() override;
 
 

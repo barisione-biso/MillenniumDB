@@ -16,7 +16,7 @@
 using namespace std;
 
 using PropertyPathCheck = PropertyPathBFSCheck;
-using PropertyPathEnum = PropertyPathBFSIterEnum;
+using PropertyPathEnum = PropertyPathBFSSimpleEnum;
 
 PropertyPathPlan::PropertyPathPlan(QuadModel &model, VarId path_var, Id from, Id to, OpPath &path) :
     model         (model),
@@ -66,8 +66,7 @@ void PropertyPathPlan::print(int indent, bool estimated_cost, std::vector<std::s
     } else {
         cout << ", to: " << var_names[std::get<VarId>(to).id];
     }
-    // TODO: Print del to_string del property_paths
-    cout << ", Path: " <<  var_names[path_var.id];
+    cout << ", path: " <<  var_names[path_var.id] << ": " << path.to_string();
     cout << ")";
 
     if (estimated_cost) {

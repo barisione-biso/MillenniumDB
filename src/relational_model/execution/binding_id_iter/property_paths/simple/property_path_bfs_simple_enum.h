@@ -16,7 +16,7 @@
 
 /*
 PropertyPathBFSSimpleEnum enumerate all nodes that can be reached from start with
-a specific path. Use classic implementation of BFS algorithm.
+a specific path using the classic implementation of BFS algorithm.
 */
 
 class PropertyPathBFSSimpleEnum : public BindingIdIter {
@@ -28,14 +28,13 @@ private:
     BPlusTree<4>& type_from_to_edge;  // Used to search foward
     BPlusTree<4>& to_type_from_edge;  // Used to search backward
     VarId         path_var;
-
-    Id start;
-    VarId end;
+    Id            start;
+    VarId         end;
     PathAutomaton automaton;
-
 
     // Attributes determined in begin
     BindingId* parent_binding;
+    bool is_first;
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
     std::array<uint64_t, 4> min_ids;
@@ -44,26 +43,22 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::queue<SearchState> open;
-    bool is_first;
 
     // Statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
     // Constructs iter according to transition
-    std::unique_ptr<BptIter<4>>  set_iter(
-        const TransitionId& transition,
-        const SearchState& current_state);
+    std::unique_ptr<BptIter<4>> set_iter(const TransitionId& transition, const SearchState& current_state);
 
 public:
-    PropertyPathBFSSimpleEnum(
-                      BPlusTree<1>& nodes,
-                      BPlusTree<4>& type_from_to_edge,
-                      BPlusTree<4>& to_type_from_edge,
-                      VarId path_var,
-                      Id start,
-                      VarId end,
-                      PathAutomaton automaton);
+    PropertyPathBFSSimpleEnum(BPlusTree<1>& nodes,
+                              BPlusTree<4>& type_from_to_edge,
+                              BPlusTree<4>& to_type_from_edge,
+                              VarId         path_var,
+                              Id            start,
+                              VarId         end,
+                              PathAutomaton automaton);
     ~PropertyPathBFSSimpleEnum() = default;
 
     void analyze(int indent = 0) const override;

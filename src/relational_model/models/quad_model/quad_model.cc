@@ -5,7 +5,7 @@
 
 #include "base/graph/anonymous_node.h"
 #include "base/graph/edge.h"
-#include "base/graph/volatile_path.h"
+#include "base/graph/path.h"
 #include "base/graph/path_printer.h"
 #include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 #include "relational_model/models/quad_model/graph_object_visitor.h"
@@ -15,7 +15,7 @@
 
 using namespace std;
 
-PathPrinter* VolatilePath::path_printer = nullptr;
+PathPrinter* Path::path_printer = nullptr;
 
 
 QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size) {
@@ -27,7 +27,7 @@ QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size) {
     new (&object_file())   ObjectFile("object_file.dat");                 // placement new
     new (&strings_hash())  ExtendibleHash(object_file(), "str_hash.dat"); // placement new
 
-    VolatilePath::path_printer = &path_manager;
+    Path::path_printer = &path_manager;
 
     nodes = make_unique<BPlusTree<1>>("nodes");
     edge_table = make_unique<RandomAccessTable<3>>("edges.table");
@@ -308,7 +308,7 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) {
         }
 
         case VALUE_PATH_MASK : {
-            return GraphObject::make_volatile_path(unmasked_id);
+            return GraphObject::make_path(unmasked_id);
         }
 
         default : {

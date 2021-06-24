@@ -120,6 +120,6 @@ ObjectId GraphObjectVisitor::operator()(const float value_float) const {
 }
 
 
-ObjectId GraphObjectVisitor::operator()(const VolatilePath& path) const {
+ObjectId GraphObjectVisitor::operator()(const Path& path) const {
     return ObjectId(GraphModel::VALUE_PATH_MASK | path.path_id);
 }

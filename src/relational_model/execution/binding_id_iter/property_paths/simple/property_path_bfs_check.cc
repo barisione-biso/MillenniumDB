@@ -12,14 +12,13 @@
 using namespace std;
 
 
-PropertyPathBFSCheck::PropertyPathBFSCheck(
-                                    BPlusTree<1>& _nodes,
-                                    BPlusTree<4>& _type_from_to_edge,
-                                    BPlusTree<4>& _to_type_from_edge,
-                                    VarId _path_var,
-                                    Id _start,
-                                    Id _end,
-                                    PathAutomaton _automaton) :
+PropertyPathBFSCheck::PropertyPathBFSCheck(BPlusTree<1>& _nodes,
+                                           BPlusTree<4>& _type_from_to_edge,
+                                           BPlusTree<4>& _to_type_from_edge,
+                                           VarId         _path_var,
+                                           Id            _start,
+                                           Id            _end,
+                                           PathAutomaton _automaton) :
     nodes             (_nodes),
     type_from_to_edge (_type_from_to_edge),
     to_type_from_edge (_to_type_from_edge),
@@ -38,19 +37,19 @@ void PropertyPathBFSCheck::begin(BindingId& _parent_binding, bool parent_has_nex
         ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
             std::get<ObjectId>(start) :
             (*parent_binding)[std::get<VarId>(start)]);
+
         // Add to open and visited structures
-        open.emplace(
-            automaton.get_start(),
-            start_object_id,
-            nullptr,
-            true,
-            ObjectId(ObjectId::NULL_OBJECT_ID));
-        visited.emplace(
-            automaton.get_start(),
-            start_object_id,
-            nullptr,
-            true,
-            ObjectId(ObjectId::NULL_OBJECT_ID));
+        open.emplace(automaton.get_start(),
+                     start_object_id,
+                     nullptr,
+                     true,
+                     ObjectId::get_null());
+
+        visited.emplace(automaton.get_start(),
+                       start_object_id,
+                       nullptr,
+                       true,
+                       ObjectId::get_null());
 
         // Set end_object_id
         if (std::holds_alternative<ObjectId>(end)) {
@@ -75,9 +74,8 @@ bool PropertyPathBFSCheck::next() {
         is_first = false;
 
         auto current_state = open.front();
-        auto node_iter = nodes.get_range(
-            Record<1>({current_state.object_id.id}),
-            Record<1>({current_state.object_id.id}));
+        auto node_iter = nodes.get_range(Record<1>({current_state.object_id.id}),
+                                         Record<1>({current_state.object_id.id}));
         // Return false if node does not exists in bd
         if (node_iter->next() == nullptr) {
             queue<SearchState> empty;
@@ -119,10 +117,10 @@ bool PropertyPathBFSCheck::next() {
 
                 // Check if next_state is final
                 if (next_state.state == automaton.get_final_state()
-                    && next_state.object_id == end_object_id )
+                    && next_state.object_id == end_object_id)
                 {
-                    auto path_id = path_manager.set_path(
-                        visited.find(next_state).operator->(), path_var);
+                    auto path_id = path_manager.set_path(visited.find(next_state).operator->(),
+                                                         path_var);
                     parent_binding->add(path_var, path_id);
                     queue<SearchState> empty;
                     open.swap(empty);
@@ -172,18 +170,18 @@ void PropertyPathBFSCheck::reset() {
         std::get<ObjectId>(start) :
         (*parent_binding)[std::get<VarId>(start)]
     );
-    open.emplace(
-        automaton.get_start(),
-        start_object_id,
-        nullptr,
-        true,
-        ObjectId(ObjectId::NULL_OBJECT_ID));
-    visited.emplace(
-        automaton.get_start(),
-        start_object_id,
-        nullptr,
-        true,
-        ObjectId(ObjectId::NULL_OBJECT_ID));
+
+    open.emplace(automaton.get_start(),
+                 start_object_id,
+                 nullptr,
+                 true,
+                 ObjectId::get_null());
+
+    visited.emplace(automaton.get_start(),
+                    start_object_id,
+                    nullptr,
+                    true,
+                    ObjectId::get_null());
 
     // Set end_object_id
     if (std::holds_alternative<ObjectId>(end)) {
@@ -193,9 +191,6 @@ void PropertyPathBFSCheck::reset() {
         end_object_id = (*parent_binding)[end_var_id];
     }
 }
-
-
-void PropertyPathBFSCheck::assign_nulls() { }
 
 
 void PropertyPathBFSCheck::analyze(int indent) const {

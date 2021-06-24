@@ -3,15 +3,15 @@
 
 #include <array>
 #include <memory>
-#include <unordered_set>
 #include <queue>
+#include <unordered_set>
 #include <variant>
 
 #include "base/binding/binding_id_iter.h"
 #include "base/parser/logical_plan/op/property_paths/path_automaton.h"
-#include "relational_model/models/quad_model/quad_model.h"
 #include "relational_model/execution/binding_id_iter/property_paths/search_state.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
+#include "relational_model/models/quad_model/quad_model.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
 /*
@@ -41,6 +41,7 @@ struct PriorityIterState {
         priority    (distance_to_end) { }
 
 
+    // TODO: comment
     bool operator<(const PriorityIterState& rhs) const noexcept {
         if (priority == rhs.priority) {
             if (iter != nullptr && rhs.iter == nullptr) {
@@ -59,17 +60,16 @@ class PropertyPathAStarIterEnum : public BindingIdIter {
 private:
     // Attributes determined in the constuctor
     BPlusTree<1>& nodes;
-    BPlusTree<4>& type_from_to_edge;  // Used to search foward
-    BPlusTree<4>& to_type_from_edge;  // Used to search backward
+    BPlusTree<4>& type_from_to_edge; // Used to search foward
+    BPlusTree<4>& to_type_from_edge; // Used to search backward
     VarId         path_var;
-
-    Id start;
-    VarId end;
+    Id            start;
+    VarId         end;
     PathAutomaton automaton;
-
 
     // Attributes determined in begin
     BindingId* parent_binding;
+    bool is_first = false;
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
     std::array<uint64_t, 4> min_ids;
@@ -78,27 +78,24 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::priority_queue<AStarIterEnum::PriorityIterState> open;
-    bool is_first = false;
-
-    uint32_t        reached_automaton_state = 0;
-    ObjectId        reached_object_id;
 
     // Statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
     std::unordered_set<SearchState, SearchStateHasher>::iterator current_state_has_next();
-    void set_iter(); // modifies open.top()
+
+    // TODO: comment a bit more , modifies open.top()
+    void set_iter();
 
 public:
-    PropertyPathAStarIterEnum(
-                      BPlusTree<1>& nodes,
-                      BPlusTree<4>& type_from_to_edge,
-                      BPlusTree<4>& to_type_from_edge,
-                      VarId path_var,
-                      Id start,
-                      VarId end,
-                      PathAutomaton automaton);
+    PropertyPathAStarIterEnum(BPlusTree<1>& nodes,
+                              BPlusTree<4>& type_from_to_edge,
+                              BPlusTree<4>& to_type_from_edge,
+                              VarId         path_var,
+                              Id            start,
+                              VarId         end,
+                              PathAutomaton automaton);
     ~PropertyPathAStarIterEnum() = default;
 
     void analyze(int indent = 0) const override;
@@ -106,7 +103,6 @@ public:
     void reset() override;
     void assign_nulls() override;
     bool next() override;
-
 };
 
 #endif // RELATIONAL_MODEL__PROPERTY_PATH_A_STAR_ITER_ENUM_H_

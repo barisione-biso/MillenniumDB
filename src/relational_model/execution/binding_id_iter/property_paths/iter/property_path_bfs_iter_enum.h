@@ -15,13 +15,11 @@
 #include "storage/index/bplus_tree/bplus_tree.h"
 
 /*
-
 PropertyPathBFSIterEnum enumerates paths from or to a specifc node,
 using BFS algorithm, thus paths returned are optimal.
 
 Precaution with the exponencial memory usage of open due to
 ramification of BFS
-
 */
 
 
@@ -34,13 +32,13 @@ private:
     BPlusTree<4>& type_from_to_edge;  // Used to search foward
     BPlusTree<4>& to_type_from_edge;  // Used to search backward
     VarId         path_var;
-
-    Id start;
-    VarId end;
+    Id            start;
+    VarId         end;
     PathAutomaton automaton;
 
     // Attributes determined in begin
     BindingId* parent_binding;
+    bool first_next = true;
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
      std::array<uint64_t, 4> min_ids;
@@ -49,12 +47,10 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::queue<SearchState> open;
-    bool first_next = true;
 
+    // TODO: comment
     std::unique_ptr<BptIter<4>> iter;
-    uint32_t        reached_automaton_state = 0;
-    uint32_t        current_transition = 0;
-    ObjectId        reached_object_id;
+    uint32_t current_transition = 0;
 
     // Statistics
     uint_fast32_t results_found = 0;
@@ -66,8 +62,7 @@ private:
     void set_iter(const SearchState& current_state);
 
 public:
-    PropertyPathBFSIterEnum(
-                            BPlusTree<1>& nodes,
+    PropertyPathBFSIterEnum(BPlusTree<1>& nodes,
                             BPlusTree<4>& type_from_to_edge,
                             BPlusTree<4>& to_type_from_edge,
                             VarId path_var,

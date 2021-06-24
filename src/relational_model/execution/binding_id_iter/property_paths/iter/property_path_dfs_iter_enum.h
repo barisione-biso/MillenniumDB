@@ -15,11 +15,10 @@
 #include "storage/index/bplus_tree/bplus_tree.h"
 
 /*
-PropertyPathDFSIterEnum enumerates paths from or to a specifc node
-using DFS algorithm.
+PropertyPathDFSIterEnum enumerates paths from/to a specifc node using DFS algorithm.
 
-Open memory usage is linear, but no optimal path is guaranteed. This can
-ralentize the search due to long paths that must be constructed
+Open memory usage is linear, but shortest path is not guaranteed.
+This can ralentize the search due to long paths that must be constructed
 */
 
 
@@ -35,7 +34,7 @@ struct State {
         object_id (object_id) { }
 
 };
-};
+}
 
 
 class PropertyPathDFSIterEnum : public BindingIdIter {
@@ -46,14 +45,14 @@ private:
     BPlusTree<1>& nodes;
     BPlusTree<4>& type_from_to_edge;  // Used to search foward
     BPlusTree<4>& to_type_from_edge;  // Used to search backward
-    VarId path_var;
-
-    Id start;
-    VarId end;
+    VarId         path_var;
+    Id            start;
+    VarId         end;
     PathAutomaton automaton;
 
     // Attributes determined in begin
     BindingId* parent_binding;
+    bool first_next = true;
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
      std::array<uint64_t, 4> min_ids;
@@ -62,12 +61,6 @@ private:
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::stack<DFSIterEnum::State> open;
-
-    bool first_next = true;
-
-    // std::unique_ptr<BptIter<4>> iter;
-    uint32_t        reached_automaton_state = 0;
-    ObjectId        reached_object_id;
 
     // Statistics
     uint_fast32_t results_found = 0;
@@ -79,13 +72,12 @@ private:
     void set_iter(DFSIterEnum::State& current_state);
 
 public:
-    PropertyPathDFSIterEnum(
-                            BPlusTree<1>& nodes,
+    PropertyPathDFSIterEnum(BPlusTree<1>& nodes,
                             BPlusTree<4>& type_from_to_edge,
                             BPlusTree<4>& to_type_from_edge,
-                            VarId path_var,
-                            Id start,
-                            VarId end,
+                            VarId         path_var,
+                            Id            start,
+                            VarId         end,
                             PathAutomaton automaton);
     ~PropertyPathDFSIterEnum() = default;
 
@@ -94,8 +86,6 @@ public:
     void reset() override;
     void assign_nulls() override;
     bool next() override;
-
 };
-
 
 #endif // RELATIONAL_MODEL__PROPERTY_PATH_DFS_ITER_ENUM_H_
