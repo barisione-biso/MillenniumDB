@@ -86,7 +86,7 @@ bool PropertyPathAStarIterEnum::next() {
         auto reached_state = current_state_has_next();
         if (reached_state != visited.end()) {
             auto& current_state = open.top();
-            open.emplace(reached_state->state, reached_state->object_id, current_state.priority);
+            open.emplace(reached_state->state, reached_state->object_id, current_state.distance);
             if (reached_state->state == automaton.get_final_state()) {
                 // set binding;
                 auto path_id = path_manager.set_path(reached_state.operator->(), path_var);
@@ -155,7 +155,7 @@ void PropertyPathAStarIterEnum::set_iter() {
     // Get pointer from priority queue
     auto current_state = &open.top();
     // Create a copy of current state
-    PriorityIterState new_state(current_state->state, current_state->object_id, current_state->priority);
+    PriorityIterState new_state(current_state->state, current_state->object_id, current_state->distance);
     // Sets the transition index that will be read
     if (current_state->iter != nullptr) {
         new_state.transition = current_state->transition + 1;

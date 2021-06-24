@@ -31,24 +31,29 @@ namespace AStarIterEnum {
 struct PriorityIterState {
     uint32_t state;
     ObjectId object_id;
-    uint32_t priority;
+    // Distance to automaton's final state
+    uint32_t distance;
     uint32_t transition = 0;
     std::unique_ptr<BptIter<4>> iter = nullptr;
 
     PriorityIterState(uint32_t state, ObjectId object_id, uint32_t distance_to_end) :
         state       (state),
         object_id   (object_id),
-        priority    (distance_to_end) { }
+        distance    (distance_to_end) { }
 
 
-    // TODO: comment
+    // < operator defines the priority of a state. If a > b then a
+    // has more priority and will be extracted first in the open
     bool operator<(const PriorityIterState& rhs) const noexcept {
-        if (priority == rhs.priority) {
+        if (distance == rhs.distance) {
             if (iter != nullptr && rhs.iter == nullptr) {
                 return false;
             } return true;
         }
-        return priority > rhs.priority;
+        // If distance > rhs.distance then rhs > this state or
+        // another way rhs has more priority because is more near
+        // of final state than `this state`
+        return distance > rhs.distance;
     }
 };
 }
