@@ -7,10 +7,9 @@
 
 #include "base/graph/path_printer.h"
 
-/*ngo 
-TODO: Explain class(:P1)*
-Cambiar nombre a Path
-*/
+
+// Path class handles logical operations for property paths
+
 
 class Path {
 public:
