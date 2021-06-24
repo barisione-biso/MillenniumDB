@@ -90,7 +90,9 @@ private:
 
     std::unordered_set<SearchState, SearchStateHasher>::iterator current_state_has_next();
 
-    // TODO: comment a bit more , modifies open.top()
+    // Set iter attribute for state of the top of priority queue. The state
+    // will be removed and replaced by another with the correct iter and the same
+    // priority
     void set_iter();
 
 public:

@@ -48,8 +48,10 @@ private:
     std::unordered_set<SearchState, SearchStateHasher> visited;
     std::queue<SearchState> open;
 
-    // TODO: comment
+    // Stores the children of state in expansion
     std::unique_ptr<BptIter<4>> iter;
+    // The index of the transition that set_iter method uses to
+    // construct iter attribute.
     uint32_t current_transition = 0;
 
     // Statistics
@@ -59,6 +61,8 @@ private:
     std::unordered_set<SearchState, SearchStateHasher>::iterator
         current_state_has_next(const SearchState& current_state);
 
+    // Set iter attribute that give all states that connects with
+    // current_state with label of a specific transition
     void set_iter(const SearchState& current_state);
 
 public:
