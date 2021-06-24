@@ -46,7 +46,10 @@ private:
 
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
-    std::queue<SearchState> open;
+    // open stores a pointer to a SearchState stored in visited
+    // that allows to avoid use visited.find to get a pointer and
+    // use the state extracted of the open directly.
+    std::queue<const SearchState*> open;
 
     // Stores the children of state in expansion
     std::unique_ptr<BptIter<4>> iter;
@@ -59,11 +62,11 @@ private:
     uint_fast32_t bpt_searches = 0;
 
     std::unordered_set<SearchState, SearchStateHasher>::iterator
-        current_state_has_next(const SearchState& current_state);
+        current_state_has_next(const SearchState* current_state);
 
     // Set iter attribute that give all states that connects with
     // current_state with label of a specific transition
-    void set_iter(const SearchState& current_state);
+    void set_iter(const SearchState* current_state);
 
 public:
     PropertyPathBFSIterEnum(BPlusTree<1>& nodes,

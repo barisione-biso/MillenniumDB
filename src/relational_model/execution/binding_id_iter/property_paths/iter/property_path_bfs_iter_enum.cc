@@ -42,18 +42,18 @@ void PropertyPathBFSIterEnum::begin(BindingId& _parent_binding, bool parent_has_
 
         // TODO:
         // open.push(visited.insert(...).first)
+        auto state_inserted = visited.emplace(automaton.get_start(),
+                                              start_object_id,
+                                              nullptr,
+                                              true,
+                                              ObjectId::get_null());
+        open.push(state_inserted.first.operator->());
+        //open.emplace(automaton.get_start(),
+        //             start_object_id,
+        //             nullptr,
+        //             true,
+        //             ObjectId::get_null());
 
-        open.emplace(automaton.get_start(),
-                     start_object_id,
-                     nullptr,
-                     true,
-                     ObjectId::get_null());
-
-        visited.emplace(automaton.get_start(),
-                        start_object_id,
-                        nullptr,
-                        true,
-                        ObjectId::get_null());
 
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
@@ -68,9 +68,9 @@ bool PropertyPathBFSIterEnum::next() {
     if (first_next) {
         first_next = false;
 
-        auto current_state = open.front();
-        auto node_iter = nodes.get_range(Record<1>({current_state.object_id.id}),
-                                         Record<1>({current_state.object_id.id}));
+        const auto current_state = open.front();
+        auto node_iter = nodes.get_range(Record<1>({current_state->object_id.id}),
+                                         Record<1>({current_state->object_id.id}));
         // Return false if node does not exists in bd
         if (node_iter->next() == nullptr) {
             open.pop();
@@ -79,14 +79,14 @@ bool PropertyPathBFSIterEnum::next() {
 
         if (automaton.start_is_final) {
             auto reached_key = SearchState(automaton.get_final_state(),
-                                           open.front().object_id,
+                                           current_state->object_id,
                                            nullptr,
                                            true,
                                            ObjectId::get_null());
 
             auto path_id = path_manager.set_path(visited.insert(reached_key).first.operator->(), path_var);
             parent_binding->add(path_var, path_id);
-            parent_binding->add(end, open.front().object_id);
+            parent_binding->add(end, current_state->object_id);
             results_found++;
             return true;
         }
@@ -96,11 +96,7 @@ bool PropertyPathBFSIterEnum::next() {
         auto state_reached = current_state_has_next(current_state);
         // If has next state then state_reached does not point to visited.end()
         if (state_reached != visited.end()) {
-            open.emplace(state_reached->state,
-                         state_reached->object_id,
-                         nullptr,
-                         true,
-                         ObjectId::get_null());
+            open.push(state_reached.operator->());
 
             if (state_reached->state == automaton.get_final_state()) {
                 // set binding;
@@ -121,20 +117,20 @@ bool PropertyPathBFSIterEnum::next() {
 
 
 unordered_set<SearchState, SearchStateHasher>::iterator
-    PropertyPathBFSIterEnum::current_state_has_next(const SearchState& current_state)
+    PropertyPathBFSIterEnum::current_state_has_next(const SearchState* current_state)
 {
     if (iter == nullptr) { // if is first time that State is explore
         current_transition = 0;
         // Check automaton state has transitions
-        if (current_transition >= automaton.transitions[current_state.state].size()) {
+        if (current_transition >= automaton.transitions[current_state->state].size()) {
             return visited.end();
         }
         // Constructs iter
         set_iter(current_state);
     }
     // Iterate over automaton_start state transtions
-    while (current_transition < automaton.transitions[current_state.state].size()) {
-        auto& transition = automaton.transitions[current_state.state][current_transition];
+    while (current_transition < automaton.transitions[current_state->state].size()) {
+        auto& transition = automaton.transitions[current_state->state][current_transition];
         auto child_record = iter->next();
         // Iterate over next_childs
         while (child_record != nullptr) {
@@ -142,13 +138,12 @@ unordered_set<SearchState, SearchStateHasher>::iterator
             auto next_state_key = SearchState(
                 transition.to,
                 ObjectId(child_record->ids[2]),
-                visited.find(current_state).operator->(),
+                current_state,
                 transition.inverse,
                 transition.label);
 
-            // Check child is not already visited
             auto inserted_state = visited.insert(next_state_key);
-            // Inserted_state.second = true if only if state was inserted
+            // Inserted_state.second = true if state was inserted in visited
             if (inserted_state.second) {
                 // Return pointer to state in visited
                 return inserted_state.first;
@@ -157,7 +152,7 @@ unordered_set<SearchState, SearchStateHasher>::iterator
         }
         // Constructs new iter
         current_transition++;
-        if (current_transition < automaton.transitions[current_state.state].size()) {
+        if (current_transition < automaton.transitions[current_state->state].size()) {
             set_iter(current_state);
         }
     }
@@ -165,21 +160,21 @@ unordered_set<SearchState, SearchStateHasher>::iterator
 }
 
 
-void PropertyPathBFSIterEnum::set_iter(const SearchState& current_state) {
+void PropertyPathBFSIterEnum::set_iter(const SearchState* current_state) {
     // Gets current transition object from automaton
-    const auto& transition = automaton.transitions[current_state.state][current_transition];
+    const auto& transition = automaton.transitions[current_state->state][current_transition];
     // Gets iter from correct bpt with transition.inverse
     if (transition.inverse) {
-        min_ids[0] = current_state.object_id.id;
-        max_ids[0] = current_state.object_id.id;
+        min_ids[0] = current_state->object_id.id;
+        max_ids[0] = current_state->object_id.id;
         min_ids[1] = transition.label.id;
         max_ids[1] = transition.label.id;
         iter = to_type_from_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
     } else {
         min_ids[0] = transition.label.id;
         max_ids[0] = transition.label.id;
-        min_ids[1] = current_state.object_id.id;
-        max_ids[1] = current_state.object_id.id;
+        min_ids[1] = current_state->object_id.id;
+        max_ids[1] = current_state->object_id.id;
         iter = type_from_to_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
     }
     bpt_searches++;
@@ -188,7 +183,7 @@ void PropertyPathBFSIterEnum::set_iter(const SearchState& current_state) {
 
 void PropertyPathBFSIterEnum::reset() {
     // Empty open and visited
-    queue<SearchState> empty;
+    queue<const SearchState*> empty;
     open.swap(empty);
     visited.clear();
     first_next = true;
@@ -198,18 +193,12 @@ void PropertyPathBFSIterEnum::reset() {
     ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
         std::get<ObjectId>(start) :
         (*parent_binding)[std::get<VarId>(start)]);
-
-    open.emplace(automaton.get_start(),
-                 start_object_id,
-                 nullptr,
-                 true,
-                 ObjectId::get_null());
-
-    visited.emplace(automaton.get_start(),
-                    start_object_id,
-                    nullptr,
-                    true,
-                    ObjectId::get_null());
+    auto state_inserted = visited.emplace(automaton.get_start(),
+                                          start_object_id,
+                                          nullptr,
+                                          true,
+                                          ObjectId::get_null());
+    open.push(state_inserted.first.operator->());
 }
 
 
