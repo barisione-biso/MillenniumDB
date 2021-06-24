@@ -40,19 +40,14 @@ void PropertyPathBFSIterEnum::begin(BindingId& _parent_binding, bool parent_has_
             std::get<ObjectId>(start) :
             (*parent_binding)[std::get<VarId>(start)]);
 
-        // TODO:
-        // open.push(visited.insert(...).first)
         auto state_inserted = visited.emplace(automaton.get_start(),
                                               start_object_id,
                                               nullptr,
                                               true,
                                               ObjectId::get_null());
+
         open.push(state_inserted.first.operator->());
-        //open.emplace(automaton.get_start(),
-        //             start_object_id,
-        //             nullptr,
-        //             true,
-        //             ObjectId::get_null());
+
 
 
         min_ids[2] = 0;
@@ -193,11 +188,13 @@ void PropertyPathBFSIterEnum::reset() {
     ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
         std::get<ObjectId>(start) :
         (*parent_binding)[std::get<VarId>(start)]);
+
     auto state_inserted = visited.emplace(automaton.get_start(),
                                           start_object_id,
                                           nullptr,
                                           true,
                                           ObjectId::get_null());
+
     open.push(state_inserted.first.operator->());
 }
 
