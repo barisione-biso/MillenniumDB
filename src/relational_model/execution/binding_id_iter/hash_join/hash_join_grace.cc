@@ -284,10 +284,6 @@ void HashJoinGrace::reset() {
         lhs_hash.split();
         left_depth = lhs_hash.get_depth();
     }
-    // sort buckets for faster comparison, we assume the insertion process is over
-    // TODO: it would be faster to sort only the smaller bucket for each bucket position
-    lhs_hash.sort_buckets();
-    rhs_hash.sort_buckets();
 
     current_bucket = 0;
     current_state = State::NOT_ENUM;
