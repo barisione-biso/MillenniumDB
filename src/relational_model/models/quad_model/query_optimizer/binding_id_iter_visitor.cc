@@ -251,7 +251,7 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
                 //     best_step_plan = move(nested_loop_plan);
                 // }
                 // <HashJoinGracePlan>, <HashJoinInMemoryPlan>, <HashJoinInBufferPlan>
-                auto hash_join_plan = make_unique<HashJoinInBufferPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                auto hash_join_plan = make_unique<HashJoinGracePlan>(root_plan->duplicate(), base_plans[j]->duplicate());
                 auto hash_join_cost = hash_join_plan->estimate_cost();
 
                 if (hash_join_cost < best_cost) {

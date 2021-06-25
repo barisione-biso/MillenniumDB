@@ -77,10 +77,9 @@ bool HashJoinInBuffer::next() {
                     current_value[i] = (*parent_binding)[right_vars[i]];
                 }
                 current_bucket = lhs_hash.get_bucket(current_key);
-                // TODO: find first match
                 if (lhs_hash.find_first(current_key, current_bucket, &current_bucket_pos)) {
                     enumerating = true;
-                    // set rhs binding
+                    // set rhs binding, TODO: maybe not necessary?
                     for (uint_fast32_t i = 0; i < common_vars.size(); i++) {
                         parent_binding->add(common_vars[i], current_key[i]);
                     }

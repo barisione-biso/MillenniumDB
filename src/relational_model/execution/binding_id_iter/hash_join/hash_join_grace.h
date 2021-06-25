@@ -14,10 +14,22 @@
 
 
 class HashJoinGrace : public BindingIdIter {
+    // TODO: in english
+    // tengo que ver en que estado estoy:
     enum class State {
-        ENUM_WITH_ITER,
+        // Estoy enumerando con iterador del second hash
+        ENUM_WITH_SECOND_HASH_ITER,
+
+        // Estoy enumerando resultados de un bucket con el 2do hash
         ENUM_WITH_SECOND_HASH,
+
+        // Estoy enumerando resultados de un bucket con nested loop y ya encontré la primera posición
+        ENUM_WITH_NESTED_LOOP_ITER,
+
+        // Estoy enumerando resultados de un bucket con nested loop
         ENUM_WITH_NESTED_LOOP,
+
+        // aún no empiezo a enumerar resultados
         NOT_ENUM
     };
 

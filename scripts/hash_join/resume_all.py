@@ -4,7 +4,6 @@ folder= sys.argv[1]
 alg_names = [
     "quad",
     "grace_murmur",
-    "new_buffer_farmhash",
     #"grace_clhash",
     #"grace_cityhash",
     "grace_farmhash",
@@ -15,7 +14,13 @@ alg_names = [
     "buffer_murmur",
     #"buffer_clhash",
     #"buffer_cityhash",
-    "buffer_farmhash"
+    "buffer_farmhash",
+    "forced_grace_murmur",
+    "new_buffer_murmur",
+    "new_grace_murmur",
+    "forced_grace_farmhash",
+    "new_buffer_farmhash",
+    "new_grace_farmhash",
     ]
 
 all_tests = {}
