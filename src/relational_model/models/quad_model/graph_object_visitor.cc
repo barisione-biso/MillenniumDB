@@ -118,3 +118,8 @@ ObjectId GraphObjectVisitor::operator()(const float value_float) const {
     }
     return ObjectId(GraphModel::VALUE_FLOAT_MASK | res);
 }
+
+
+ObjectId GraphObjectVisitor::operator()(const Path& path) const {
+    return ObjectId(GraphModel::VALUE_PATH_MASK | path.path_id);
+}

@@ -7,10 +7,12 @@
 #include "storage/index/ordered_file/ordered_file.h"
 #include "storage/index/record.h"
 
+template class BPlusTree<1>;
 template class BPlusTree<2>;
 template class BPlusTree<3>;
 template class BPlusTree<4>;
 
+template class BptIter<1>;
 template class BptIter<2>;
 template class BptIter<3>;
 template class BptIter<4>;

@@ -1,0 +1,3 @@
+// All sculptures on wikidata (runs well on server):
+SELECT ?item
+MATCH (?item)=[:P31 / :P279*]=>(Q860861)

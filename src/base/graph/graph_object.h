@@ -13,6 +13,7 @@
 #include "base/graph/edge.h"
 #include "base/graph/string_inlined.h"
 #include "base/graph/string_external.h"
+#include "base/graph/path.h"
 
 struct NullGraphObject {
     inline bool operator==(const NullGraphObject&) const noexcept {
@@ -77,6 +78,7 @@ using GraphObjectVariant = std::variant<
         IdentifiableExternal,
         Edge,
         AnonymousNode,
+        Path,
         bool,
         StringInlined,
         StringExternal,
@@ -89,8 +91,8 @@ struct GraphObjectOstreamVisitor {
     GraphObjectOstreamVisitor(std::ostream& os) :
         os (os) { }
 
-    void operator()(const IdentifiableInlined& i)   const { os << '(' << i.id << ')'; }
-    void operator()(const IdentifiableExternal& i)  const { os << '(' << i.id << ')'; }
+    void operator()(const IdentifiableInlined& i)   const { os << i.id; }
+    void operator()(const IdentifiableExternal& i)  const { os << i.id; }
     void operator()(const Edge& e)                  const { os << "_e(" << e.id << ')'; }
     void operator()(const AnonymousNode& a)         const { os << "_a(" << a.id << ')'; }
     void operator()(const StringInlined& s)         const { os << '"' << s.id << '"'; }
@@ -99,9 +101,14 @@ struct GraphObjectOstreamVisitor {
     void operator()(const NotFoundObject&)          const { os << "NotFoundObj"; }
     void operator()(const int64_t n)                const { os << n; }
     void operator()(const float f)                  const { os << f; }
-    void operator()(const bool b)                   const {
+
+    void operator()(const bool b) const {
         if (b) os << "true";
         else os << "false";
+    }
+
+    void operator()(const Path& p) const {
+        p.path_printer->print(os, p.path_id);
     }
 };
 
@@ -196,6 +203,11 @@ public:
     static GraphObject make_string_inlined(const char* str) {
         StringInlined string_inlined{ str };
         return GraphObject(string_inlined);
+    }
+
+    static GraphObject make_path(uint64_t path_id) {
+        Path p{ path_id };
+        return GraphObject(p);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const GraphObject& graph_obj) {

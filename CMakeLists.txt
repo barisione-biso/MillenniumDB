@@ -37,8 +37,6 @@ set(TEST_TARGETS
     create_bpt
     check_bpts
     check_extendible_hash
-    check_transitive_closure_check
-    check_transitive_closure_enum
 )
 
 foreach(target ${BUILD_TARGETS})

@@ -5,6 +5,7 @@
 
 #include "storage/buffer_manager.h"
 
+template class OrderedFilePage<1>;
 template class OrderedFilePage<2>;
 template class OrderedFilePage<3>;
 template class OrderedFilePage<4>;

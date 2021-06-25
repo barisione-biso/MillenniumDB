@@ -2,18 +2,17 @@
 
 #include <iostream>
 
+#include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
-#include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
-#include "base/parser/logical_plan/op/op_distinct.h"
 #include "relational_model/execution/binding_id_iter/distinct_id_hash.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
+#include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/order_by.h"
 #include "relational_model/execution/binding_iter/select.h"
@@ -21,6 +20,7 @@
 #include "relational_model/execution/binding_iter/distinct_ordered.h"
 #include "relational_model/execution/binding_iter/distinct_hash.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_id_iter_visitor.h"
+
 
 using namespace std;
 
@@ -105,7 +105,10 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
 
     unique_ptr<BindingIdIter> binding_id_iter_current_root = move(id_visitor.tmp);
 
-    auto binding_size = var_name2var_id.size();
+    const auto binding_size = var_name2var_id.size();
+
+    // TODO: Pass materialize = true or false in correct case
+    path_manager.begin(binding_size, false);
 
     vector<unique_ptr<BindingIdIter>> optional_children;
 
@@ -226,8 +229,15 @@ void BindingIterVisitor::visit(OpDistinct& op_distinct) {
 void BindingIterVisitor::visit(OpMatch&) { }
 void BindingIterVisitor::visit(OpOptional&) { }
 void BindingIterVisitor::visit(OpConnection&) { }
-void BindingIterVisitor::visit(OpTransitiveClosure&) { }
 void BindingIterVisitor::visit(OpUnjointObject&) { }
 void BindingIterVisitor::visit(OpConnectionType&) { }
 void BindingIterVisitor::visit(OpLabel&) { }
 void BindingIterVisitor::visit(OpProperty&) { }
+
+void BindingIterVisitor::visit(OpPath&)              { }
+void BindingIterVisitor::visit(OpPathAlternatives&)  { }
+void BindingIterVisitor::visit(OpPathSequence&)      { }
+void BindingIterVisitor::visit(OpPathAtom&)          { }
+void BindingIterVisitor::visit(OpPropertyPath&)      { }
+void BindingIterVisitor::visit(OpPathKleeneStar&)     { }
+void BindingIterVisitor::visit(OpPathOptional&)       { }

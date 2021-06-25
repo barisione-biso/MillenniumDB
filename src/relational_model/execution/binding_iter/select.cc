@@ -1,6 +1,7 @@
 #include "select.h"
 
 #include "storage/index/object_file/object_file.h"
+#include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 
 using namespace std;
 
@@ -12,7 +13,10 @@ Select::Select(unique_ptr<BindingIter> _child_iter,
     my_binding      (BindingSelect(move(projection_vars), child_iter->get_binding()) ) { }
 
 
-Select::~Select() = default;
+Select::~Select() {
+    // TODO: Move clear
+    path_manager.clear();
+}
 
 
 void Select::begin() {
