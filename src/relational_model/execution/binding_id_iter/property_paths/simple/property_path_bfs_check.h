@@ -20,8 +20,6 @@ PropertyPathBFSCheck will determine if there exists a path between
 Use an automaton to only explore paths that match with the asked path
 */
 
-
-
 class PropertyPathBFSCheck : public BindingIdIter {
     using Id = std::variant<VarId, ObjectId>;
 
@@ -46,7 +44,10 @@ private:
 
     // Structs for BFS
     std::unordered_set<SearchState, SearchStateHasher> visited;
-    std::queue<SearchState> open;
+    // open stores a pointer to a SearchState stored in visited
+    // that allows to avoid use visited.find to get a pointer and
+    // use the state extracted of the open directly.
+    std::queue<const SearchState*> open;
     std::unique_ptr<BptIter<4>> iter;
 
     // Statistics
@@ -54,7 +55,7 @@ private:
     uint_fast32_t bpt_searches = 0;
 
     // Constructs iter according to transition
-    void set_iter(const TransitionId& transition, const SearchState& current_state);
+    void set_iter(const TransitionId& transition, const SearchState* current_state);
 
 public:
     PropertyPathBFSCheck(BPlusTree<1>& nodes,
@@ -71,8 +72,6 @@ public:
     void reset() override;
     inline void assign_nulls() override { };
     bool next() override;
-
-
 };
 
 #endif // RELATIONAL_MODEL__PROPERTY_PATH_BFS_CHECK_H_

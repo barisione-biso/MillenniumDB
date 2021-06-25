@@ -26,7 +26,7 @@ class PathManager : public PathPrinter {
 public:
     ~PathManager() = default;
 
-    static void init(QuadModel& model);
+    static void init(GraphModel& model, uint64_t max_threads);
 
     // Assign space to save pointers to recover path
     void begin(size_t binding_size, bool materialize);
@@ -38,8 +38,8 @@ public:
     void clear();
 
 private:
-    QuadModel& model; // TODO: ojala fuese GraphModel
-    PathManager(QuadModel& model);
+    GraphModel& model;
+    PathManager(GraphModel& model, uint64_t max_threads);
 
     // Stores the available index to store a paths of a thread
     std::queue<uint_fast32_t> available_index;
@@ -51,7 +51,6 @@ private:
     std::vector<std::vector<const SearchState* >> paths;
 
     // Indicates with paths must be materialized
-    // TODO: Check performance
     std::vector<bool> paths_materialized;
 
     // Saves pointer when path must be materialized

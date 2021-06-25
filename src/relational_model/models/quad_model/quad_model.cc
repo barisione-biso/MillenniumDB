@@ -21,7 +21,8 @@ PathPrinter* Path::path_printer = nullptr;
 QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size) {
     FileManager::init(db_folder);
     BufferManager::init(buffer_pool_size);
-    PathManager::init(*this);
+    // TODO: Pass max threads to path manager init
+    PathManager::init(*this, 5);
 
     new (&catalog())       QuadCatalog("catalog.dat");                    // placement new
     new (&object_file())   ObjectFile("object_file.dat");                 // placement new

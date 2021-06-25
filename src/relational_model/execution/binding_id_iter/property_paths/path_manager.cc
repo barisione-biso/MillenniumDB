@@ -10,27 +10,26 @@ static typename std::aligned_storage<sizeof(PathManager), alignof(PathManager)>:
 // global object
 PathManager& path_manager = reinterpret_cast<PathManager&>(path_manager_buf);
 
-PathManager::PathManager(QuadModel& model) :
-    model (model) {
-        // TODO: Init structures with max threads allowed
-        uint64_t MAX_THREADS = 5;
-        for (uint64_t i = 0; i < MAX_THREADS; i++) {
-            std::vector<std::unordered_set<SearchState, SearchStateHasher>> materialized_path_states;
-            std::vector<const SearchState*> path_vector;
+PathManager::PathManager(GraphModel& model, uint64_t max_threads) :
+    model (model)
+{
+    for (uint64_t i = 0; i < max_threads; i++) {
+        std::vector<std::unordered_set<SearchState, SearchStateHasher>> materialized_path_states;
+        std::vector<const SearchState*> path_vector;
 
-            // Fill structures
-            paths_materialized.push_back(false);
-            paths.push_back(path_vector);
-            states_materialized.push_back(materialized_path_states);
-            available_index.push(i);
-
-        }
+        // Fill structures
+        paths_materialized.push_back(false);
+        paths.push_back(path_vector);
+        states_materialized.push_back(materialized_path_states);
+        available_index.push(i);
     }
-
-
-void PathManager::init(QuadModel& model) {
-    new (&path_manager) PathManager(model); // placement new
 }
+
+
+void PathManager::init(GraphModel& model, uint64_t max_threads) {
+    new (&path_manager) PathManager(model, max_threads); // placement new
+}
+
 
 void PathManager::begin(size_t binding_size, bool materialize) {
     // Get next available index

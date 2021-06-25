@@ -48,8 +48,6 @@ void PropertyPathBFSIterEnum::begin(BindingId& _parent_binding, bool parent_has_
 
         open.push(state_inserted.first.operator->());
 
-
-
         min_ids[2] = 0;
         max_ids[2] = 0xFFFFFFFFFFFFFFFF;
         min_ids[3] = 0;

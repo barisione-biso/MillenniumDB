@@ -27,7 +27,6 @@ public:
         return to_string() < other.to_string();
     }
 
-    // TODO: Make protected
     virtual PathAutomaton get_automaton() const = 0;
 
     PathAutomaton get_transformed_automaton() const {

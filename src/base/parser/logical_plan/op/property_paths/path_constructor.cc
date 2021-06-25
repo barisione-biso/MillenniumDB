@@ -1,5 +1,6 @@
 #include "path_constructor.h"
 
+#include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_path_alternatives.h"
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"
@@ -76,7 +77,9 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
         }
     }
     query::ast::PropertyPathBoundSuffix suffix = boost::get<query::ast::PropertyPathBoundSuffix>(p.suffix);
-    //TODO: Exception when suffix min > suffix max
+    if (suffix.min > suffix.max) {
+        throw QuerySemanticException("Ill-formed property path. Suffix {m,n} m cannot be greater than n");
+    }
     for (size_t i = 0; i < suffix.min; i++) {
         op_vector.push_back(tmp->duplicate());
     }
