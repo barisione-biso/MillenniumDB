@@ -1,27 +1,27 @@
 # Contents:
-- [Basic Guide](#Basic-Guide)
-    - [Introduction](##Introduction)
-    - [Building a query](##Building-a-query)
-    - [Paths returned](##Paths-returned)
-    - [Getting the path](##Getting-the-path)
-- [Advanced Guide](#Advanced-Guide)
-    - [Automaton Builder Phase](##Automaton-Builder-Phase)
-        - [Property Path Constructor](###Property-Path-Constructor)
-        - [OpPath](###OpPath)
-        - [Path Automaton](###Path-Automaton)
-        - [Path Automaton Transformations](###Path-Automaton-Transformations)
-    - [Finding Paths Phase](##Finding-Paths-Phase)
-        - [Check operator](##Check-operator)
-        - [Enum operator](##Enum-operator)
-    - [Materialize Phase](##Materialize-Phase)
+- [Basic Guide](#basic-guide)
+    - [Introduction](#introduction)
+    - [Building a query](#building-a-query)
+    - [Paths returned](#paths-returned)
+    - [Getting the path](#getting-the-path)
+- [Advanced Guide](#advanced-guide)
+    - [Automaton Builder Phase](#automaton-builder-phase)
+        - [Property Path Constructor](#property-path-constructor)
+        - [OpPath](#op-path)
+        - [Path Automaton](#path-automaton)
+        - [Path Automaton Transformations](#path-automaton-transformations)
+    - [Path finding Phase](#path-finding-phase)
+        - [Check operator](#check-operator)
+        - [Enum operator](#enum-operator)
+    - [Materialize Phase](#materialize-phase)
 
 
-# Basic Guide
+# Basic Guide<a id="basic-guide"></a>
 
-## Introduction
+## Introduction<a id="introduction"></a>
 
 MilleniumDB models data as a directed-labeled-graph like [RDF](https://es.wikipedia.org/wiki/Resource_Description_Framework), thus you can make queries about paths between nodes. This guide is made so that you understand how to generate a query of this type.
-## Building a query
+## Building a query<a id="building-a-query"></a>
 
 First, you have to understand how is the structure of a property path query:
 
@@ -30,7 +30,7 @@ SELECT ...
 MATCH <<here you have to describe path>>
 ....
 ```
-Paths must be describe in __match__ clause. Now we will see how you have to describe a path. First is importante to define start and end node. You can _fix_ a specific node like `(Q1)`, groups of node like `(?x :type)` or not _fix_ the node `(?x)`. At least one node in the query must be _fixed_. Finally you have to join the nodes with a `=[<desc>]=>`. The query looks like:
+Paths must be describe in __match__ clause. Now we will see how you have to describe a path. First is important to define start and end node. You can _fix_ a specific node like `(Q1)`, groups of node like `(?x :type)` or not _fix_ the node `(?x)`. At least one node in the query must be _fixed_. Finally you have to join the nodes with a `=[<desc>]=>`. The query looks like:
 
 ```
 // Correct
@@ -47,11 +47,11 @@ MATCH (?x :type)=[<<path description>>]=>(?y)
 SELECT ...
 MATCH (?x)=[<<path description>>]=>(?y)
 ```
-Now you have to describe the path between this node, you write inside `[]` a `:` followed by a label of a path. You can relation many labels of path with the next operators
+Now you have to describe the path between this node, you write inside `[]` a `:` followed by a label of a path. You can use the next operators to describe a property path:
 
-- `:P1 / : P2`: Sequence. `P1` and `P2` must be in the path.
-- `:P1 | :P2`: Alternative. `P1` or (exclusive) `P2` must be in the path.
-- `:P1*`: Kleene Start. Refers a path with 0 or more `:P1`. Always return at least one node
+- `:P1 / : P2`: Sequence. `P1` followed by `P2` must be in the path.
+- `:P1 | :P2`: Alternative. `P1` or `P2` must be in the path.
+- `:P1*`: Kleene Start. Refers a path with 0 or more `:P1`. Always return at least one node if start node exists.
 - `:P1?`: Optional: Refers a path with 0 or one `P1`
 - `:P1+`: Refers to a path with one or more `P1`
 - `^:P1`: Inverse operator.
@@ -95,7 +95,7 @@ SELECT ...
  ```
 
 
-## Paths returned
+## Paths returned<a id="paths-returned"></a>
 
 
 As you can see, queries that defines a property path, return paths between a node or that start or reach to specifc node. But are all posible paths returned?
@@ -136,12 +136,12 @@ This query asks about property paths, then as we can see the output does not rep
 
  ```
  SELECT *
- MATCH (?x)-[:teammate]->(B)
+ MATCH (?x)-[:P1]->(B)
  ```
 
 In this query, you ask for edges, not a property path. Then in the output the two paths will be returned (That means that `A` nodes will be duplicated).
 
-## Getting the path
+## Getting the path<a id="getting-the-path"></a>
 
 In the query you can recover the path:
 
@@ -152,17 +152,17 @@ SELECT my_path (Q1)=[my_path? :P1 / :P2]=>(?x)
 In the future, operators like ORDER_BY or GROUP_BY can be applied to the path.
 
 -----------------
-# Advanced Guide
+# Advanced Guide<a id="advanced-guide"></a>
 
 The following guide is intended for someone who will be working on the MilleniumDB engine.
 
 
 Property Paths queries are handled in `OpMatch`. First the querie is parsed to a OpPath class, that will be used to construct a finite automaton that represents the semantic of the querie. Finally, the automaton is passed to a binding_id_iter class that use the automaton to check if the path to a node matches with the path asked in the querie.
 
-## Automaton Builder Phase
+## Automaton Builder Phase<a id="automaton-builder-phase"></a>
 
 The objetive of this fase is generate an automaton that accepts the regular expression described in the query.
-### Property Path Constructor
+### Property Path Constructor<a id="property-path-constructor"></a>
 
 This module transforms a grammar object into a __OpPath__ subclass to allow use Op interface.
 
@@ -218,7 +218,7 @@ A node is nullable if:
 When a path is nullable, it will be replaced by it child. In the case of alternative, only nullable elements will be replaced.
 
 
-### OpPath
+### OpPath<a id="op-path"></a>
 
 Implements `Op` interface and some additional methods:
 
@@ -242,7 +242,7 @@ The OpPath has the following types:
 The `:P1+` is transformed to `:P1 / :P1*` which is equivalent. The `:P1{a,b}` is transformed to `:P1 / ... {a times} / :P1 / :P1? ... {b - a times} / :P1?. `
 
 
-### Path Automaton
+### Path Automaton<a id="path-automaton"></a>
 
 PathAutomaton class is used to represent an automaton that accepts the language described in a query.
 
@@ -294,7 +294,7 @@ Let's see how the automaton for the query `(:A / :B)*` will be constructed.
 
 
 
-### Path Automaton Transformations
+### Path Automaton Transformations<a id="path-automaton-transformations"></a>
 
 After generate the automaton, there are 4 steps to transforms it automaton into a automaton without epsilon transitions:
 
@@ -328,6 +328,8 @@ If exists more than one end state. Add and additional state and redirect all sta
 
 ![](property_path_assets/final_state_transformation.png)
 
+If the start state is final, then `start_is_final` attribute will be set as true and start state will point to end state, but never will be removed.
+
 
 4. __Delete not final state connected nodes__
 
@@ -335,7 +337,7 @@ As you can se, in the last step, the old end state will no connected to final st
 
 
 
-## Path finding phase
+## Path finding phase<a id="path-finding-phase"></a>
 
 Exists a class called `SearchState` that is used by all path finding algorithms of MilleniumDB to save found nodes.
 
@@ -343,7 +345,7 @@ A `SearchState` saves an automaton state (`state`), the ObjectId of the db node 
 
 
 
-### Check operator
+### Check operator<a id="check-operator"></a>
 
 Find only one path between two nodes. Its usage is more related to know if a specific path exists between some nodes.
 `
@@ -365,7 +367,7 @@ check if a state already has been visited.
 To have a result as fast as possible, BFS before to push a state to `open`, checks if final and return if it is the case (A slower option is to make the check when a state is pulled out from open).
 
 
-### Enum operator
+### Enum operator<a id="enum-operator"></a>
 Enumerates the nodes that can be reached or reach to specific node or set of node. As example:
 
 `
@@ -393,11 +395,21 @@ The only difference is the path finder algorithms that each one implements:
 - BFS Iter: Is the operator that actually Millenium DB uses in Release model. Is a more complex implementation of BFS. When expands a state, it saves a class attribute called `iter` that generates the children of current state calling `iter.next()`. Iter attribute allow to reduce open memory usage, because current state's children will not added simultaneously to open, they will be generated by iter avoiding to add all at the same time in open.
 BFS Iter has better performance (in general) that other algorithms when the output is big, but has similary performance if the output is smaller.
 
-- AStar Iter: AStar implementation. Uses an Iter, but each node has his itself iter. Has a better perfomance with smaller outputs. The main problem of current implementation is the steps used to modify elelements of the open (Implemented as a heap).
+- AStar Iter: AStar implementation. Uses an Iter, but each node has his itself iter. Has a better perfomance with smaller outputs. The main problem of current implementation is the steps used to modify elements of the open (Implemented as a heap).
 - DFS Iter: Implements DFS with iter, similar to AStar. The main problem with this algorithm is that the paths that it founds are not optimal, in some cases longer paths can affect the answer time due to time used to construct it.
 
-A node __will be return only one time__, the reason of thisis that all algorithms when visit a node, insert it into a set that is used to check if the node has been visited before add it to open. Thus each node will only visited and returned one time, that is the reason why engine does not return all possible path between two nodes (The solution of this is a exponential solution).
+A node __will be return only one time__, the reason of this is that all algorithms when visit a node, insert it into a set that is used to check if the node has been visited before add it to open. Thus each node will only visited and returned one time, that is the reason why engine does not return all possible path between two nodes (The solution of this problems takes exponential time).
 
-## Materialize Phase
+## Materialize Phase<a id="materialize-phase"></a>
 
-TODO:
+`PathManager` class is used to handle the materialization of paths. This class works as follows:
+
+1. First, the query going to run in a specific query. Then `PathManager` associates the thread_id to a slot (A vector where pointers to `SearchState` will be placed).
+
+2. If not materializatión is needed, saves a pointer to the `SearchState` placed in visited set of physical operator (binding_id_iter), the pointer uses the VardId as index position to be placed in the slot.
+
+3. If materialization is needed, creates a copy of the `SearchState`, stores it in a set of `PathManager` (each thread will have his own set) and add to the slot the pointer of the state.
+
+4. In the two cases, the `id` used to transform the path to a `ObjectId` will be the position of the pointer in the slot.
+
+As you can see, the size of the slot will increase if a materialization is needed, that takes more use of memory and time.
