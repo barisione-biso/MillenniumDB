@@ -15,12 +15,20 @@ alg_names = [
     #"buffer_clhash",
     #"buffer_cityhash",
     "buffer_farmhash",
+
     "forced_grace_murmur",
     "new_buffer_murmur",
     "new_grace_murmur",
     "forced_grace_farmhash",
     "new_buffer_farmhash",
     "new_grace_farmhash",
+
+    "forced_grace_no_cache_murmur",
+    "buffer_no_cache_murmur",
+    "grace_no_cache_murmur",
+    "forced_grace_no_cache_farmhash",
+    "buffer_no_cache_farmhash",
+    "grace_no_cache_farmhash",
     ]
 
 all_tests = {}

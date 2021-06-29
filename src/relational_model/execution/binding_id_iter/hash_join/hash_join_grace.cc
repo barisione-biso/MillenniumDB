@@ -186,8 +186,8 @@ bool HashJoinGrace::next() {
                     current_pos_left = 0;
                     current_pos_right = 0;
                     if (left_min) {
-                        if (false) {
-                        //if (left_size < MAX_SIZE_SMALL_HASH) {
+                        //if (false) {
+                        if (left_size < MAX_SIZE_SMALL_HASH) {
                             // Add lhs results to small hash
                             small_hash.clear();
                             while (current_pos_left < lhs_hash.get_bucket_size(current_bucket)) {
@@ -203,8 +203,8 @@ bool HashJoinGrace::next() {
                         }
                     }
                     else {
-                        if (false) {
-                        //if (right_size < MAX_SIZE_SMALL_HASH) {
+                        // if (false) {
+                        if (right_size < MAX_SIZE_SMALL_HASH) {
                             // Add lhs results to small hash
                             small_hash.clear();
                             while (current_pos_right < rhs_hash.get_bucket_size(current_bucket)) {

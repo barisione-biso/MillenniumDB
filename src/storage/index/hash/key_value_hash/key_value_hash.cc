@@ -24,7 +24,7 @@ KeyValueHash<K, V>::KeyValueHash(std::size_t key_size, std::size_t value_size) :
 
 template <class K, class V>
 KeyValueHash<K, V>::~KeyValueHash() {
-    current_buckets_pages.clear();
+    //current_buckets_pages.clear();
     file_manager.remove_tmp(buckets_file);
 }
 
@@ -35,25 +35,14 @@ void KeyValueHash<K, V>::begin(uint_fast32_t initial_depth) {
     const uint_fast32_t number_of_buckets = 1 << depth; // 2^depth
 
     buckets_sizes.reserve(number_of_buckets);
-    current_buckets_pages.reserve(number_of_buckets);
     buckets_page_numbers.reserve(number_of_buckets);
 
     last_page_number = -1;  // overflow to start with 0 in loop
 
-    // TODO: este for solo dejaría vectores vacíos en buckets_page_numbers
-    // luego hay que tener cuidado al ver buckets_page_numbers[i] porque podría estar vacío
     for (uint_fast32_t i = 0; i < number_of_buckets; ++i) {
-        current_buckets_pages.push_back(
-            std::make_unique<KeyValueHashBucket<K, V>>(buckets_file, ++last_page_number, key_size, value_size, max_tuples)
-        );
-        // pages could be dirty
-        *(current_buckets_pages[i]->tuple_count) = 0;
-        current_buckets_pages[i]->page.make_dirty();
         buckets_sizes.push_back(0);
-
         std::vector<uint_fast32_t> vec;
-        vec.push_back(last_page_number);
-        buckets_page_numbers.push_back(vec); // TODO: initial size cero
+        buckets_page_numbers.push_back(vec);
     }
     tuples_count = 0;
 }
@@ -66,26 +55,28 @@ void KeyValueHash<K, V>::reset(uint_fast32_t new_depth) {
     last_page_number = -1;
 
     buckets_sizes.resize(number_of_buckets);
-    current_buckets_pages.resize(number_of_buckets);
     buckets_page_numbers.resize(number_of_buckets);
 
-    // TODO: actualizar para que sea consistente con cambios en el begin
     for (uint_fast32_t i = 0; i < number_of_buckets; ++i) {
-        current_buckets_pages[i] = std::make_unique<KeyValueHashBucket<K, V>>(
-                buckets_file, ++last_page_number, key_size, value_size, max_tuples
-            );
-
-        *(current_buckets_pages[i]->tuple_count) = 0;
-        current_buckets_pages[i]->page.make_dirty();
         buckets_sizes[i] = 0;
-
         buckets_page_numbers[i].clear();
-        buckets_page_numbers[i].push_back(last_page_number);
     }
     while (!available_pages.empty()) {
         available_pages.pop();
     }
     tuples_count = 0;
+}
+
+
+template <class K, class V>
+uint_fast32_t KeyValueHash<K, V>::get_new_page_number() {
+    if (available_pages.size() > 0) {
+        auto res = available_pages.front();
+        available_pages.pop();
+        return res;
+    } else {
+        return ++last_page_number;
+    }
 }
 
 
@@ -99,29 +90,53 @@ void KeyValueHash<K, V>::insert(const std::vector<K>& key, const std::vector<V>&
     uint64_t bucket_number = hash_ & mask;  // suffix = bucket_number in this case
 
     // TODO: cambiar current_buckets_pages[bucket_number] por variable local current_bucket_page = make_unique ...
-    while (current_buckets_pages[bucket_number]->get_tuple_count() >= max_tuples) {
+    unique_ptr<KeyValueHashBucket<K, V>> current_bucket_page = nullptr;
+    uint_fast32_t page_number;
+    if (buckets_page_numbers[bucket_number].size() > 0) {
+        page_number = buckets_page_numbers[bucket_number].back();
+        current_bucket_page = std::make_unique<KeyValueHashBucket<K, V>>(buckets_file,
+                                                                         page_number,
+                                                                         key_size,
+                                                                         value_size,
+                                                                         max_tuples);
+    }
+    else {
+        page_number = get_new_page_number();
+        current_bucket_page = std::make_unique<KeyValueHashBucket<K, V>>(buckets_file,
+                                                                         page_number,
+                                                                         key_size,
+                                                                         value_size,
+                                                                         max_tuples);
+        *(current_bucket_page->tuple_count) = 0;
+        current_bucket_page->page.make_dirty();
+        buckets_page_numbers[bucket_number].push_back(page_number);
+    }
+
+    while (current_bucket_page->get_tuple_count() >= max_tuples) {
         if (tuples_count >= get_split_treshold()) {  // split treshold should depend on depth or could be infinite
             split();
             mask = (1 << depth) - 1;
             bucket_number = hash_ & mask;
+            page_number = buckets_page_numbers[bucket_number].back();
+            current_bucket_page = std::make_unique<KeyValueHashBucket<K, V>>(buckets_file,
+                                                                             page_number,
+                                                                             key_size,
+                                                                             value_size,
+                                                                             max_tuples);
             continue;
         }
         // get page number for new bucket page
-        uint_fast32_t new_page_number;
-        if (available_pages.size() > 0) {
-            new_page_number = available_pages.front();
-            available_pages.pop();
-        } else {
-            new_page_number = ++last_page_number;
-        }
-        current_buckets_pages[bucket_number] = std::make_unique<KeyValueHashBucket<K, V>>(
-            buckets_file, new_page_number, key_size, value_size, max_tuples // +1 before assign
-        );
-        *(current_buckets_pages[bucket_number]->tuple_count) = 0;
-        current_buckets_pages[bucket_number]->page.make_dirty();
+        uint_fast32_t new_page_number = get_new_page_number();
+        current_bucket_page = std::make_unique<KeyValueHashBucket<K, V>>(buckets_file,
+                                                                         new_page_number,
+                                                                         key_size,
+                                                                         value_size,
+                                                                         max_tuples);
+        *(current_bucket_page->tuple_count) = 0;
+        current_bucket_page->page.make_dirty();
         buckets_page_numbers[bucket_number].push_back(new_page_number);
     }
-    current_buckets_pages[bucket_number]->insert(key, value);
+    current_bucket_page->insert(key, value);
     buckets_sizes[bucket_number]++;
     tuples_count++;
 }
@@ -133,14 +148,13 @@ pair<vector<K>, vector<V>> KeyValueHash<K, V>::get_pair(uint_fast32_t bucket_num
     uint32_t bucket_page_number = current_pos / max_tuples;
     uint32_t real_page_number = buckets_page_numbers[bucket_number][bucket_page_number];
 
-    // TODO: borrar if, siempre se hara el make_unique, pero asignando una variable local
-    if (current_buckets_pages[bucket_number]->page.get_page_number() != real_page_number) {
-        current_buckets_pages[bucket_number] = std::make_unique<KeyValueHashBucket<K, V>>(
-            buckets_file, real_page_number, key_size, value_size, max_tuples
-        );
-    }
+    auto current_bucket_page = std::make_unique<KeyValueHashBucket<K, V>>(buckets_file,
+                                                                          real_page_number,
+                                                                          key_size,
+                                                                          value_size,
+                                                                          max_tuples);
     uint32_t page_pos = current_pos % max_tuples;
-    return current_buckets_pages[bucket_number]->get_pair(page_pos); // TODO: reemplazar por variable local
+    return current_bucket_page->get_pair(page_pos);
 }
 
 
@@ -149,14 +163,14 @@ K* KeyValueHash<K, V>::get_key(uint_fast32_t bucket_number,uint_fast32_t current
     assert(current_pos <= buckets_sizes[bucket_number]);
     uint32_t bucket_page_number = current_pos / max_tuples;
     uint32_t real_page_number = buckets_page_numbers[bucket_number][bucket_page_number];
-    // TODO: borrar if, siempre se hara el make_unique, pero asignando una variable local
-    if (current_buckets_pages[bucket_number]->page.get_page_number() != real_page_number) {
-        current_buckets_pages[bucket_number] = std::make_unique<KeyValueHashBucket<K, V>>(
-            buckets_file, real_page_number, key_size, value_size, max_tuples
-        );
-    }
+
+    auto current_bucket_page = std::make_unique<KeyValueHashBucket<K, V>>(buckets_file,
+                                                                          real_page_number,
+                                                                          key_size,
+                                                                          value_size,
+                                                                          max_tuples);
     uint32_t page_pos = current_pos % max_tuples;
-    return current_buckets_pages[bucket_number]->get_key(page_pos); // TODO: reemplazar por variable local
+    return current_bucket_page->get_key(page_pos);
 }
 
 
@@ -165,14 +179,14 @@ V* KeyValueHash<K, V>::get_value(uint_fast32_t bucket_number,uint_fast32_t curre
     assert(current_pos <= buckets_sizes[bucket_number]);
     uint32_t bucket_page_number = current_pos / max_tuples;
     uint32_t real_page_number = buckets_page_numbers[bucket_number][bucket_page_number];
-    // TODO: borrar if, siempre se hara el make_unique, pero asignando una variable local
-    if (current_buckets_pages[bucket_number]->page.get_page_number() != real_page_number) {
-        current_buckets_pages[bucket_number] = std::make_unique<KeyValueHashBucket<K, V>>(
-            buckets_file, real_page_number, key_size, value_size, max_tuples
-        );
-    }
+
+    auto current_bucket_page = std::make_unique<KeyValueHashBucket<K, V>>(buckets_file,
+                                                                          real_page_number,
+                                                                          key_size,
+                                                                          value_size,
+                                                                          max_tuples);
     uint32_t page_pos = current_pos % max_tuples;
-    return current_buckets_pages[bucket_number]->get_value(page_pos); // TODO: reemplazar por variable local
+    return current_bucket_page->get_value(page_pos);
 }
 
 
@@ -181,107 +195,102 @@ void KeyValueHash<K, V>::split() {
     const uint_fast32_t previous_number_of_buckets = 1 << depth++;
     const uint_fast32_t number_of_buckets = 1 << depth; // 2^new_depth
     buckets_sizes.reserve(number_of_buckets);
-    current_buckets_pages.reserve(number_of_buckets);
     buckets_page_numbers.reserve(number_of_buckets);
 
     for (uint_fast32_t bucket_number = 0; bucket_number < previous_number_of_buckets; bucket_number++) {
-        uint_fast32_t new_bucket_number = previous_number_of_buckets + bucket_number;
-        uint_fast32_t new_page_number;
-        if (available_pages.size() > 0) {
-            new_page_number = available_pages.front();
-            available_pages.pop();
-        } else {
-            new_page_number = ++last_page_number;
-        }
-        std::vector<uint_fast32_t> vec;
-        vec.push_back(new_page_number);
-        buckets_page_numbers.push_back(vec);
-
-        // initialize new bucket
-        current_buckets_pages.push_back(
-            std::make_unique<KeyValueHashBucket<K, V>>(buckets_file, new_page_number, key_size, value_size, max_tuples)
-        );
-        *(current_buckets_pages[new_bucket_number]->tuple_count) = 0;
-        current_buckets_pages[new_bucket_number]->page.make_dirty();
+        //uint_fast32_t new_bucket_number = previous_number_of_buckets + bucket_number;
+        buckets_page_numbers.push_back(std::vector<uint_fast32_t>());
         buckets_sizes.push_back(0);
 
+        // skip if bucket is empty
+        if (buckets_page_numbers[bucket_number].empty()) {
+            continue;
+        }
+
+        // initialize new bucket
+        uint_fast32_t new_page_number = get_new_page_number();
+        buckets_page_numbers.back().push_back(new_page_number);
+        auto new_bucket_page = make_unique<KeyValueHashBucket<K, V>>(buckets_file,
+                                                                     new_page_number,
+                                                                     key_size,
+                                                                     value_size,
+                                                                     max_tuples);
+        *(new_bucket_page->tuple_count) = 0;
+        new_bucket_page->page.make_dirty();
+
         // we need an auxiliar bucket for writing tuples, because we are reading with current_buckets_pages
-        std::unique_ptr<KeyValueHashBucket<K, V>> aux_bucket; //save tuples in this bucket if not full
-        aux_bucket = std::make_unique<KeyValueHashBucket<K, V>>(
-            buckets_file, buckets_page_numbers[bucket_number][0], key_size, value_size, max_tuples
-        );
-        uint_fast32_t aux_bucket_pos = 0;  // pos in current_buckets_pages
-        uint_fast32_t aux_tuple_count = 0;  // total insertions using aux bucket
-        for (uint_fast32_t i = 0; i < buckets_page_numbers[bucket_number].size(); i++) {
-            auto real_page_number = buckets_page_numbers[bucket_number][i];
-            if (current_buckets_pages[bucket_number]->page.get_page_number() != real_page_number) {
-                current_buckets_pages[bucket_number] = std::make_unique<KeyValueHashBucket<K, V>>(
-                    buckets_file, real_page_number, key_size, value_size, max_tuples
-                );
-            }
-            uint_fast32_t bucket_page_tuples = current_buckets_pages[bucket_number]->get_tuple_count();
+        auto writing_old_bucket_page = make_unique<KeyValueHashBucket<K, V>>(buckets_file,
+                                                                             buckets_page_numbers[bucket_number][0],
+                                                                             key_size,
+                                                                             value_size,
+                                                                             max_tuples);
+
+        uint_fast32_t writing_old_pos = 0;  // position in buckets_page_numbers[bucket_number]
+        uint_fast32_t writing_old_tuple_count = 0;
+        for (auto reading_page_number : buckets_page_numbers[bucket_number]) {
+            auto reading_old_bucket_page = make_unique<KeyValueHashBucket<K, V>>(buckets_file,
+                                                                                 reading_page_number,
+                                                                                 key_size,
+                                                                                 value_size,
+                                                                                 max_tuples);
+
+            const uint_fast32_t bucket_page_tuples = reading_old_bucket_page->get_tuple_count();
+
             for (uint_fast32_t tuple_number = 0; tuple_number < bucket_page_tuples; tuple_number++) {
-                auto pair = current_buckets_pages[bucket_number]->get_pair(tuple_number);
-                uint64_t hash_ = hash_function_wrapper(pair.first.data(), key_size);
+                // auto pair = current_buckets_pages[bucket_number]->get_pair(tuple_number);
+                auto tuple_key = reading_old_bucket_page->get_key(tuple_number);
+                auto tuple_value = reading_old_bucket_page->get_value(tuple_number);
+                uint64_t hash_ = hash_function_wrapper(tuple_key, key_size);
                 uint64_t mask = number_of_buckets - 1;  // last (depth) bits
                 uint64_t insert_bucket_number = hash_ & mask;  // suffix = bucket_number
-                assert(insert_bucket_number == bucket_number || insert_bucket_number == new_bucket_number);
+                assert(insert_bucket_number == bucket_number || insert_bucket_number == previous_number_of_buckets + bucket_number);
 
-                if (insert_bucket_number == bucket_number) { // insert to aux (old bucket page)
-                    if (aux_tuple_count >= max_tuples) {
-                        // save values of aux
-                        aux_bucket->set_tuple_count(aux_tuple_count);
-                        aux_bucket->page.make_dirty();
-                        // set next aux
-                        aux_tuple_count = 0;
-                        aux_bucket = std::make_unique<KeyValueHashBucket<K, V>>(
-                            buckets_file, buckets_page_numbers[bucket_number][++aux_bucket_pos],
-                            key_size, value_size, max_tuples
-                        );
-                        assert(aux_bucket_pos <= i);
+                if (insert_bucket_number == bucket_number) { // insert to writing_old_bucket_page
+                    if (writing_old_tuple_count >= max_tuples) {
+                        // save values of writing page
+                        writing_old_bucket_page->set_tuple_count(writing_old_tuple_count);
+                        writing_old_bucket_page->page.make_dirty();
+                        // set next writing page
+                        writing_old_bucket_page = make_unique<KeyValueHashBucket<K, V>>(
+                                                      buckets_file,
+                                                      buckets_page_numbers[bucket_number][++writing_old_pos],
+                                                      key_size,
+                                                      value_size,
+                                                      max_tuples);
+                        writing_old_tuple_count = 0;
+                        assert(writing_old_pos <= reading_page_number);
                     }
-                    aux_bucket->insert_in_pos(pair.first, pair.second, aux_tuple_count);
-                    aux_tuple_count++;
+                    writing_old_bucket_page->insert_in_pos(tuple_key, tuple_value, writing_old_tuple_count);
+                    writing_old_tuple_count++;
                 }
-                else { // insert to new bucket
+                else { // insert to new_bucket_page
                     buckets_sizes[insert_bucket_number]++;
                     buckets_sizes[bucket_number]--;
-                    if (current_buckets_pages[insert_bucket_number]->get_tuple_count() >= max_tuples) {
-                        if (available_pages.size() > 0) {
-                            new_page_number = available_pages.front();
-                            available_pages.pop();
-                        } else {
-                            new_page_number = ++last_page_number;
-                        }
+                    if (new_bucket_page->get_tuple_count() >= max_tuples) {
+                        new_page_number = get_new_page_number();
                         buckets_page_numbers[insert_bucket_number].push_back(new_page_number);
 
-                        current_buckets_pages[insert_bucket_number] = std::make_unique<KeyValueHashBucket<K, V>>(
+                        new_bucket_page = std::make_unique<KeyValueHashBucket<K, V>>(
                             buckets_file, new_page_number, key_size, value_size, max_tuples
                         );
-                        *(current_buckets_pages[insert_bucket_number]->tuple_count) = 0;
-                        current_buckets_pages[insert_bucket_number]->page.make_dirty();
+                        *(new_bucket_page->tuple_count) = 0;
+                        new_bucket_page->page.make_dirty();
                     }
-                    current_buckets_pages[insert_bucket_number]->insert(pair.first, pair.second);
+                    new_bucket_page->insert_with_pointers(tuple_key, tuple_value);
                 }
             }
         }
         // save current aux
-        aux_bucket->set_tuple_count(aux_tuple_count);
-        aux_bucket->page.make_dirty();
-        //set current bucket page to aux page
-        current_buckets_pages[bucket_number] = std::make_unique<KeyValueHashBucket<K, V>>(
-            buckets_file, buckets_page_numbers[bucket_number][aux_bucket_pos],
-            key_size, value_size, max_tuples
-        );
-        // add rest pages to available pages
-        aux_bucket_pos++;
+        writing_old_bucket_page->set_tuple_count(writing_old_tuple_count);
+        writing_old_bucket_page->page.make_dirty();
+        // set available pages
+        writing_old_pos++;
         auto n = 0;
-        while (aux_bucket_pos < buckets_page_numbers[bucket_number].size()) {
-            auto real_page_number = buckets_page_numbers[bucket_number][aux_bucket_pos++];
+        while (writing_old_pos < buckets_page_numbers[bucket_number].size()) {
+            auto real_page_number = buckets_page_numbers[bucket_number][writing_old_pos++];
             available_pages.push(real_page_number);
-            n += 1;
+             n += 1;
         }
-        // update buckets_page_numbers[bucket_number]
         buckets_page_numbers[bucket_number].resize(buckets_page_numbers[bucket_number].size()-n);
     }
 }

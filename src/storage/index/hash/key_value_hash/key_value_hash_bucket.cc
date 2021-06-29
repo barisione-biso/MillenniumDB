@@ -49,7 +49,7 @@ void KeyValueHashBucket<K, V>::insert(const vector<K>& key, const vector<V>& val
 
 
 template <class K, class V>
-void KeyValueHashBucket<K, V>::insert_in_pos(const vector<K>& key, const vector<V>& value, uint_fast32_t pos) {
+void KeyValueHashBucket<K, V>::insert_in_pos(const K* key, const V* value, uint_fast32_t pos) {
     for (uint_fast16_t i = 0; i < key_size; i++) {
         keys[(key_size * pos) + i] = key[i];
     }

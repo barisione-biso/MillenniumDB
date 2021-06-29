@@ -62,9 +62,10 @@ private:
 
     // NOTE: take care we are supposed to insert everything and then read (we are recycling this variable)
     // TODO: tratar de no tener tantas paginas pinneadas a la vez
-    std::vector<std::unique_ptr<KeyValueHashBucket<K, V>>> current_buckets_pages;
+    //std::vector<std::unique_ptr<KeyValueHashBucket<K, V>>> current_buckets_pages;
 
     inline uint_fast32_t get_split_treshold() const noexcept { return max_tuples * (1 << depth); }
+    uint_fast32_t get_new_page_number();
 };
 
 #endif // STORAGE__KEY_VALUE_HASH__H_

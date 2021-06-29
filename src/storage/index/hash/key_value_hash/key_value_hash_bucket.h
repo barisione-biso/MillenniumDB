@@ -28,7 +28,7 @@ public:
     ~KeyValueHashBucket();
 
     void insert(const std::vector<K>& key, const std::vector<V>& value);
-    void insert_in_pos(const std::vector<K>& key, const std::vector<V>& value, uint_fast32_t pos);  // for split
+    void insert_in_pos(const K* key, const V* value, uint_fast32_t pos);  // for split
     void insert_with_pointers(const K* key, const V* value);  // for merge
     std::pair<std::vector<K>, std::vector<V>> get_pair(uint_fast32_t current_pos) const; // TODO: can optimize without copying
     inline K* get_key(uint_fast32_t current_pos) const { return &keys[current_pos*key_size]; }
