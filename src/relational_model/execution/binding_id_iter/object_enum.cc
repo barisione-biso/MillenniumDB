@@ -20,9 +20,10 @@ void ObjectEnum::begin(BindingId& parent_binding, bool parent_has_next) {
 
 
 bool ObjectEnum::next() {
-    ++current_node;
-    if (current_node <= max_count) {
+    if (current_node < max_count) {
+        current_node++;
         parent_binding->add(var_id, ObjectId(mask | current_node));
+        results++;
         return true;
     } else {
         return false;
@@ -44,5 +45,5 @@ void ObjectEnum::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "ObjectEnum(results: " << (current_node-1) << ")\n";
+    cout << "ObjectEnum(results: " << results << ")\n";
 }

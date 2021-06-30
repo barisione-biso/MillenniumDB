@@ -11,15 +11,15 @@ void NodeTableEnum::begin(BindingId& parent_binding, bool parent_has_next) {
         current_pos = 0;
     }
     else {
-        // TODO: this will only support up to 2^^32 - 1 nodes
         current_pos = -1;
     }
 }
 
 
 bool NodeTableEnum::next() {
-    auto record = table[current_pos++];
+    auto record = table[current_pos];
     if (record != nullptr) {
+        current_pos++;
         parent_binding->add(var_id, ObjectId(record->ids[0]));
         ++results;
         return true;
