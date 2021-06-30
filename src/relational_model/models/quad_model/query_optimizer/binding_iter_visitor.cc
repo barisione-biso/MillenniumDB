@@ -185,18 +185,18 @@ void BindingIterVisitor::visit(OpDistinct& op_distinct) {
     bool ordered = false; // TODO: in the future we want to know if op_distinct is already ordered 
     if (ordered) {
         op_distinct.op->accept_visitor(*this);
-        auto binding_size = var_name2var_id.size();
+        // auto binding_size = var_name2var_id.size();
         std::vector<VarId> projected_var_ids;
         // need to discomment this lines if want to test with OrderBy
         // std::vector<std::pair<std::string, VarId>> order_vars;
         // std::vector<bool> ascending_order(binding_size);
         for (const auto& order_item : select_items) {
-            // string var_name = order_item.var;
-            // if (order_item.key) {
-            //     var_name += '.';
-            //     var_name += order_item.key.get();
-            // }
-            // auto var_id = get_var_id(var_name);
+            string var_name = order_item.var;
+            if (order_item.key) {
+                var_name += '.';
+                var_name += order_item.key.get();
+            }
+            auto var_id = get_var_id(var_name);
             // order_vars.push_back(make_pair(var_name, var_id));
             projected_var_ids.push_back(var_id);
         }
