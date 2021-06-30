@@ -12,6 +12,9 @@
 #include "relational_model/models/quad_model/query_optimizer/join_plan/property_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/transitive_closure_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_grace_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_in_memory_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_in_buffer_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
 
 using namespace std;
@@ -246,6 +249,15 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
                     best_index = j;
                     best_step_plan = move(nested_loop_plan);
                 }
+                // <HashJoinGracePlan>, <HashJoinInMemoryPlan>, <HashJoinInBufferPlan>
+                // auto hash_join_plan = make_unique<HashJoinInBufferPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                // auto hash_join_cost = hash_join_plan->estimate_cost();
+
+                // if (hash_join_cost < best_cost) {
+                //     best_cost = hash_join_cost;
+                //     best_index = j;
+                //     best_step_plan = move(hash_join_plan);
+                // }
             }
         }
 

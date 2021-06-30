@@ -15,9 +15,14 @@ Structures like B+trees and hash tables are designed to be divided in pages so i
         - pin counter
         - dirty flag
         - pointer to the disk data (`bytes`)
+    - `private_buffer_pool`: same as `buffer_pool` but for all private buffers (need to take care which one you want to return from)
+    - `private_bytes`: same as `bytes` but for all private buffers (need to take care with positions, they are ordered the same as `private_buffer_pool`)
     - TODO: explicar que los slot de bytes y buffer_pool se relacionan 1 a 1 con su posicion correspondiente
 
-* TODO: will we have a special buffer for a specific query execution? (e.g. for ordering tuples or hashing)
+* When asked for a page it can be done with a FileId or a TmpFileId, in the first case, the page returned will be
+page from the shared buffer. In the second case, the page will be returned from the private buffer of current thread
+(that asked for it). Private and shared buffer doesn't need to have the same sizes. All buffers (shared and each private)
+have the same sistems for pages replacement.
 
 
 * The typicall flow is:

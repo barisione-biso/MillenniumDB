@@ -28,6 +28,9 @@ public:
     inline bool operator==(const ObjectId& rhs) const noexcept { return id == rhs.id; }
     inline bool operator!=(const ObjectId& rhs) const noexcept { return id != rhs.id; }
     inline bool operator<(const ObjectId& rhs)  const noexcept { return id <  rhs.id; }
+    inline bool operator>(const ObjectId& rhs)  const noexcept { return id >  rhs.id; }
+    inline bool operator<=(const ObjectId& rhs) const noexcept { return id <= rhs.id; }
+    inline bool operator>=(const ObjectId& rhs) const noexcept { return id >= rhs.id; }
 };
 
 #endif // BASE__OBJECT_ID_H_

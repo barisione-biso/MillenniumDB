@@ -3,9 +3,9 @@
 #include <cassert>
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
+#include <iostream>
 
 #include "storage/file_manager.h"
-#include "storage/page.h"
 
 using namespace std;
 
@@ -16,10 +16,21 @@ BufferManager& buffer_manager = reinterpret_cast<BufferManager&>(buffer_manager_
 
 
 BufferManager::BufferManager(uint_fast32_t buffer_pool_size) :
-    buffer_pool_size (buffer_pool_size),
-    buffer_pool      (new Page[buffer_pool_size]),
-    bytes            (new char[buffer_pool_size*Page::PAGE_SIZE]),
-    clock_pos        (0) { }
+    buffer_pool_size          (buffer_pool_size),
+    private_buffer_pool_size  (buffer_pool_size),  // TODO: change this to parameter
+    max_private_buffers       (10),  // TODO: change this to parameter
+    buffer_pool               (new Page[buffer_pool_size]),
+    private_buffer_pool       (new Page[private_buffer_pool_size * max_private_buffers]),
+    bytes                     (new char[buffer_pool_size*Page::PAGE_SIZE]),
+    private_bytes             (new char[private_buffer_pool_size*max_private_buffers*Page::PAGE_SIZE]),
+    clock_pos                 (0)
+{
+    for (uint_fast32_t i=0; i < max_private_buffers; i++) {
+        available_private_positions.push(i);
+    }
+    private_tmp_pages.resize(max_private_buffers);
+    private_clock_pos.resize(max_private_buffers);
+}
 
 
 BufferManager::~BufferManager() {
@@ -27,6 +38,7 @@ BufferManager::~BufferManager() {
     delete[](bytes);
     delete[](buffer_pool);
 }
+
 
 void BufferManager::init(uint_fast32_t buffer_pool_size) {
     new (&buffer_manager) BufferManager(buffer_pool_size); // placement new
@@ -73,6 +85,22 @@ uint_fast32_t BufferManager::get_buffer_available() {
 }
 
 
+uint_fast32_t BufferManager::get_private_buffer_available(uint_fast32_t thread_pos) {
+    // analogous to shared buffer
+    auto first_lookup = private_clock_pos[thread_pos];
+
+    while (get_private_page(thread_pos, private_clock_pos[thread_pos]).pins != 0) {
+        private_clock_pos[thread_pos] = (private_clock_pos[thread_pos]+1)%private_buffer_pool_size;
+        if (private_clock_pos[thread_pos] == first_lookup) {
+            throw std::runtime_error("No buffer available in private buffer pool.");
+        }
+    }
+    auto ret = private_clock_pos[thread_pos];
+    private_clock_pos[thread_pos] = (private_clock_pos[thread_pos]+1)%private_buffer_pool_size;
+    return ret;
+}
+
+
 Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcept {
     const PageId page_id(file_id, page_number);
 
@@ -98,6 +126,32 @@ Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcep
 }
 
 
+Page& BufferManager::get_tmp_page(TmpFileId tmp_file_id, uint_fast32_t page_number) {
+    const PageId page_id(tmp_file_id.file_id, page_number);
+    auto thread_pos = tmp_file_id.private_buffer_pos;
+    auto pages_it = private_tmp_pages[thread_pos].find(page_id);
+    if (pages_it == private_tmp_pages[thread_pos].end()) {
+        // TODO: handle exception?
+        const auto buffer_available = get_private_buffer_available(thread_pos);
+        auto& page = get_private_page(thread_pos, buffer_available);
+        if (page.page_id.file_id.id != TmpFileId::UNASSIGNED) {
+            private_tmp_pages[thread_pos].erase(page.page_id);
+        }
+        page = Page(page_id,
+                    &private_bytes[Page::PAGE_SIZE * ((thread_pos * private_buffer_pool_size) + buffer_available)]
+        );
+        file_manager.read_page(page_id, page.get_bytes());
+        private_tmp_pages[thread_pos].insert(pair<PageId, int>(page_id, buffer_available));
+        return page;
+    }
+    else {
+        auto& page = get_private_page(thread_pos, pages_it->second);
+        page.pins++;
+        return page;
+    }
+}
+
+
 void BufferManager::unpin(Page& page) {
     std::lock_guard<std::mutex> lck(pin_mutex);
     assert(page.pins != 0 && "Must not unpin if pin count is equal to 0. There is a logic error.");
@@ -112,5 +166,39 @@ void BufferManager::remove(FileId file_id) {
             pages.erase(buffer_pool[i].page_id);
             buffer_pool[i].reset();
         }
+    }
+}
+
+
+void BufferManager::remove_tmp(TmpFileId tmp_file_id) {
+    assert(private_buffer_pool != nullptr);
+    auto offset = private_buffer_pool_size * tmp_file_id.private_buffer_pos;
+    for (uint_fast32_t i = 0; i < private_buffer_pool_size; i++) {
+        auto page_id = private_buffer_pool[offset + i].page_id;
+        if (page_id.file_id == tmp_file_id.file_id) {
+            private_tmp_pages[tmp_file_id.private_buffer_pos].erase(page_id);
+            private_buffer_pool[offset + i].reset();
+        }
+    }
+}
+
+
+uint_fast32_t BufferManager::get_private_buffer_index() {
+    thread::id this_id = std::this_thread::get_id();
+    auto thread_pos_it = thread2index.find(this_id);
+    if (thread_pos_it == thread2index.end()) {
+        // new thread
+        if (available_private_positions.empty()) {
+            throw std::runtime_error("To many threads, not enough private buffer space");
+        }
+        uint_fast32_t new_thread_pos = available_private_positions.front();
+        available_private_positions.pop();
+        thread2index.insert(pair<thread::id, uint_fast32_t>(this_id, new_thread_pos));
+        private_tmp_pages[new_thread_pos].clear();
+        private_clock_pos[new_thread_pos] = 0;
+        return new_thread_pos;
+    }
+    else { // old thread
+        return thread_pos_it->second;
     }
 }

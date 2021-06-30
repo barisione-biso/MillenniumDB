@@ -1,4 +1,4 @@
-#include "extendable_bucket.h"
+#include "distinct_binding_hash_bucket.h"
 
 #include <cstring>
 
@@ -8,13 +8,13 @@
 
 using namespace std;
 
-template class ExtendableBucket<GraphObject>;
-template class ExtendableBucket<ObjectId>;
+template class DistinctBindingHashBucket<GraphObject>;
+template class DistinctBindingHashBucket<ObjectId>;
 
 
 template <class T>
-ExtendableBucket<T>::ExtendableBucket(const FileId file_id, const uint_fast32_t bucket_number, std::size_t _tuple_size) :
-    page        (buffer_manager.get_page(file_id, bucket_number)),
+DistinctBindingHashBucket<T>::DistinctBindingHashBucket(const TmpFileId file_id, const uint_fast32_t bucket_number, std::size_t _tuple_size) :
+    page        (buffer_manager.get_tmp_page(file_id, bucket_number)),
     MAX_TUPLES  ( (Page::PAGE_SIZE - sizeof(*tuple_size) - sizeof(*tuple_count) - sizeof(local_depth))
                   / (2*sizeof(*hashes) + _tuple_size*sizeof(T) ) ),
 
@@ -30,13 +30,13 @@ ExtendableBucket<T>::ExtendableBucket(const FileId file_id, const uint_fast32_t 
 
 
 template <class T>
-ExtendableBucket<T>::~ExtendableBucket() {
+DistinctBindingHashBucket<T>::~DistinctBindingHashBucket() {
     buffer_manager.unpin(page);
 }
 
 
 template <class T>
-bool ExtendableBucket<T>::is_in(std::vector<T>& tuple, const uint64_t hash1, const uint64_t hash2) {
+bool DistinctBindingHashBucket<T>::is_in(std::vector<T>& tuple, const uint64_t hash1, const uint64_t hash2) {
     for (uint8_t i = 0; i < *tuple_count; ++i) {
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             bool tuple_found = true;
@@ -57,7 +57,7 @@ bool ExtendableBucket<T>::is_in(std::vector<T>& tuple, const uint64_t hash1, con
 
 
 template <class T>
-bool ExtendableBucket<T>::is_in_or_insert(std::vector<T>& tuple, const uint64_t hash1, const uint64_t hash2, bool* const need_split) {
+bool DistinctBindingHashBucket<T>::is_in_or_insert(std::vector<T>& tuple, const uint64_t hash1, const uint64_t hash2, bool* const need_split) {
     for (uint8_t i = 0; i < *tuple_count; ++i) {
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             bool tuple_found = true;
@@ -94,7 +94,7 @@ bool ExtendableBucket<T>::is_in_or_insert(std::vector<T>& tuple, const uint64_t 
 
 
 template <class T>
-void ExtendableBucket<T>::redistribute(ExtendableBucket<T>& other, const uint64_t mask, const uint64_t other_suffix) {
+void DistinctBindingHashBucket<T>::redistribute(DistinctBindingHashBucket<T>& other, const uint64_t mask, const uint64_t other_suffix) {
     uint8_t other_pos = 0;
     uint8_t this_pos = 0;
 

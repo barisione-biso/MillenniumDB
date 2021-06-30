@@ -18,7 +18,7 @@ QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size) {
 
     new (&catalog())       QuadCatalog("catalog.dat");                    // placement new
     new (&object_file())   ObjectFile("object_file.dat");                 // placement new
-    new (&strings_hash())  ExtendibleHash(object_file(), "str_hash.dat"); // placement new
+    new (&strings_hash())  ObjectFileHash(object_file(), "str_hash.dat"); // placement new
 
     node_table = make_unique<RandomAccessTable<1>>("nodes.table");
     edge_table = make_unique<RandomAccessTable<3>>("edges.table");
@@ -47,7 +47,7 @@ QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size) {
 
 QuadModel::~QuadModel() {
     // Must destroy everything before buffer and file manager
-    strings_hash().~ExtendibleHash();
+    strings_hash().~ObjectFileHash();
     object_file().~ObjectFile();
     catalog().~QuadCatalog();
 

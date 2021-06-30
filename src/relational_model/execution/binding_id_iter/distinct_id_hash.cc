@@ -5,7 +5,7 @@ using namespace std;
 DistinctIdHash::DistinctIdHash(unique_ptr<BindingIdIter> _child_iter, std::vector<VarId> projected_vars) :
     child_iter       (move(_child_iter)),
     projected_vars   (projected_vars),
-    extendable_table (ExtendableTable<ObjectId>(projected_vars.size()))
+    extendable_table (DistinctBindingHash<ObjectId>(projected_vars.size()))
     { }
 
 
