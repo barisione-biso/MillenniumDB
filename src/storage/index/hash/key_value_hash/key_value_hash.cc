@@ -89,7 +89,6 @@ void KeyValueHash<K, V>::insert(const std::vector<K>& key, const std::vector<V>&
     uint64_t mask = (1 << depth) - 1;  // last depth bits
     uint64_t bucket_number = hash_ & mask;  // suffix = bucket_number in this case
 
-    // TODO: cambiar current_buckets_pages[bucket_number] por variable local current_bucket_page = make_unique ...
     unique_ptr<KeyValueHashBucket<K, V>> current_bucket_page = nullptr;
     uint_fast32_t page_number;
     if (buckets_page_numbers[bucket_number].size() > 0) {

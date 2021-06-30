@@ -47,7 +47,7 @@ void HashJoinInBuffer::begin(BindingId& _parent_binding, bool parent_has_next) {
 bool HashJoinInBuffer::next() {
     while (true) {
         if (enumerating) {
-            // TODO: first key is checked twice, we should return it before enumerating???
+            // TODO: first key is checked twice, we can return it before enumerating?
             auto left_key = lhs_hash.get_key(current_bucket, current_bucket_pos);
             for (uint_fast32_t i = 0; i < current_key.size(); i++) {
                 if (current_key[i] != left_key[i]) {
@@ -79,13 +79,6 @@ bool HashJoinInBuffer::next() {
                 current_bucket = lhs_hash.get_bucket(current_key);
                 if (lhs_hash.find_first(current_key, current_bucket, &current_bucket_pos)) {
                     enumerating = true;
-                    // set rhs binding, TODO: maybe not necessary?
-                    for (uint_fast32_t i = 0; i < common_vars.size(); i++) {
-                        parent_binding->add(common_vars[i], current_key[i]);
-                    }
-                    for (uint_fast32_t i = 0; i < right_vars.size(); i++) {
-                        parent_binding->add(right_vars[i], current_value[i]);
-                    }
                 }
             }
             else {

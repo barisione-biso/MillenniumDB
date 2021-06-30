@@ -12,6 +12,11 @@
 #include "storage/index/object_file/object_file.h"
 #include "storage/index/hash/key_value_hash/key_value_hash_bucket.h"
 
+// KeyValueHash is used to save two vectors, key is a vector of type K and value a vector of type V, keys and values
+// must have a constant size. 
+// Sorting buckets is optional, but needed if you want to use find_first method, otherwise you must search in all the 
+// bucket to check if a key is present (and could be more than once)
+
 template <class K, class V>
 class KeyValueHash {
 public:
@@ -35,7 +40,6 @@ public:
     std::pair<std::vector<K>, std::vector<V>> get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);
     K* get_key(uint_fast32_t current_bucket, uint_fast32_t current_pos);
     V* get_value(uint_fast32_t current_bucket, uint_fast32_t current_pos);
-    //std::pair<K*, V*> get_pair(uint_fast32_t current_bucket, uint_fast32_t current_pos);
 
     // split directory and redistribute every bucket
     void split();
@@ -59,10 +63,6 @@ private:
     std::vector<uint_fast32_t>              buckets_sizes;
 
     std::queue<uint_fast32_t> available_pages;
-
-    // NOTE: take care we are supposed to insert everything and then read (we are recycling this variable)
-    // TODO: tratar de no tener tantas paginas pinneadas a la vez
-    //std::vector<std::unique_ptr<KeyValueHashBucket<K, V>>> current_buckets_pages;
 
     inline uint_fast32_t get_split_treshold() const noexcept { return max_tuples * (1 << depth); }
     uint_fast32_t get_new_page_number();

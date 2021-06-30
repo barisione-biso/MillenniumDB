@@ -241,24 +241,23 @@ unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
             if (base_plans[j] != nullptr
                 && !base_plans[j]->cartesian_product_needed(*root_plan) )
             {
-                // TODO: when do each join?
-                // auto nested_loop_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
-                // auto nested_loop_cost = nested_loop_plan->estimate_cost();
+                auto nested_loop_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                auto nested_loop_cost = nested_loop_plan->estimate_cost();
 
-                // if (nested_loop_cost < best_cost) {
-                //     best_cost = nested_loop_cost;
-                //     best_index = j;
-                //     best_step_plan = move(nested_loop_plan);
-                // }
-                // <HashJoinGracePlan>, <HashJoinInMemoryPlan>, <HashJoinInBufferPlan>
-                auto hash_join_plan = make_unique<HashJoinInBufferPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
-                auto hash_join_cost = hash_join_plan->estimate_cost();
-
-                if (hash_join_cost < best_cost) {
-                    best_cost = hash_join_cost;
+                if (nested_loop_cost < best_cost) {
+                    best_cost = nested_loop_cost;
                     best_index = j;
-                    best_step_plan = move(hash_join_plan);
+                    best_step_plan = move(nested_loop_plan);
                 }
+                // <HashJoinGracePlan>, <HashJoinInMemoryPlan>, <HashJoinInBufferPlan>
+                // auto hash_join_plan = make_unique<HashJoinInBufferPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
+                // auto hash_join_cost = hash_join_plan->estimate_cost();
+
+                // if (hash_join_cost < best_cost) {
+                //     best_cost = hash_join_cost;
+                //     best_index = j;
+                //     best_step_plan = move(hash_join_plan);
+                // }
             }
         }
 

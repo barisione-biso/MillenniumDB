@@ -102,7 +102,6 @@ void KeyValueHashBucket<K, V>::partition(uint_fast32_t min_pos, uint_fast32_t ma
     if (max_pos <= min_pos) {
         return;
     }
-    // TODO: maybe counting/radic sort may be faster, we have to many repeated numbers
     vector<K> pivot_key;
     vector<V> pivot_value;
     pivot_key.resize(key_size);
