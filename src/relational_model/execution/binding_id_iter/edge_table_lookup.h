@@ -39,4 +39,4 @@ public:
     void assign_nulls() override;
 };
 
-#endif // RELATIONAL_MODEL__NODE_TABLE_ENUM_H_
+#endif // RELATIONAL_MODEL__EDGE_TABLE_ENUM_H_

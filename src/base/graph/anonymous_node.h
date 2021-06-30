@@ -9,10 +9,6 @@ public:
         : id(id) { }
     ~AnonymousNode() = default;
 
-    inline void operator=(const AnonymousNode& other) {
-        id = other.id;
-    }
-
     inline bool operator==(const AnonymousNode& rhs) const noexcept {
         return this->id == rhs.id;
     }

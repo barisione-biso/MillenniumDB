@@ -1,0 +1,8 @@
+ // The disease is a subclass of urinary bladder cancer
+ // based on annotations in the Disease ontology
+ //--> runs fast on the server
+
+SELECT *
+MATCH (?disease)=[:P279+]=>(Q504775)
+
+LIMIT 1

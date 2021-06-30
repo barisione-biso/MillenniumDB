@@ -47,7 +47,7 @@ public:
         return const_cast<ObjectFileHash&>(reinterpret_cast<const ObjectFileHash&>(strings_cache_buf));
     }
 
-    std::unique_ptr<RandomAccessTable<1>> node_table;
+    std::unique_ptr<BPlusTree<1>> nodes;
     std::unique_ptr<RandomAccessTable<3>> edge_table;
 
     std::unique_ptr<BPlusTree<2>>   node_label;

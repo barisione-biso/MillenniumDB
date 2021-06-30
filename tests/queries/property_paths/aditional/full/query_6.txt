@@ -1,0 +1,7 @@
+
+// - Rivers draining to the Black Sea Basin:
+
+SELECT ?river
+MATCH (?river)=[:P4614+]=>(Q12299139),
+      (?river)-[:P31]->(Q4022)
+

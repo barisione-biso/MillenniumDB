@@ -19,6 +19,7 @@ using namespace std;
 BulkImport::BulkImport(const string& filename, QuadModel& model) :
     model                (model),
     catalog              (model.catalog()),
+    nodes                (OrderedFile<1>("ordered_file_nodes.dat")),
     node_labels          (OrderedFile<2>("node_labels.dat")),
     object_key_value     (OrderedFile<3>("object_key_value.dat")),
     from_to_type_edge    (OrderedFile<4>("from_to_type_edge.dat")),
@@ -120,6 +121,13 @@ void BulkImport::start_import() {
     // for (auto& thread : threads) {
     //     thread.join();
     // }
+
+    // Index nodes
+    nodes.order(std::array<uint_fast8_t, 1 >{ 0 });
+    model.nodes->bulk_import(nodes);
+
+    catalog.distinct_labels = catalog.label2total_count.size();
+
     index_labels();
     index_properties();
     index_connections();
@@ -323,7 +331,7 @@ uint64_t BulkImport::get_node_id(const string& node_name) {
         auto inlined_ids_search = inlined_ids.find(obj_id);
         if (inlined_ids_search == inlined_ids.end()) {
             inlined_ids.insert(obj_id);
-            model.node_table->append_record(RecordFactory::get(obj_id));
+            nodes.append_record({obj_id});
             ++catalog.identifiable_nodes_count;
         }
         return obj_id;
@@ -333,7 +341,7 @@ uint64_t BulkImport::get_node_id(const string& node_name) {
         auto external_ids_search = external_ids.find(obj_id);
         if (external_ids_search == external_ids.end()) {
             external_ids.insert(obj_id);
-            model.node_table->append_record(RecordFactory::get(obj_id));
+            nodes.append_record({obj_id});
             ++catalog.identifiable_nodes_count;
         }
         return obj_id;

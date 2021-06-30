@@ -4,6 +4,7 @@
 #include <ostream>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <variant>
 
 #include "base/graph/anonymous_node.h"
@@ -12,10 +13,9 @@
 #include "base/graph/edge.h"
 #include "base/graph/string_inlined.h"
 #include "base/graph/string_external.h"
+#include "base/graph/path.h"
 
 struct NullGraphObject {
-    inline void operator=(const NullGraphObject&) { }
-
     inline bool operator==(const NullGraphObject&) const noexcept {
         return true;
     }
@@ -42,8 +42,6 @@ struct NullGraphObject {
 };
 
 struct NotFoundObject {
-    inline void operator=(const NotFoundObject&) { }
-
     inline bool operator==(const NotFoundObject&) const noexcept {
         return false;
     }
@@ -80,6 +78,7 @@ using GraphObjectVariant = std::variant<
         IdentifiableExternal,
         Edge,
         AnonymousNode,
+        Path,
         bool,
         StringInlined,
         StringExternal,
@@ -92,8 +91,8 @@ struct GraphObjectOstreamVisitor {
     GraphObjectOstreamVisitor(std::ostream& os) :
         os (os) { }
 
-    void operator()(const IdentifiableInlined& i)   const { os << '(' << i.id << ')'; }
-    void operator()(const IdentifiableExternal& i)  const { os << '(' << i.id << ')'; }
+    void operator()(const IdentifiableInlined& i)   const { os << i.id; }
+    void operator()(const IdentifiableExternal& i)  const { os << i.id; }
     void operator()(const Edge& e)                  const { os << "_e(" << e.id << ')'; }
     void operator()(const AnonymousNode& a)         const { os << "_a(" << a.id << ')'; }
     void operator()(const StringInlined& s)         const { os << '"' << s.id << '"'; }
@@ -102,9 +101,14 @@ struct GraphObjectOstreamVisitor {
     void operator()(const NotFoundObject&)          const { os << "NotFoundObj"; }
     void operator()(const int64_t n)                const { os << n; }
     void operator()(const float f)                  const { os << f; }
-    void operator()(const bool b)                   const {
+
+    void operator()(const bool b) const {
         if (b) os << "true";
         else os << "false";
+    }
+
+    void operator()(const Path& p) const {
+        p.path_printer->print(os, p.path_id);
     }
 };
 
@@ -116,8 +120,8 @@ public:
     GraphObject() :
         value (NullGraphObject()) { }
 
-    GraphObject(const GraphObject& graph_object) :
-        value (graph_object.value) { }
+    // GraphObject(const GraphObject& graph_object) :
+    //     value (graph_object.value) { }
 
     static GraphObject make_identifiable_external(const char* str) {
         IdentifiableExternal string_external{ str };
@@ -134,7 +138,7 @@ public:
     }
 
     static GraphObject make_edge(const uint64_t id) {
-        return GraphObject(AnonymousNode(id));
+        return GraphObject(Edge(id));
     }
 
     static GraphObject make_int(const int64_t i) {
@@ -201,14 +205,19 @@ public:
         return GraphObject(string_inlined);
     }
 
+    static GraphObject make_path(uint64_t path_id) {
+        Path p{ path_id };
+        return GraphObject(p);
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const GraphObject& graph_obj) {
         std::visit(GraphObjectOstreamVisitor{os}, graph_obj.value);
         return os;
     }
 
-    inline void operator=(const GraphObject& other) noexcept {
-        this->value = other.value;
-    }
+    // inline void operator=(const GraphObject& other) noexcept {
+    //     this->value = other.value;
+    // }
 
     inline bool operator==(const GraphObject& rhs) const noexcept {
         return this->value == rhs.value;
@@ -427,6 +436,7 @@ private:
         value (value) { }
 };
 
+static_assert(std::is_trivially_copyable<GraphObject>::value);
 static_assert(sizeof(GraphObject) <= 16, "GraphObject size should be small, if it needs to increase the size avoid copies");
 
 #endif // BASE__OBJECT_TYPE_H_

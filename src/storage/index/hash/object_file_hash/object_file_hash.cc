@@ -41,7 +41,7 @@ ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filen
     } else {
         global_depth = DEFAULT_GLOBAL_DEPTH;
         uint_fast32_t dir_size = 1 << global_depth;
-        dir = new uint64_t[dir_size];
+        dir = new uint_fast32_t[dir_size];
         for (uint_fast32_t i = 0; i < dir_size; ++i) {
             ObjectFileHashBucket bucket(buckets_file_id, i, object_file);
             *bucket.key_count = 0;
@@ -70,18 +70,18 @@ void ObjectFileHash::duplicate_dirs() {
     uint64_t old_dir_size = 1UL << global_depth;
     ++global_depth;
     auto new_dir_size = 1UL << global_depth;
-    auto new_dir = new uint64_t[new_dir_size];
+    auto new_dir = new uint_fast32_t[new_dir_size];
 
     std::memcpy(
         new_dir,
         dir,
-        old_dir_size * sizeof(uint64_t)
+        old_dir_size * sizeof(uint_fast32_t)
     );
 
     std::memcpy(
         &new_dir[old_dir_size],
         dir,
-        old_dir_size * sizeof(uint64_t)
+        old_dir_size * sizeof(uint_fast32_t)
     );
 
     delete[](dir);

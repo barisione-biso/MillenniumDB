@@ -3,6 +3,7 @@
 #include "relational_model/execution/binding_id_iter/node_table_enum.h"
 #include "relational_model/execution/binding_id_iter/object_enum.h"
 #include "relational_model/execution/binding_id_iter/union.h"
+#include "relational_model/execution/binding_id_iter/index_scan.h"
 
 using namespace std;
 
@@ -59,8 +60,10 @@ void UnjointObjectPlan::set_input_vars(uint64_t) {
 
 unique_ptr<BindingIdIter> UnjointObjectPlan::get_binding_id_iter(std::size_t binding_size) {
     vector<unique_ptr<BindingIdIter>> iters;
+    array<unique_ptr<ScanRange>, 1> ranges;
+    ranges[0] = make_unique<UnassignedVar>(object_var_id);
     iters.push_back(
-        make_unique<NodeTableEnum>(binding_size, object_var_id, *model.node_table)
+        make_unique<IndexScan<1>>(binding_size, *model.nodes, move(ranges))
     );
     iters.push_back(
         make_unique<ObjectEnum>(binding_size, object_var_id, QuadModel::ANONYMOUS_NODE_MASK, model.catalog().anonymous_nodes_count)

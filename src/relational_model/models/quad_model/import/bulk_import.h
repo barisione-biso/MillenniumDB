@@ -26,6 +26,7 @@ private:
     QuadModel& model;
     QuadCatalog& catalog;
 
+    OrderedFile<1> nodes;                   // node_id
     OrderedFile<2> node_labels;             // node_id, label_id
     OrderedFile<3> object_key_value;        // object_id, key_id, value_id
     OrderedFile<4> from_to_type_edge;       // from_id, to_id, type_id, edge_id

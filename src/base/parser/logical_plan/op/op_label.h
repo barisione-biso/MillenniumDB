@@ -30,10 +30,11 @@ public:
     bool operator<(const OpLabel& other) const {
         if (node_name < other.node_name) {
             return true;
-        } else if (label < other.label) {
-            return true;
+        } else if (node_name > other.node_name) {
+            return false;
+        } else {
+            return label < other.label;
         }
-        return false;
     }
 
     std::set<std::string> get_var_names() const override {

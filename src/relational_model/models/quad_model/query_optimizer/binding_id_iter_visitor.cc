@@ -10,12 +10,19 @@
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/property_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/transitive_closure_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/join_plan/property_path_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_grace_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_in_memory_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_in_buffer_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
+#include "base/parser/logical_plan/op/op_path.h"
+#include "base/parser/logical_plan/op/op_path_alternatives.h"
+#include "base/parser/logical_plan/op/op_path_atom.h"
+#include "base/parser/logical_plan/op/op_path_sequence.h"
+#include "base/parser/logical_plan/op/op_path_kleene_star.h"
+#include "base/parser/logical_plan/op/op_path_optional.h"
+
 
 using namespace std;
 
@@ -38,7 +45,6 @@ VarId BindingIdIterVisitor::get_var_id(const std::string& var) {
 
 void BindingIdIterVisitor::visit(OpMatch& op_match) {
     vector<unique_ptr<JoinPlan>> base_plans;
-
     // Process Labels
     for (auto& op_label : op_match.labels) {
         auto label_id = model.get_string_id(op_label.label);
@@ -124,20 +130,19 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
         }
     }
 
-    // TODO: property paths are only transitive closures for now
     for (auto& property_path : op_match.property_paths) {
         auto from_id = property_path.from[0] == '?'
-                        ? (JoinPlan::Id) get_var_id(property_path.from)
-                        : (JoinPlan::Id) model.get_identifiable_object_id(property_path.from);
+                    ? (JoinPlan::Id) get_var_id(property_path.from)
+                    : (JoinPlan::Id) model.get_identifiable_object_id(property_path.from);
 
         auto to_id   = property_path.to[0] == '?'
-                        ? (JoinPlan::Id) get_var_id(property_path.to)
-                        : (JoinPlan::Id) model.get_identifiable_object_id(property_path.to);
+                    ? (JoinPlan::Id) get_var_id(property_path.to)
+                    : (JoinPlan::Id) model.get_identifiable_object_id(property_path.to);
 
-        auto type_id = model.get_identifiable_object_id(property_path.type);
 
+        VarId path_var = get_var_id(property_path.var);
         base_plans.push_back(
-            make_unique<TransitiveClosurePlan>(model, from_id, to_id, type_id)
+            make_unique<PropertyPathPlan>(model, path_var, from_id, to_id, *property_path.path)
         );
     }
 
@@ -311,7 +316,6 @@ void BindingIdIterVisitor::visit(OpLabel&) { }
 void BindingIdIterVisitor::visit(OpProperty&) { }
 void BindingIdIterVisitor::visit(OpConnection&) { }
 void BindingIdIterVisitor::visit(OpConnectionType&) { }
-void BindingIdIterVisitor::visit(OpTransitiveClosure&) { }
 void BindingIdIterVisitor::visit(OpUnjointObject&) { }
 void BindingIdIterVisitor::visit(OpGraphPatternRoot&) { }
 void BindingIdIterVisitor::visit(OpSelect&) { }
@@ -319,3 +323,11 @@ void BindingIdIterVisitor::visit(OpFilter&) { }
 void BindingIdIterVisitor::visit(OpOrderBy&) { }
 void BindingIdIterVisitor::visit(OpGroupBy&) { }
 void BindingIdIterVisitor::visit(OpDistinct&) { }
+
+void BindingIdIterVisitor::visit(OpPath&)              { }
+void BindingIdIterVisitor::visit(OpPropertyPath&)      { }
+void BindingIdIterVisitor::visit(OpPathAlternatives&)  { }
+void BindingIdIterVisitor::visit(OpPathSequence&)      { }
+void BindingIdIterVisitor::visit(OpPathAtom&)          { }
+void BindingIdIterVisitor::visit(OpPathKleeneStar&)     { }
+void BindingIdIterVisitor::visit(OpPathOptional&)       { }

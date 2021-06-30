@@ -1,0 +1,8 @@
+SELECT *
+
+// Todas las organizaciones a las que pertenece algo ubicado en una $
+// de un país de la union europea
+
+MATCH (Q458)=[^:P463 / ^:P1376 / :P131* / :P463]=>(?x)
+
+LIMIT 40
