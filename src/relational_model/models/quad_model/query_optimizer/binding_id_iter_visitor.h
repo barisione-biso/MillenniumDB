@@ -31,7 +31,6 @@ public:
     void visit(OpSelect&) override;
     void visit(OpFilter&) override;
     void visit(OpConnection&) override;
-    void visit(OpConnectionType&) override;
     void visit(OpLabel&) override;
     void visit(OpProperty&) override;
     void visit(OpGroupBy&) override;

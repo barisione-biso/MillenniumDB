@@ -42,13 +42,14 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     for (auto& op_label : op_match.labels) {
         auto label_id = model.get_string_id(op_label.label);
 
-        if (op_label.node_name[0] == '?') {
-            auto node_var_id = get_var_id(op_label.node_name);
+        if (op_label.node_id.is_var()) {
+            auto node_var_id = get_var_id(op_label.node_id.to_string());
             base_plans.push_back(
                 make_unique<LabelPlan>(model, node_var_id, label_id)
             );
         } else {
-            auto node_id = model.get_identifiable_object_id(op_label.node_name);
+            // TODO: hay mas opciones? tal vez op_label.node_id no es identificador
+            auto node_id = model.get_identifiable_object_id(op_label.node_id.to_string());
             base_plans.push_back(
                 make_unique<LabelPlan>(model, node_id, label_id)
             );
@@ -60,14 +61,15 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
         auto key_id   = model.get_string_id(op_property.key);
         auto value_id = get_value_id(op_property.value);
 
-        if (op_property.obj_name[0] == '?') {
-            auto obj_var_id = get_var_id(op_property.obj_name);
+        if (op_property.node_id.is_var()) {
+            auto obj_var_id = get_var_id(op_property.node_id.to_string());
 
             base_plans.push_back(
                 make_unique<PropertyPlan>(model, obj_var_id, key_id, value_id)
             );
         } else {
-            auto obj_id = model.get_identifiable_object_id(op_property.obj_name);
+            // TODO: hay mas opciones? tal vez op_property.node_id no es identificador
+            auto obj_id = model.get_identifiable_object_id(op_property.node_id.to_string());
             base_plans.push_back(
                 make_unique<PropertyPlan>(model, obj_id, key_id, value_id)
             );
@@ -76,7 +78,8 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
 
     // Process UnjointObjects
     for (auto& unjoint_object : op_match.unjoint_objects) {
-        auto obj_var_id = get_var_id(unjoint_object.obj_name);
+        // TODO: unjoint object node_id may not be a variable
+        auto obj_var_id = get_var_id(unjoint_object.node_id.to_string());
         base_plans.push_back(
             make_unique<UnjointObjectPlan>(model, obj_var_id)
         );
@@ -84,42 +87,40 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
 
     // Process connections
     for (auto& op_connection : op_match.connections) {
-        auto from_id = op_connection.from[0] == '?'
-                        ? (JoinPlan::Id) get_var_id(op_connection.from)
-                        : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.from);
+        // TODO: hay mas opciones? tal vez model deberia recibir un variant o dar visitor para obtener ObjectId
+        // y asi no usar get_identifiable_object_id
+        auto from_id = op_connection.from.is_var()
+                        ? (JoinPlan::Id) get_var_id(op_connection.from.to_string())
+                        : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.from.to_string());
 
-        auto to_id   = op_connection.to[0] == '?'
-                        ? (JoinPlan::Id) get_var_id(op_connection.to)
-                        : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.to);
+        auto to_id   = op_connection.to.is_var()
+                        ? (JoinPlan::Id) get_var_id(op_connection.to.to_string())
+                        : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.to.to_string());
 
         auto edge_id = get_var_id(op_connection.edge);
 
-        // connections must have exactly 1 type in this model
-        auto connection_labels_found = 0;
-
-        for (auto& op_connection_type : op_match.connection_types) {
-            if (op_connection_type.edge == op_connection.edge) {
-                ++connection_labels_found;
-                if (connection_labels_found > 1) {
-                    throw QuerySemanticException("Connections must have exactly 1 type when using QuadModel");
-                } else if (op_connection_type.type[0] == '?') {
-                    auto type_id = get_var_id(op_connection_type.type);
-                    base_plans.push_back(
-                        make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
-                    );
-                } else {
-                    auto type_id = model.get_identifiable_object_id(op_connection_type.type);
-                    base_plans.push_back(
-                        make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
-                    );
-                }
+        if (op_connection.types.empty()) {
+            // Type not mentioned, creating anonymous variable for type
+            auto type_var_id = get_var_id(op_connection.edge + ":type");
+            base_plans.push_back(
+                make_unique<ConnectionPlan>(model, from_id, to_id, type_var_id, edge_id));
+        }
+        else if (op_connection.types.size() == 1) {
+            if (op_connection.types[0][0] == '?') {
+                // Type is an explicit variable
+                auto type_var_id = get_var_id(op_connection.types[0]);
+                base_plans.push_back(
+                    make_unique<ConnectionPlan>(model, from_id, to_id, type_var_id, edge_id));
+            } else {
+                // Type is an IdentifiebleNode
+                auto type_obj_id = model.get_identifiable_object_id(op_connection.types[0]);
+                base_plans.push_back(
+                    make_unique<ConnectionPlan>(model, from_id, to_id, type_obj_id, edge_id)
+                );
             }
         }
-        if (connection_labels_found == 0) {
-            auto type_id = get_var_id(op_connection.edge + ":type");
-            base_plans.push_back(
-                make_unique<ConnectionPlan>(model, from_id, to_id, type_id, edge_id)
-            );
+        else {
+            throw QuerySemanticException("Connections can't have multiple types when using QuadModel");
         }
     }
 
@@ -440,7 +441,6 @@ ObjectId BindingIdIterVisitor::get_value_id(const common::ast::Value& value) {
 void BindingIdIterVisitor::visit(OpLabel&) { }
 void BindingIdIterVisitor::visit(OpProperty&) { }
 void BindingIdIterVisitor::visit(OpConnection&) { }
-void BindingIdIterVisitor::visit(OpConnectionType&) { }
 void BindingIdIterVisitor::visit(OpTransitiveClosure&) { }
 void BindingIdIterVisitor::visit(OpUnjointObject&) { }
 void BindingIdIterVisitor::visit(OpGraphPatternRoot&) { }

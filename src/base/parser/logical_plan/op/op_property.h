@@ -3,24 +3,25 @@
 
 #include <string>
 
+#include "base/ids/node_id.h"
 #include "base/parser/logical_plan/op/op.h"
 
 class OpProperty : public Op {
 public:
-    const std::string obj_name;
+    const NodeId node_id;
     const std::string key;
     const common::ast::Value value;
 
-    std::ostream& print_to_ostream(std::ostream& os,  int indent=0) const override{
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');
-        os << "OpProperty(" << key << ":" << obj_name << ")\n";
+        os << "OpProperty(" << node_id << "." << key << " = " << value << ")\n";
         return os;
     };
 
-    OpProperty(std::string obj_name, std::string key, common::ast::Value value) :
-        obj_name (std::move(obj_name) ),
-        key      (std::move(key)      ),
-        value    (std::move(value)    ) { }
+    OpProperty(NodeId node_id, std::string key, common::ast::Value value) :
+        node_id (node_id),
+        key     (std::move(key)),
+        value   (std::move(value)) { }
 
 
     void accept_visitor(OpVisitor& visitor) override {
@@ -28,11 +29,11 @@ public:
     }
 
 
-    // Only comparing obj_name and key, not checking value
+    // Only comparing node_id and key, not checking value
     bool operator<(const OpProperty& other) const {
-        if (obj_name < other.obj_name) {
+        if (node_id < other.node_id) {
             return true;
-        } else if (obj_name > other.obj_name) {
+        } else if (node_id > other.node_id) {
             return false;
         } else {
             return key < other.key;
@@ -42,8 +43,9 @@ public:
 
     std::set<std::string> get_var_names() const override {
         std::set<std::string> res;
-        if (obj_name[0] == '?') {
-            res.insert(obj_name);
+        if (node_id.is_var()) {
+            // TODO:
+            // res.insert(obj_name);
         }
         // we assume key won't be a variable
         // we assume value won't be a variable

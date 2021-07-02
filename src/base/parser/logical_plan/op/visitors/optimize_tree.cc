@@ -41,31 +41,29 @@ void OptimizeTree::visit(OpOptional& op_optional) {
             optional_to_match = false;
 
         }
-        else if (delete_current){
+        else if (delete_current) {
             it = op_optional.optionals.erase(it);
             delete_current = false;
-        }else{
+        } else {
             ++it;
         }
     }
 
-    if(op_optional.optionals.size() == 0){
-        if(current_move_children_up){
+    if (op_optional.optionals.size() == 0) {
+        if (current_move_children_up) {
             move_children_up = false;
             delete_current = true;
-        }else{
+        } else {
             move_children_up = false;
             delete_current= false;
             optional_to_match = true;
             optionals.emplace_back(move(op_optional.op));
         }
 
-    }else if(current_move_children_up)
-    {
+    } else if(current_move_children_up) {
         move_children_up = true;
         delete_current = false;
-        for( auto it=op_optional.optionals.begin(); it!=op_optional.optionals.end();)
-        {
+        for (auto it=op_optional.optionals.begin(); it!=op_optional.optionals.end(); ) {
             optionals.emplace_back(move(*it));
             it = op_optional.optionals.erase(it);
         }
@@ -74,7 +72,6 @@ void OptimizeTree::visit(OpOptional& op_optional) {
 
 
 void OptimizeTree::visit(OpMatch& op_match) {
-
     // delete already assigned properties
     for (auto it = op_match.properties.begin(); it != op_match.properties.end(); ) {
         auto op_property = *it;
@@ -105,22 +102,26 @@ void OptimizeTree::visit(OpMatch& op_match) {
     // delete already assigned unjoint objects
     for (auto it = op_match.unjoint_objects.begin(); it != op_match.unjoint_objects.end(); ) {
         auto op_unjoint_object = *it;
-        auto var_name = op_unjoint_object.obj_name;
-        auto var_name_search = global_var_names.find(var_name);
-        if (var_name_search != global_var_names.end()) {
-            it  = op_match.unjoint_objects.erase(it);
+
+        if (op_unjoint_object.node_id.is_var()) {
+            auto var_name = op_unjoint_object.node_id.to_string();
+            auto var_name_search = global_var_names.find(var_name);
+            if (var_name_search != global_var_names.end()) {
+                it  = op_match.unjoint_objects.erase(it);
+            } else {
+                ++it;
+            }
         } else {
             ++it;
         }
     }
 
     // if nothing to match, will be deleted
-    if (op_match.labels.size()
-        + op_match.properties.size()
-        + op_match.unjoint_objects.size()
-        + op_match.connections.size()
-        + op_match.property_paths.size()
-        == 0)
+    if (   op_match.connections.empty()
+        && op_match.labels.empty()
+        && op_match.properties.empty()
+        && op_match.property_paths.empty()
+        && op_match.unjoint_objects.empty())
     {
         delete_current = true;
     }
@@ -134,7 +135,7 @@ void OptimizeTree::visit(OpMatch& op_match) {
 void OptimizeTree::visit(OpGraphPatternRoot& op_graph_pattern_root) {
     optional_to_match = false;
     op_graph_pattern_root.op->accept_visitor(*this);
-    if(optional_to_match){
+    if (optional_to_match) {
         op_graph_pattern_root.op = move(optionals[0]);
     }
 }
@@ -172,4 +173,3 @@ void OptimizeTree::visit(OpProperty&)          { }
 void OptimizeTree::visit(OpUnjointObject&)     { }
 void OptimizeTree::visit(OpTransitiveClosure&) { }
 void OptimizeTree::visit(OpConnection&)        { }
-void OptimizeTree::visit(OpConnectionType&)    { }

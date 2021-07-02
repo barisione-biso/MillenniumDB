@@ -77,14 +77,14 @@ namespace query { namespace ast {
     };
 
     struct Edge {
-        std::string var_or_id; // Can be the identifier, a variable or empty
+        std::string var; // Can a variable or empty
         std::vector<std::string> types;
         std::vector<Property> properties;
         EdgeDirection direction;
     };
 
     struct Node {
-        std::string var_or_id; // Can be the identifier, a variable or empty
+        boost::variant<std::string, bool, int64_t, float> id;
         std::vector<std::string> labels;
         std::vector<Property> properties;
     };

@@ -79,7 +79,6 @@ void CheckWellDesigned::visit(OpDistinct& op_distinct) {
 
 void CheckWellDesigned::visit(OpTransitiveClosure&) { }
 void CheckWellDesigned::visit(OpConnection&)        { }
-void CheckWellDesigned::visit(OpConnectionType&)    { }
 void CheckWellDesigned::visit(OpLabel&)             { }
 void CheckWellDesigned::visit(OpProperty&)          { }
 void CheckWellDesigned::visit(OpUnjointObject&)     { }

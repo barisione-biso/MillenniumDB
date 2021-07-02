@@ -22,11 +22,11 @@ BOOST_FUSION_ADAPT_STRUCT(query::ast::LinearPatternStep,
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Node,
-    var_or_id, labels, properties
+    id, labels, properties
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Edge,
-    var_or_id, types, properties, direction
+    var, types, properties, direction
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::PropertyPath,

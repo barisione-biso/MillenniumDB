@@ -67,7 +67,6 @@ void CheckVarNames::visit(OpDistinct& op_distinct) {
 
 void CheckVarNames::visit(OpTransitiveClosure&) { }
 void CheckVarNames::visit(OpConnection&) { }
-void CheckVarNames::visit(OpConnectionType&) { }
 void CheckVarNames::visit(OpLabel&) { }
 void CheckVarNames::visit(OpProperty&) { }
 void CheckVarNames::visit(OpUnjointObject&) { }

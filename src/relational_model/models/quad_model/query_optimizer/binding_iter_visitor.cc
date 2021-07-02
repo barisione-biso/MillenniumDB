@@ -228,6 +228,5 @@ void BindingIterVisitor::visit(OpOptional&) { }
 void BindingIterVisitor::visit(OpConnection&) { }
 void BindingIterVisitor::visit(OpTransitiveClosure&) { }
 void BindingIterVisitor::visit(OpUnjointObject&) { }
-void BindingIterVisitor::visit(OpConnectionType&) { }
 void BindingIterVisitor::visit(OpLabel&) { }
 void BindingIterVisitor::visit(OpProperty&) { }

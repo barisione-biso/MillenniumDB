@@ -19,14 +19,12 @@
 #include "base/ids/object_id.h"
 #include "base/ids/var_id.h"
 
-using Id = std::variant<VarId, ObjectId>;
+using Id = std::variant<VarId, ObjectId>; // TODO: try to delete
 
 class BindingIter;
 class OpOptional;
 class OpFilter;
 class OpGraphPatternRoot;
-
-// using Id = std::variant<VarId, ObjectId>;
 
 class BindingIterVisitor : public OpVisitor {
 public:
@@ -40,7 +38,6 @@ public:
     void visit(OpMatch&) override;
     void visit(OpFilter&) override;
     void visit(OpConnection&) override;
-    void visit(OpConnectionType&) override;
     void visit(OpLabel&) override;
     void visit(OpProperty&) override;
     void visit(OpGroupBy&) override;

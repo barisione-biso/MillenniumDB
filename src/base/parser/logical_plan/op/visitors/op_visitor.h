@@ -5,7 +5,6 @@ class OpSelect;
 class OpMatch;
 class OpFilter;
 class OpConnection;
-class OpConnectionType;
 class OpLabel;
 class OpOptional;
 class OpProperty;
@@ -23,7 +22,6 @@ public:
     virtual void visit(OpMatch&) = 0;
     virtual void visit(OpFilter&) = 0;
     virtual void visit(OpConnection&) = 0;
-    virtual void visit(OpConnectionType&) = 0;
     virtual void visit(OpLabel&) = 0;
     virtual void visit(OpOptional&) = 0;
     virtual void visit(OpProperty&) = 0;
