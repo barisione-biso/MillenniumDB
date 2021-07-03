@@ -64,7 +64,7 @@ namespace import {
             edge,
             implicit_edge,
             import_line
-        );
+        )
     }
 
     parser::import_type import() {

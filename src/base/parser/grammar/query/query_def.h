@@ -230,7 +230,7 @@ namespace query {
             order,
             ordered_select_item,
             ordered_select_items
-        );
+        )
     }
 
     parser::query_type query() {

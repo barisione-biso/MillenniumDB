@@ -126,7 +126,10 @@ static __m128i __clmulhalfscalarproductwithoutreduction(const __m128i * randomso
     const uint64_t * const endstring = string + length;
     __m128i acc = _mm_setzero_si128();
     // we expect length = 128
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wstrict-overflow"
     for (; string + 3 < endstring; randomsource += 2, string += 4) {
+    #pragma GCC diagnostic pop
         const __m128i temp1 = _mm_load_si128( randomsource);
         const __m128i temp2 = _mm_lddqu_si128((__m128i *) string);
         const __m128i add1 = _mm_xor_si128(temp1, temp2);

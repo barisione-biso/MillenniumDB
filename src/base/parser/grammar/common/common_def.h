@@ -92,7 +92,7 @@ namespace common {
             property,
             var_name,
             node_name
-        );
+        )
     }
 }
 
