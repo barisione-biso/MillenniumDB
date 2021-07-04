@@ -12,6 +12,7 @@
 #include "storage/file_manager.h"
 #include "storage/index/record.h"
 
+template class OrderedFile<1>;
 template class OrderedFile<2>;
 template class OrderedFile<3>;
 template class OrderedFile<4>;
@@ -211,9 +212,9 @@ void OrderedFile<N>::order(const std::array<uint_fast8_t, N>& column_order) noex
                     auto output_file_page = make_unique<OrderedFilePage<N>>(buffer_manager.get_page(*helper_file_id, current_output_page));
                     output_file_page->clear();
 
-                    std::unique_ptr<OrderedFilePage<N>> merge_buffer[max_runs];
-                    uint_fast32_t buffer_current_pos[max_runs];
-                    uint_fast32_t buffer_current_page[max_runs];
+                    auto merge_buffer = new std::unique_ptr<OrderedFilePage<N>>[max_runs];
+                    uint_fast32_t* buffer_current_pos  = new uint_fast32_t[max_runs];
+                    uint_fast32_t* buffer_current_page = new uint_fast32_t[max_runs];
 
                     for (auto p = start_page; p <= end_page; p += run_length*max_runs) {
                         uint_fast32_t runs =   (p + (run_length*max_runs) <= end_page)
@@ -271,6 +272,9 @@ void OrderedFile<N>::order(const std::array<uint_fast8_t, N>& column_order) noex
 
                         }
                     }
+                    delete[](merge_buffer);
+                    delete[](buffer_current_pos);
+                    delete[](buffer_current_page);
                 }
             ) );
             start_page = end_page + 1;

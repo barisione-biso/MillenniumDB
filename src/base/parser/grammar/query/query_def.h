@@ -111,8 +111,8 @@ namespace query {
             property_path_atom % "/";
 
         auto const property_path_def =
-            "=["  >> property_path_alternatives >> "]=>" >> attr(ast::EdgeDirection::right) |
-            "<=[" >> property_path_alternatives >> "]="  >> attr(ast::EdgeDirection::left);
+            "=["  >> -var >> property_path_alternatives >> "]=>" >> attr(ast::EdgeDirection::right) |
+            "<=[" >> -var >> property_path_alternatives >> "]="  >> attr(ast::EdgeDirection::left);
 
         auto const property_path_bound_suffix_def =
             "{" >> uint32 >> "," >> uint32 >> "}";
@@ -243,7 +243,7 @@ namespace query {
             order,
             ordered_select_item,
             ordered_select_items
-        );
+        )
     }
 
     parser::query_type query() {

@@ -1,0 +1,3 @@
+SELECT ?x, ?y, ?z
+MATCH (?x)-[:ta]->(?y)-[:t70b]->(?z)
+LIMIT 10000000

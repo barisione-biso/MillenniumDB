@@ -1,0 +1,3 @@
+SELECT ?x, ?y, ?z
+MATCH (?x)-[:tra]->(?y)-[:tr30b]->(?z)
+LIMIT 10000000

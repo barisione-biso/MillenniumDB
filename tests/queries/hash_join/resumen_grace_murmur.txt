@@ -1,0 +1,9 @@
+tests/queries/hash_join/query_1,0.009899766666666665,0
+tests/queries/hash_join/query_2,0.008256033333333334,0
+tests/queries/hash_join/query_3,0.007718433333333333,0
+tests/queries/hash_join/query_4,0.008341733333333332,1
+tests/queries/hash_join/query_5,0.6151365333333333,100
+tests/queries/hash_join/query_6,5.108167633333333,10000000
+tests/queries/hash_join/query_7,4.7272408666666665,10000000
+tests/queries/hash_join/query_8,0.028571799999999998,21720
+tests/queries/hash_join/query_triangle,0.012310633333333333,0

@@ -8,7 +8,7 @@ DistinctHash::DistinctHash(unique_ptr<BindingIter> _child_iter, std::vector<VarI
     child_iter       (move(_child_iter)),
     child_binding    (child_iter->get_binding()),
     projected_vars   (projected_vars),
-    extendable_table (ExtendableTable<GraphObject>(projected_vars.size()))
+    extendable_table (DistinctBindingHash<GraphObject>(projected_vars.size()))
     { }
 
 

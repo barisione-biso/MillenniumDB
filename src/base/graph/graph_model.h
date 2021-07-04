@@ -39,6 +39,8 @@ public:
     static constexpr uint64_t VALUE_FLOAT_MASK           = 0x0A'00000000000000UL;
     static constexpr uint64_t VALUE_BOOL_MASK            = 0x0B'00000000000000UL;
 
+    static constexpr uint64_t VALUE_PATH_MASK            = 0x0C'00000000000000UL;
+
     virtual ~GraphModel() = default;
 
     virtual std::unique_ptr<BindingIter> exec(OpSelect&) = 0;

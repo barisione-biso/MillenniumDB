@@ -40,10 +40,17 @@ public:
     void visit(OpOrderBy&) override;
     void visit(OpGroupBy&) override;
     void visit(OpOptional&) override;
-    void visit(OpTransitiveClosure&) override;
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
     void visit(OpDistinct&) override;
+
+    void visit(OpPropertyPath&) override;
+    void visit(OpPath&) override;
+    void visit(OpPathAtom&) override;
+    void visit(OpPathAlternatives&) override;
+    void visit(OpPathSequence&) override;
+    void visit(OpPathKleeneStar&) override;
+    void visit(OpPathOptional&) override;
 };
 
 #endif // BASE__OPTIMIZE_TREE_H_

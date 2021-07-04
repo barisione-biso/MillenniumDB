@@ -43,5 +43,6 @@ void Union::analyze(int indent) const {
     cout << "Union:\n";
     for (const auto& iter : iters) {
         iter->analyze(indent + 2);
+        cout << "\n";
     }
 }

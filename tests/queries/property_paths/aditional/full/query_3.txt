@@ -1,0 +1,7 @@
+
+// - All humans:
+
+SELECT ?creature
+MATCH (?creature)=[:P31 / :P279*]=>(Q5)
+
+// (crashes, but works with some limits)

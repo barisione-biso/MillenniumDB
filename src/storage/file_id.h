@@ -26,4 +26,28 @@ public:
     }
 };
 
+
+class TmpFileId {
+public:
+    static constexpr uint_fast32_t UNASSIGNED = UINT32_MAX;
+
+    uint_fast32_t private_buffer_pos;
+    FileId file_id;
+
+    TmpFileId(uint_fast32_t private_buffer_pos, FileId file_id):
+        private_buffer_pos(private_buffer_pos),
+        file_id(file_id)
+        {}
+
+    bool operator<(const TmpFileId other) const {
+        // file_id works like a key so it shouldn't be necessary to compare private_buffer_pos
+        return this->file_id < other.file_id;
+    }
+
+    bool operator==(const TmpFileId other) const {
+        // file_id works like a key so it shouldn't be necessary to compare private_buffer_pos
+        return this->file_id == other.file_id;
+    }
+};
+
 #endif // STORAGE__FILE_ID_H_

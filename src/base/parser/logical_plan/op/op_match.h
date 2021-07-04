@@ -3,9 +3,6 @@
 
 #include <iostream>
 #include <set>
-#include <map>
-#include <memory>
-#include <utility>
 #include <vector>
 
 #include "base/ids/node_id.h"
@@ -13,24 +10,26 @@
 #include "base/parser/logical_plan/op/op_connection.h"
 #include "base/parser/logical_plan/op/op_label.h"
 #include "base/parser/logical_plan/op/op_property.h"
-#include "base/parser/logical_plan/op/op_transitive_closure.h"
+#include "base/parser/logical_plan/op/op_property_path.h"
+
 #include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/op.h" // TODO: try to delete
+#include "base/parser/logical_plan/op/property_paths/path_constructor.h"
 
 class OpMatch : public Op {
 public:
-    std::set<OpLabel>             labels;
-    std::set<OpProperty>          properties;
-    std::set<OpConnection>        connections;
-    std::set<OpTransitiveClosure> property_paths; // TODO: for now only supporting transitive closure
-    std::set<OpUnjointObject>     unjoint_objects;
+    std::set<OpLabel>          labels;
+    std::set<OpProperty>       properties;
+    std::set<OpConnection>     connections;
+    std::set<OpPropertyPath>   property_paths;
+    std::set<OpUnjointObject>  unjoint_objects;
 
-    std::set<std::string> var_names; // only contains declared variables
+    std::set<std::string> var_names; // contains declared variables and anonymous (auto-generated in the constructor)
 
-    uint_fast32_t* anon_count;
+    uint_fast32_t *anon_count;
 
-    OpMatch(const std::vector<query::ast::LinearPattern>& graph_pattern, uint_fast32_t* anon_count) :
-        anon_count (anon_count)
+    OpMatch(const std::vector<query::ast::LinearPattern>& graph_pattern, uint_fast32_t *anon_count) :
+        anon_count(anon_count)
     {
         std::vector<boost::variant<std::string, bool, int64_t, float>> pending_unjoint_objects;
         for (auto& linear_pattern : graph_pattern) {
@@ -58,10 +57,30 @@ public:
                                 ? OpConnection(last_node_id, current_node_id, edge_name, std::move(types))
                                 : OpConnection(current_node_id, last_node_id, edge_name, std::move(types)));
                     } else {
-                        // PROPERTY PATH
-                        // TODO:
+                        auto property_path = boost::get<query::ast::PropertyPath>(linear_pattern_step.path);
+
+                        std::string path_var_name;
+                        if (property_path.var.empty()) {
+                            // anonymous variable
+                            path_var_name = "?_p" + std::to_string((*anon_count)++);
+                        } else {
+                            path_var_name = property_path.var;
+                        }
+                        var_names.insert(path_var_name);
+
+                        PathConstructor path_constructor;
+                        property_paths.insert(
+                            property_path.direction == query::ast::EdgeDirection::right
+                                ? OpPropertyPath(path_var_name,
+                                                 last_node_id.to_string(),
+                                                 current_node_id.to_string(),
+                                                 path_constructor(property_path.path_alternatives))
+                                : OpPropertyPath(path_var_name,
+                                                 current_node_id.to_string(),
+                                                 last_node_id.to_string(),
+                                                 path_constructor(property_path.path_alternatives))
+                        );
                     }
-                    last_node_id = current_node_id;
                 }
             }
         }
@@ -133,7 +152,8 @@ public:
                     throw QuerySemanticException(node_id.to_string() + "." + property.key
                                                  + " its declared with different values");
                 }
-            } else {
+            }
+            else {
                 properties.insert(new_property);
             }
         }
@@ -152,7 +172,7 @@ public:
         }
         var_names.insert(edge_name);
 
-        for (const auto& type : edge.types) {
+        for (const auto &type : edge.types) {
             if (type[0] == '?') {
                 var_names.insert(type);
             }
@@ -186,16 +206,16 @@ public:
         os << std::string(indent, ' ');
         os << "OpMatch()\n";
 
-        for (auto& label : labels) {
+        for (auto &label : labels) {
             label.print_to_ostream(os, indent + 2);
         }
-        for (auto& property : properties) {
+        for (auto &property : properties) {
             property.print_to_ostream(os, indent + 2);
         }
-        for (auto& connection : connections) {
+        for (auto &connection : connections) {
             connection.print_to_ostream(os, indent + 2);
         }
-        for (auto& property_path : property_paths) {
+        for (auto &property_path : property_paths) {
             property_path.print_to_ostream(os, indent + 2);
         }
         for (auto& unjoint_object : unjoint_objects) {
@@ -205,7 +225,7 @@ public:
     }
 
 
-    void accept_visitor(OpVisitor& visitor) override {
+    void accept_visitor(OpVisitor &visitor) override {
         visitor.visit(*this);
     }
 

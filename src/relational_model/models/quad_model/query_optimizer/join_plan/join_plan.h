@@ -25,7 +25,9 @@ public:
     virtual double estimate_output_size() = 0;
 
     bool cartesian_product_needed(JoinPlan& other) {
-        return (get_vars() & other.get_vars()) == 0;
+        return (get_vars() & other.get_vars()) == 0; // TODO: cuando hay optionals esto funciona raro
+                                                     // Ej: ?x :P1 ?y OPT { ?x :P2 ?a, ?x :P3 ?b }
+                                                     // dentro del optional hay un producto cruz pero esta funcion no lo detecta
     }
 
     bool cartesian_product_needed(const uint64_t input_vars) {

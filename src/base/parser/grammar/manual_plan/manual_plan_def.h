@@ -54,7 +54,7 @@ namespace manual_plan {
             node_label,
             object_property,
             typed_connection
-        );
+        )
     }
 
     parser::manual_plan_type query() {

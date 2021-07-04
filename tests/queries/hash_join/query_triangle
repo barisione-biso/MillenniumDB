@@ -1,0 +1,3 @@
+// do this query with triangle db
+SELECT ?x, ?y, ?z
+MATCH (?x)-[:R]->(?y)-[:S]->(?z)-[:T]->(?x)

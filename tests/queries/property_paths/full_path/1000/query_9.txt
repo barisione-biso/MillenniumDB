@@ -1,0 +1,6 @@
+// (All the people who were borned in France -- runs with limit 10 on the server)
+
+SELECT *
+MATCH (?p)=[:P19 / :P131+]=>(Q142)
+
+LIMIT 1000

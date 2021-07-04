@@ -11,9 +11,11 @@
 
 using namespace std;
 
+template class IndexScan<1>;
 template class IndexScan<2>;
 template class IndexScan<3>;
 template class IndexScan<4>;
+template class std::unique_ptr<IndexScan<1>>;
 template class std::unique_ptr<IndexScan<2>>;
 template class std::unique_ptr<IndexScan<3>>;
 template class std::unique_ptr<IndexScan<4>>;

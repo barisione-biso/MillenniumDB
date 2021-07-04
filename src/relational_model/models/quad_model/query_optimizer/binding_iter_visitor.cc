@@ -2,18 +2,17 @@
 
 #include <iostream>
 
+#include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
-#include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/logical_plan/op/op_unjoint_object.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
-#include "base/parser/logical_plan/op/op_distinct.h"
 #include "relational_model/execution/binding_id_iter/distinct_id_hash.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
+#include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 #include "relational_model/execution/binding_iter/match.h"
 #include "relational_model/execution/binding_iter/order_by.h"
 #include "relational_model/execution/binding_iter/select.h"
@@ -21,6 +20,7 @@
 #include "relational_model/execution/binding_iter/distinct_ordered.h"
 #include "relational_model/execution/binding_iter/distinct_hash.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_id_iter_visitor.h"
+
 
 using namespace std;
 
@@ -105,7 +105,10 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
 
     unique_ptr<BindingIdIter> binding_id_iter_current_root = move(id_visitor.tmp);
 
-    auto binding_size = var_name2var_id.size();
+    const auto binding_size = var_name2var_id.size();
+
+    // TODO: Pass materialize = true or false in correct case
+    path_manager.begin(binding_size, false);
 
     vector<unique_ptr<BindingIdIter>> optional_children;
 
@@ -182,14 +185,14 @@ VarId BindingIterVisitor::get_var_id(const std::string& var) {
 
 
 void BindingIterVisitor::visit(OpDistinct& op_distinct) {
-    bool ordered = false; // TODO: a futuro se podria saber si viene o no ordenado con algo como bool op->is_ordered(); 
+    bool ordered = false; // TODO: in the future we want to know if op_distinct is already ordered 
     if (ordered) {
         op_distinct.op->accept_visitor(*this);
-        auto binding_size = var_name2var_id.size();
-        // TODO: si vienen ordenados a futuro no es necesario llamar a OrderBy
+        // auto binding_size = var_name2var_id.size();
         std::vector<VarId> projected_var_ids;
-        std::vector<std::pair<std::string, VarId>> order_vars;
-        std::vector<bool> ascending_order(binding_size);
+        // need to discomment this lines if want to test with OrderBy
+        // std::vector<std::pair<std::string, VarId>> order_vars;
+        // std::vector<bool> ascending_order(binding_size);
         for (const auto& order_item : select_items) {
             string var_name = order_item.var;
             if (order_item.key) {
@@ -197,11 +200,11 @@ void BindingIterVisitor::visit(OpDistinct& op_distinct) {
                 var_name += order_item.key.get();
             }
             auto var_id = get_var_id(var_name);
-            order_vars.push_back(make_pair(var_name, var_id));
+            // order_vars.push_back(make_pair(var_name, var_id));
             projected_var_ids.push_back(var_id);
         }
 
-        tmp = make_unique<OrderBy>(model, move(tmp), binding_size, order_vars, ascending_order);
+        //tmp = make_unique<OrderBy>(model, move(tmp), binding_size, order_vars, ascending_order);
         tmp = make_unique<DistinctOrdered>(model, move(tmp), projected_var_ids);
     } else {
         distinct_into_id = true;  // OpFilter may change this value when accepting visitor
@@ -226,7 +229,14 @@ void BindingIterVisitor::visit(OpDistinct& op_distinct) {
 void BindingIterVisitor::visit(OpMatch&) { }
 void BindingIterVisitor::visit(OpOptional&) { }
 void BindingIterVisitor::visit(OpConnection&) { }
-void BindingIterVisitor::visit(OpTransitiveClosure&) { }
 void BindingIterVisitor::visit(OpUnjointObject&) { }
 void BindingIterVisitor::visit(OpLabel&) { }
 void BindingIterVisitor::visit(OpProperty&) { }
+
+void BindingIterVisitor::visit(OpPath&)              { }
+void BindingIterVisitor::visit(OpPathAlternatives&)  { }
+void BindingIterVisitor::visit(OpPathSequence&)      { }
+void BindingIterVisitor::visit(OpPathAtom&)          { }
+void BindingIterVisitor::visit(OpPropertyPath&)      { }
+void BindingIterVisitor::visit(OpPathKleeneStar&)     { }
+void BindingIterVisitor::visit(OpPathOptional&)       { }

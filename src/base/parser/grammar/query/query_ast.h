@@ -72,6 +72,7 @@ namespace query { namespace ast {
     };
 
     struct PropertyPath {
+        std::string var; // may be a variable or an empty string
         EdgeDirection direction;
         PropertyPathAlternatives path_alternatives;
     };

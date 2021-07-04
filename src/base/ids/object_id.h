@@ -28,6 +28,9 @@ public:
     inline bool operator==(const ObjectId& rhs) const noexcept { return id == rhs.id; }
     inline bool operator!=(const ObjectId& rhs) const noexcept { return id != rhs.id; }
     inline bool operator<(const ObjectId& rhs)  const noexcept { return id <  rhs.id; }
+    inline bool operator>(const ObjectId& rhs)  const noexcept { return id >  rhs.id; }
+    inline bool operator<=(const ObjectId& rhs) const noexcept { return id <= rhs.id; }
+    inline bool operator>=(const ObjectId& rhs) const noexcept { return id >= rhs.id; }
 };
 
 static_assert(std::is_trivially_copyable<ObjectId>::value);

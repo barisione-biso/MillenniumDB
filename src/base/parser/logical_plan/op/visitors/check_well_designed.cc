@@ -11,6 +11,13 @@
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/op_path.h"
+#include "base/parser/logical_plan/op/op_path_alternatives.h"
+#include "base/parser/logical_plan/op/op_path_atom.h"
+#include "base/parser/logical_plan/op/op_path_sequence.h"
+#include "base/parser/logical_plan/op/op_path_kleene_star.h"
+#include "base/parser/logical_plan/op/op_path_optional.h"
+
 
 
 using namespace std;
@@ -77,8 +84,15 @@ void CheckWellDesigned::visit(OpDistinct& op_distinct) {
 }
 
 
-void CheckWellDesigned::visit(OpTransitiveClosure&) { }
 void CheckWellDesigned::visit(OpConnection&)        { }
 void CheckWellDesigned::visit(OpLabel&)             { }
 void CheckWellDesigned::visit(OpProperty&)          { }
 void CheckWellDesigned::visit(OpUnjointObject&)     { }
+
+void CheckWellDesigned::visit(OpPropertyPath&)      { }
+void CheckWellDesigned::visit(OpPath&)              { }
+void CheckWellDesigned::visit(OpPathAlternatives&)  { }
+void CheckWellDesigned::visit(OpPathSequence&)      { }
+void CheckWellDesigned::visit(OpPathAtom&)          { }
+void CheckWellDesigned::visit(OpPathKleeneStar&)     { }
+void CheckWellDesigned::visit(OpPathOptional&)       { }
