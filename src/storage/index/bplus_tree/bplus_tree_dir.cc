@@ -335,7 +335,7 @@ void BPlusTreeDir<N>::shift_right_children(int from, int to) {
 
 
 template <std::size_t N>
-SearchLeafResult BPlusTreeDir<N>::search_leaf(const Record<N>& min) const noexcept {
+SearchLeafResult<N> BPlusTreeDir<N>::search_leaf(const Record<N>& min) const noexcept {
     int dir_index = search_child_index(0, *key_count, min);
     int page_pointer = children[dir_index];
 
@@ -346,8 +346,31 @@ SearchLeafResult BPlusTreeDir<N>::search_leaf(const Record<N>& min) const noexce
     }
     else { // positive number: pointer to leaf
         auto& child_page = buffer_manager.get_page(leaf_file_id, page_pointer);
-        auto child =  BPlusTreeLeaf<N>(child_page);
-        return child.search_leaf(min);
+        auto child = make_unique<BPlusTreeLeaf<N>>(child_page);
+        auto index = child->search_index(min);
+        return SearchLeafResult(move(child), index);
+    }
+}
+
+
+template <std::size_t N>
+SearchLeafResult<N> BPlusTreeDir<N>::search_leaf(stack< unique_ptr<BPlusTreeDir<N>> >& stack,
+                                                 const Record<N>& min) const noexcept
+{
+    int dir_index = search_child_index(0, *key_count, min);
+    int page_pointer = children[dir_index];
+
+    if (page_pointer < 0) { // negative number: pointer to dir
+        auto& child_page = buffer_manager.get_page(dir_file_id, page_pointer*-1);
+        auto child = make_unique<BPlusTreeDir<N>>(leaf_file_id, child_page);
+        stack.push( std::move(child) );
+        return stack.top()->search_leaf(stack, min);
+    }
+    else { // positive number: pointer to leaf
+        auto& child_page = buffer_manager.get_page(leaf_file_id, page_pointer);
+        auto child = make_unique<BPlusTreeLeaf<N>>(child_page);
+        auto index = child->search_index(min);
+        return SearchLeafResult(move(child), index);
     }
 }
 
@@ -374,6 +397,22 @@ search_child_index_begin:
     }
     dir_from = middle_record+1;
     goto search_child_index_begin;
+}
+
+
+template <std::size_t N>
+bool BPlusTreeDir<N>::check_range(const Record<N>& r) const {
+    if (*key_count == 0) {
+        return false;
+    }
+    std::array<uint64_t, N> min;
+    std::array<uint64_t, N> max;
+    for (uint_fast32_t i = 0; i < N; i++) {
+        min[i] = keys[0*N + i];
+        max[i] = keys[(*key_count-1)*N + i];
+    }
+
+    return min <= r.ids && r.ids <= max;
 }
 
 

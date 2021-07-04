@@ -372,3 +372,206 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(std::size_t bindin
         }
     }
 }
+
+
+unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(const std::set<VarId>& assigned_vars,
+                                                           const vector<VarId>&   var_order,
+                                                           uint_fast32_t          enumeration_level)
+{
+    // TODO: support special cases like to == type?
+    vector<unique_ptr<ScanRange>> initial_ranges;
+    vector<VarId> intersection_vars;
+    vector<VarId> enumeration_vars;
+
+    // index = INT32_MAX means enumeration, index = -1 means term or assigned_var
+    int_fast32_t from_index, to_index, type_index, edge_index;
+
+    auto assign_index = [&assigned_vars] (int_fast32_t& index, Id& id) -> void {
+        if (std::holds_alternative<ObjectId>(id)) {
+            index = -1;
+        } else {
+            if (assigned_vars.find(std::get<VarId>(id)) == assigned_vars.end()) {
+                index = INT32_MAX;
+            } else {
+                index = -1;
+            }
+        }
+    };
+
+    assign_index(from_index, from);
+    assign_index(to_index,   to);
+    assign_index(type_index, type);
+
+    // Assign edge_index
+    if (assigned_vars.find(edge) == assigned_vars.end()) {
+        edge_index = INT32_MAX;
+    } else {
+        edge_index = -1;
+    }
+
+    // search for vars marked as enumeraion (INT32_MAX) that are intersection
+    // and assign them the correct index
+    for (size_t i = 0; i < enumeration_level; i++) {
+        if (from_index == INT32_MAX && std::get<VarId>(from) == var_order[i]) {
+            from_index = i;
+        }
+        if (to_index   == INT32_MAX && std::get<VarId>(to)   == var_order[i]) {
+            to_index = i;
+        }
+        if (type_index == INT32_MAX && std::get<VarId>(type) == var_order[i]) {
+            type_index = i;
+        }
+        if (edge_index == INT32_MAX && edge == var_order[i]) {
+            edge_index = i;
+        }
+    }
+
+    auto assign = [&initial_ranges, &enumeration_vars, &intersection_vars]
+                  (int_fast32_t& index, Id id)
+                  -> void
+    {
+        if (index == -1) {
+            initial_ranges.push_back(ScanRange::get(id, true));
+        } else if (index == INT32_MAX) {
+            enumeration_vars.push_back(std::get<VarId>(id));
+        } else {
+            intersection_vars.push_back(std::get<VarId>(id));
+        }
+    };
+
+    auto assign_edge = [&initial_ranges, &enumeration_vars, &intersection_vars, &edge_index](VarId edge) -> void {
+        if (edge_index == -1) {
+            initial_ranges.push_back(ScanRange::get(edge, true));
+        } else if (edge_index == INT32_MAX) {
+            enumeration_vars.push_back(edge);
+        } else {
+            intersection_vars.push_back(edge);
+        }
+    };
+
+    auto get_leapfrog_iter = [&initial_ranges, &enumeration_vars, &intersection_vars]
+                             (BPlusTree<4>& bpt)
+                             -> unique_ptr<LeapfrogIter>
+    {
+        return make_unique<LeapfrogBptIter<4>>(
+            bpt,
+            move(initial_ranges),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    };
+
+    // cout << "assigned vars: ";
+    // for (auto var : assigned_vars) {
+    //     cout << var.id << " ";
+    // }
+
+    // cout << "\nedge index: " << edge_index << "\n";
+
+    // if edge_index == -1 we can use the table
+    if (edge_index == -1) {
+        assign_edge(edge);
+        std::array<uint_fast32_t, 3> permutation;
+
+        // Using the corresponding indexes from the edge table
+        const uint_fast32_t FROM = 0;
+        const uint_fast32_t TO   = 1;
+        const uint_fast32_t TYPE = 2;
+
+        // from to type
+        if (from_index <= to_index && to_index <= type_index) {
+            assign(from_index, from);
+            assign(to_index,   to);
+            assign(type_index, type);
+            permutation = {FROM,TO,TYPE};
+        }
+        // from type to
+        else if (from_index <= type_index && type_index <= to_index) {
+            assign(from_index, from);
+            assign(type_index, type);
+            assign(to_index,   to);
+            permutation = {FROM,TYPE,TO};
+        }
+
+        // to from type
+        else if (to_index <= from_index && from_index <= type_index) {
+            assign(to_index,   to);
+            assign(from_index, from);
+            assign(type_index, type);
+            permutation = {TO,FROM,TYPE};
+        }
+
+        // to type from
+        else if (to_index <= type_index && type_index <= from_index) {
+            assign(to_index,   to);
+            assign(type_index, type);
+            assign(from_index, from);
+            permutation = {TO,TYPE,FROM};
+        }
+
+        // type from to
+        else if (type_index <= from_index && from_index <= to_index) {
+            assign(type_index, type);
+            assign(from_index, from);
+            assign(to_index,   to);
+            permutation = {TYPE,FROM,TO};
+        }
+
+        // type to from
+        else /*if (type_index <= to_index && to_index <= from_index)*/ {
+            assign(type_index, type);
+            assign(to_index,   to);
+            assign(from_index, from);
+            permutation = {TYPE,TO,FROM};
+        }
+
+        return make_unique<LeapfrogEdgeTableIter>(
+            *model.edge_table,
+            move(initial_ranges),
+            move(intersection_vars),
+            move(enumeration_vars),
+            move(permutation)
+        );
+    }
+
+    // from_to_type_edge
+    if (from_index <= to_index && to_index <= type_index && type_index <= edge_index) {
+        assign(from_index, from);
+        assign(to_index,   to);
+        assign(type_index, type);
+        assign_edge(edge);
+        return get_leapfrog_iter(*model.from_to_type_edge);
+    }
+    // to_type_from_edge
+    else if (to_index <= type_index && type_index <= from_index && from_index <= edge_index) {
+        assign(to_index,   to);
+        assign(type_index, type);
+        assign(from_index, from);
+        assign_edge(edge);
+        return get_leapfrog_iter(*model.to_type_from_edge);
+    }
+    // type_from_to_edge
+    else if (type_index <= from_index && from_index <= to_index && to_index <= edge_index) {
+        assign(type_index, type);
+        assign(from_index, from);
+        assign(to_index,   to);
+        assign_edge(edge);
+        return get_leapfrog_iter(*model.type_from_to_edge);
+    }
+    // type_to_from_edge
+    else if (type_index <= to_index && to_index <= from_index && from_index <= edge_index) {
+        assign(type_index, type);
+        assign(to_index,   to);
+        assign(from_index, from);
+        assign_edge(edge);
+        return get_leapfrog_iter(*model.type_to_from_edge);
+    } else {
+        cout << "no order for leapfrog\n"
+             << "from: " << from_index
+             << ", to: " << to_index
+             << ", type: " << type_index
+             << ", edge: " << edge_index
+             << "\n";
+        return nullptr;
+    }
+}

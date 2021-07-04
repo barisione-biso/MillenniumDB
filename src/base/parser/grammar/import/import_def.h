@@ -2,6 +2,7 @@
 #define BASE__IMPORT_DEF_H_
 
 #include <boost/spirit/home/x3.hpp>
+#include <iostream>
 
 #include "import_ast.h"
 #include "import_ast_adapted.h"
@@ -24,6 +25,7 @@ namespace import {
         x3::rule<class edge, ast::Edge> edge = "edge";
         x3::rule<class implicit_edge, ast::ImplicitEdge> implicit_edge = "implicit_edge";
         x3::rule<class import_line, ast::ImportLine> import_line = "import_line";
+        x3::rule<class nesting_level_counter, std::size_t> nesting_level_counter = "nesting_level_counter";
 
         // Grammar
         auto const end = (eol|eoi);
@@ -48,8 +50,13 @@ namespace import {
             >> *property
             >> end;
 
+        auto string_size_f = [](auto& ctx){ _val(ctx) = _attr(ctx).size(); };
+
+        auto const nesting_level_counter_def =
+            lexeme[+char_("@")][string_size_f];
+
         auto const implicit_edge_def =
-            lexeme[+char_('@')]
+            nesting_level_counter
             >> edge_dir
             >> node_name
             >> *label
@@ -63,7 +70,8 @@ namespace import {
             node,
             edge,
             implicit_edge,
-            import_line
+            import_line,
+            nesting_level_counter
         )
     }
 

@@ -43,6 +43,7 @@ QuadModel::QuadModel(const std::string& db_folder, const int buffer_pool_size) {
     from_to_type_edge = make_unique<BPlusTree<4>>("from_to_type_edge");
     to_type_from_edge = make_unique<BPlusTree<4>>("to_type_from_edge");
     type_from_to_edge = make_unique<BPlusTree<4>>("type_from_to_edge");
+    type_to_from_edge = make_unique<BPlusTree<4>>("type_to_from_edge");
 
     equal_from_to      = make_unique<BPlusTree<3>>("equal_from_to");
     equal_from_type    = make_unique<BPlusTree<3>>("equal_from_type");
@@ -73,6 +74,7 @@ QuadModel::~QuadModel() {
     from_to_type_edge.reset();
     to_type_from_edge.reset();
     type_from_to_edge.reset();
+    type_to_from_edge.reset();
 
     equal_from_to.reset();
     equal_from_type.reset();

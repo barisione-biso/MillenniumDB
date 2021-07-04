@@ -42,57 +42,36 @@ bool EdgeTableLookup::next() {
 
         auto record = table[edge_id - 1]; // first edge has the id 1, and its inserted at pos 0 in the table
 
-        // if mask was and edge this should not be nullptr
+        // if mask was an edge this should not be nullptr
         assert(record != nullptr);
 
+        auto check_id = [] (BindingId& binding, Id id, ObjectId obj_id) -> bool {
+            if (std::holds_alternative<VarId>(id)) {
+                auto binding_value = binding[std::get<VarId>(id)];
+                if (!binding_value.is_null() && binding_value != obj_id) {
+                    return false;
+                } else {
+                    binding.add(std::get<VarId>(id), obj_id);
+                }
+            } else { // std::holds_alternative<ObjectId>(id)
+                auto value = std::get<ObjectId>(id);
+                if (!value.is_null() && value != obj_id) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
         // check if assignated variables (not null) have the same value
-        if (std::holds_alternative<VarId>(from)) {
-            auto from_value = (*parent_binding)[std::get<VarId>(from)];
-            if (!from_value.is_null() && from_value.id != record->ids[0]) {
-                return false;
-            } else {
-                parent_binding->add(std::get<VarId>(from), ObjectId(record->ids[0]));
-            }
-        } else { // std::holds_alternative<ObjectId>(from)
-            auto from_value = std::get<ObjectId>(from);
-            if (!from_value.is_null() && from_value.id != record->ids[0]) {
-                return false;
-            } else {
-                parent_binding->add(std::get<VarId>(from), ObjectId(record->ids[0]));
-            }
+        if (   check_id(*parent_binding, from, ObjectId(record->ids[0]))
+            && check_id(*parent_binding, to,   ObjectId(record->ids[1]))
+            && check_id(*parent_binding, type, ObjectId(record->ids[2])))
+        {
+            ++results;
+            return true;
+        } else {
+            return false;
         }
-        if (std::holds_alternative<VarId>(to)) {
-            auto to_value = (*parent_binding)[std::get<VarId>(to)];
-            if (!to_value.is_null() && to_value.id != record->ids[1]) {
-                return false;
-            } else {
-                parent_binding->add(std::get<VarId>(to), ObjectId(record->ids[1]));
-            }
-        } else { // std::holds_alternative<ObjectId>(to)
-            auto to_value = std::get<ObjectId>(to);
-            if (!to_value.is_null() && to_value.id != record->ids[1]) {
-                return false;
-            } else {
-                parent_binding->add(std::get<VarId>(to), ObjectId(record->ids[1]));
-            }
-        }
-        if (std::holds_alternative<VarId>(type)) {
-            auto type_value = (*parent_binding)[std::get<VarId>(type)];
-            if (!type_value.is_null() && type_value.id != record->ids[2]) {
-                return false;
-            } else {
-                parent_binding->add(std::get<VarId>(type), ObjectId(record->ids[2]));
-            }
-        } else { // std::holds_alternative<ObjectId>(type)
-            auto type_value = std::get<ObjectId>(type);
-            if (!type_value.is_null() && type_value.id != record->ids[2]) {
-                return false;
-            } else {
-                parent_binding->add(std::get<VarId>(type), ObjectId(record->ids[2]));
-            }
-        }
-        ++results;
-        return true;
     }
 }
 

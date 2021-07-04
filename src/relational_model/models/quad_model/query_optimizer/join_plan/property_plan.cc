@@ -190,3 +190,108 @@ unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter(std::size_t binding_
         return make_unique<IndexScan<3>>(binding_size, *model.key_value_object, move(ranges));
     }
 }
+
+
+unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const std::set<VarId>& assigned_vars,
+                                                         const vector<VarId>&   var_order,
+                                                         uint_fast32_t          enumeration_level)
+{
+    vector<unique_ptr<ScanRange>> initial_ranges;
+    vector<VarId> intersection_vars;
+    vector<VarId> enumeration_vars;
+
+    // index = INT32_MAX means enumeration, index = -1 means term
+    int_fast32_t obj_index, key_index, value_index;
+
+    // Assign obj_index
+    if (std::holds_alternative<ObjectId>(object)) {
+        obj_index = -1;
+    } else {
+        auto search = assigned_vars.find(std::get<VarId>(object));
+        if (search == assigned_vars.end()) {
+            obj_index = INT32_MAX;
+        } else {
+            obj_index = -1;
+        }
+    }
+
+    // Assign key_index
+    if (std::holds_alternative<ObjectId>(key)) {
+        key_index = -1;
+    } else {
+        auto search = assigned_vars.find(std::get<VarId>(key));
+        if (search == assigned_vars.end()) {
+            key_index = INT32_MAX;
+        } else {
+            key_index = -1;
+        }
+    }
+
+    // Assign value_index
+    if (std::holds_alternative<ObjectId>(value)) {
+        value_index = -1;
+    } else {
+        auto search = assigned_vars.find(std::get<VarId>(value));
+        if (search == assigned_vars.end()) {
+            value_index = INT32_MAX;
+        } else {
+            value_index = -1;
+        }
+    }
+
+    // search for vars marked as enumeraion (INT32_MAX) that are intersection
+    // and assign them the correct index
+    for (size_t i = 0; i < enumeration_level; i++) {
+        if (obj_index == INT32_MAX && std::get<VarId>(object) == var_order[i]) {
+            obj_index = i;
+        }
+        if (key_index == INT32_MAX && std::get<VarId>(key) == var_order[i]) {
+            key_index = i;
+        }
+        if (value_index == INT32_MAX && std::get<VarId>(value) == var_order[i]) {
+            value_index = i;
+        }
+    }
+
+    auto assign = [&initial_ranges, &enumeration_vars, &intersection_vars]
+                  (int_fast32_t& index, Id id)
+                  -> void
+    {
+        if (index == -1) {
+            initial_ranges.push_back(ScanRange::get(id, true));
+        } else if (index == INT32_MAX) {
+            enumeration_vars.push_back(std::get<VarId>(id));
+        } else {
+            intersection_vars.push_back(std::get<VarId>(id));
+        }
+    };
+
+    // object_key_value
+    if (obj_index <= key_index && key_index <= value_index) {
+        assign(obj_index,   object);
+        assign(key_index,   key);
+        assign(value_index, value);
+
+        return make_unique<LeapfrogBptIter<3>>(
+            *model.object_key_value,
+            move(initial_ranges),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    }
+    // key_value_object
+    else if (key_index <= value_index && value_index <= obj_index) {
+        assign(key_index,   key);
+        assign(value_index, value);
+        assign(obj_index,   object);
+
+        return make_unique<LeapfrogBptIter<3>>(
+            *model.key_value_object,
+            move(initial_ranges),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    } else {
+        return nullptr;
+    }
+}

@@ -44,6 +44,10 @@ public:
         return true;
     }
 
+    inline uint64_t operator[](const uint_fast32_t i) const noexcept {
+        return ids[i];
+    }
+
     // template <std::size_t M>
     // friend std::ostream& operator<< (std::ostream& os, const Record<N>& record);
     // template <std::size_t M>

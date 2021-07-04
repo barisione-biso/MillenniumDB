@@ -15,6 +15,7 @@ BindingGroupBy::BindingGroupBy(GraphModel& model, vector<pair<string, VarId>> _g
 
 
 std::ostream& BindingGroupBy::print_to_ostream(std::ostream& os) const {
+    // TODO:
     return os;
 }
 

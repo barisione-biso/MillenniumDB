@@ -13,12 +13,11 @@ template <std::size_t N> class OrderedFile;
 
 template <std::size_t N> class BptIter {
 public:
-    BptIter(FileId leaf_file_id, int leaf_page_number, int current_pos, const Record<N>& max);
+    BptIter(SearchLeafResult<N>&& leaf_and_pos, const Record<N>& max) noexcept;
     ~BptIter() = default;
     std::unique_ptr<Record<N>> next() noexcept;
 
 private:
-    const FileId leaf_file_id;
     const Record<N> max;
     uint32_t current_pos;
     std::unique_ptr<BPlusTreeLeaf<N>> current_leaf;
@@ -41,15 +40,16 @@ public:
     void insert(const Record<N>& record);
     // std::unique_ptr<Record<N>> get(const Record<N>& record);
 
-    // returns false if BPT has errors
+    // returns false if an error in the BPT is found
     bool check() const;
 
     std::unique_ptr<BptIter<N>> get_range(const Record<N>& min, const Record<N>& max) const noexcept;
+    std::unique_ptr<BPlusTreeDir<N>> get_root() const noexcept;
 
 private:
     // bool is_empty;
     BPlusTreeDir<N> root;
-    void create_new(const Record<N>& record);
+    // void create_new(const Record<N>& record); TODO: dispensable?
 };
 
 #endif // STORAGE__B_PLUS_TREE_H_

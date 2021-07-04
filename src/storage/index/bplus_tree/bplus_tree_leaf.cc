@@ -40,6 +40,12 @@ unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(uint_fast32_t pos) const {
 
 
 template <std::size_t N>
+std::unique_ptr<BPlusTreeLeaf<N>>  BPlusTreeLeaf<N>::duplicate() const {
+    return make_unique<BPlusTreeLeaf<N>>(buffer_manager.get_page(leaf_file_id, page.get_page_number()));
+}
+
+
+template <std::size_t N>
 unique_ptr<BPlusTreeLeaf<N>> BPlusTreeLeaf<N>::get_next_leaf() const {
     Page& new_page = buffer_manager.get_page(leaf_file_id, *next_leaf);
     return make_unique<BPlusTreeLeaf<N>>(new_page);
@@ -48,7 +54,7 @@ unique_ptr<BPlusTreeLeaf<N>> BPlusTreeLeaf<N>::get_next_leaf() const {
 
 template <std::size_t N>
 unique_ptr<BPlusTreeSplit<N>> BPlusTreeLeaf<N>::insert(const Record<N>& record) {
-    uint_fast32_t index = search_index(0, (*value_count)-1, record);
+    uint_fast32_t index = search_index(record);
     if (equal_record(record, index)) {
         for (uint_fast32_t i = 0; i < N; i++) {
             cout << record.ids[i] << " ";
@@ -132,26 +138,22 @@ unique_ptr<BPlusTreeSplit<N>> BPlusTreeLeaf<N>::insert(const Record<N>& record) 
 }
 
 
+// template <std::size_t N>
+// void BPlusTreeLeaf<N>::create_new(const Record<N>& record) {
+//     for (uint_fast32_t i = 0; i < N; i++) {
+//         records[i] = record.ids[i];
+//     }
+//     ++(*value_count);
+//     this->page.make_dirty();
+// }
+
+
+// returns the position of the minimum key greater or equal than the record given.
+// if there is no such key, returns (to + 1)
 template <std::size_t N>
-void BPlusTreeLeaf<N>::create_new(const Record<N>& record) {
-    for (uint_fast32_t i = 0; i < N; i++) {
-        records[i] = record.ids[i];
-    }
-    ++(*value_count);
-    this->page.make_dirty();
-}
-
-
-template <std::size_t N>
-SearchLeafResult BPlusTreeLeaf<N>::search_leaf(const Record<N>& min) const noexcept {
-    auto index = search_index(0, (*value_count)-1, min);
-    return SearchLeafResult(page.get_page_number(), index);
-}
-
-
-// returns the position of the minimum key greater (or equal) than the record given.
-template <std::size_t N>
-uint_fast32_t BPlusTreeLeaf<N>::search_index(int from, int to, const Record<N>& record) const {
+uint_fast32_t BPlusTreeLeaf<N>::search_index(const Record<N>& record) const {
+    int from = 0;
+    int to = (*value_count)-1;
 search_index_begin:
     if (from < to) {
         auto middle = (from + to) / 2;
@@ -201,6 +203,23 @@ bool BPlusTreeLeaf<N>::equal_record(const Record<N>& record, uint_fast32_t index
     }
     return true;
 }
+
+
+template <std::size_t N>
+bool BPlusTreeLeaf<N>::check_range(const Record<N>& r) const {
+    if (*value_count == 0) {
+        return false;
+    }
+    std::array<uint64_t, N> min;
+    std::array<uint64_t, N> max;
+    for (uint_fast32_t i = 0; i < N; i++) {
+        min[i] = records[0*N + i];
+        max[i] = records[(*value_count-1)*N + i];
+    }
+
+    return min <= r.ids && r.ids <= max;
+}
+
 
 template <std::size_t N>
 void BPlusTreeLeaf<N>::print() const {

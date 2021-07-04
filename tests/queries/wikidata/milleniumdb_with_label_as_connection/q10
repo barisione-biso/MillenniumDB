@@ -1,4 +1,6 @@
+// Countries without an end-date
+// Wrong because BUG at qualifiers imported
 SELECT ?country, ?countryName.string_value
 MATCH (?country)-[?e :P31]->(Q3624078),
       (?e)-[:P582]->(?endDate),
-      (?country)-[:Label]->(?countryName)
+      (?country)-[:Label {language:"en"}]->(?countryName)

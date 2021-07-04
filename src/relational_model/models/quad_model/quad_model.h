@@ -59,6 +59,7 @@ public:
     std::unique_ptr<BPlusTree<4>>   from_to_type_edge;
     std::unique_ptr<BPlusTree<4>>   to_type_from_edge;
     std::unique_ptr<BPlusTree<4>>   type_from_to_edge;
+    std::unique_ptr<BPlusTree<4>>   type_to_from_edge;
 
     // special cases
     std::unique_ptr<BPlusTree<3>>   equal_from_to;      // from=to - type - edge

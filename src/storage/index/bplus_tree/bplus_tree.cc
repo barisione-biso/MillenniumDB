@@ -27,6 +27,12 @@ BPlusTree<N>::BPlusTree(const std::string& name) :
 
 
 template <std::size_t N>
+std::unique_ptr<BPlusTreeDir<N>> BPlusTree<N>::get_root() const noexcept {
+    return make_unique<BPlusTreeDir<N>>(leaf_file_id, buffer_manager.get_page(dir_file_id, 0));
+}
+
+
+template <std::size_t N>
 void BPlusTree<N>::bulk_import(OrderedFile<N>& leaf_provider) {
     leaf_provider.begin_read();
 
@@ -58,8 +64,8 @@ void BPlusTree<N>::bulk_import(OrderedFile<N>& leaf_provider) {
 
 template <std::size_t N>
 unique_ptr<BptIter<N>> BPlusTree<N>::get_range(const Record<N>& min, const Record<N>& max) const noexcept {
-    auto page_number_and_pos = root.search_leaf(min);
-    return make_unique<BptIter<N>>(leaf_file_id, page_number_and_pos.page_number, page_number_and_pos.result_index, max);
+    auto leaf_and_pos = root.search_leaf(min);
+    return make_unique<BptIter<N>>(std::move(leaf_and_pos), max);
 }
 
 
@@ -69,12 +75,12 @@ void BPlusTree<N>::insert(const Record<N>& record) {
 }
 
 
-// Insert first key at root, create leaf
-template <std::size_t N>
-void BPlusTree<N>::create_new(const Record<N>& record) {
-    auto first_leaf = BPlusTreeLeaf<N>( buffer_manager.get_page(leaf_file_id, 0) );
-    first_leaf.create_new(record);
-}
+// // Insert first key at root, create leaf
+// template <std::size_t N>
+// void BPlusTree<N>::create_new(const Record<N>& record) {
+//     auto first_leaf = BPlusTreeLeaf<N>( buffer_manager.get_page(leaf_file_id, 0) );
+//     first_leaf.create_new(record);
+// }
 
 
 // template <std::size_t N>
@@ -91,11 +97,10 @@ bool BPlusTree<N>::check() const {
 
 /******************************* BptIter ********************************/
 template <std::size_t N>
-BptIter<N>::BptIter(FileId leaf_file_id, int leaf_page_number, int current_pos, const Record<N>& max) :
-    leaf_file_id (leaf_file_id),
+BptIter<N>::BptIter(SearchLeafResult<N>&& leaf_and_pos, const Record<N>& max) noexcept :
     max          (max),
-    current_pos  (current_pos),
-    current_leaf (make_unique<BPlusTreeLeaf<N>>(buffer_manager.get_page(leaf_file_id, leaf_page_number)))
+    current_pos  (leaf_and_pos.result_index),
+    current_leaf (move(leaf_and_pos.leaf))
 { }
 
 

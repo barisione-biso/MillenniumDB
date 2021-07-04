@@ -147,3 +147,89 @@ unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter(std::size_t binding_siz
         return make_unique<IndexScan<2>>(binding_size, *model.label_node, move(ranges));
     }
 }
+
+
+unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(const std::set<VarId>& assigned_vars,
+                                                      const vector<VarId>&   var_order,
+                                                      uint_fast32_t          enumeration_level)
+{
+    vector<unique_ptr<ScanRange>> initial_ranges;
+    vector<VarId> intersection_vars;
+    vector<VarId> enumeration_vars;
+
+    // index = INT32_MAX means enumeration, index = -1 means term
+    int_fast32_t node_index, label_index;
+
+    // Assign node_index
+    if (std::holds_alternative<ObjectId>(node)) {
+        node_index = -1;
+    } else {
+        auto search = assigned_vars.find(std::get<VarId>(node));
+        if (search == assigned_vars.end()) {
+            node_index = INT32_MAX;
+        } else {
+            node_index = -1;
+        }
+    }
+
+    // Assign label_index
+    if (std::holds_alternative<ObjectId>(label)) {
+        label_index = -1;
+    } else {
+        auto search = assigned_vars.find(std::get<VarId>(label));
+        if (search == assigned_vars.end()) {
+            label_index = INT32_MAX;
+        } else {
+            label_index = -1;
+        }
+    }
+
+    // search for vars marked as enumeraion (INT32_MAX) that are intersection
+    // and assign them the correct index
+    for (size_t i = 0; i < enumeration_level; i++) {
+        if (node_index == INT32_MAX && std::get<VarId>(node) == var_order[i]) {
+            node_index = i;
+        }
+        if (label_index == INT32_MAX && std::get<VarId>(label) == var_order[i]) {
+            label_index = i;
+        }
+    }
+
+    auto assign = [&initial_ranges, &enumeration_vars, &intersection_vars]
+                  (int_fast32_t& index, Id id)
+                  -> void
+    {
+        if (index == -1) {
+            initial_ranges.push_back(ScanRange::get(id, true));
+        } else if (index == INT32_MAX) {
+            enumeration_vars.push_back(std::get<VarId>(id));
+        } else {
+            intersection_vars.push_back(std::get<VarId>(id));
+        }
+    };
+
+    // node_label
+    if (node_index <= label_index) {
+        assign(node_index,  node);
+        assign(label_index, label);
+
+        return make_unique<LeapfrogBptIter<2>>(
+            *model.node_label,
+            move(initial_ranges),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    }
+    // to_type_from_edge
+    else {
+        assign(label_index, label);
+        assign(node_index,  node);
+
+        return make_unique<LeapfrogBptIter<2>>(
+            *model.label_node,
+            move(initial_ranges),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    }
+}

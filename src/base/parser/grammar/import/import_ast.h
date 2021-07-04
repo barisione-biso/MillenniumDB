@@ -54,10 +54,10 @@ namespace import { namespace ast {
         // nesting_level = 2: left is the edge
         // nesting_level = 3: left is the edge of the edge
         // and so on
-        std::string nesting;
+        std::size_t nesting;
 
         std::size_t nesting_level() const {
-            return nesting.size();
+            return nesting;
         }
 
         bool right_anonymous() const {

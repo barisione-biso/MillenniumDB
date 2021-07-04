@@ -1,3 +1,5 @@
-SELECT ?q_p
+// All qualifier properties used with "head of government" property
+// Wrong because BUG at qualifiers imported
+SELECT DISTINCT ?q_p
 MATCH (?s)-[?e :P6]->(?o),
       (?e)-[=TYPE(?q_p)]->(?q_v)

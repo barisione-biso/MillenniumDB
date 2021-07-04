@@ -1,9 +1,5 @@
-// SELECT ?person ?name ?uname
-// WHERE {
-//     <?person :P553 wd:Q52 ?i > .
-//     ?i :P554q ?uname .
-//     ?person rs:label ?name . FILTER(LANG(?name) = "en") .
-// } LIMIT 100
+// People who have Wikidata accounts
+// Wrong because BUG at qualifiers imported
 SELECT ?person, ?name.string_value, ?uname.string_value
 MATCH (?person)-[?e :P553]->(Q52),
       (?e)-[:P554]->(?uname),

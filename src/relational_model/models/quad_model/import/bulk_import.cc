@@ -17,16 +17,16 @@
 using namespace std;
 
 BulkImport::BulkImport(const string& filename, QuadModel& model) :
-    model                (model),
-    catalog              (model.catalog()),
-    nodes                (OrderedFile<1>("ordered_file_nodes.dat")),
-    node_labels          (OrderedFile<2>("node_labels.dat")),
-    object_key_value     (OrderedFile<3>("object_key_value.dat")),
-    from_to_type_edge    (OrderedFile<4>("from_to_type_edge.dat")),
-    equal_from_to        (OrderedFile<3>("equal_from_to.dat")),
-    equal_from_type      (OrderedFile<3>("equal_from_type.dat")),
-    equal_to_type        (OrderedFile<3>("equal_to_type.dat")),
-    equal_from_to_type   (OrderedFile<2>("equal_from_to_type.dat"))
+    model                           (model),
+    catalog                         (model.catalog()),
+    nodes_ordered_file              (OrderedFile<1>("nodes_ordered_file")),
+    labels_ordered_file             (OrderedFile<2>("labels_ordered_file")),
+    properties_ordered_file         (OrderedFile<3>("properties_ordered_file")),
+    connections_ordered_file        (OrderedFile<4>("connections_ordered_file")),
+    equal_from_to_ordered_file      (OrderedFile<3>("equal_from_to_ordered_file")),
+    equal_from_type_ordered_file    (OrderedFile<3>("equal_from_type_ordered_file")),
+    equal_to_type_ordered_file      (OrderedFile<3>("equal_to_type_ordered_file")),
+    equal_from_to_type_ordered_file (OrderedFile<2>("equal_from_to_type_ordered_file"))
 {
     import_file = ifstream(filename);
     import_file.unsetf(std::ios::skipws);
@@ -123,8 +123,8 @@ void BulkImport::start_import() {
     // }
 
     // Index nodes
-    nodes.order(std::array<uint_fast8_t, 1 >{ 0 });
-    model.nodes->bulk_import(nodes);
+    nodes_ordered_file.order(std::array<uint_fast8_t, 1 >{ 0 });
+    model.nodes->bulk_import(nodes_ordered_file);
 
     catalog.distinct_labels = catalog.label2total_count.size();
 
@@ -145,98 +145,103 @@ void BulkImport::start_import() {
 
 void BulkImport::index_connections() {
     // CONNECTIONS
-    from_to_type_edge.order(std::array<uint_fast8_t, 4> { 0, 1, 2, 3 });
-    model.from_to_type_edge->bulk_import(from_to_type_edge);
+    connections_ordered_file.order(std::array<uint_fast8_t, 4> { 0, 1, 2, 3 });
+    model.from_to_type_edge->bulk_import(connections_ordered_file);
 
     // set catalog.distinct_from
     {
         uint64_t distinct_from = 0;
         uint64_t current_from  = 0;
 
-        from_to_type_edge.begin_read();
-        auto record = from_to_type_edge.next_record();
+        connections_ordered_file.begin_read();
+        auto record = connections_ordered_file.next_record();
         while (record != nullptr) {
             if (record->ids[0] != current_from) {
                 ++distinct_from;
                 current_from = record->ids[0];
             }
-            record = from_to_type_edge.next_record();
+            record = connections_ordered_file.next_record();
         }
         catalog.distinct_from = distinct_from;
     }
 
-    from_to_type_edge.order(std::array<uint_fast8_t, 4> { 2, 0, 1, 3 });
-    model.to_type_from_edge->bulk_import(from_to_type_edge);
+    connections_ordered_file.order(std::array<uint_fast8_t, 4> { 2, 0, 1, 3 });
+    model.to_type_from_edge->bulk_import(connections_ordered_file);
 
     //set catalog.distinct_to
-    uint64_t distinct_to = 0;
-    uint64_t current_to  = 0;
+    {
+        uint64_t distinct_to = 0;
+        uint64_t current_to  = 0;
 
-    from_to_type_edge.begin_read();
-    auto record = from_to_type_edge.next_record();
-    while (record != nullptr) {
-        if (record->ids[0] != current_to) {
-            ++distinct_to;
-            current_to = record->ids[0];
+        connections_ordered_file.begin_read();
+        auto record = connections_ordered_file.next_record();
+        while (record != nullptr) {
+            if (record->ids[0] != current_to) {
+                ++distinct_to;
+                current_to = record->ids[0];
+            }
+            record = connections_ordered_file.next_record();
         }
-        record = from_to_type_edge.next_record();
+        catalog.distinct_to = distinct_to;
     }
-    catalog.distinct_to = distinct_to;
 
-    from_to_type_edge.order(std::array<uint_fast8_t, 4> { 2, 0, 1, 3 });
-    model.type_from_to_edge->bulk_import(from_to_type_edge);
+    connections_ordered_file.order(std::array<uint_fast8_t, 4> { 2, 0, 1, 3 });
+    model.type_from_to_edge->bulk_import(connections_ordered_file);
 
-    catalog.distinct_type   = catalog.type2total_count.size();
+    connections_ordered_file.order(std::array<uint_fast8_t, 4> { 0, 2, 1, 3 });
+    model.type_to_from_edge->bulk_import(connections_ordered_file);
+
+    catalog.distinct_type = catalog.type2total_count.size();
 }
 
 
 void BulkImport::index_special_cases() {
     // FROM=TO
-    equal_from_to.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
-    model.equal_from_to->bulk_import(equal_from_to);
+    equal_from_to_ordered_file.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
+    model.equal_from_to->bulk_import(equal_from_to_ordered_file);
 
-    equal_from_to.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
-    model.equal_from_to_inverted->bulk_import(equal_from_to);
+    equal_from_to_ordered_file.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
+    model.equal_from_to_inverted->bulk_import(equal_from_to_ordered_file);
 
     // calling this after inverted, so type is at pos 0
-    set_distinct_type_stats(equal_from_to, catalog.type2equal_from_to_count);
+    set_distinct_type_stats(equal_from_to_ordered_file, catalog.type2equal_from_to_count);
 
     // FROM=TYPE
-    equal_from_type.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
-    model.equal_from_type->bulk_import(equal_from_type);
+    equal_from_type_ordered_file.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
+    model.equal_from_type->bulk_import(equal_from_type_ordered_file);
 
     // calling this before inverted, so type is at pos 0
-    set_distinct_type_stats(equal_from_type, catalog.type2equal_from_type_count);
+    set_distinct_type_stats(equal_from_type_ordered_file, catalog.type2equal_from_type_count);
 
-    equal_from_type.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
-    model.equal_from_type_inverted->bulk_import(equal_from_type);
+    equal_from_type_ordered_file.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
+    model.equal_from_type_inverted->bulk_import(equal_from_type_ordered_file);
 
     // TO=TYPE
-    equal_to_type.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
-    model.equal_to_type->bulk_import(equal_to_type);
+    equal_to_type_ordered_file.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
+    model.equal_to_type->bulk_import(equal_to_type_ordered_file);
 
     // calling this before inverted, so type is at pos 0
-    set_distinct_type_stats(equal_to_type, catalog.type2equal_to_type_count);
+    set_distinct_type_stats(equal_to_type_ordered_file, catalog.type2equal_to_type_count);
 
-    equal_to_type.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
-    model.equal_to_type_inverted->bulk_import(equal_to_type);
+    equal_to_type_ordered_file.order(std::array<uint_fast8_t, 3> { 1, 0, 2 });
+    model.equal_to_type_inverted->bulk_import(equal_to_type_ordered_file);
 
     // FROM=TO=TYPE
-    equal_from_to_type.order(std::array<uint_fast8_t, 2> { 0, 1 });
-    model.equal_from_to_type->bulk_import(equal_from_to_type);
+    equal_from_to_type_ordered_file.order(std::array<uint_fast8_t, 2> { 0, 1 });
+    model.equal_from_to_type->bulk_import(equal_from_to_type_ordered_file);
 
-    set_distinct_type_stats(equal_from_to_type, catalog.type2equal_from_to_type_count);
+    set_distinct_type_stats(equal_from_to_type_ordered_file, catalog.type2equal_from_to_type_count);
 
 }
 
 void BulkImport::index_labels() {
     // NODE - LABEL
-    node_labels.order(std::array<uint_fast8_t, 2> { 0, 1 });
-    model.node_label->bulk_import(node_labels);
+    labels_ordered_file.order(std::array<uint_fast8_t, 2> { 0, 1 });
+    model.node_label->bulk_import(labels_ordered_file);
 
     // LABEL - NODE
-    node_labels.order(std::array<uint_fast8_t, 2> { 1, 0 });
-    model.label_node->bulk_import(node_labels);
+    labels_ordered_file.order(std::array<uint_fast8_t, 2> { 1, 0 });
+    model.label_node->bulk_import(labels_ordered_file);
 
     catalog.distinct_labels = catalog.label2total_count.size();
 }
@@ -244,12 +249,12 @@ void BulkImport::index_labels() {
 
 void BulkImport::index_properties() {
     // OBJECT - KEY - VALUE
-    object_key_value.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
-    model.object_key_value->bulk_import(object_key_value);
+    properties_ordered_file.order(std::array<uint_fast8_t, 3> { 0, 1, 2 });
+    model.object_key_value->bulk_import(properties_ordered_file);
 
     // KEY - VALUE - OBJECT
-    object_key_value.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });
-    model.key_value_object->bulk_import(object_key_value);
+    properties_ordered_file.order(std::array<uint_fast8_t, 3> { 2, 0, 1 });
+    model.key_value_object->bulk_import(properties_ordered_file);
 
     // count total properties and distinct values
     map<uint64_t, uint64_t> map_key_count;
@@ -259,8 +264,8 @@ void BulkImport::index_properties() {
     uint64_t key_count       = 0;
     uint64_t distinct_values = 0;
 
-    object_key_value.begin_read();
-    auto record = object_key_value.next_record();
+    properties_ordered_file.begin_read();
+    auto record = properties_ordered_file.next_record();
     while (record != nullptr) {
         // check same key
         if (record->ids[0] == current_key) {
@@ -282,7 +287,7 @@ void BulkImport::index_properties() {
             key_count       = 1;
             distinct_values = 1;
         }
-        record = object_key_value.next_record();
+        record = properties_ordered_file.next_record();
     }
     // save stats from last key
     if (current_key != 0) {
@@ -331,7 +336,7 @@ uint64_t BulkImport::get_node_id(const string& node_name) {
         auto inlined_ids_search = inlined_ids.find(obj_id);
         if (inlined_ids_search == inlined_ids.end()) {
             inlined_ids.insert(obj_id);
-            nodes.append_record({obj_id});
+            nodes_ordered_file.append_record({obj_id});
             ++catalog.identifiable_nodes_count;
         }
         return obj_id;
@@ -341,7 +346,7 @@ uint64_t BulkImport::get_node_id(const string& node_name) {
         auto external_ids_search = external_ids.find(obj_id);
         if (external_ids_search == external_ids.end()) {
             external_ids.insert(obj_id);
-            nodes.append_record({obj_id});
+            nodes_ordered_file.append_record({obj_id});
             ++catalog.identifiable_nodes_count;
         }
         return obj_id;
@@ -375,7 +380,7 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
         ++catalog.label_count;
         ++catalog.label2total_count[label_id];
 
-        node_labels.append_record(std::array<uint64_t, 2> { node_id, label_id });
+        labels_ordered_file.append_record(std::array<uint64_t, 2> { node_id, label_id });
     }
 
     for (auto& property : node.properties) {
@@ -388,7 +393,7 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
 
         ++catalog.properties_count;
 
-        object_key_value.append_record(std::array<uint64_t, 3> { node_id, key_id, value_id });
+        properties_ordered_file.append_record(std::array<uint64_t, 3> { node_id, key_id, value_id });
     }
     return node_id;
 }
@@ -435,7 +440,7 @@ uint64_t BulkImport::process_edge(const import::ast::Edge edge) {
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];
 
-        object_key_value.append_record(std::array<uint64_t, 3> { edge_id, key_id, value_id });
+        properties_ordered_file.append_record(std::array<uint64_t, 3> { edge_id, key_id, value_id });
     }
     ++catalog.type2total_count[type_id];
     return edge_id;
@@ -479,7 +484,7 @@ uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge edge,
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];
 
-        object_key_value.append_record(std::array<uint64_t, 3> { edge_id, key_id, value_id });
+        properties_ordered_file.append_record(std::array<uint64_t, 3> { edge_id, key_id, value_id });
     }
     ++catalog.type2total_count[type_id];
     return edge_id;
@@ -492,23 +497,23 @@ uint64_t BulkImport::create_connection(const uint64_t from_id, const uint64_t to
     // special cases
     if (from_id == to_id) {
         ++catalog.equal_from_to_count;
-        equal_from_to.append_record(std::array<uint64_t, 3> { from_id, type_id, edge_id });
+        equal_from_to_ordered_file.append_record(std::array<uint64_t, 3> { from_id, type_id, edge_id });
 
         if (from_id == type_id) {
             ++catalog.equal_from_to_type_count;
-            equal_from_to_type.append_record(std::array<uint64_t, 2> { from_id, edge_id });
+            equal_from_to_type_ordered_file.append_record(std::array<uint64_t, 2> { from_id, edge_id });
         }
     }
     if (from_id == type_id) {
         ++catalog.equal_from_type_count;
-        equal_from_type.append_record(std::array<uint64_t, 3> { from_id, to_id, edge_id });
+        equal_from_type_ordered_file.append_record(std::array<uint64_t, 3> { from_id, to_id, edge_id });
     }
     if (to_id == type_id) {
         ++catalog.equal_to_type_count;
-        equal_to_type.append_record(std::array<uint64_t, 3> { type_id, from_id, edge_id });
+        equal_to_type_ordered_file.append_record(std::array<uint64_t, 3> { type_id, from_id, edge_id });
     }
 
-    from_to_type_edge.append_record(std::array<uint64_t, 4> { from_id, to_id, type_id, edge_id });
+    connections_ordered_file.append_record(std::array<uint64_t, 4> { from_id, to_id, type_id, edge_id });
     model.edge_table->append_record(std::array<uint64_t, 3> { from_id, to_id, type_id });
 
     return edge_id;

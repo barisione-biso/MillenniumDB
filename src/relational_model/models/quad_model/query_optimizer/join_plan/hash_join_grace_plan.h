@@ -19,6 +19,11 @@ public:
     std::unique_ptr<BindingIdIter> get_binding_id_iter(std::size_t binding_size) override;
     std::unique_ptr<JoinPlan> duplicate() override;
 
+    std::unique_ptr<LeapfrogIter> get_leapfrog_iter(const std::set<VarId>&    /*assigned_vars*/,
+                                                    const std::vector<VarId>& /*var_order*/,
+                                                    uint_fast32_t             /*enumeration_level*/) override
+                                                    { return nullptr; }
+
     void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) override;
 private:
     std::unique_ptr<JoinPlan> lhs;

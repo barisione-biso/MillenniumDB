@@ -25,7 +25,7 @@ std::ostream& BindingSelect::print_to_ostream(std::ostream& os) const {
         os << ", " << var_varid_pair.first << ':' << child_binding[var_varid_pair.second];
         ++it;
     }
-    return os << "}\n";
+    return os << "}";
 }
 
 
