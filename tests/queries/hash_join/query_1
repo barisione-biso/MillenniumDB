@@ -1,0 +1,4 @@
+// join de dos relaciones vacias
+SELECT *
+MATCH (?x :wololo :estalabeltampocoexiste)
+LIMIT 10000

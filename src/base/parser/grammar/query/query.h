@@ -11,7 +11,7 @@ namespace query {
     namespace parser {
         namespace x3 = boost::spirit::x3;
         using query_type = x3::rule<class root, ast::Root>;
-        BOOST_SPIRIT_DECLARE(query_type);
+        BOOST_SPIRIT_DECLARE(query_type)
     }
 
     parser::query_type query();

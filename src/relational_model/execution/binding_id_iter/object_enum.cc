@@ -45,5 +45,5 @@ void ObjectEnum::analyze(int indent) const {
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
     }
-    cout << "ObjectEnum(results: " << results << ")\n";
+    cout << "ObjectEnum(results: " << results << ")";
 }

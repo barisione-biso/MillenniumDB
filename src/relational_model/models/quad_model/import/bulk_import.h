@@ -12,7 +12,7 @@
 #include "relational_model/models/quad_model/quad_catalog.h"
 #include "storage/index/object_file/object_file.h"
 #include "storage/index/ordered_file/ordered_file.h"
-#include "storage/index/hash_table/extendible_hash.h"
+#include "storage/index/hash/object_file_hash/object_file_hash.h"
 
 class BulkImport {
 public:
@@ -26,15 +26,16 @@ private:
     QuadModel& model;
     QuadCatalog& catalog;
 
-    OrderedFile<2> node_labels;              // node_id, label_id
-    OrderedFile<3> object_key_value;         // object_id, key_id, value_id
-    OrderedFile<4> connections_ordered_file; // from_id, to_id, type_id, edge_id
+    OrderedFile<1> nodes_ordered_file;             // (node_id)
+    OrderedFile<2> labels_ordered_file;            // (node_id, label_id)
+    OrderedFile<3> properties_ordered_file;        // (object_id, key_id, value_id)
+    OrderedFile<4> connections_ordered_file;       // (from_id, to_id, type_id, edge_id)
 
     // To create indexes for special cases
-    OrderedFile<3> equal_from_to;           // from/to, type, edge
-    OrderedFile<3> equal_from_type;         // from/type, to, edge
-    OrderedFile<3> equal_to_type;           // to/type, from, edge
-    OrderedFile<2> equal_from_to_type;      // from/to/type,  edge
+    OrderedFile<3> equal_from_to_ordered_file;           // from/to, type, edge
+    OrderedFile<3> equal_from_type_ordered_file;         // from/type, to, edge
+    OrderedFile<3> equal_to_type_ordered_file;           // to/type, from, edge
+    OrderedFile<2> equal_from_to_type_ordered_file;      // from/to/type,  edge
 
     std::unordered_set<uint64_t> inlined_ids;
     std::unordered_set<uint64_t> external_ids;

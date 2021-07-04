@@ -30,7 +30,7 @@ BOOST_FUSION_ADAPT_STRUCT(query::ast::Edge,
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::PropertyPath,
-    path_alternatives, direction
+    var, path_alternatives, direction
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::PropertyPathAtom,

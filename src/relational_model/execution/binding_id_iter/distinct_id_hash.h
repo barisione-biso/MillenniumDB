@@ -6,8 +6,7 @@
 
 #include "base/binding/binding_id_iter.h"
 #include "base/ids/var_id.h"
-#include "storage/index/hash_tuple/extendable_table.h"
-
+#include "storage/index/hash/distinct_binding_hash/distinct_binding_hash.h"
 class DistinctIdHash : public BindingIdIter {
 public:
     DistinctIdHash(std::unique_ptr<BindingIdIter> child_iter, std::vector<VarId> projected_vars);
@@ -25,7 +24,7 @@ public:
 private:
     std::unique_ptr<BindingIdIter> child_iter;
     std::vector<VarId> projected_vars;
-    ExtendableTable<ObjectId> extendable_table;
+    DistinctBindingHash<ObjectId> extendable_table;
 
     std::vector<ObjectId> current_tuple;
     BindingId* parent_binding;

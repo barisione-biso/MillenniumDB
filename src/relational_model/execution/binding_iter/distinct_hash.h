@@ -6,7 +6,7 @@
 
 #include "base/binding/binding_iter.h"
 #include "base/ids/var_id.h"
-#include "storage/index/hash_tuple/extendable_table.h"
+#include "storage/index/hash/distinct_binding_hash/distinct_binding_hash.h"
 
 class DistinctHash : public BindingIter {
 public:
@@ -25,7 +25,7 @@ private:
     std::unique_ptr<BindingIter> child_iter;
     Binding& child_binding;
     std::vector<VarId> projected_vars;
-    ExtendableTable<GraphObject> extendable_table;
+    DistinctBindingHash<GraphObject> extendable_table;
 
     std::vector<GraphObject> current_tuple;
 };

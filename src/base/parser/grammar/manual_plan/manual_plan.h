@@ -11,7 +11,7 @@ namespace manual_plan {
     namespace parser {
         namespace x3 = boost::spirit::x3;
         using manual_plan_type = x3::rule<class manual_root, ast::ManualRoot>;
-        BOOST_SPIRIT_DECLARE(manual_plan_type);
+        BOOST_SPIRIT_DECLARE(manual_plan_type)
     }
 
     parser::manual_plan_type manual_plan();

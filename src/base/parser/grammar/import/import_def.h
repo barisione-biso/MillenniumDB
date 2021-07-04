@@ -72,7 +72,7 @@ namespace import {
             implicit_edge,
             import_line,
             nesting_level_counter
-        );
+        )
     }
 
     parser::import_type import() {

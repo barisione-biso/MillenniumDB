@@ -133,6 +133,79 @@ FileId FileManager::get_file_id(const string& filename) {
 }
 
 
+TmpFileId FileManager::get_tmp_file_id() {
+    std::lock_guard<std::mutex> lck(files_mutex);
+
+    // get thread id
+    //thread::id this_id = std::this_thread::get_id();
+    // get private thread pos
+    //auto thread_pos_it = thread2index.find(this_id);
+    // if (thread_pos_it == thread2index.end()) {
+    //     // new thread
+    //     std::cout << "thread: " << this_id << "\n";
+    //     if (available_private_positions.empty()) {
+    //         throw std::runtime_error("To many threads, not enough private buffer space");
+    //     }
+    //     uint_fast32_t new_thread_pos = available_private_positions.front();
+    //     available_private_positions.pop();
+    //     thread2index.insert(pair<thread::id, uint_fast32_t>(this_id, new_thread_pos));
+    //     private_tmp_pages[new_thread_pos].clear();
+    //     private_clock_pos[new_thread_pos] = 0;
+    //     auto& page = get_private_page(new_thread_pos, 0);
+    //     page = Page(
+    //         page_id,
+    //         &private_bytes[Page::PAGE_SIZE * (new_thread_pos * private_buffer_pool_size)]
+    //     );
+    //     return page;
+    // }
+    // old thread
+    
+    string filename = "tmp" + std::to_string(tmp_filename_counter++);
+
+    if (!available_file_ids.empty()) {
+        const auto file_path = get_file_path(filename);
+        const auto file_id = available_file_ids.front();
+        available_file_ids.pop();
+
+        filenames[file_id.id] = filename;
+        filename2file_id.insert({ filename, file_id });
+        auto file = make_unique<fstream>();
+        if (!experimental::filesystem::exists(file_path)) {
+            // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
+            // so we close it and open it again without append mode
+            file->open(file_path, ios::out|ios::app);
+            if (file->fail()) {
+                throw std::runtime_error("Could not open file " + file_path);
+            }
+            file->close();
+        }
+        file->open(file_path, ios::in|ios::out|ios::binary);
+        opened_files[file_id.id] = move(file);
+        return TmpFileId(buffer_manager.get_private_buffer_index(), file_id);
+    }
+    else {
+        const auto file_path = get_file_path(filename);
+        const auto file_id = FileId(filenames.size());
+
+        filenames.push_back(filename);
+        filename2file_id.insert({ filename, file_id });
+        auto file = make_unique<fstream>();
+        if (!experimental::filesystem::exists(file_path)) {
+            // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
+            // so we close it and open it again without append mode
+            file->open(file_path, ios::out|ios::app);
+            if (file->fail()) {
+                throw std::runtime_error("Could not open file " + file_path);
+            }
+            file->close();
+        }
+        file->open(file_path, ios::in|ios::out|ios::binary);
+        opened_files.push_back(move(file));
+        return TmpFileId(buffer_manager.get_private_buffer_index(), file_id);
+    }
+}
+
+
 void FileManager::remove(const FileId file_id) {
     std::lock_guard<std::mutex> lck(files_mutex);
     const auto file_path = get_file_path(filenames[file_id.id]);
@@ -142,7 +215,20 @@ void FileManager::remove(const FileId file_id) {
     std::remove(file_path.c_str());                 // delete file from disk
 
     filename2file_id.erase(filenames[file_id.id]);  // update map
-    // filenames[file_id.id] = "";                    // update filenames, maybe is redundant?
     opened_files[file_id.id].reset();               // destroy the fstream
     available_file_ids.push(file_id);               // add removed file_id as available for reuse
+}
+
+
+void FileManager::remove_tmp(const TmpFileId tmp_file_id) {
+    std::lock_guard<std::mutex> lck(files_mutex);
+    const auto file_path = get_file_path(filenames[tmp_file_id.file_id.id]);
+
+    buffer_manager.remove_tmp(tmp_file_id);                     // clear pages from buffer_manager
+    opened_files[tmp_file_id.file_id.id]->close();              // close the file stream
+    std::remove(file_path.c_str());                             // delete file from disk
+
+    filename2file_id.erase(filenames[tmp_file_id.file_id.id]);  // update map
+    opened_files[tmp_file_id.file_id.id].reset();               // destroy the fstream
+    available_file_ids.push(tmp_file_id.file_id);               // add removed file_id as available for reuse
 }

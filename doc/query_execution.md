@@ -47,16 +47,13 @@ The following list shows the current classes that inherit from Op:
 - `OpConnection`: Used to define connections with the attributes `from`, `to`, `type`.
 
   For example: `(?x)->(?y)`. In this case, `from` is `?x`, `to` is `?y` and `type` is the variable that was assigned to the annonymous edge (possibly `?_e0:type`).
-- `OpTransitiveClosure`: Used to define connections with the attributes `from`, `to`, `type`.
-
-  For example: `(Q1)=[:knows*]=>(?y)`. In this case, `from` is `Q1`, `to` is `?y` and `type` is `knows`.
 - `OpConnectionType`: Used to define connection types, having the attributes `edge` and `type`.
 
   For example, `(?x)-[:knows]->(?y)` could have the edge `?_e0` and type `knows`.
 - `OpUnjointObject`: Used when a match clause specifies variable as a node without any other information. It stores the variable in `obj_name`
 
   For example, `SELECT (?x) MATCH (?x)` will use the `OpUnjointObject` Op, and its `obj_name` is `?x`.
-- `OpMatch`: Used to describe any Graph Pattern that do not contain OPTIONAL clauses. In order to describe any Graph Pattern, it has the following attributes: `labels` (set of `OpLabel`), properties (set of `OpProperty`), connections (set of `OpConnection`), property_paths (set of `OpTransitiveClosure`), connection_types (set of `OpConnectionType`), unjoint_objects (set of `OpUnjointObject`). It is important to note that in the Graph Patterns that do not use OPTIONAL clause, the order of the join operations do not matter and that is the reason why sets are being used instead of lists. The results of `OpMatch` will be pipelined into its parent.
+- `OpMatch`: Used to describe any Graph Pattern that do not contain OPTIONAL clauses. In order to describe any Graph Pattern, it has the following attributes: `labels` (set of `OpLabel`), properties (set of `OpProperty`), connections (set of `OpConnection`), property_paths, connection_types (set of `OpConnectionType`), unjoint_objects (set of `OpUnjointObject`). It is important to note that in the Graph Patterns that do not use OPTIONAL clause, the order of the join operations do not matter and that is the reason why sets are being used instead of lists. The results of `OpMatch` will be pipelined into its parent.
 
   For example, a possible pattern that uses `OpMatch` could be:
   `(?x :Person {age: 20})-[:follows]->(?y :Person {age: 20}), (?y)-[:follows]->(?y)`.
@@ -174,8 +171,7 @@ The following classes inherit from BindingIdIter:
 - `NodeTableEnum`: Creates an iterator that goes through the node table, enumerating the results.
 - `ObjectEnum`: Creates an iterator that iterates until a limit is reached.
 - `OptionalNode`: Creates an iterator that involves its main pattern iterator and its child patterns' iterators, joining them in order through the Index Left Outer Join algorithm.
-- `TransitiveClosureCheck`: Creates an iterator over a set pair of nodes, and returns any pair of nodes that are connected by a transitive closure.
-- `TransitiveClosureEnum`: Creates an iterator over a pair of nodes where one is set and the other is not, and iterates over the ingoing paths (if the `to` node is set) or outgoing paths (if the `from` node is set).
+TODO: Add property path enum and check.
 - `Union`: Creates an iterator over a list of iterators (`iters`) and consumes each iterator of the list in order. It does not filter duplicates.
 
 ## 3.3. Generation<a id="physical-plan-generation"></a>

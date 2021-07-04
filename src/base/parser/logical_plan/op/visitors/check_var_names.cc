@@ -9,7 +9,12 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
-#include "base/parser/logical_plan/op/op_order_by.h"
+#include "base/parser/logical_plan/op/op_path.h"
+#include "base/parser/logical_plan/op/op_path_alternatives.h"
+#include "base/parser/logical_plan/op/op_path_atom.h"
+#include "base/parser/logical_plan/op/op_path_sequence.h"
+#include "base/parser/logical_plan/op/op_path_kleene_star.h"
+#include "base/parser/logical_plan/op/op_path_optional.h"
 #include "base/parser/logical_plan/op/op_select.h"
 
 void CheckVarNames::visit(OpSelect& op_select) {
@@ -65,9 +70,15 @@ void CheckVarNames::visit(OpDistinct& op_distinct) {
 }
 
 
-void CheckVarNames::visit(OpTransitiveClosure&) { }
-void CheckVarNames::visit(OpConnection&) { }
-void CheckVarNames::visit(OpConnectionType&) { }
-void CheckVarNames::visit(OpLabel&) { }
-void CheckVarNames::visit(OpProperty&) { }
-void CheckVarNames::visit(OpUnjointObject&) { }
+void CheckVarNames::visit(OpConnection&)          { }
+void CheckVarNames::visit(OpConnectionType&)      { }
+void CheckVarNames::visit(OpLabel&)               { }
+void CheckVarNames::visit(OpProperty&)            { }
+void CheckVarNames::visit(OpUnjointObject&)       { }
+void CheckVarNames::visit(OpPropertyPath&)        { }
+void CheckVarNames::visit(OpPath&)                { }
+void CheckVarNames::visit(OpPathAlternatives& )   { }
+void CheckVarNames::visit(OpPathSequence&)        { }
+void CheckVarNames::visit(OpPathAtom&)            { }
+void CheckVarNames::visit(OpPathKleeneStar&)      { }
+void CheckVarNames::visit(OpPathOptional&)        { }

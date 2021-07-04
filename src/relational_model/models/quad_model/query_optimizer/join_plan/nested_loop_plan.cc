@@ -84,7 +84,6 @@ void NestedLoopPlan::set_input_vars(uint64_t /*input_var_order*/) {
 
 
 unique_ptr<BindingIdIter> NestedLoopPlan::get_binding_id_iter(std::size_t binding_size) {
-    // TODO CRIS: Change back to IndexNestedLoopJoin
     return make_unique<IndexNestedLoopJoin>(
         binding_size,
         lhs->get_binding_id_iter(binding_size),

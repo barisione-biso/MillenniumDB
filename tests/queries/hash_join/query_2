@@ -1,0 +1,4 @@
+// join de dos relaciones vacias con nodo solitario
+SELECT *
+MATCH (?x :wololo :estalabeltampocoexiste), (?y)
+LIMIT 10000

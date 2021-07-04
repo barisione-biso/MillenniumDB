@@ -7,6 +7,10 @@
  * All the other clases that need to work with files should use the FileManager to obtain a reference to a
  * fstream.
  *
+ * This can be done with temporary or permanent files, using 'get_tmp_file_id' or 'get_file_id', in the first case, the
+ * file_manager will ask for a pages in the private buffer of the specific thread, in the second case the file_maneger
+ * will ask for pages to the shared or public buffer.
+ *
  * `file_manager` is a global object and is available when this file is included. Before using it, somebody
  * needs to call the method FileManager::init(), usually is the responsability of the model (e.g. RelationalModel)
  * to call it.
@@ -41,6 +45,9 @@ public:
     // Get an id for the corresponding file, creating it if it's necessary
     FileId get_file_id(const std::string& filename);
 
+    // Create a new temporary file id
+    TmpFileId get_tmp_file_id();
+
     // get the file stream assignated to `file_id` as a reference. Only use this when not accessing via BufferManager
     std::fstream& get_file(const FileId file_id) const;
 
@@ -49,6 +56,9 @@ public:
 
     // delete the file represented by `file_id`, pages in buffer using that file_id are cleared
     void remove(const FileId file_id);
+
+    // delete the file represented by `tmp_file_id`, pages in private buffer using that tmp_file_id are cleared
+    void remove_tmp(const TmpFileId tmp_file_id);
 
 private:
     // folder where all the used files will be
@@ -60,6 +70,8 @@ private:
     std::queue<FileId> available_file_ids;
 
     std::map<std::string, FileId> filename2file_id;
+
+    uint_fast32_t tmp_filename_counter; // TODO: we may need infinite files
 
     // to avoid synchronization problems when establishing a new file_id in `get_file_id(filename)`
     std::mutex files_mutex;
