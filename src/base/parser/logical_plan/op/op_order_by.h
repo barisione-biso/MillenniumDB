@@ -28,9 +28,9 @@ public:
         visitor.visit(*this);
     }
 
-    std::set<std::string> get_var_names() const override {
+    void get_vars(std::set<Var>& set) const override {
         // TODO: should add properties mentioned in the GROUP BY that are not present in the MATCH?
-        return op->get_var_names();
+        op->get_vars(set);
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{

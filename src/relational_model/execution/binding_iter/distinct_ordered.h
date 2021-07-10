@@ -10,7 +10,10 @@
 
 class DistinctOrdered : public BindingIter {
 public:
-    DistinctOrdered(GraphModel& model, std::unique_ptr<BindingIter> child_iter, std::vector<VarId> projected_vars);
+    DistinctOrdered(const GraphModel& model,
+                    std::unique_ptr<BindingIter> child_iter,
+                    std::vector<VarId> projected_vars);
+
     ~DistinctOrdered() = default;
 
     inline Binding& get_binding() noexcept override { return child_binding; }
@@ -20,7 +23,7 @@ public:
     void analyze(int indent = 0) const override;
 
 private:
-    GraphModel& model;
+    const GraphModel& model;
     std::unique_ptr<BindingIter> child_iter;
     Binding& child_binding;
     std::vector<VarId> projected_vars;

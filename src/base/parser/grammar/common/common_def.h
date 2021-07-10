@@ -39,24 +39,10 @@ namespace common {
             var_name = "var_name";
         x3::rule<class node_name, std::string>
             node_name = "node_name";
-
+        x3::rule<class node_id_str, std::string>
+            node_id_str = "node_id_str";
 
         // Grammar
-        auto const node_name_def =
-            lexeme[char_("A-Za-z_") >> *char_("A-Za-z0-9_")];
-
-        auto const var_name_def =
-            char_('?') >> char_("A-Za-z") >> *char_("A-Za-z0-9_");
-
-        auto const var_def =
-            lexeme[var_name];
-
-        auto const key_def =
-            lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];
-
-        auto const label =
-            lexeme[':' >> +char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];
-
         auto const boolean =
             lexeme[no_case["true"]]  >> attr(true) |
             lexeme[no_case["false"]] >> attr(false);
@@ -76,6 +62,31 @@ namespace common {
         auto const string =
             lexeme['"' >> *(escaped | ~char_('"')) >> '"'];
 
+        // string_quoted is different from common::parser::string, it mantains the quotation marks ("")
+        auto const string_quoted =
+            lexeme[char_('"') >> *(escaped | ~char_('"')) >> char_('"')];
+
+        auto const node_name_def =
+            lexeme[char_("A-Za-z_") >> *char_("A-Za-z0-9_")];
+
+        auto const node_id_str_def =
+            -(string_quoted | node_name | var);
+
+        auto const node_id =
+            boolean | float_ | int64 | node_id_str;
+
+        auto const var_name_def = // TODO: try to merge with var_def
+            char_('?') >> char_("A-Za-z") >> *char_("A-Za-z0-9_");
+
+        auto const var_def =
+            lexeme[var_name];
+
+        auto const key_def =
+            lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];
+
+        auto const label =
+            lexeme[':' >> +char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];
+
         auto const value_def =
             string | float_ | int64 | boolean;
 
@@ -88,6 +99,7 @@ namespace common {
             value,
             property,
             var_name,
+            node_id_str,
             node_name
         )
     }

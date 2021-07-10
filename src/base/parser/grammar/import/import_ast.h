@@ -31,18 +31,20 @@ namespace import { namespace ast {
     struct Edge {
         EdgeDirection direction;
 
-        std::string left_name;
-        std::string right_name;
+        boost::variant<std::string, bool, int64_t, float> lhs_id;
+        boost::variant<std::string, bool, int64_t, float> rhs_id;
 
         std::vector<std::string> labels;
         std::vector<Property> properties;
 
         bool left_anonymous() const {
-            return left_name[0] == '_';
+            return lhs_id.type() == typeid(std::string)
+                && boost::get<std::string>(lhs_id)[0] == '_';
         }
 
         bool right_anonymous() const {
-            return right_name[0] == '_';
+            return rhs_id.type() == typeid(std::string)
+                && boost::get<std::string>(rhs_id)[0] == '_';
         }
     };
 
@@ -55,19 +57,19 @@ namespace import { namespace ast {
         // nesting_level = 3: left is the edge of the edge
         // and so on
         std::size_t nesting;
+        boost::variant<std::string, bool, int64_t, float> rhs_id;
+
+        std::vector<std::string> labels;
+        std::vector<Property> properties;
 
         std::size_t nesting_level() const {
             return nesting;
         }
 
         bool right_anonymous() const {
-            return right_name[0] == '_';
+            return rhs_id.type() == typeid(std::string)
+                && boost::get<std::string>(rhs_id)[0] == '_';
         }
-
-        std::string right_name;
-
-        std::vector<std::string> labels;
-        std::vector<Property> properties;
     };
 
     using ImportLine = boost::variant<Node, Edge, ImplicitEdge>;

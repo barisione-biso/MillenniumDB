@@ -8,7 +8,7 @@
 
 class OpLabel : public Op {
 public:
-    const NodeId node_id;
+    const NodeId node_id; // TODO: solo deberia poder ser un node_name o var
     const std::string label;
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
@@ -38,17 +38,11 @@ public:
         }
     }
 
-    std::set<std::string> get_var_names() const override {
-        std::set<std::string> res;
-        // TODO:
-        // if (node_name[0] == '?') {
-        //     res.insert(node_name);
-        // }
+    void get_vars(std::set<Var>& set) const override {
         if (node_id.is_var()) {
-            res.insert(node_id.to_string()); // TODO: retrieve var
+            set.insert(node_id.to_var());
         }
         // we assume label won't be a variable
-        return res;
     }
 };
 

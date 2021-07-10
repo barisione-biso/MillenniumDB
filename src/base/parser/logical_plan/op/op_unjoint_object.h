@@ -10,12 +10,6 @@ class OpUnjointObject : public Op {
 public:
     const NodeId node_id;
 
-    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
-        os << std::string(indent, ' ');
-        os << "OpUnjointObject(" << node_id << ")\n";
-        return os;
-    };
-
     OpUnjointObject(NodeId node_id) :
         node_id (node_id) { }
 
@@ -30,13 +24,17 @@ public:
         return node_id < other.node_id;
     }
 
-    std::set<std::string> get_var_names() const override {
-        std::set<std::string> res;
+    void get_vars(std::set<Var>& set) const override {
         if (node_id.is_var()) {
-            // TODO:
+            set.insert(node_id.to_var());
         }
-        return res;
     }
+
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
+        os << std::string(indent, ' ');
+        os << "OpUnjointObject(" << node_id << ")\n";
+        return os;
+    };
 };
 
 #endif // BASE__OP_UNJOINT_OBJECT_H_

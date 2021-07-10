@@ -30,17 +30,17 @@ using namespace std;
 
 constexpr auto MAX_SELINGER_PLANS = 0;
 
-BindingIdIterVisitor::BindingIdIterVisitor(QuadModel& model, const map<string, VarId>& var_name2var_id) :
-    model           (model),
-    var_name2var_id (var_name2var_id) { }
+BindingIdIterVisitor::BindingIdIterVisitor(const QuadModel& model, const map<Var, VarId>& var2var_id) :
+    model      (model),
+    var2var_id (var2var_id) { }
 
 
-VarId BindingIdIterVisitor::get_var_id(const std::string& var) {
-    auto search = var_name2var_id.find(var);
-    if (search != var_name2var_id.end()) {
+VarId BindingIdIterVisitor::get_var_id(const Var& var) {
+    auto search = var2var_id.find(var);
+    if (search != var2var_id.end()) {
         return (*search).second;
     } else {
-        throw std::logic_error("variable " + var + " not present in var_name2var_id");
+        throw std::logic_error("variable " + var.value + " not present in var_name2var_id");
     }
 }
 
@@ -49,16 +49,15 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     vector<unique_ptr<JoinPlan>> base_plans;
     // Process Labels
     for (auto& op_label : op_match.labels) {
-        auto label_id = model.get_string_id(op_label.label);
+        auto label_id = model.get_object_id(GraphObject::make_string(op_label.label));
 
         if (op_label.node_id.is_var()) {
-            auto node_var_id = get_var_id(op_label.node_id.to_string());
+            auto node_var_id = get_var_id(op_label.node_id.to_var());
             base_plans.push_back(
                 make_unique<LabelPlan>(model, node_var_id, label_id)
             );
         } else {
-            // TODO: hay mas opciones? tal vez op_label.node_id no es identificador
-            auto node_id = model.get_identifiable_object_id(op_label.node_id.to_string());
+            auto node_id = model.get_object_id(op_label.node_id.to_graph_object());
             base_plans.push_back(
                 make_unique<LabelPlan>(model, node_id, label_id)
             );
@@ -67,18 +66,17 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
 
     // Process properties from Match
     for (auto& op_property : op_match.properties) {
-        auto key_id   = model.get_string_id(op_property.key);
+        auto key_id   = model.get_object_id(GraphObject::make_string(op_property.key));
         auto value_id = get_value_id(op_property.value);
 
         if (op_property.node_id.is_var()) {
-            auto obj_var_id = get_var_id(op_property.node_id.to_string());
+            auto obj_var_id = get_var_id(op_property.node_id.to_var());
 
             base_plans.push_back(
                 make_unique<PropertyPlan>(model, obj_var_id, key_id, value_id)
             );
         } else {
-            // TODO: hay mas opciones? tal vez op_property.node_id no es identificador
-            auto obj_id = model.get_identifiable_object_id(op_property.node_id.to_string());
+            auto obj_id = model.get_object_id(op_property.node_id.to_graph_object());
             base_plans.push_back(
                 make_unique<PropertyPlan>(model, obj_id, key_id, value_id)
             );
@@ -88,7 +86,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     // Process UnjointObjects
     for (auto& unjoint_object : op_match.unjoint_objects) {
         // TODO: unjoint object node_id may not be a variable
-        auto obj_var_id = get_var_id(unjoint_object.node_id.to_string());
+        auto obj_var_id = get_var_id(unjoint_object.node_id.to_var());
         base_plans.push_back(
             make_unique<UnjointObjectPlan>(model, obj_var_id)
         );
@@ -96,33 +94,31 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
 
     // Process connections
     for (auto& op_connection : op_match.connections) {
-        // TODO: hay mas opciones? tal vez model deberia recibir un variant o dar visitor para obtener ObjectId
-        // y asi no usar get_identifiable_object_id
         auto from_id = op_connection.from.is_var()
-                        ? (JoinPlan::Id) get_var_id(op_connection.from.to_string())
-                        : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.from.to_string());
+                        ? (JoinPlan::Id) get_var_id(op_connection.from.to_var())
+                        : (JoinPlan::Id) model.get_object_id(op_connection.from.to_graph_object());
 
         auto to_id   = op_connection.to.is_var()
-                        ? (JoinPlan::Id) get_var_id(op_connection.to.to_string())
-                        : (JoinPlan::Id) model.get_identifiable_object_id(op_connection.to.to_string());
+                        ? (JoinPlan::Id) get_var_id(op_connection.to.to_var())
+                        : (JoinPlan::Id) model.get_object_id(op_connection.to.to_graph_object());
 
         auto edge_id = get_var_id(op_connection.edge);
 
         if (op_connection.types.empty()) {
             // Type not mentioned, creating anonymous variable for type
-            auto type_var_id = get_var_id(op_connection.edge + ":type");
+            auto type_var_id = get_var_id(Var("_type_" + op_connection.edge.value));
             base_plans.push_back(
                 make_unique<ConnectionPlan>(model, from_id, to_id, type_var_id, edge_id));
         }
         else if (op_connection.types.size() == 1) {
             if (op_connection.types[0][0] == '?') {
                 // Type is an explicit variable
-                auto type_var_id = get_var_id(op_connection.types[0]);
+                auto type_var_id = get_var_id(Var(op_connection.types[0]));
                 base_plans.push_back(
                     make_unique<ConnectionPlan>(model, from_id, to_id, type_var_id, edge_id));
             } else {
                 // Type is an IdentifiebleNode
-                auto type_obj_id = model.get_identifiable_object_id(op_connection.types[0]);
+                auto type_obj_id = model.get_object_id(GraphObject::make_identifiable(op_connection.types[0]));
                 base_plans.push_back(
                     make_unique<ConnectionPlan>(model, from_id, to_id, type_obj_id, edge_id)
                 );
@@ -134,13 +130,13 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     }
 
     for (auto& property_path : op_match.property_paths) {
-        auto from_id = property_path.from[0] == '?'
-                    ? (JoinPlan::Id) get_var_id(property_path.from)
-                    : (JoinPlan::Id) model.get_identifiable_object_id(property_path.from);
+        auto from_id = property_path.from.is_var()
+                    ? (JoinPlan::Id) get_var_id(property_path.from.to_var())
+                    : (JoinPlan::Id) model.get_object_id(property_path.from.to_graph_object());
 
-        auto to_id   = property_path.to[0] == '?'
-                    ? (JoinPlan::Id) get_var_id(property_path.to)
-                    : (JoinPlan::Id) model.get_identifiable_object_id(property_path.to);
+        auto to_id   = property_path.to.is_var()
+                    ? (JoinPlan::Id) get_var_id(property_path.to.to_var())
+                    : (JoinPlan::Id) model.get_object_id(property_path.to.to_graph_object());
 
 
         VarId path_var = get_var_id(property_path.var);
@@ -153,10 +149,10 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
 
     // construct var names
     vector<string> var_names;
-    const auto binding_size = var_name2var_id.size();
+    const auto binding_size = var2var_id.size();
     var_names.resize(binding_size);
-    for (auto&& [var_name, var_id] : var_name2var_id) {
-        var_names[var_id.id] = var_name;
+    for (auto&& [var, var_id] : var2var_id) {
+        var_names[var_id.id] = var.value;
     }
 
     // construct input vars
@@ -214,7 +210,7 @@ void BindingIdIterVisitor::visit(OpOptional& op_optional) {
         // assigned_vars = current_scope_assigned_vars;
     }
 
-    auto binding_size = var_name2var_id.size();
+    auto binding_size = var2var_id.size();
     assert(tmp == nullptr);
     tmp = make_unique<OptionalNode>(binding_size, move(binding_id_iter), move(optional_children));
 }
@@ -435,6 +431,7 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
 }
 
 
+// TODO: a visitor would be nice
 ObjectId BindingIdIterVisitor::get_value_id(const common::ast::Value& value) {
     if (value.type() == typeid(string)) {
         auto str = boost::get<string>(value);

@@ -10,7 +10,9 @@
 
 class BindingWhere : public Binding {
 public:
-    BindingWhere(GraphModel& model, Binding& child_binding, VarId max_var_id_in_child,
+    BindingWhere(const GraphModel& model,
+                 Binding& child_binding,
+                 VarId max_var_id_in_child,
                  std::map<VarId, std::pair<VarId, ObjectId>> property_map);
     ~BindingWhere() = default;
 
@@ -21,7 +23,7 @@ public:
     void clear_cache(); // needs to be called when the binding changes
 
 private:
-    GraphModel& model;
+    const GraphModel& model;
     VarId max_var_id_in_child;
     Binding& child_binding;
 

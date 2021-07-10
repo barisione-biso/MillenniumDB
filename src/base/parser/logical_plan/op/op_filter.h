@@ -41,9 +41,9 @@ public:
     };
 
 
-    std::set<std::string> get_var_names() const override {
+    void get_vars(std::set<Var>& set) const override {
         // TODO: should add properties mentioned in the WHERE that are not present in the MATCH?
-        return op->get_var_names();
+        return op->get_vars(set);
     }
 };
 

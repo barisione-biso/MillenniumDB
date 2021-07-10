@@ -7,7 +7,7 @@
 
 using namespace std;
 
-UnjointObjectPlan::UnjointObjectPlan(QuadModel& model, const VarId object_var_id) :
+UnjointObjectPlan::UnjointObjectPlan(const QuadModel& model, const VarId object_var_id) :
     model         (model),
     object_var_id (object_var_id) { }
 

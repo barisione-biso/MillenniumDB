@@ -161,6 +161,23 @@ public:
         return GraphObject(NotFoundObject());
     }
 
+    static GraphObject make_string(const std::string& str) {
+        if (str.size() < 8) {
+            char c[8];
+            std::size_t i = 0;
+            for (; i < str.size(); ++i) {
+                c[i] = str[i];
+            }
+            for (; i < 8; ++i) {
+                c[i] = '\0';
+            }
+            return GraphObject::make_string_inlined(c);
+        } else {
+            return GraphObject::make_string_external(const_cast<char*>(str.c_str()));
+        }
+    }
+
+
     static GraphObject make_string(const char* str) {
         std::size_t size = strlen(str);
         if (size < 8) {

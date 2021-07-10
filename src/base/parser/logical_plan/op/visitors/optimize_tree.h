@@ -23,7 +23,7 @@ private:
     std::set<OpLabel> global_label_set;
     std::set<OpProperty> global_properties_set;
 
-    std::set<std::string> global_var_names;
+    std::set<Var> global_vars;
     std::vector<std::unique_ptr<Op>> optionals;
 
     bool delete_current = false;
@@ -43,7 +43,6 @@ public:
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
     void visit(OpDistinct&) override;
-
     void visit(OpPropertyPath&) override;
     void visit(OpPath&) override;
     void visit(OpPathAtom&) override;

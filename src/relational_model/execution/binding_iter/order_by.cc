@@ -12,10 +12,10 @@
 
 using namespace std;
 
-OrderBy::OrderBy(GraphModel& model,
+OrderBy::OrderBy(const GraphModel& model,
                  unique_ptr<BindingIter> child,
                  size_t binding_size,
-                 vector<pair<string, VarId>> order_vars,
+                 vector<pair<Var, VarId>> order_vars,
                  vector<bool> ascending) :
     child          (move(child)),
     order_vars     (move(order_vars)),

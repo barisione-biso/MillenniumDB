@@ -1,7 +1,8 @@
 #include "graph_object_visitor.h"
 
-GraphObjectVisitor::GraphObjectVisitor(QuadModel& model) :
-    model (model) { }
+GraphObjectVisitor::GraphObjectVisitor(const QuadModel& model, bool create_if_not_exists) :
+    model                (model),
+    create_if_not_exists (create_if_not_exists) { }
 
 
 ObjectId GraphObjectVisitor::operator()(const IdentifiableInlined& identifiable_inlined) const {
@@ -20,12 +21,18 @@ ObjectId GraphObjectVisitor::operator()(const IdentifiableInlined& identifiable_
 
 
 ObjectId GraphObjectVisitor::operator()(const IdentifiableExternal& identifiable_external) const {
-    std::string str(identifiable_external.id);
-    auto external_id = model.get_external_id(str);
-    if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
-        return ObjectId::get_not_found();
-    } else {
+    const std::string str(identifiable_external.id);
+    if (create_if_not_exists) {
+        bool created;
+        auto external_id = model.strings_hash().get_or_create_id(str, &created);
         return ObjectId(external_id | GraphModel::IDENTIFIABLE_EXTERNAL_MASK);
+    } else {
+        auto external_id = model.strings_hash().get_id(str);
+        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
+            return ObjectId::get_not_found();
+        } else {
+            return ObjectId(external_id | GraphModel::IDENTIFIABLE_EXTERNAL_MASK);
+        }
     }
 }
 
@@ -57,12 +64,18 @@ ObjectId GraphObjectVisitor::operator()(const StringInlined& string_inlined) con
 
 
 ObjectId GraphObjectVisitor::operator()(const StringExternal& string_external) const {
-    std::string str(string_external.id);
-    auto external_id = model.get_external_id(str);
-    if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
-        return ObjectId::get_not_found();
-    } else {
+    const std::string str(string_external.id);
+    if (create_if_not_exists) {
+        bool created;
+        auto external_id = model.strings_hash().get_or_create_id(str, &created);
         return ObjectId(external_id | GraphModel::VALUE_EXTERNAL_STR_MASK);
+    } else {
+        auto external_id = model.strings_hash().get_id(str);
+        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
+            return ObjectId::get_not_found();
+        } else {
+            return ObjectId(external_id | GraphModel::VALUE_EXTERNAL_STR_MASK);
+        }
     }
 }
 

@@ -37,8 +37,6 @@ namespace query {
             node = "node";
         x3::rule<class edge, ast::Edge>
             edge = "edge";
-        x3::rule<class node_id_str, std::string>
-            node_id_str = "node_id_str";
 
         // PROPERTY PATHS
         x3::rule<class property_path, ast::PropertyPath>
@@ -77,16 +75,6 @@ namespace query {
             lit("!=") >> attr(ast::Comparator::NE) |
             lit('<')  >> attr(ast::Comparator::LT) |
             lit('>')  >> attr(ast::Comparator::GT);
-
-        // string_quoted is different from common::parser::string, it mantains the ""
-        auto const string_quoted =
-            lexeme[char_('"') >> *(escaped | ~char_('"')) >> char_('"')];
-
-        auto const node_id_str_def =
-            -(string_quoted | node_name | var);
-
-        auto const node_id =
-            boolean | float_ | int64 | node_id_str;
 
         auto const node_inside =
             node_id >> *label >> -("{" >> -(property % ',') >> "}");
@@ -223,7 +211,6 @@ namespace query {
             select_items,
             select_statement,
             node,
-            node_id_str,
             edge,
 
             property_path,

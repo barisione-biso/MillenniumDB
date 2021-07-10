@@ -24,7 +24,7 @@ public:
     std::set<OpPropertyPath>   property_paths;
     std::set<OpUnjointObject>  unjoint_objects;
 
-    std::set<std::string> var_names; // contains declared variables and anonymous (auto-generated in the constructor)
+    std::set<Var> vars; // contains declared variables and anonymous (auto-generated in the constructor)
 
     uint_fast32_t *anon_count;
 
@@ -59,27 +59,23 @@ public:
                     } else {
                         auto property_path = boost::get<query::ast::PropertyPath>(linear_pattern_step.path);
 
-                        std::string path_var_name;
-                        if (property_path.var.empty()) {
-                            // anonymous variable
-                            path_var_name = "?_p" + std::to_string((*anon_count)++);
-                        } else {
-                            path_var_name = property_path.var;
-                        }
-                        var_names.insert(path_var_name);
+                        Var path_var = property_path.var.empty()
+                                ? Var("?_p" + std::to_string((*anon_count)++))
+                                : Var(property_path.var);
+                        vars.insert(path_var);
 
                         PathConstructor path_constructor;
-                        property_paths.insert(
-                            property_path.direction == query::ast::EdgeDirection::right
-                                ? OpPropertyPath(path_var_name,
-                                                 last_node_id.to_string(),
-                                                 current_node_id.to_string(),
-                                                 path_constructor(property_path.path_alternatives))
-                                : OpPropertyPath(path_var_name,
-                                                 current_node_id.to_string(),
-                                                 last_node_id.to_string(),
-                                                 path_constructor(property_path.path_alternatives))
-                        );
+                        if (property_path.direction == query::ast::EdgeDirection::right) {
+                            property_paths.emplace(path_var,
+                                                   last_node_id,
+                                                   current_node_id,
+                                                   path_constructor(property_path.path_alternatives));
+                        } else { // property_path.direction == query::ast::EdgeDirection::left
+                            property_paths.emplace(path_var,
+                                                   current_node_id,
+                                                   last_node_id,
+                                                   path_constructor(property_path.path_alternatives));
+                        }
                     }
                 }
             }
@@ -103,21 +99,25 @@ public:
                 // anonymous variable
                 std::cout << "node is anonymous var(empty)\n";
                 std::string s = "?_" + std::to_string((*anon_count)++);
-                var_names.insert(s);
-                return NodeId(s);
+                Var v(s);
+                vars.insert(v);
+                return NodeId(v);
             } else if (str[0] == '?') {
                 // explicit variable
                 std::cout << "node is explicit var: " << str << "\n";
-                var_names.insert(str);
-                return NodeId(str);
-            }  else if (str[0] == '"' || str[0] == '\'') {
+                Var v(str);
+                vars.insert(v);
+                return NodeId(v);
+            }  else if (str[0] == '"') {
                 // string
-                std::cout << "node is string:" << str << "\n";
-                return NodeId(str);
+                // delete first and last characters: ("")
+                std::string tmp = str.substr(1, str.size() - 2);
+                std::cout << "node is string:" << tmp << "\n";
+                return NodeId(std::move(tmp));
             }  else {
                 // identifier
-                std::cout << "node is string: " << str << "\n";
-                return NodeId(str);
+                std::cout << "node is name: " << str << "\n";
+                return NodeId(NodeName(str));
             }
         } else if (id.type() == typeid(bool)) {
             auto b = boost::get<bool>(id);
@@ -161,36 +161,31 @@ public:
     }
 
 
-    std::string process_edge(const query::ast::Edge& edge, std::vector<std::string>& types) {
-        std::string edge_name;
-        if (edge.var.empty()) {
-            // anonymous variable
-            edge_name = "?_e" + std::to_string((*anon_count)++);
-        } else {
-            // explicit variable
-            edge_name = edge.var;
-        }
-        var_names.insert(edge_name);
+    Var process_edge(const query::ast::Edge& edge, std::vector<std::string>& types) {
+        Var edge_var =  edge.var.empty()
+            ? Var("?_e" + std::to_string((*anon_count)++))
+            : Var(edge.var);
+        vars.insert(edge_var);
 
         for (const auto &type : edge.types) {
             if (type[0] == '?') {
-                var_names.insert(type);
+                vars.insert(Var(type));
             }
             types.push_back(type);
         }
 
         if (edge.types.size() == 0) {
-            var_names.insert(edge_name + ":type");
+            vars.insert(Var("_type_" + edge_var.value));
         }
 
         for (auto& property : edge.properties) {
-            auto new_property = OpProperty(NodeId(edge_name), property.key, property.value);
+            auto new_property = OpProperty(NodeId(edge_var), property.key, property.value);
             auto property_search = properties.find(new_property);
 
             if (property_search != properties.end()) {
                 auto old_property = *property_search;
                 if (old_property.value != property.value) {
-                    throw QuerySemanticException(edge_name + "." + property.key
+                    throw QuerySemanticException(edge_var.value + "." + property.key
                                                  + " its declared with different values in MATCH");
                 }
             } else {
@@ -198,7 +193,7 @@ public:
             }
         }
 
-        return edge_name;
+        return edge_var;
     }
 
 
@@ -230,8 +225,10 @@ public:
     }
 
 
-    std::set<std::string> get_var_names() const override {
-        return var_names;
+    void get_vars(std::set<Var>& set) const override {
+        for (auto& v : vars) {
+            set.insert(v);
+        }
     }
 };
 

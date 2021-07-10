@@ -14,12 +14,10 @@ public:
     std::unique_ptr<OpPath> path;
 
     OpPathKleeneStar(std::unique_ptr<OpPath> _path) :
-        path  ( PathDenull::denull(std::move(_path)) )
-        { }
+        path  ( PathDenull::denull(std::move(_path)) ) { }
 
     OpPathKleeneStar(const OpPathKleeneStar& other) :
-        path  (other.path->duplicate())
-        { }
+        path  (other.path->duplicate()) { }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
@@ -29,11 +27,6 @@ public:
         std::string res = "(";
         res.append(path->to_string());
         res.append(")*");
-        return res;
-    }
-
-    std::set<std::string> get_var_names() const override {
-        std::set<std::string> res;
         return res;
     }
 

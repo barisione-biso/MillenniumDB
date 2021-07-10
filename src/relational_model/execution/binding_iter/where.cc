@@ -7,8 +7,11 @@
 
 using namespace std;
 
-Where::Where(GraphModel& model, unique_ptr<BindingIter> _child_iter, unique_ptr<Condition> condition,
-             std::size_t child_binding_size, std::map<VarId, std::pair<VarId, ObjectId>> property_map) :
+Where::Where(const GraphModel& model,
+             unique_ptr<BindingIter> _child_iter,
+             unique_ptr<Condition> condition,
+             std::size_t child_binding_size,
+             std::map<VarId, std::pair<VarId, ObjectId>> property_map) :
     model      (model),
     child_iter (move(_child_iter)),
     condition  (move(condition)),

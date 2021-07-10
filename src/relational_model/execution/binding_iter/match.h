@@ -13,7 +13,7 @@
 
 class Match : public BindingIter {
 public:
-    Match(GraphModel& model, std::unique_ptr<BindingIdIter> root, size_t binding_size);
+    Match(const GraphModel& model, std::unique_ptr<BindingIdIter> root, size_t binding_size);
     ~Match() = default;
 
     inline Binding& get_binding() noexcept override { return my_binding; }
@@ -23,7 +23,7 @@ public:
     void analyze(int indent = 0) const override;
 
 private:
-    GraphModel& model;
+    const GraphModel& model;
     std::unique_ptr<BindingIdIter> root;
     BindingId input;
     BindingId* binding_id_root;

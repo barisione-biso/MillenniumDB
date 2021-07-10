@@ -20,15 +20,16 @@
 #include "base/graph/condition/negation.h"
 #include "base/graph/graph_model.h"
 #include "base/ids/object_id.h"
+#include "base/parser/logical_plan/var.h"
 
 class Formula2ConditionVisitor : public boost::static_visitor<std::unique_ptr<Condition>> {
 public:
-    GraphModel& model;
-    const std::map<std::string, VarId>& var_names2var_ids;
+    const GraphModel& model;
+    const std::map<Var, VarId>& var2var_ids;
     std::map<VarId, std::pair<VarId, ObjectId>> property_map;
     std::size_t new_property_map_count;
 
-    Formula2ConditionVisitor(GraphModel& model, const std::map<std::string, VarId>& var_names2var_ids);
+    Formula2ConditionVisitor(const GraphModel& model, const std::map<Var, VarId>& var2var_ids);
 
     std::unique_ptr<Condition> operator()(query::ast::AtomicFormula const&);
     std::unique_ptr<Condition> operator()(query::ast::FormulaDisjunction const&);

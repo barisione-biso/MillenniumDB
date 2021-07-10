@@ -28,7 +28,6 @@ public:
 
     ~OpSelect() = default;
 
-
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
@@ -60,14 +59,13 @@ public:
         return op->print_to_ostream(os, indent + 2);
     };
 
-    std::set<std::string> get_var_names() const override {
-        auto res = op->get_var_names();
+    void get_vars(std::set<Var>& set) const override {
+        op->get_vars(set);
         for (const auto& select_item : select_items) {
             if (select_item.key) {
-                res.insert(select_item.var + '.' + select_item.key.get());
+                set.emplace(select_item.var + '.' + select_item.key.get());
             }
         }
-        return res;
     }
 };
 

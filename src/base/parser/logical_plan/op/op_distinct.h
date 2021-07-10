@@ -11,8 +11,7 @@ public:
     const std::unique_ptr<Op> op;
 
     OpDistinct(std::unique_ptr<Op> op) :
-        op (std::move(op))
-        { }
+        op (std::move(op)) { }
 
     ~OpDistinct() = default;
 
@@ -20,8 +19,8 @@ public:
         visitor.visit(*this);
     }
 
-    std::set<std::string> get_var_names() const override {
-        return op->get_var_names();
+    void get_vars(std::set<Var>& set) const override {
+        return op->get_vars(set);
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {

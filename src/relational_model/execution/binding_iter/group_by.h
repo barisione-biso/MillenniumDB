@@ -18,7 +18,7 @@ public:
     GroupBy(GraphModel& model,
             std::unique_ptr<BindingIter> child,
             std::size_t binding_size,
-            std::vector<std::pair<std::string,VarId>> _group_vars,
+            std::vector<std::pair<Var,VarId>> _group_vars,
             std::vector<bool> ascending);
     ~GroupBy() = default;
 
@@ -31,7 +31,7 @@ public:
 private:
     OrderBy order_child;
     std::size_t binding_size;
-    std::vector<std::pair<std::string, VarId>> group_vars;
+    std::vector<std::pair<Var, VarId>> group_vars;
     BindingGroupBy my_binding;
     FileId group_file_id;
     std::vector<GraphObject> current_group_tuple;

@@ -111,10 +111,10 @@ void OptimizeTree::visit(OpMatch& op_match) {
         auto op_unjoint_object = *it;
 
         if (op_unjoint_object.node_id.is_var()) {
-            auto var_name = op_unjoint_object.node_id.to_string();
-            auto var_name_search = global_var_names.find(var_name);
-            if (var_name_search != global_var_names.end()) {
-                it  = op_match.unjoint_objects.erase(it);
+            auto var = op_unjoint_object.node_id.to_var();
+            auto var_search = global_vars.find(var);
+            if (var_search != global_vars.end()) {
+                it = op_match.unjoint_objects.erase(it);
             } else {
                 ++it;
             }
@@ -133,8 +133,10 @@ void OptimizeTree::visit(OpMatch& op_match) {
         delete_current = true;
     }
 
-    for (auto& var_name : op_match.get_var_names()) {
-        global_var_names.insert(var_name);
+    std::set<Var> match_vars;
+    op_match.get_vars(match_vars);
+    for (auto& var_name : match_vars) {
+        global_vars.insert(var_name);
     }
 }
 
@@ -179,7 +181,6 @@ void OptimizeTree::visit(OpLabel&)             { }
 void OptimizeTree::visit(OpProperty&)          { }
 void OptimizeTree::visit(OpUnjointObject&)     { }
 void OptimizeTree::visit(OpConnection&)        { }
-
 void OptimizeTree::visit(OpPath&)              { }
 void OptimizeTree::visit(OpPathAlternatives&)  { }
 void OptimizeTree::visit(OpPropertyPath&)      { }

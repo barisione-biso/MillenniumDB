@@ -6,6 +6,7 @@
 
 #include "base/binding/binding_id_iter.h"
 #include "base/binding/binding_iter.h"
+#include "base/parser/logical_plan/var.h"
 #include "relational_model/execution/binding/binding_select.h"
 
 class Select : public BindingIter {
@@ -17,7 +18,9 @@ private:
     BindingSelect my_binding;
 
 public:
-    Select(std::unique_ptr<BindingIter> child_iter, std::vector<std::pair<std::string, VarId>> projection_vars, uint_fast32_t limit);
+    Select(std::unique_ptr<BindingIter> child_iter,
+           std::vector<std::pair<Var, VarId>> projection_vars,
+           uint_fast32_t limit);
     ~Select();
 
     inline Binding& get_binding() noexcept override { return my_binding; }

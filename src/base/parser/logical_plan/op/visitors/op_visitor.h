@@ -13,7 +13,6 @@ class OpGroupBy;
 class OpUnjointObject;
 class OpGraphPatternRoot;
 class OpDistinct;
-
 class OpPropertyPath;
 class OpPath;
 class OpPathAtom;
@@ -37,7 +36,6 @@ public:
     virtual void visit(OpGroupBy&) = 0;
     virtual void visit(OpUnjointObject&) = 0;
     virtual void visit(OpDistinct&) = 0;
-
     virtual void visit(OpPropertyPath&) = 0;
     virtual void visit(OpPath&) = 0;
     virtual void visit(OpPathAtom&) = 0;
@@ -45,7 +43,6 @@ public:
     virtual void visit(OpPathSequence&) = 0;
     virtual void visit(OpPathKleeneStar&) = 0;
     virtual void visit(OpPathOptional&) = 0;
-
 };
 
 #endif // BASE__OP_VISITOR_H_

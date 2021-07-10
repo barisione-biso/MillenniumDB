@@ -11,7 +11,7 @@ class BindingId;
 
 class BindingMaterializeId : public Binding {
 public:
-    BindingMaterializeId(GraphModel& model, std::size_t binding_size, BindingId& binding_id);
+    BindingMaterializeId(const GraphModel& model, std::size_t binding_size, BindingId& binding_id);
     ~BindingMaterializeId();
 
     std::ostream& print_to_ostream(std::ostream&) const override;
@@ -21,7 +21,7 @@ public:
     void begin(BindingId&);
 
 private:
-    GraphModel& model;
+    const GraphModel& model;
     std::size_t binding_size;
     BindingId& binding_id;
 };

@@ -91,144 +91,22 @@ QuadModel::~QuadModel() {
 }
 
 
-std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select) {
-    auto query_optimizer = BindingIterVisitor(*this, op_select.get_var_names());
+std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select) const {
+    set<Var> vars;
+    op_select.get_vars(vars);
+    auto query_optimizer = BindingIterVisitor(*this, std::move(vars));
     return query_optimizer.exec(op_select);
 }
 
 
-std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& manual_plan) {
-    std::set<std::string> var_names; // TODO: fill the set
+std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& manual_plan) const {
+    std::set<Var> var_names; // TODO: fill the set
     auto query_optimizer = BindingIterVisitor(*this, var_names);
     return query_optimizer.exec(manual_plan);
 }
 
 
-uint64_t QuadModel::get_external_id(const string& str) const {
-    return strings_hash().get_id(str);
-}
-
-
-uint64_t QuadModel::get_or_create_external_id(const string& str, bool* const created) {
-    return strings_hash().get_or_create_id(str, created);
-}
-
-
-uint64_t QuadModel::get_inlined_identifiable_object_id(const std::string& str) const {
-    uint64_t res = 0;
-    int shift_size = 0;
-    // MUST convert to uint8_t and then to uint64_t.
-    // Shift with shift_size >=32 is undefined behaviour.
-    for (uint8_t byte : str) {
-        uint64_t byte64 = static_cast<uint64_t>(byte);
-        res |= byte64 << shift_size;
-        shift_size += 8;
-    }
-    return res | GraphModel::IDENTIFIABLE_INLINED_MASK;
-}
-
-
-uint64_t QuadModel::get_or_create_external_identifiable_object_id(const std::string& str) {
-    bool created;
-    const auto external_id = get_or_create_external_id(str, &created);
-    return external_id | GraphModel::IDENTIFIABLE_EXTERNAL_MASK;
-}
-
-
-uint64_t QuadModel::get_or_create_string_id(const std::string& str) {
-    if (str.size() < 8) {
-        uint64_t res = 0;
-        int shift_size = 0;
-        // MUST convert to uint8_t and then to uint64_t.
-        // Shift with shift_size >=32 is undefined behaviour.
-        for (uint8_t byte : str) {
-            uint64_t byte64 = static_cast<uint64_t>(byte);
-            res |= byte64 << shift_size;
-            shift_size += 8;
-        }
-        return res | GraphModel::VALUE_INLINE_STR_MASK;
-    } else {
-        bool created;
-        auto external_id = get_or_create_external_id(str, &created);
-        return external_id | GraphModel::VALUE_EXTERNAL_STR_MASK;
-    }
-}
-
-
-uint64_t QuadModel::get_or_create_value_id(const GraphObject& obj) {
-    if (std::holds_alternative<StringExternal>(obj.value)) {
-        const std::string str(std::get<StringExternal>(obj.value).id);
-        bool created;
-        auto external_id = get_or_create_external_id(str, &created);
-        return external_id | GraphModel::VALUE_EXTERNAL_STR_MASK;
-    } else {
-        GraphObjectVisitor visitor(*this);
-        if (std::holds_alternative<StringInlined>(obj.value)) {
-            return visitor(std::get<StringInlined>(obj.value)).id;
-        }
-        else if (std::holds_alternative<int64_t>(obj.value)) {
-            return visitor(std::get<int64_t>(obj.value)).id;
-        }
-        else if (std::holds_alternative<float>(obj.value)) {
-            return visitor(std::get<float>(obj.value)).id;
-        }
-        else if (std::holds_alternative<bool>(obj.value)) {
-            return visitor(std::get<bool>(obj.value)).id;
-        }
-        else {
-            throw std::logic_error("QuadModel::get_or_create_value_id(): unknown value type");
-        }
-    }
-}
-
-
-ObjectId QuadModel::get_string_id(const string& str) {
-    if (str.size() < 8) {
-        uint64_t res = 0;
-        int shift_size = 0;
-        // MUST convert to uint8_t and then to uint64_t.
-        // Shift with shift_size >=32 is undefined behaviour.
-        for (uint8_t byte : str) {
-            uint64_t byte64 = static_cast<uint64_t>(byte);
-            res |= byte64 << shift_size;
-            shift_size += 8;
-        }
-        return ObjectId(res | GraphModel::VALUE_INLINE_STR_MASK);
-    } else {
-        auto external_id = get_external_id(str);
-        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
-            return ObjectId::get_not_found();
-        } else {
-            return ObjectId(external_id | GraphModel::VALUE_EXTERNAL_STR_MASK);
-        }
-    }
-}
-
-
-ObjectId QuadModel::get_identifiable_object_id(const string& str) const {
-    if (str.size() < 8) {
-        uint64_t res = 0;
-        int shift_size = 0;
-        // MUST convert to uint8_t and then to uint64_t.
-        // Shift with shift_size >=32 is undefined behaviour.
-        for (uint8_t byte : str) {
-            uint64_t byte64 = static_cast<uint64_t>(byte);
-            res |= byte64 << shift_size;
-            shift_size += 8;
-        }
-        return ObjectId(res | GraphModel::IDENTIFIABLE_INLINED_MASK);
-    } else {
-        auto external_id = get_external_id(str);
-        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
-            return ObjectId::get_not_found();
-        } else {
-            return ObjectId(external_id | GraphModel::IDENTIFIABLE_EXTERNAL_MASK);
-        }
-    }
-}
-
-
-GraphObject QuadModel::get_graph_object(ObjectId object_id) {
+GraphObject QuadModel::get_graph_object(ObjectId object_id) const {
     if ( object_id.is_not_found() ) {
         return GraphObject::make_not_found();
     }
@@ -314,7 +192,7 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) {
             return GraphObject::make_path(unmasked_id);
         }
 
-        default : {
+        default : { // TODO: should throw an exception
             cout << "wrong value prefix:\n";
             printf("  obj_id: %lX\n", object_id.id);
             printf("  mask:   %lX\n", mask);
@@ -324,8 +202,8 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) {
 }
 
 
-GraphObject QuadModel::get_property_value(GraphObject& var, const ObjectId key) {
-    auto obj_id = get_object_id(var);
+GraphObject QuadModel::get_property_value(GraphObject& obj, const ObjectId key) const {
+    auto obj_id = get_object_id(obj);
 
     auto it = object_key_value->get_range(
         RecordFactory::get(obj_id.id, key.id, 0),
@@ -342,6 +220,11 @@ GraphObject QuadModel::get_property_value(GraphObject& var, const ObjectId key) 
 }
 
 
-ObjectId QuadModel::get_object_id(const GraphObject& graph_object) {
-    return std::visit(GraphObjectVisitor{ *this }, graph_object.value);
+ObjectId QuadModel::get_object_id(const GraphObject& graph_object) const {
+    return std::visit(GraphObjectVisitor(*this, false), graph_object.value);
+}
+
+
+uint64_t QuadModel::get_or_create_object_id(const GraphObject& graph_object) {
+    return std::visit(GraphObjectVisitor(*this, true), graph_object.value).id;
 }

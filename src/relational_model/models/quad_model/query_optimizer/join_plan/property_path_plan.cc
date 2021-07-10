@@ -18,7 +18,7 @@ using namespace std;
 using PropertyPathCheck = PropertyPathBFSCheck;
 using PropertyPathEnum = PropertyPathBFSIterEnum;
 
-PropertyPathPlan::PropertyPathPlan(QuadModel &model, VarId path_var, Id from, Id to, OpPath &path) :
+PropertyPathPlan::PropertyPathPlan(const QuadModel &model, VarId path_var, Id from, Id to, OpPath &path) :
     model         (model),
     path_var      (path_var),
     from          (from),
@@ -167,7 +167,7 @@ void PropertyPathPlan::set_automaton_transition_id(PathAutomaton &automaton) {
         vector<TransitionId> transition_id_vector;
         for (const auto &t : automaton.from_to_connections[i]) {
             transition_id_vector.push_back(
-                TransitionId(t.to, model.get_identifiable_object_id(t.label), t.inverse));
+                TransitionId(t.to, model.get_object_id(GraphObject::make_identifiable(t.label)), t.inverse));
         }
         automaton.transitions.push_back(transition_id_vector);
     }

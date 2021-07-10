@@ -2,7 +2,7 @@
 
 using namespace std;
 
-DistinctOrdered::DistinctOrdered(GraphModel& model, unique_ptr<BindingIter> _child_iter, std::vector<VarId> projected_vars) :
+DistinctOrdered::DistinctOrdered(const GraphModel& model, unique_ptr<BindingIter> _child_iter, std::vector<VarId> projected_vars) :
     model          (model),
     child_iter     (move(_child_iter)),
     child_binding  (child_iter->get_binding()),

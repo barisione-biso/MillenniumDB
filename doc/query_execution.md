@@ -34,7 +34,7 @@ The logical plan is created based on the AST by recursively accessing each node 
 Any member that inherits from the Op class must have a constructor which will assign the necessary variables of the member (and possible children). It must also have the following methods:
 
 - `accept_visitor(OpVisitor& visitor)`: Method that connects the Op interface with the Visitor interface. In most cases it wil execute `visitor.visit(*this);` and the `visit` method from the Visitor interface will be in charge of describing how to visit each node.
-- `get_var_names()`: Method that gets all the variable names involved in this specific node. Useful for making simplifications of the logical plan and generating the physical plan.
+- `get_vars(set<Var>&)`: Method that gets adds to the set all the variable names involved in this specific node. Useful for making simplifications of the logical plan and generating the physical plan.
 - `print_to_ostream()`: Method that displays the Op generated and their possible children. It is useful for debugging purposes.
 
 The following list shows the current classes that inherit from Op:

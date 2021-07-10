@@ -12,7 +12,7 @@ class BindingId;
 
 class BindingOrderBy : public Binding {
 public:
-    BindingOrderBy(GraphModel& model, size_t binding_size);
+    BindingOrderBy(const GraphModel& model, size_t binding_size);
     ~BindingOrderBy() = default;
 
     std::ostream& print_to_ostream(std::ostream&) const override;
@@ -20,7 +20,7 @@ public:
     void update_binding_object(std::vector<GraphObject> graph_object);
 
 private:
-    GraphModel& model;
+    const GraphModel& model;
     size_t binding_size;
     std::vector<GraphObject> objects_vector;
 };

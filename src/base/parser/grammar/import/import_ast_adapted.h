@@ -10,11 +10,11 @@ BOOST_FUSION_ADAPT_STRUCT(import::ast::Node,
 )
 
 BOOST_FUSION_ADAPT_STRUCT(import::ast::Edge,
-    left_name, direction, right_name, labels, properties
+    lhs_id, direction, rhs_id, labels, properties
 )
 
 BOOST_FUSION_ADAPT_STRUCT(import::ast::ImplicitEdge,
-    nesting, direction, right_name, labels, properties
+    nesting, direction, rhs_id, labels, properties
 )
 
 #endif // BASE__IMPORT_AST_ADAPTED_H_

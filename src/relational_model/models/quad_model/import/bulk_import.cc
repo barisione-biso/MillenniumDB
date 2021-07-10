@@ -234,6 +234,7 @@ void BulkImport::index_special_cases() {
 
 }
 
+
 void BulkImport::index_labels() {
     // NODE - LABEL
     labels_ordered_file.order(std::array<uint_fast8_t, 2> { 0, 1 });
@@ -301,6 +302,7 @@ void BulkImport::index_properties() {
 
 }
 
+
 template <std::size_t N>
 void BulkImport::set_distinct_type_stats(OrderedFile<N>& ordered_file, std::map<uint64_t, uint64_t>& map) {
     map.clear();
@@ -330,53 +332,18 @@ void BulkImport::set_distinct_type_stats(OrderedFile<N>& ordered_file, std::map<
 }
 
 
-uint64_t BulkImport::get_node_id(const string& node_name) {
-    if (node_name.size() < 8) {
-        auto obj_id = model.get_inlined_identifiable_object_id(node_name);
-        auto inlined_ids_search = inlined_ids.find(obj_id);
-        if (inlined_ids_search == inlined_ids.end()) {
-            inlined_ids.insert(obj_id);
-            nodes_ordered_file.append_record({obj_id});
-            ++catalog.identifiable_nodes_count;
-        }
-        return obj_id;
-    } else {
-        // bool created;
-        auto obj_id = model.get_or_create_external_identifiable_object_id(node_name);
-        auto external_ids_search = external_ids.find(obj_id);
-        if (external_ids_search == external_ids.end()) {
-            external_ids.insert(obj_id);
-            nodes_ordered_file.append_record({obj_id});
-            ++catalog.identifiable_nodes_count;
-        }
-        return obj_id;
-    }
+
+uint64_t BulkImport::get_node_id(const boost::variant<std::string, bool, int64_t, float>& node_id) {
+    return boost::apply_visitor(*this, node_id);
 }
 
-
-uint64_t BulkImport::get_anonymous_node_id(const string& tmp_name) {
-    // TODO: asuming anonymous ids are sequential starting from 1
-    auto str = tmp_name;
-    str.erase(0, 1); // delete first character: '_'
-    uint64_t unmasked_id = std::stoull(str);
-    if (catalog.anonymous_nodes_count < unmasked_id) {
-        catalog.anonymous_nodes_count = unmasked_id;
-    }
-
-    return unmasked_id | model.ANONYMOUS_NODE_MASK;
-}
 
 
 uint64_t BulkImport::process_node(const import::ast::Node node) {
-    uint64_t node_id;
-    if (node.anonymous()) {
-        node_id = get_anonymous_node_id(node.name);
-    } else {
-        node_id = get_node_id(node.name);
-    }
+    uint64_t node_id = get_node_id(node.name);
 
     for (auto& label : node.labels) {
-        auto label_id = model.get_or_create_string_id(label);
+        auto label_id = model.get_or_create_object_id(GraphObject::make_string(label));
         ++catalog.label_count;
         ++catalog.label2total_count[label_id];
 
@@ -388,8 +355,8 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
         auto v = property.value;
         const auto value = visitor(v);
 
-        const auto key_id   = model.get_or_create_string_id(property.key);
-        const auto value_id = model.get_or_create_value_id(value);
+        const auto key_id   = model.get_or_create_object_id(GraphObject::make_string(property.key));
+        const auto value_id = model.get_or_create_object_id(value);
 
         ++catalog.properties_count;
 
@@ -400,42 +367,25 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
 
 
 uint64_t BulkImport::process_edge(const import::ast::Edge edge) {
-    uint64_t left_id;
-    uint64_t right_id;
-    uint64_t type_id;
-
-    if (edge.labels.size() == 1) {
-        type_id = get_node_id(edge.labels[0]);
-    } else {
-        throw logic_error("In this quad bulk import all edges should have 1 type");
+    if (edge.labels.size() != 1) {
+        throw logic_error("In this quad bulk import all edges must have 1 type");
     }
 
-    if (edge.left_anonymous()) {
-        left_id = get_anonymous_node_id(edge.left_name);
-    } else {
-        left_id = get_node_id(edge.left_name);
-    }
+    uint64_t left_id  = get_node_id(edge.lhs_id);
+    uint64_t right_id = get_node_id(edge.rhs_id);
+    uint64_t type_id  = get_node_id(edge.labels[0]);;
 
-    if (edge.right_anonymous()) {
-        right_id = get_anonymous_node_id(edge.right_name);
-    } else {
-        right_id = get_node_id(edge.right_name);
-    }
-
-    uint64_t edge_id;
-    if (edge.direction == import::ast::EdgeDirection::right) {
-        edge_id = create_connection(left_id, right_id, type_id);
-    } else {
-        edge_id = create_connection(right_id, left_id, type_id);
-    }
+    uint64_t edge_id = (edge.direction == import::ast::EdgeDirection::right)
+        ? create_connection(left_id, right_id, type_id)
+        : create_connection(right_id, left_id, type_id);
 
     for (auto& property : edge.properties) {
         ValueVisitor visitor;
         auto v = property.value;
         const auto value = visitor(v);
 
-        const auto key_id   = model.get_or_create_string_id(property.key);
-        const auto value_id = model.get_or_create_value_id(value);
+        const auto key_id   = model.get_or_create_object_id(GraphObject::make_string(property.key));
+        const auto value_id = model.get_or_create_object_id(value);
 
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];
@@ -450,36 +400,23 @@ uint64_t BulkImport::process_edge(const import::ast::Edge edge) {
 uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge edge,
                                            const uint64_t implicit_object_id)
 {
-    uint64_t right_id;
-    uint64_t type_id;
-
-    if (edge.labels.size() == 1) {
-        type_id = get_node_id(edge.labels[0]);
-    } else {
-        throw logic_error("In this quad bulk import all edges should have 1 type");
+    if (edge.labels.size() != 1) {
+        throw logic_error("In this quad bulk import all edges must have 1 type");
     }
+    uint64_t right_id = get_node_id(edge.rhs_id);
+    uint64_t type_id  = get_node_id(edge.labels[0]);
 
-
-    if (edge.right_anonymous()) {
-        right_id = get_anonymous_node_id(edge.right_name);
-    } else {
-        right_id = get_node_id(edge.right_name);
-    }
-
-    uint64_t edge_id;
-    if (edge.direction == import::ast::EdgeDirection::right) {
-        edge_id = create_connection(implicit_object_id, right_id, type_id);
-    } else {
-        edge_id = create_connection(right_id, implicit_object_id, type_id);
-    }
+    uint64_t edge_id = (edge.direction == import::ast::EdgeDirection::right)
+        ? create_connection(implicit_object_id, right_id, type_id)
+        : create_connection(right_id, implicit_object_id, type_id);
 
     for (auto& property : edge.properties) {
         ValueVisitor visitor;
         auto v = property.value;
         auto value = visitor(v);
 
-        const auto key_id   = model.get_or_create_string_id(property.key);
-        const auto value_id = model.get_or_create_value_id(value);
+        const auto key_id   = model.get_or_create_object_id(GraphObject::make_string(property.key));
+        const auto value_id = model.get_or_create_object_id(value);
 
         ++catalog.properties_count;
         // ++catalog.key2total_count[key_id];
@@ -517,4 +454,67 @@ uint64_t BulkImport::create_connection(const uint64_t from_id, const uint64_t to
     model.edge_table->append_record(std::array<uint64_t, 3> { from_id, to_id, type_id });
 
     return edge_id;
+}
+
+
+uint64_t BulkImport::operator()(const std::string& str) {
+    if (str[0] == '_') { // Anonymous Node
+        // delete first character: '_'
+        std::string tmp = str.substr(1, str.size() - 1);
+        uint64_t unmasked_id = std::stoull(tmp);
+        if (catalog.anonymous_nodes_count < unmasked_id) {
+            catalog.anonymous_nodes_count = unmasked_id;
+        }
+        return unmasked_id | model.ANONYMOUS_NODE_MASK;
+    }
+    else if (str[0] == '"') { // String Literal Node
+        // delete first and last characters: ("")
+        std::string tmp = str.substr(1, str.size() - 2);
+        auto obj_id = model.get_or_create_object_id(GraphObject::make_string(tmp));
+        if (named_node_ids.insert(obj_id).second) {
+            // ++catalog.identifiable_nodes_count;
+            nodes_ordered_file.append_record({obj_id});
+        }
+        return obj_id;
+    }
+    else { // Named Node
+        auto obj_id = model.get_or_create_object_id(GraphObject::make_identifiable(str));
+        if (named_node_ids.insert(obj_id).second) {
+            ++catalog.identifiable_nodes_count;
+            nodes_ordered_file.append_record({obj_id});
+        }
+        return obj_id;
+    }
+}
+
+
+// TODO: update catalog.identifiable_nodes_count ?
+// TODO: nodes_ordered_file.append_record({ obj_id }) if not in there ?
+uint64_t BulkImport::operator()(bool b) {
+    auto obj_id = model.get_object_id(GraphObject::make_bool(b)).id;
+    if (named_node_ids.insert(obj_id).second) {
+        // ++catalog.identifiable_nodes_count;
+        nodes_ordered_file.append_record({obj_id});
+    }
+    return obj_id;
+}
+
+
+uint64_t BulkImport::operator()(int64_t i) {
+    auto obj_id = model.get_object_id(GraphObject::make_int(i)).id;
+    if (named_node_ids.insert(obj_id).second) {
+        // ++catalog.identifiable_nodes_count;
+        nodes_ordered_file.append_record({obj_id});
+    }
+    return obj_id;
+}
+
+
+uint64_t BulkImport::operator()(float f) {
+    auto obj_id = model.get_object_id(GraphObject::make_float(f)).id;
+    if (named_node_ids.insert(obj_id).second) {
+        // ++catalog.identifiable_nodes_count;
+        nodes_ordered_file.append_record({obj_id});
+    }
+    return obj_id;
 }

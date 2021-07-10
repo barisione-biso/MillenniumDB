@@ -4,6 +4,7 @@
 #include "base/binding/binding.h"
 #include "base/binding/binding_iter.h"
 #include "base/binding/binding_id.h"
+#include "base/parser/logical_plan/var.h"
 
 #include <memory>
 #include <string>
@@ -11,7 +12,7 @@
 
 class BindingSelect : public Binding {
 public:
-    BindingSelect(std::vector<std::pair<std::string, VarId>> projection_vars, Binding& child_binding);
+    BindingSelect(std::vector<std::pair<Var, VarId>> projection_vars, Binding& child_binding);
     ~BindingSelect() = default;
 
     std::ostream& print_to_ostream(std::ostream&) const override;
@@ -19,7 +20,7 @@ public:
     GraphObject operator[](const VarId var_id) override;
 
 private:
-    std::vector<std::pair<std::string, VarId>> projection_vars;
+    std::vector<std::pair<Var, VarId>> projection_vars;
     Binding& child_binding;
 };
 

@@ -6,10 +6,9 @@
 
 using namespace std;
 
-
-BindingOrderBy::BindingOrderBy(GraphModel& model, size_t binding_size) :
-    model         (model),
-    binding_size  (binding_size) { }
+BindingOrderBy::BindingOrderBy(const GraphModel& model, size_t binding_size) :
+    model        (model),
+    binding_size (binding_size) { }
 
 
 std::ostream& BindingOrderBy::print_to_ostream(std::ostream& os) const {

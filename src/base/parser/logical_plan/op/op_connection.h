@@ -11,10 +11,10 @@ class OpConnection : public Op {
 public:
     const NodeId from;
     const NodeId to;
-    const std::string edge;
-    const std::vector<std::string> types;
+    const Var edge;
+    const std::vector<std::string> types; // TODO: use NodeId?
 
-    OpConnection(NodeId from, NodeId to, std::string edge, std::vector<std::string> types) :
+    OpConnection(NodeId from, NodeId to, Var edge, std::vector<std::string> types) :
         from  (from),
         to    (to),
         edge  (std::move(edge)),
@@ -39,19 +39,19 @@ public:
         }
     }
 
-    std::set<std::string> get_var_names() const override {
-        std::set<std::string> res;
-        // TODO:
-        // if (from[0] == '?') {
-        //     res.insert(from);
-        // }
-        // if (to[0] == '?') {
-        //     res.insert(to);
-        // }
-        if (edge[0] == '?') {
-            res.insert(edge);
+    void get_vars(std::set<Var>& set) const override {
+        if (from.is_var()) {
+            set.insert(from.to_var());
         }
-        return res;
+        if (to.is_var()) {
+            set.insert(to.to_var());
+        }
+        for (auto& type : types) {
+            if (type[0] == '?') {
+                set.emplace(type);
+            }
+        }
+        set.insert(edge);
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
