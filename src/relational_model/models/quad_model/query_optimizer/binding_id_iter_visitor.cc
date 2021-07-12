@@ -167,8 +167,10 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
         throw QuerySemanticException("Empty plan");
     }
 
-    // try to use leapfrog if possible // TODO: only use when having more than 1 base plan?
-    tmp = try_get_leapfrog_plan(base_plans, var_names, binding_size, input_vars);
+    // try to use leapfrog if the is a join
+    if (base_plans.size() > 1) {
+        tmp = try_get_leapfrog_plan(base_plans, var_names, binding_size, input_vars);
+    }
 
     if (tmp == nullptr) {
         if (base_plans.size() <= MAX_SELINGER_PLANS) {
