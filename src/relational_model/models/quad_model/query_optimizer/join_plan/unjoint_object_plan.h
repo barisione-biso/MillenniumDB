@@ -7,7 +7,7 @@
 class UnjointObjectPlan : public JoinPlan {
 public:
     UnjointObjectPlan(const UnjointObjectPlan& other);
-    UnjointObjectPlan(QuadModel& model, const VarId object_var_id);
+    UnjointObjectPlan(const QuadModel& model, const VarId object_var_id);
     ~UnjointObjectPlan() = default;
 
     double estimate_cost() override;
@@ -28,7 +28,7 @@ public:
     void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) override;
 
 private:
-    QuadModel& model;
+    const QuadModel& model;
     const VarId object_var_id;
 };
 

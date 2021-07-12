@@ -10,24 +10,31 @@
 #include "base/parser/logical_plan/op/op.h" // NEW
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 
-
+/* Simplifies the logical plan generated based on certain properties of the logical plan.
+ * This simplifications only happen if the query has an `OPTIONAL` clause.
+ * The simplifications are done by executing a DFS algorithm over the Optional Nodes,
+ * going through their children in order and saving the variables involved in each node.
+ * Since the query is well defined, once a variable is assigned it must not be assigned once again,
+ * so any node that does not assign any new variables is marked as useless and is eliminated.
+ */
 class OptimizeTree : public OpVisitor {
 private:
-    std::set<OpProperty> global_properties_set;
+    // these sets are to avoid having redundant labels/properties inside an OPTIONAL
     std::set<OpLabel> global_label_set;
-    std::set<std::string> global_var_names;
-    // Op* parent = nullptr;
+    std::set<OpProperty> global_properties_set;
+
+    std::set<Var> global_vars;
+    std::vector<std::unique_ptr<Op>> optionals;
+
     bool delete_current = false;
     bool move_children_up = false;
     bool optional_to_match = true;
-    std::vector<std::unique_ptr<Op>> optionals;
 
 public:
     void visit(OpSelect&) override;
     void visit(OpMatch&) override;
     void visit(OpFilter&) override;
     void visit(OpConnection&) override;
-    void visit(OpConnectionType&) override;
     void visit(OpLabel&) override;
     void visit(OpProperty&) override;
     void visit(OpOrderBy&) override;
@@ -36,7 +43,6 @@ public:
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
     void visit(OpDistinct&) override;
-
     void visit(OpPropertyPath&) override;
     void visit(OpPath&) override;
     void visit(OpPathAtom&) override;
@@ -45,4 +51,5 @@ public:
     void visit(OpPathKleeneStar&) override;
     void visit(OpPathOptional&) override;
 };
+
 #endif // BASE__OPTIMIZE_TREE_H_

@@ -6,9 +6,10 @@
 #include "relational_model/models/quad_model/quad_model.h"
 
 struct GraphObjectVisitor {
-    QuadModel& model;
+    const QuadModel& model;
+    const bool create_if_not_exists;
 
-    GraphObjectVisitor(QuadModel& model);
+    GraphObjectVisitor(const QuadModel& model, bool create_if_not_exists);
     ~GraphObjectVisitor() = default;
 
     ObjectId operator()(const IdentifiableInlined& i)   const;

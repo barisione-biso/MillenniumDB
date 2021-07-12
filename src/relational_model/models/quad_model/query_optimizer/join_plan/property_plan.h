@@ -12,7 +12,7 @@
 class PropertyPlan : public JoinPlan {
 public:
     PropertyPlan(const PropertyPlan& other);
-    PropertyPlan(QuadModel& model, Id object, Id key, Id value);
+    PropertyPlan(const QuadModel& model, Id object, Id key, Id value);
 
     ~PropertyPlan() = default;
 
@@ -32,7 +32,7 @@ public:
 
     void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) override;
 private:
-    QuadModel& model;
+    const QuadModel& model;
 
     Id object;
     Id key;

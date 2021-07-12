@@ -7,7 +7,7 @@
 
 using namespace std;
 
-ConnectionPlan::ConnectionPlan(QuadModel& model, Id from, Id to, Id type, VarId edge) :
+ConnectionPlan::ConnectionPlan(const QuadModel& model, Id from, Id to, Id type, VarId edge) :
     model         (model),
     from          (from),
     to            (to),

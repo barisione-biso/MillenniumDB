@@ -2,10 +2,10 @@
 
 using namespace query::ast;
 
-Formula2ConditionVisitor::Formula2ConditionVisitor(GraphModel& model, const std::map<std::string, VarId>& var_names2var_ids) :
+Formula2ConditionVisitor::Formula2ConditionVisitor(const GraphModel& model, const std::map<Var, VarId>& var2var_ids) :
     model                  (model),
-    var_names2var_ids      (var_names2var_ids),
-    new_property_map_count (var_names2var_ids.size()) { }
+    var2var_ids            (var2var_ids),
+    new_property_map_count (var2var_ids.size()) { }
 
 
 std::unique_ptr<Condition> Formula2ConditionVisitor::operator()(AtomicFormula const& atomic_formula) {
@@ -51,13 +51,13 @@ std::unique_ptr<ValueAssign> Formula2ConditionVisitor::get_value_assignator(
 {
     if (item.type() == typeid(SelectItem)) {
         auto select_item = boost::get<SelectItem>(item);
-        auto find_var_id = var_names2var_ids.find(select_item.var);
-        assert(find_var_id != var_names2var_ids.end()
+        auto find_var_id = var2var_ids.find(Var(select_item.var));
+        assert(find_var_id != var2var_ids.end()
                 && "Variable names inside WHERE need to be checked before processing conditions");
 
         if (select_item.key) {
             VarId new_property_var_id(new_property_map_count++);
-            auto property_key_object_id = model.get_string_id(select_item.key.get());
+            auto property_key_object_id = model.get_object_id(GraphObject::make_string( select_item.key.get() ));
             property_map.insert({ new_property_var_id, std::make_pair(find_var_id->second, property_key_object_id) });
             return std::make_unique<ValueAssignVariable>(new_property_var_id);
         } else {

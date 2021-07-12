@@ -13,7 +13,7 @@
 class LabelPlan : public JoinPlan {
 public:
     LabelPlan(const LabelPlan& other);
-    LabelPlan(QuadModel& model, Id node, Id label);
+    LabelPlan(const QuadModel& model, Id node, Id label);
     ~LabelPlan() = default;
 
     double estimate_cost() override;
@@ -33,7 +33,7 @@ public:
     void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) override;
 
 private:
-    QuadModel& model;
+    const QuadModel& model;
 
     Id node;
     Id label;

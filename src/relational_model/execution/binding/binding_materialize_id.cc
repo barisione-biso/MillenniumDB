@@ -4,7 +4,7 @@
 
 using namespace std;
 
-BindingMaterializeId::BindingMaterializeId(GraphModel& model, std::size_t binding_size, BindingId& binding_id) :
+BindingMaterializeId::BindingMaterializeId(const GraphModel& model, std::size_t binding_size, BindingId& binding_id) :
     model        (model),
     binding_size (binding_size),
     binding_id   (binding_id) { }

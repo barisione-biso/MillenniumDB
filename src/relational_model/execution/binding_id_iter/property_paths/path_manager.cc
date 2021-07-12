@@ -141,9 +141,9 @@ void PathManager::print(std::ostream& os, uint64_t path_id) const {
 
     for (int i = path_string.size() - 2; i >= 0; i--) {
         if (directions[i]) {
-            os << "<=[:" << model.get_graph_object(labels[i]) << "]=";
+            os << "<=[" << model.get_graph_object(labels[i]) << "]=";
         } else {
-            os << "=[:" << model.get_graph_object(labels[i]) << "]=>";
+            os << "=[" << model.get_graph_object(labels[i]) << "]=>";
         }
         os << "(" << path_string[i] << ")";
     }

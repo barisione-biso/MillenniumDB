@@ -9,7 +9,7 @@
 class PropertyPathPlan : public JoinPlan {
 public:
     PropertyPathPlan(const PropertyPathPlan& other);
-    PropertyPathPlan(QuadModel& model, VarId path_var, Id from, Id to, OpPath& path);
+    PropertyPathPlan(const QuadModel& model, VarId path_var, Id from, Id to, OpPath& path);
     ~PropertyPathPlan() = default;
 
     double estimate_cost() override;
@@ -33,7 +33,7 @@ public:
     void set_automaton_transition_id(PathAutomaton& automaton);
 
 private:
-    QuadModel& model;
+    const QuadModel& model;
     const VarId path_var;
     const Id from;
     const Id to;

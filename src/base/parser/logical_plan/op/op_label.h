@@ -3,22 +3,23 @@
 
 #include <string>
 
+#include "base/ids/node_id.h"
 #include "base/parser/logical_plan/op/op.h"
 
 class OpLabel : public Op {
 public:
-    const std::string node_name;
+    const NodeId node_id; // TODO: solo deberia poder ser un node_name o var
     const std::string label;
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
-        os << "OpLabel(" << node_name << "," << label << ")\n";
+        os << "OpLabel(" << node_id << "," << label << ")\n";
         return os;
     };
 
-    OpLabel(std::string node_name, std::string label) :
-        node_name (std::move(node_name)),
-        label     (std::move(label)    ) { }
+    OpLabel(NodeId node_id, std::string label) :
+        node_id (std::move(node_id)),
+        label   (std::move(label)) { }
 
     ~OpLabel() = default;
 
@@ -28,24 +29,20 @@ public:
     }
 
     bool operator<(const OpLabel& other) const {
-        if (node_name < other.node_name) {
+        if (node_id < other.node_id) {
             return true;
-        } else if (node_name > other.node_name) {
+        } else if (node_id > other.node_id) {
             return false;
         } else {
             return label < other.label;
         }
     }
 
-    std::set<std::string> get_var_names() const override {
-        std::set<std::string> res;
-        if (node_name[0] == '?') {
-            res.insert(node_name);
+    void get_vars(std::set<Var>& set) const override {
+        if (node_id.is_var()) {
+            set.insert(node_id.to_var());
         }
-        if (label[0] == '?') {
-            res.insert(label);
-        }
-        return res;
+        // we assume label won't be a variable
     }
 };
 

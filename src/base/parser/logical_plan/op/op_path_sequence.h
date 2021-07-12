@@ -23,12 +23,11 @@ public:
     }
 
     OpPathSequence(std::vector<std::unique_ptr<OpPath>> _sequence) :
-        sequence (std::move(_sequence)),
-        is_nullable (get_nullable(sequence))
-        { }
+        sequence    (std::move(_sequence)),
+        is_nullable (get_nullable(sequence)) { }
 
     OpPathSequence(const OpPathSequence& other) :
-        is_nullable     (other.nullable())
+        is_nullable (other.nullable())
     {
         for (const auto& seq : other.sequence) {
             sequence.push_back(seq->duplicate());
@@ -48,11 +47,6 @@ public:
         }
         sequence_string.append(")");
         return sequence_string;
-    }
-
-    std::set<std::string> get_var_names() const override {
-        std::set<std::string> res;
-        return res;
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{

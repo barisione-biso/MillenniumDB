@@ -12,12 +12,11 @@ public:
     std::unique_ptr<Op> op;
 
     OpGraphPatternRoot(std::unique_ptr<Op> op) :
-        op              (std::move(op)) { }
+        op (std::move(op)) { }
 
     ~OpGraphPatternRoot() = default;
 
-
-    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');
         os << "OpGraphPatternRoot()";
         os << "\n";
@@ -28,8 +27,8 @@ public:
         visitor.visit(*this);
     }
 
-    std::set<std::string> get_var_names() const override {
-        return op->get_var_names();
+    void get_vars(std::set<Var>& set) const override {
+        op->get_vars(set);
     }
 };
 

@@ -14,7 +14,7 @@ using namespace std;
 GroupBy::GroupBy(GraphModel& model,
                  std::unique_ptr<BindingIter> child,
                  size_t binding_size,
-                 vector<pair<string, VarId>> _group_vars,
+                 vector<pair<Var, VarId>> _group_vars,
                  vector<bool> ascending) :
     order_child    (OrderBy(model, move(child), binding_size, _group_vars, ascending)),
     binding_size   (binding_size),

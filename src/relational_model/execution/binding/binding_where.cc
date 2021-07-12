@@ -6,7 +6,9 @@
 
 using namespace std;
 
-BindingWhere::BindingWhere(GraphModel& model, Binding& child_binding, VarId max_var_id_in_child,
+BindingWhere::BindingWhere(const GraphModel& model,
+                           Binding& child_binding,
+                           VarId max_var_id_in_child,
                            std::map<VarId, std::pair<VarId, ObjectId>> property_map) :
     model               (model),
     max_var_id_in_child (max_var_id_in_child),

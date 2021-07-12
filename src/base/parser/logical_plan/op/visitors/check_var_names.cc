@@ -38,8 +38,8 @@ void CheckVarNames::visit(OpOptional& op_optional) {
 
 
 void CheckVarNames::visit(OpMatch& op_match) {
-    for (const auto& var_name : op_match.var_names) {
-        declared_object_names.insert(var_name);
+    for (const auto& vars : op_match.vars) {
+        declared_object_names.insert(vars.value); // TODO: declared_object_names should be a set of vars?
     }
 }
 
@@ -71,7 +71,6 @@ void CheckVarNames::visit(OpDistinct& op_distinct) {
 
 
 void CheckVarNames::visit(OpConnection&)          { }
-void CheckVarNames::visit(OpConnectionType&)      { }
 void CheckVarNames::visit(OpLabel&)               { }
 void CheckVarNames::visit(OpProperty&)            { }
 void CheckVarNames::visit(OpUnjointObject&)       { }

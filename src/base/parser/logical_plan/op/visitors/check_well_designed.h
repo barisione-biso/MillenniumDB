@@ -8,18 +8,18 @@
 
 #include "base/graph/graph_object.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
+#include "base/parser/logical_plan/var.h"
 
 class CheckWellDesigned : public OpVisitor {
 private:
-    std::set<std::string> parent;
-    std::set<std::string> global;
+    std::set<Var> parent;
+    std::set<Var> global;
 
 public:
     void visit(OpSelect&) override;
     void visit(OpMatch&) override;
     void visit(OpFilter&) override;
     void visit(OpConnection&) override;
-    void visit(OpConnectionType&) override;
     void visit(OpLabel&) override;
     void visit(OpProperty&) override;
     void visit(OpOrderBy&) override;
@@ -28,7 +28,6 @@ public:
     void visit(OpUnjointObject&) override;
     void visit(OpGraphPatternRoot&) override;
     void visit(OpDistinct&) override;
-
     void visit(OpPropertyPath&) override;
     void visit(OpPath&) override;
     void visit(OpPathAtom&) override;

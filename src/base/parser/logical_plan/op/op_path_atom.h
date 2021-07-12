@@ -14,13 +14,11 @@ public:
 
     OpPathAtom(std::string _atom, bool _inverse) :
         atom    (_atom),
-        inverse (_inverse)
-        { }
+        inverse (_inverse) { }
 
     OpPathAtom(const OpPathAtom& other) :
         atom    (other.atom),
-        inverse (other.inverse)
-        { }
+        inverse (other.inverse) { }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
@@ -31,11 +29,6 @@ public:
             return "^:" + atom;
         }
         return ":" + atom;
-    }
-
-    std::set<std::string> get_var_names() const override {
-        std::set<std::string> res;
-        return res;
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{

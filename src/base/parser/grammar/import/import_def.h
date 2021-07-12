@@ -43,9 +43,9 @@ namespace import {
         ];
 
         auto const edge_def =
-            node_name
+            node_id
             >> edge_dir
-            >> node_name
+            >> node_id
             >> *label
             >> *property
             >> end;
@@ -58,7 +58,7 @@ namespace import {
         auto const implicit_edge_def =
             nesting_level_counter
             >> edge_dir
-            >> node_name
+            >> node_id
             >> *label
             >> *property
             >> end;

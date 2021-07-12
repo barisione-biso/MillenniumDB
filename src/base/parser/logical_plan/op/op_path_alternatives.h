@@ -50,11 +50,6 @@ public:
         return alternative_string;
     }
 
-    std::set<std::string> get_var_names() const override {
-        std::set<std::string> res;
-        return res;
-    }
-
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
         os << "OpAlternatives()\n";

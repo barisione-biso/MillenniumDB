@@ -10,24 +10,17 @@
 
 class OpPropertyPath : public Op {
 public:
-    const std::string var;
-    const std::string from;
-    const std::string to;
+    const Var var;
+    const NodeId from;
+    const NodeId to;
+
     std::unique_ptr<OpPath> path;
 
-    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
-        os << std::string(indent, ' ');
-        os << "OpPropertyPath(" << from << "=>" << to <<")\n";
-        os << *path << "\n";
-        return os;
-    };
-
-    OpPropertyPath(std::string var, std::string from, std::string to, std::unique_ptr<OpPath> path) :
+    OpPropertyPath(Var var, NodeId from, NodeId to, std::unique_ptr<OpPath> path) :
         var  (std::move(var)),
         from (std::move(from)),
         to   (std::move(to)),
-        path (std::move(path))
-        { }
+        path (std::move(path)) { }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
@@ -44,16 +37,23 @@ public:
         return false;
     }
 
-    std::set<std::string> get_var_names() const override {
+    void get_vars(std::set<Var>& set) const override {
         std::set<std::string> res;
-        if (from[0] == '?') {
-            res.insert(from);
+        if (from.is_var()) {
+            set.insert(from.to_var());
         }
-        if (to[0] == '?') {
-            res.insert(to);
+        if (to.is_var()) {
+            set.insert(to.to_var());
         }
-        return res;
+        set.insert(var);
     }
+
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
+        os << std::string(indent, ' ');
+        os << "OpPropertyPath(" << from << "=>" << to <<")\n";
+        os << *path << "\n";
+        return os;
+    };
 };
 
 #endif // BASE__OP_PROPERTY_PATH_H_

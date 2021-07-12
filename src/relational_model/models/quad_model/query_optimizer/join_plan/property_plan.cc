@@ -6,7 +6,7 @@
 
 using namespace std;
 
-PropertyPlan::PropertyPlan(QuadModel& model, Id object, Id key, Id value) :
+PropertyPlan::PropertyPlan(const QuadModel& model, Id object, Id key, Id value) :
     model           (model),
     object          (object),
     key             (key),
@@ -37,21 +37,21 @@ void PropertyPlan::print(int indent, bool estimated_cost, std::vector<std::strin
     }
     cout << "Property(";
     if (std::holds_alternative<ObjectId>(object)) {
-        cout << "object: " << model.get_graph_object(std::get<ObjectId>(object)) << "";
+        cout << "object: " << model.get_graph_object(std::get<ObjectId>(object));
     } else {
-        cout << "object: " <<  var_names[std::get<VarId>(object).id] << "";
+        cout << "object: " <<  var_names[std::get<VarId>(object).id];
     }
 
     if (std::holds_alternative<ObjectId>(key)) {
-        cout << ", key: " << model.get_graph_object(std::get<ObjectId>(key)) << "";
+        cout << ", key: " << model.get_graph_object(std::get<ObjectId>(key));
     } else {
-        cout << ", key: " <<  var_names[std::get<VarId>(key).id] << "";
+        cout << ", key: " <<  var_names[std::get<VarId>(key).id];
     }
 
     if (std::holds_alternative<ObjectId>(value)) {
-        cout << ", value: " << model.get_graph_object(std::get<ObjectId>(value)) << "";
+        cout << ", value: " << model.get_graph_object(std::get<ObjectId>(value));
     } else {
-        cout << ", value: " <<  var_names[std::get<VarId>(value).id] << "";
+        cout << ", value: " <<  var_names[std::get<VarId>(value).id];
     }
 
     cout << ")";

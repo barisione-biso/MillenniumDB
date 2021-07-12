@@ -11,7 +11,7 @@
 class ConnectionPlan : public JoinPlan {
 public:
     ConnectionPlan(const ConnectionPlan& other);
-    ConnectionPlan(QuadModel& model, Id from, Id to, Id type, VarId edge);
+    ConnectionPlan(const QuadModel& model, Id from, Id to, Id type, VarId edge);
     ~ConnectionPlan() = default;
 
     double estimate_cost() override;
@@ -31,7 +31,7 @@ public:
     void print(int indent, bool estimated_cost, std::vector<std::string>& var_names) override;
 
 private:
-    QuadModel& model;
+    const QuadModel& model;
 
     Id from;
     Id to;

@@ -7,8 +7,8 @@
 using namespace std;
 
 
-BindingGroupBy::BindingGroupBy(GraphModel& model, vector<pair<string, VarId>> _group_vars, Binding& child_binding, size_t binding_size) :
-    group_vars    (_group_vars),
+BindingGroupBy::BindingGroupBy(GraphModel& model, vector<pair<Var, VarId>> _group_vars, Binding& child_binding, size_t binding_size) :
+    group_vars    (std::move(_group_vars)),
     model         (model),
     binding_size  (binding_size),
     child_binding (child_binding) { }

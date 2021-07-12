@@ -6,7 +6,7 @@
 
 using namespace std;
 
-BindingSelect::BindingSelect(vector<pair<string, VarId>> projection_vars, Binding& child_binding) :
+BindingSelect::BindingSelect(vector<pair<Var, VarId>> projection_vars, Binding& child_binding) :
     projection_vars (move(projection_vars)),
     child_binding   (child_binding) { }
 

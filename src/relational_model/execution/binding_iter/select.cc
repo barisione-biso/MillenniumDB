@@ -6,7 +6,7 @@
 using namespace std;
 
 Select::Select(unique_ptr<BindingIter> _child_iter,
-               vector<pair<string, VarId>> projection_vars,
+               vector<pair<Var, VarId>> projection_vars,
                uint_fast32_t limit) :
     child_iter      (move(_child_iter)),
     limit           (limit),

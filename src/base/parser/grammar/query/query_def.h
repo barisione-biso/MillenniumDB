@@ -77,13 +77,13 @@ namespace query {
             lit('>')  >> attr(ast::Comparator::GT);
 
         auto const node_inside =
-            -(var | node_name) >> *label >> -("{" >> -(property % ',') >> "}");
+            node_id >> *label >> -("{" >> -(property % ',') >> "}");
 
         auto const type =
-            lexeme[no_case["=TYPE"]] >> '(' >> (var | node_name) >> ')';
+            lexeme[no_case[":TYPE"]] >> '(' >> (var | node_name) >> ')';
 
         auto const edge_inside =
-            -(var | node_name) >> *(type | label) >> -("{" >> -(property % ',') >> "}");
+            -var >> *(type | node_name) >> -("{" >> -(property % ',') >> "}");
 
         auto const node_def =
             '(' >> node_inside >> ")";
@@ -114,7 +114,7 @@ namespace query {
 
         auto const property_path_atom_def =
             ( ("^" >> attr(true)) | attr(false) )
-            >> ( label | ('(' >> property_path_alternatives >> ')') )
+            >> ( node_name | ('(' >> property_path_alternatives >> ')') )
             >> property_path_suffix;
 
         auto const linear_pattern_def =

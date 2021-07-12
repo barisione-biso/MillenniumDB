@@ -188,7 +188,7 @@ void QueryAstPrinter::operator() (LinearPatternStep const& step) const {
 void QueryAstPrinter::operator() (Node const& node) const {
     out << "\"NODE\": {\n";
     indent("\"VAR_OR_ID\": ", 1);
-    out << "\"" << node.var_or_id << "\",\n";
+    // out << "\"" << node.var_or_id << "\",\n"; TODO:
     indent("\"LABELS\": [", 1);
     auto label_iter = node.labels.begin();
     while (label_iter != node.labels.end()) {
@@ -232,8 +232,8 @@ void QueryAstPrinter::operator() (Edge const& edge) const {
     } else {
         out << "\"LEFT\",\n";
     }
-    indent("\"VAR_OR_ID\": ", 1);
-    out << "\"" << edge.var_or_id << "\",\n";
+    indent("\"VAR\": ", 1);
+    out << "\"" << edge.var << "\",\n";
     indent("\"TYPES\": [", 1);
     auto label_iter = edge.types.begin();
     while (label_iter != edge.types.end()) {
