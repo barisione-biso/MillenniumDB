@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
         desc.add_options()
             ("help,h", "show this help message")
             ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
-            ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_BUFFER_POOL_SIZE),
+            ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE),
                 "set buffer pool size")
             ("filename,f", po::value<string>(&input_filename)->required(), "import filename")
         ;
@@ -46,6 +46,12 @@ int main(int argc, char **argv) {
         }
         po::notify(vm);
 
+        // Validate params
+        if (buffer_size < 0) {
+            cerr << "Buffer size cannot be a negative number.\n";
+            return 1;
+        }
+
         { // check db_folder is empty or does not exists
             namespace fs = std::experimental::filesystem;
             if (fs::exists(db_folder) && !fs::is_empty(db_folder)) {
@@ -61,7 +67,7 @@ int main(int argc, char **argv) {
 
         auto start = chrono::system_clock::now();
         cout << "Initializing system...\n";
-        auto model = QuadModel(db_folder, buffer_size);
+        auto model = QuadModel(db_folder, buffer_size, 0, 0);
         auto end_model = chrono::system_clock::now();
         chrono::duration<float, milli> model_duration = end_model - start;
         cout << "  done in " << model_duration.count() << " ms\n\n";

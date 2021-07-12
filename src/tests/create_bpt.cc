@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
     }
 
     FileManager::init(db_folder);
-    BufferManager::init(BufferManager::DEFAULT_BUFFER_POOL_SIZE);
+    BufferManager::init(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE, 0, 0);
 
     try {
         create_random(size, "bpt_random");

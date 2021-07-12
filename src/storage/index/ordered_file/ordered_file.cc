@@ -172,7 +172,7 @@ void OrderedFile<N>::order(const std::array<uint_fast8_t, N>& column_order) noex
         }
     }
 
-    auto pool_size = buffer_manager.get_buffer_pool_size() / (2*MAX_THREADS);
+    auto pool_size = buffer_manager.get_shared_buffer_pool_size() / (2*MAX_THREADS);
     unsigned int max_runs;
 
     for (unsigned r = 2; true; r++) {

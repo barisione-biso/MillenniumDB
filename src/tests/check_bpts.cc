@@ -28,8 +28,8 @@ int main(int argc, char **argv) {
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help,h", "show this help message")
-        ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_BUFFER_POOL_SIZE),
-                "set buffer pool size")
+        ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE),
+                "set shared buffer pool size")
         ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
     ;
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    auto model = QuadModel(db_folder, buffer_size);
+    auto model = QuadModel(db_folder, buffer_size, 0, 0);
 
     check("node_label", *model.node_label);
     check("label_node", *model.label_node);

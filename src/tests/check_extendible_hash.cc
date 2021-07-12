@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help,h", "show this help message")
-        ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_BUFFER_POOL_SIZE),
-                "set buffer pool size")
+        ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE),
+                "set shared buffer pool size")
         ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
     ;
 
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     }
     po::notify(vm);
 
-    auto model = QuadModel(db_folder, buffer_size);
+    QuadModel model(db_folder, buffer_size, 0, 0);
 
     auto& object_file  = model.object_file();
     auto& strings_hash = model.strings_hash();

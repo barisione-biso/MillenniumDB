@@ -3,7 +3,6 @@
 #include <cassert>
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
-#include <iostream>
 
 #include "storage/file_manager.h"
 
@@ -15,14 +14,16 @@ static typename std::aligned_storage<sizeof(BufferManager), alignof(BufferManage
 BufferManager& buffer_manager = reinterpret_cast<BufferManager&>(buffer_manager_buf);
 
 
-BufferManager::BufferManager(uint_fast32_t buffer_pool_size) :
-    buffer_pool_size          (buffer_pool_size),
-    private_buffer_pool_size  (buffer_pool_size),  // TODO: change this to parameter
-    max_private_buffers       (10),  // TODO: change this to parameter
-    buffer_pool               (new Page[buffer_pool_size]),
+BufferManager::BufferManager(uint_fast32_t shared_buffer_pool_size,
+                             uint_fast32_t private_buffer_pool_size,
+                             uint_fast32_t max_threads) :
+    shared_buffer_pool_size   (shared_buffer_pool_size),
+    private_buffer_pool_size  (private_buffer_pool_size),
+    max_private_buffers       (max_threads),
+    buffer_pool               (new Page[shared_buffer_pool_size]),
     private_buffer_pool       (new Page[private_buffer_pool_size * max_private_buffers]),
-    bytes                     (new char[buffer_pool_size*Page::PAGE_SIZE]),
-    private_bytes             (new char[private_buffer_pool_size*max_private_buffers*Page::PAGE_SIZE]),
+    bytes                     (new char[shared_buffer_pool_size * Page::PAGE_SIZE]),
+    private_bytes             (new char[private_buffer_pool_size * max_private_buffers * Page::PAGE_SIZE]),
     clock_pos                 (0)
 {
     for (uint_fast32_t i=0; i < max_private_buffers; i++) {
@@ -40,8 +41,12 @@ BufferManager::~BufferManager() {
 }
 
 
-void BufferManager::init(uint_fast32_t buffer_pool_size) {
-    new (&buffer_manager) BufferManager(buffer_pool_size); // placement new
+void BufferManager::init(uint_fast32_t shared_buffer_pool_size,
+                         uint_fast32_t private_buffer_pool_size,
+                         uint_fast32_t max_threads)
+{
+    // placement new
+    new (&buffer_manager) BufferManager(shared_buffer_pool_size, private_buffer_pool_size, max_threads);
 }
 
 
@@ -49,7 +54,7 @@ void BufferManager::flush() {
     // flush() is always called at destruction.
     // this is important to check to avoid segfault when program terminates before calling init()
     assert(buffer_pool != nullptr);
-    for (uint_fast32_t i = 0; i < buffer_pool_size; i++) {
+    for (uint_fast32_t i = 0; i < shared_buffer_pool_size; i++) {
         buffer_pool[i].flush();
     }
 }
@@ -74,13 +79,13 @@ uint_fast32_t BufferManager::get_buffer_available() {
     auto first_lookup = clock_pos;
 
     while (buffer_pool[clock_pos].pins != 0) {
-        clock_pos = (clock_pos+1)%buffer_pool_size;
+        clock_pos = (clock_pos+1) % shared_buffer_pool_size;
         if (clock_pos == first_lookup) {
             throw std::runtime_error("No buffer available in buffer pool.");
         }
     }
     auto res = clock_pos;
-    clock_pos = (clock_pos+1)%buffer_pool_size;
+    clock_pos = (clock_pos+1) % shared_buffer_pool_size;
     return res;
 }
 
@@ -161,7 +166,7 @@ void BufferManager::unpin(Page& page) {
 
 void BufferManager::remove(FileId file_id) {
     assert(buffer_pool != nullptr);
-    for (uint_fast32_t i = 0; i < buffer_pool_size; i++) {
+    for (uint_fast32_t i = 0; i < shared_buffer_pool_size; i++) {
         if (buffer_pool[i].page_id.file_id == file_id) {
             pages.erase(buffer_pool[i].page_id);
             buffer_pool[i].reset();

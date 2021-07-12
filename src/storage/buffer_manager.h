@@ -32,12 +32,15 @@ class Page;
 
 class BufferManager {
 public:
-    static constexpr uint_fast32_t DEFAULT_BUFFER_POOL_SIZE = 1024 * 256;
+    static constexpr uint_fast32_t DEFAULT_SHARED_BUFFER_POOL_SIZE  = 1024 * 256; // 1 GB
+    static constexpr uint_fast32_t DEFAULT_PRIVATE_BUFFER_POOL_SIZE = 1024 * 16;  // 64 MB
 
     ~BufferManager();
 
     // necesary to be called before first usage
-    static void init(uint_fast32_t buffer_pool_size);
+    static void init(uint_fast32_t shared_buffer_pool_size,
+                     uint_fast32_t private_buffer_pool_size,
+                     uint_fast32_t max_threads);
 
     // Get a page. It will search in the shared buffer and if it is not on it, it will read from disk and put in the buffer.
     // Also it will pin the page, so calling buffer_manager.unpin(page) is expected when the caller doesn't need
@@ -70,15 +73,17 @@ public:
     // invalidates all pages using `tmp_file_id`in private buffer
     void remove_tmp(TmpFileId tmp_file_id);
 
-    constexpr auto get_buffer_pool_size() const noexcept { return buffer_pool_size; }
+    constexpr auto get_shared_buffer_pool_size() const noexcept { return shared_buffer_pool_size; }
 
     uint_fast32_t get_private_buffer_index();
 
 private:
-    BufferManager(uint_fast32_t buffer_pool_size);
+    BufferManager(uint_fast32_t shared_buffer_pool_size,
+                  uint_fast32_t private_buffer_pool_size,
+                  uint_fast32_t max_threads);
 
     // maximum pages the buffer can have
-    const uint_fast32_t buffer_pool_size;
+    const uint_fast32_t shared_buffer_pool_size;
 
     // maximum pages for each private buffer
     const uint_fast32_t private_buffer_pool_size;

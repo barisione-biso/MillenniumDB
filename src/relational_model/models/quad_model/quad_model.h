@@ -38,7 +38,10 @@ public:
     std::unique_ptr<BPlusTree<3>> equal_from_type_inverted; // (to,   from=type, edge)
     std::unique_ptr<BPlusTree<3>> equal_to_type_inverted;   // (from, to=type,   edge)
 
-    QuadModel(const std::string& db_folder, const int buffer_pool_size);
+    QuadModel(const std::string& db_folder,
+              uint_fast32_t shared_buffer_pool_size,
+              uint_fast32_t private_buffer_pool_size,
+              uint_fast32_t max_threads);
     ~QuadModel();
 
     std::unique_ptr<BindingIter> exec(OpSelect&) const override;

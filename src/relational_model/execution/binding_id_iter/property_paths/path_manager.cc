@@ -10,7 +10,7 @@ static typename std::aligned_storage<sizeof(PathManager), alignof(PathManager)>:
 // global object
 PathManager& path_manager = reinterpret_cast<PathManager&>(path_manager_buf);
 
-PathManager::PathManager(GraphModel& model, uint64_t max_threads) :
+PathManager::PathManager(GraphModel& model, uint_fast32_t max_threads) :
     model (model)
 {
     for (uint64_t i = 0; i < max_threads; i++) {
@@ -26,7 +26,7 @@ PathManager::PathManager(GraphModel& model, uint64_t max_threads) :
 }
 
 
-void PathManager::init(GraphModel& model, uint64_t max_threads) {
+void PathManager::init(GraphModel& model, uint_fast32_t max_threads) {
     new (&path_manager) PathManager(model, max_threads); // placement new
 }
 

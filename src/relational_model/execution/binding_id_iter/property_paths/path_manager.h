@@ -26,7 +26,7 @@ class PathManager : public PathPrinter {
 public:
     ~PathManager() = default;
 
-    static void init(GraphModel& model, uint64_t max_threads);
+    static void init(GraphModel& model, uint_fast32_t max_threads);
 
     // Assign space to save pointers to recover path
     void begin(size_t binding_size, bool materialize);
@@ -39,7 +39,7 @@ public:
 
 private:
     GraphModel& model;
-    PathManager(GraphModel& model, uint64_t max_threads);
+    PathManager(GraphModel& model, uint_fast32_t max_threads);
 
     // Stores the available index to store a paths of a thread
     std::queue<uint_fast32_t> available_index;

@@ -146,7 +146,9 @@ void server(boost::asio::io_service& io_service, unsigned short port, GraphModel
 
 int main(int argc, char **argv) {
     int port;
-    int buffer_size;
+    int shared_buffer_size;
+    int private_buffer_size;
+    int max_threads;
     string db_folder;
 
     try {
@@ -155,8 +157,12 @@ int main(int argc, char **argv) {
         desc.add_options()
             ("help,h", "show this help message")
             ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
-            ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_BUFFER_POOL_SIZE),
-                "set buffer pool size")
+            ("buffer-size,b", po::value<int>(&shared_buffer_size)->default_value(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE),
+                "set shared buffer pool size")
+            ("private-buffer-size,r", po::value<int>(&private_buffer_size)->default_value(BufferManager::DEFAULT_PRIVATE_BUFFER_POOL_SIZE),
+                "set private buffer pool size for each thread")
+            ("max-threads,t", po::value<int>(&max_threads)->default_value(8),
+                "set max threads")
             ("port,p", po::value<int>(&port)->default_value(db_server::DEFAULT_PORT), "database server port")
         ;
 
@@ -173,15 +179,32 @@ int main(int argc, char **argv) {
         }
         po::notify(vm);
 
-        unique_ptr<GraphModel> model = make_unique<QuadModel>(db_folder, buffer_size);
+        // Validate params
+        if (port < 0) {
+            cerr << "Port cannot be a negative number.\n";
+            return 1;
+        }
 
-        cout << "Initializign server...\n";
-        reinterpret_cast<QuadModel*>(model.get())->catalog().print();
+        if (shared_buffer_size < 0) {
+            cerr << "Buffer size cannot be a negative number.\n";
+            return 1;
+        }
+
+        if (private_buffer_size < 0) {
+            cerr << "Buffer size cannot be a negative number.\n";
+            return 1;
+        }
+
+        // Initialize model
+        QuadModel model(db_folder, shared_buffer_size, private_buffer_size, max_threads);
+
+        cout << "Initializing server...\n";
+        model.catalog().print();
 
         boost::asio::io_service io_service;
         boost::asio::deadline_timer t(io_service, boost::posix_time::seconds(5));
 
-        server(io_service, port, model.get());
+        server(io_service, port, &model);
     }
     catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";
