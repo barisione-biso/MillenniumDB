@@ -378,7 +378,17 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(const std::set<VarId>
                                                            const vector<VarId>&   var_order,
                                                            uint_fast32_t          enumeration_level)
 {
-    // TODO: support special cases like to == type?
+    // TODO: support special cases
+    if (   (std::holds_alternative<VarId>(from) && from == to)
+        || (std::holds_alternative<VarId>(from) && from == type)
+        || (std::holds_alternative<VarId>(to)   && to == type)
+        || (std::holds_alternative<VarId>(from) && std::get<VarId>(from) == edge)
+        || (std::holds_alternative<VarId>(to)   && std::get<VarId>(from) == edge)
+        || (std::holds_alternative<VarId>(type) && std::get<VarId>(from) == edge))
+    {
+        return nullptr;
+    }
+
     vector<unique_ptr<ScanRange>> initial_ranges;
     vector<VarId> intersection_vars;
     vector<VarId> enumeration_vars;
