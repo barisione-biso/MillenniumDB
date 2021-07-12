@@ -35,8 +35,6 @@ namespace common {
             value = "value";
         x3::rule<class property, ast::Property>
             property = "property";
-        x3::rule<class var_name, std::string>
-            var_name = "var_name";
         x3::rule<class node_name, std::string>
             node_name = "node_name";
         x3::rule<class node_id_str, std::string>
@@ -70,16 +68,13 @@ namespace common {
             lexeme[char_("A-Za-z_") >> *char_("A-Za-z0-9_")];
 
         auto const node_id_str_def =
-            -(string_quoted | node_name | var);
+            string_quoted | node_name | var | x3::eps;
 
         auto const node_id =
             boolean | float_ | int64 | node_id_str;
 
-        auto const var_name_def = // TODO: try to merge with var_def
-            char_('?') >> char_("A-Za-z") >> *char_("A-Za-z0-9_");
-
         auto const var_def =
-            lexeme[var_name];
+            lexeme[char_('?') >> char_("A-Za-z") >> *char_("A-Za-z0-9_")];
 
         auto const key_def =
             lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];
@@ -98,9 +93,8 @@ namespace common {
             key,
             value,
             property,
-            var_name,
-            node_id_str,
-            node_name
+            node_name,
+            node_id_str
         )
     }
 }
