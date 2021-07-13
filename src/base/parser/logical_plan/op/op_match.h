@@ -1,7 +1,6 @@
 #ifndef BASE__OP_MATCH_H_
 #define BASE__OP_MATCH_H_
 
-#include <iostream>
 #include <set>
 #include <vector>
 
@@ -12,34 +11,46 @@
 #include "base/parser/logical_plan/op/op_property.h"
 #include "base/parser/logical_plan/op/op_property_path.h"
 
-#include "base/parser/logical_plan/op/op_unjoint_object.h"
-#include "base/parser/logical_plan/op/op.h" // TODO: try to delete
+#include "base/parser/logical_plan/op/op_isolated_term.h"
+#include "base/parser/logical_plan/op/op_isolated_var.h"
 #include "base/parser/logical_plan/op/property_paths/path_constructor.h"
 
 class OpMatch : public Op {
 public:
-    std::set<OpLabel>          labels;
-    std::set<OpProperty>       properties;
-    std::set<OpConnection>     connections;
-    std::set<OpPropertyPath>   property_paths;
-    std::set<OpUnjointObject>  unjoint_objects;
+    std::set<OpLabel>        labels;
+    std::set<OpProperty>     properties;
+    std::set<OpConnection>   connections;
+    std::set<OpPropertyPath> property_paths;
+    std::set<OpIsolatedVar>  isolated_vars;
+    std::set<OpIsolatedTerm> isolated_terms;
 
     std::set<Var> vars; // contains declared variables and anonymous (auto-generated in the constructor)
 
-    uint_fast32_t *anon_count;
+    uint_fast32_t* anon_count; // pointer to a global count of anonymous variables
 
-    OpMatch(const std::vector<query::ast::LinearPattern>& graph_pattern, uint_fast32_t *anon_count) :
-        anon_count(anon_count)
+    OpMatch(const std::vector<query::ast::LinearPattern>& graph_pattern, uint_fast32_t* _anon_count) :
+        anon_count(_anon_count)
     {
-        std::vector<boost::variant<std::string, bool, int64_t, float>> pending_unjoint_objects;
+        std::vector<Var> pending_unjoint_vars;
         for (auto& linear_pattern : graph_pattern) {
             // UnjointObjects will be processed at the end
             if (   linear_pattern.path.empty()
                 && linear_pattern.root.labels.empty()
                 && linear_pattern.root.properties.empty())
             {
-                // TODO: que hacer con MATCH (5)
-                pending_unjoint_objects.push_back(linear_pattern.root.id);
+                if (linear_pattern.root.id.type() == typeid(std::string)) {
+                    std::string str = boost::get<std::string>(linear_pattern.root.id);
+                    if (str.empty()) { // anonymous variable
+                        const std::string s = "?_" + std::to_string((*anon_count)++);
+                        isolated_vars.insert(OpIsolatedVar(Var(s)));
+                    } else if (str[0] == '?') { // explicit variable
+                        pending_unjoint_vars.emplace_back(str);
+                    } else {
+                        isolated_terms.insert(get_node_id(linear_pattern.root.id));
+                    }
+                } else {
+                    isolated_terms.insert(get_node_id(linear_pattern.root.id));
+                }
             }
             else {
                 auto last_node_id = process_node(linear_pattern.root);
@@ -77,15 +88,13 @@ public:
                                                    path_constructor(property_path.path_alternatives));
                         }
                     }
+                    last_node_id = current_node_id;
                 }
             }
         }
-        for (auto& pending_unjoint_object : pending_unjoint_objects) {
-            auto node_id = get_node_id(pending_unjoint_object);
-            // TODO: filter redundant UnjointObjects
-            // ej: MATCH (?x)->(?y), (?x)
-            if (true) {
-                unjoint_objects.insert(OpUnjointObject(node_id));
+        for (auto& pending_unjoint_var : pending_unjoint_vars) {
+            if (vars.insert(pending_unjoint_var).second) {
+                isolated_vars.insert(OpIsolatedVar(pending_unjoint_var));
             }
         }
     }
@@ -94,42 +103,29 @@ public:
     NodeId get_node_id(const boost::variant<std::string, bool, int64_t, float>& id) {
         if (id.type() == typeid(std::string)) {
             auto str = boost::get<std::string>(id);
-            // TODO: delete prints
-            if (str.empty()) {
-                // anonymous variable
-                std::cout << "node is anonymous var(empty)\n";
-                std::string s = "?_" + std::to_string((*anon_count)++);
+            if (str.empty()) { // anonymous variable
+                const std::string s = "?_" + std::to_string((*anon_count)++);
                 Var v(s);
                 vars.insert(v);
                 return NodeId(v);
-            } else if (str[0] == '?') {
-                // explicit variable
-                std::cout << "node is explicit var: " << str << "\n";
-                Var v(str);
+            } else if (str[0] == '?') { // explicit variable
+                const Var v(str);
                 vars.insert(v);
                 return NodeId(v);
-            }  else if (str[0] == '"') {
-                // string
-                // delete first and last characters: ("")
-                std::string tmp = str.substr(1, str.size() - 2);
-                std::cout << "node is string:" << tmp << "\n";
+            }  else if (str[0] == '"') { // string
+                std::string tmp = str.substr(1, str.size() - 2); // delete first and last characters: ("")
                 return NodeId(std::move(tmp));
-            }  else {
-                // identifier
-                std::cout << "node is name: " << str << "\n";
+            }  else { // identifier
                 return NodeId(NodeName(str));
             }
         } else if (id.type() == typeid(bool)) {
             auto b = boost::get<bool>(id);
-            std::cout << "node is bool: " << (b ? "true" : "false") << "\n";
             return NodeId(b);
         } else if (id.type() == typeid(int64_t)) {
             auto i = boost::get<int64_t>(id);
-            std::cout << "node is int: " << i << "\n";
             return NodeId(i);
         } else { // if (id.type() == typeid(float)) {
             auto f = boost::get<float>(id);
-            std::cout << "node is float: " << f << "\n";
             return NodeId(f);
         }
     }
@@ -175,7 +171,7 @@ public:
         }
 
         if (edge.types.size() == 0) {
-            vars.insert(Var("_type_" + edge_var.value));
+            vars.insert(Var("_type_" + edge_var.name));
         }
 
         for (auto& property : edge.properties) {
@@ -185,7 +181,7 @@ public:
             if (property_search != properties.end()) {
                 auto old_property = *property_search;
                 if (old_property.value != property.value) {
-                    throw QuerySemanticException(edge_var.value + "." + property.key
+                    throw QuerySemanticException(edge_var.name + "." + property.key
                                                  + " its declared with different values in MATCH");
                 }
             } else {
@@ -213,8 +209,11 @@ public:
         for (auto &property_path : property_paths) {
             property_path.print_to_ostream(os, indent + 2);
         }
-        for (auto& unjoint_object : unjoint_objects) {
-            unjoint_object.print_to_ostream(os, indent + 2);
+        for (auto& isolated_var : isolated_vars) {
+            isolated_var.print_to_ostream(os, indent + 2);
+        }
+        for (auto& isolated_term : isolated_terms) {
+            isolated_term.print_to_ostream(os, indent + 2);
         }
         return os;
     }

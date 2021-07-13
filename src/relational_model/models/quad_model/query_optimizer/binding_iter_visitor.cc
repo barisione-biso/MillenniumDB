@@ -1,7 +1,5 @@
 #include "binding_iter_visitor.h"
 
-#include <iostream>
-
 #include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
@@ -21,7 +19,6 @@
 #include "relational_model/execution/binding_iter/distinct_hash.h"
 #include "relational_model/models/quad_model/query_optimizer/binding_id_iter_visitor.h"
 
-
 using namespace std;
 
 BindingIterVisitor::BindingIterVisitor(const QuadModel& model, std::set<Var> vars) :
@@ -36,6 +33,17 @@ map<Var, VarId> BindingIterVisitor::construct_var2var_id(std::set<Var>& vars) {
         res.insert({ var, VarId(i++) });
     }
     return res;
+}
+
+
+// You only should use this after var2var_id was setted at visit(OpGraphPatternRoot)
+VarId BindingIterVisitor::get_var_id(const Var& var) const {
+    auto search = var2var_id.find(var);
+    if (search != var2var_id.end()) {
+        return (*search).second;
+    } else {
+        throw std::logic_error("var " + var.name + " not present in var2var_id");
+    }
 }
 
 
@@ -175,17 +183,6 @@ void BindingIterVisitor::visit(OpGroupBy& op_group_by) {
 }
 
 
-// You only should use this after var_name2var_id was setted at visit(OpGraphPatternRoot)
-VarId BindingIterVisitor::get_var_id(const Var& var) const {
-    auto search = var2var_id.find(var);
-    if (search != var2var_id.end()) {
-        return (*search).second;
-    } else {
-        throw std::logic_error("variable " + var.value + " not present in var_name2var_id");
-    }
-}
-
-
 void BindingIterVisitor::visit(OpDistinct& op_distinct) {
     bool ordered = false; // TODO: in the future we want to know if op_distinct is already ordered
     if (ordered) {
@@ -228,19 +225,3 @@ void BindingIterVisitor::visit(OpDistinct& op_distinct) {
         }
     }
 }
-
-
-void BindingIterVisitor::visit(OpMatch&) { }
-void BindingIterVisitor::visit(OpOptional&) { }
-void BindingIterVisitor::visit(OpConnection&) { }
-void BindingIterVisitor::visit(OpUnjointObject&) { }
-void BindingIterVisitor::visit(OpLabel&) { }
-void BindingIterVisitor::visit(OpProperty&) { }
-
-void BindingIterVisitor::visit(OpPath&)              { }
-void BindingIterVisitor::visit(OpPathAlternatives&)  { }
-void BindingIterVisitor::visit(OpPathSequence&)      { }
-void BindingIterVisitor::visit(OpPathAtom&)          { }
-void BindingIterVisitor::visit(OpPropertyPath&)      { }
-void BindingIterVisitor::visit(OpPathKleeneStar&)     { }
-void BindingIterVisitor::visit(OpPathOptional&)       { }

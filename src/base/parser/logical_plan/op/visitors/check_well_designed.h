@@ -16,25 +16,27 @@ private:
     std::set<Var> global;
 
 public:
-    void visit(OpSelect&) override;
-    void visit(OpMatch&) override;
-    void visit(OpFilter&) override;
-    void visit(OpConnection&) override;
-    void visit(OpLabel&) override;
-    void visit(OpProperty&) override;
-    void visit(OpOrderBy&) override;
-    void visit(OpGroupBy&) override;
-    void visit(OpOptional&) override;
-    void visit(OpUnjointObject&) override;
+    void visit(OpDistinct&)         override;
+    void visit(OpFilter&)           override;
     void visit(OpGraphPatternRoot&) override;
-    void visit(OpDistinct&) override;
-    void visit(OpPropertyPath&) override;
-    void visit(OpPath&) override;
-    void visit(OpPathAtom&) override;
-    void visit(OpPathAlternatives&) override;
-    void visit(OpPathSequence&) override;
-    void visit(OpPathKleeneStar&) override;
-    void visit(OpPathOptional&) override;
+    void visit(OpGroupBy&)          override;
+    void visit(OpMatch&)            override;
+    void visit(OpOptional&)         override;
+    void visit(OpOrderBy&)          override;
+    void visit(OpSelect&)           override;
+
+    void visit(OpConnection&)       override { }
+    void visit(OpIsolatedTerm&)     override { }
+    void visit(OpIsolatedVar&)      override { }
+    void visit(OpLabel&)            override { }
+    void visit(OpPath&)             override { }
+    void visit(OpPathAlternatives&) override { }
+    void visit(OpPathAtom&)         override { }
+    void visit(OpPathSequence&)     override { }
+    void visit(OpPathKleeneStar&)   override { }
+    void visit(OpPathOptional&)     override { }
+    void visit(OpProperty&)         override { }
+    void visit(OpPropertyPath&)     override { }
 };
 
 #endif // BASE__CHECK_WELL_DESIGNED_H_

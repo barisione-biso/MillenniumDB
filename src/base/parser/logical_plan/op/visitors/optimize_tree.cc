@@ -1,26 +1,14 @@
 #include "optimize_tree.h"
 
-#include <memory>
-#include <iostream>
-
+#include "base/parser/logical_plan/exceptions.h"
+#include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
-#include "base/parser/logical_plan/op/op_label.h"
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/logical_plan/op/op_distinct.h"
-#include "base/parser/logical_plan/op/op_unjoint_object.h"
-#include "base/parser/logical_plan/op/op.h"
-#include "base/parser/logical_plan/op/op_path.h"
-#include "base/parser/logical_plan/op/op_path_alternatives.h"
-#include "base/parser/logical_plan/op/op_property_path.h"
-#include "base/parser/logical_plan/op/op_path_atom.h"
-#include "base/parser/logical_plan/op/op_path_sequence.h"
-#include "base/parser/logical_plan/op/op_path_kleene_star.h"
-#include "base/parser/logical_plan/op/op_path_optional.h"
 
 using namespace std;
 
@@ -106,18 +94,12 @@ void OptimizeTree::visit(OpMatch& op_match) {
         global_label_set.insert(op_label);
     }
 
-    // delete already assigned unjoint objects
-    for (auto it = op_match.unjoint_objects.begin(); it != op_match.unjoint_objects.end(); ) {
+    // delete already assigned isolated vars
+    for (auto it = op_match.isolated_vars.begin(); it != op_match.isolated_vars.end(); ) {
         auto op_unjoint_object = *it;
 
-        if (op_unjoint_object.node_id.is_var()) {
-            auto var = op_unjoint_object.node_id.to_var();
-            auto var_search = global_vars.find(var);
-            if (var_search != global_vars.end()) {
-                it = op_match.unjoint_objects.erase(it);
-            } else {
-                ++it;
-            }
+        if (global_vars.find(op_unjoint_object.var) != global_vars.end()) {
+            it = op_match.isolated_vars.erase(it);
         } else {
             ++it;
         }
@@ -128,7 +110,7 @@ void OptimizeTree::visit(OpMatch& op_match) {
         && op_match.labels.empty()
         && op_match.properties.empty()
         && op_match.property_paths.empty()
-        && op_match.unjoint_objects.empty())
+        && op_match.isolated_vars.empty())
     {
         delete_current = true;
     }
@@ -157,13 +139,11 @@ void OptimizeTree::visit(OpSelect& op_select) {
 
 void OptimizeTree::visit(OpFilter& op_filter) {
     op_filter.op->accept_visitor(*this);
-
 }
 
 
 void OptimizeTree::visit(OpGroupBy& op_group_by) {
     op_group_by.op->accept_visitor(*this);
-
 }
 
 
@@ -175,16 +155,3 @@ void OptimizeTree::visit(OpOrderBy& op_order_by) {
 void OptimizeTree::visit(OpDistinct& op_distinct) {
     op_distinct.op->accept_visitor(*this);
 }
-
-
-void OptimizeTree::visit(OpLabel&)             { }
-void OptimizeTree::visit(OpProperty&)          { }
-void OptimizeTree::visit(OpUnjointObject&)     { }
-void OptimizeTree::visit(OpConnection&)        { }
-void OptimizeTree::visit(OpPath&)              { }
-void OptimizeTree::visit(OpPathAlternatives&)  { }
-void OptimizeTree::visit(OpPropertyPath&)      { }
-void OptimizeTree::visit(OpPathSequence&)      { }
-void OptimizeTree::visit(OpPathAtom&)          { }
-void OptimizeTree::visit(OpPathKleeneStar&)    { }
-void OptimizeTree::visit(OpPathOptional&)      { }

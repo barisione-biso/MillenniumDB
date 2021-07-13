@@ -18,11 +18,6 @@
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "relational_model/execution/binding_id_iter/index_scan.h"
 
-class BindingIter;
-class OpOptional;
-class OpFilter;
-class OpGraphPatternRoot;
-
 class BindingIterVisitor : public OpVisitor {
 public:
     const QuadModel& model;
@@ -40,25 +35,27 @@ public:
     VarId get_var_id(const Var& var_name) const;
     static std::map<Var, VarId> construct_var2var_id(std::set<Var>& var_names);
 
-    void visit(OpSelect&) override;
-    void visit(OpMatch&) override;
-    void visit(OpFilter&) override;
-    void visit(OpConnection&) override;
-    void visit(OpLabel&) override;
-    void visit(OpProperty&) override;
-    void visit(OpGroupBy&) override;
-    void visit(OpOrderBy&) override;
-    void visit(OpOptional&) override;
-    void visit(OpUnjointObject&) override;
+    void visit(OpDistinct&)         override;
+    void visit(OpFilter&)           override;
     void visit(OpGraphPatternRoot&) override;
-    void visit(OpDistinct&) override;
-    void visit(OpPropertyPath&) override;
-    void visit(OpPath&) override;
-    void visit(OpPathAtom&) override;
-    void visit(OpPathAlternatives&) override;
-    void visit(OpPathSequence&) override;
-    void visit(OpPathKleeneStar&) override;
-    void visit(OpPathOptional&) override;
+    void visit(OpGroupBy&)          override;
+    void visit(OpOrderBy&)          override;
+    void visit(OpSelect&)           override;
+
+    void visit(OpMatch&)            override { }
+    void visit(OpOptional&)         override { }
+    void visit(OpConnection&)       override { }
+    void visit(OpIsolatedTerm&)     override { }
+    void visit(OpIsolatedVar&)      override { }
+    void visit(OpLabel&)            override { }
+    void visit(OpPath&)             override { }
+    void visit(OpPathAlternatives&) override { }
+    void visit(OpPathAtom&)         override { }
+    void visit(OpPathSequence&)     override { }
+    void visit(OpPathKleeneStar&)   override { }
+    void visit(OpPathOptional&)     override { }
+    void visit(OpProperty&)         override { }
+    void visit(OpPropertyPath&)     override { }
 };
 
 #endif // RELATIONAL_MODEL__BINDING_ITER_VISITOR_H_

@@ -6,39 +6,39 @@
 
 class NodeName {
 public:
-    const std::string value;
+    std::string name;
 
-    explicit NodeName(std::string value)
-        : value(std::move(value)) { }
+    explicit NodeName(std::string _name) :
+        name (std::move(_name)) { }
 
     ~NodeName() = default;
 
     inline bool operator<(const NodeName& rhs) const noexcept {
-        return value < rhs.value;
+        return name < rhs.name;
     }
 
     inline bool operator<=(const NodeName& rhs) const noexcept {
-        return value <= rhs.value;
+        return name <= rhs.name;
     }
 
     inline bool operator>(const NodeName& rhs) const noexcept {
-        return value > rhs.value;
+        return name > rhs.name;
     }
 
     inline bool operator>=(const NodeName& rhs) const noexcept {
-        return value >= rhs.value;
+        return name >= rhs.name;
     }
 
     inline bool operator==(const NodeName& rhs) const noexcept {
-        return value == rhs.value;
+        return name == rhs.name;
     }
 
     inline bool operator!=(const NodeName& rhs) const noexcept {
-        return value != rhs.value;
+        return name != rhs.name;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const NodeName& node_name) {
-        return os << node_name.value;
+        return os << node_name.name;
     }
 };
 

@@ -1,7 +1,5 @@
 #include "check_well_designed.h"
 
-#include <iostream>
-
 #include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/op_filter.h"
@@ -11,14 +9,6 @@
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/logical_plan/op/op_path.h"
-#include "base/parser/logical_plan/op/op_path_alternatives.h"
-#include "base/parser/logical_plan/op/op_path_atom.h"
-#include "base/parser/logical_plan/op/op_path_sequence.h"
-#include "base/parser/logical_plan/op/op_path_kleene_star.h"
-#include "base/parser/logical_plan/op/op_path_optional.h"
-
-using namespace std;
 
 void CheckWellDesigned::visit(OpOptional& op_optional) {
     std::set<Var> local_vars;
@@ -26,7 +16,7 @@ void CheckWellDesigned::visit(OpOptional& op_optional) {
 
     for (const auto var : local_vars) {
         if (global.find(var) != global.end() && parent.find(var) == parent.end()) {
-            throw QuerySemanticException("Query is not well defined. Var " + var.value + " is breaking the rule");
+            throw QuerySemanticException("Query is not well defined. Var " + var.name + " is breaking the rule");
         }
         global.insert(var);
     }
@@ -45,7 +35,7 @@ void CheckWellDesigned::visit(OpMatch& op_match) {
 
     for (const auto var : local_vars) {
         if (global.find(var) != global.end() && parent.find(var) == parent.end()) {
-            throw QuerySemanticException("Query is not well defined. Var " + var.value + " is breaking the rule");
+            throw QuerySemanticException("Query is not well defined. Var " + var.name + " is breaking the rule");
         }
         global.insert(var);
     }
@@ -80,16 +70,3 @@ void CheckWellDesigned::visit(OpOrderBy& op_order_by) {
 void CheckWellDesigned::visit(OpDistinct& op_distinct) {
     op_distinct.op->accept_visitor(*this);
 }
-
-
-void CheckWellDesigned::visit(OpConnection&)        { }
-void CheckWellDesigned::visit(OpLabel&)             { }
-void CheckWellDesigned::visit(OpProperty&)          { }
-void CheckWellDesigned::visit(OpUnjointObject&)     { }
-void CheckWellDesigned::visit(OpPropertyPath&)      { }
-void CheckWellDesigned::visit(OpPath&)              { }
-void CheckWellDesigned::visit(OpPathAlternatives&)  { }
-void CheckWellDesigned::visit(OpPathSequence&)      { }
-void CheckWellDesigned::visit(OpPathAtom&)          { }
-void CheckWellDesigned::visit(OpPathKleeneStar&)    { }
-void CheckWellDesigned::visit(OpPathOptional&)      { }

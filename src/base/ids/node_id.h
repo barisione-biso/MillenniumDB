@@ -14,11 +14,11 @@ struct NodeIdToStringVisitor {
     NodeIdToStringVisitor() { }
 
     std::string operator()(const Var& v) {
-        return v.value;
+        return v.name;
     }
 
     std::string operator()(const NodeName& n) {
-        return n.value;
+        return n.name;
     }
 
     std::string operator()(const std::string& s) {
@@ -46,7 +46,7 @@ struct NodeIdToGraphObjectVisitor {
     }
 
     GraphObject operator()(const NodeName& s) {
-        return GraphObject::make_identifiable(s.value);
+        return GraphObject::make_identifiable(s.name);
     }
 
     GraphObject operator()(const std::string& s) {

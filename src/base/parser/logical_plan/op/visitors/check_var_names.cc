@@ -1,7 +1,6 @@
 #include "check_var_names.h"
 
 #include "base/parser/logical_plan/exceptions.h"
-#include "base/parser/logical_plan/op/op_connection.h"
 #include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
@@ -9,12 +8,6 @@
 #include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
-#include "base/parser/logical_plan/op/op_path.h"
-#include "base/parser/logical_plan/op/op_path_alternatives.h"
-#include "base/parser/logical_plan/op/op_path_atom.h"
-#include "base/parser/logical_plan/op/op_path_sequence.h"
-#include "base/parser/logical_plan/op/op_path_kleene_star.h"
-#include "base/parser/logical_plan/op/op_path_optional.h"
 #include "base/parser/logical_plan/op/op_select.h"
 
 void CheckVarNames::visit(OpSelect& op_select) {
@@ -38,8 +31,8 @@ void CheckVarNames::visit(OpOptional& op_optional) {
 
 
 void CheckVarNames::visit(OpMatch& op_match) {
-    for (const auto& vars : op_match.vars) {
-        declared_object_names.insert(vars.value); // TODO: declared_object_names should be a set of vars?
+    for (const auto& var : op_match.vars) {
+        declared_object_names.insert(var.name);
     }
 }
 
@@ -68,16 +61,3 @@ void CheckVarNames::visit(OpGraphPatternRoot& op_graph_pattern_root) {
 void CheckVarNames::visit(OpDistinct& op_distinct) {
     op_distinct.op->accept_visitor(*this);
 }
-
-
-void CheckVarNames::visit(OpConnection&)          { }
-void CheckVarNames::visit(OpLabel&)               { }
-void CheckVarNames::visit(OpProperty&)            { }
-void CheckVarNames::visit(OpUnjointObject&)       { }
-void CheckVarNames::visit(OpPropertyPath&)        { }
-void CheckVarNames::visit(OpPath&)                { }
-void CheckVarNames::visit(OpPathAlternatives& )   { }
-void CheckVarNames::visit(OpPathSequence&)        { }
-void CheckVarNames::visit(OpPathAtom&)            { }
-void CheckVarNames::visit(OpPathKleeneStar&)      { }
-void CheckVarNames::visit(OpPathOptional&)        { }

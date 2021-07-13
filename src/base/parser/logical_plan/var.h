@@ -6,39 +6,39 @@
 
 class Var {
 public:
-    const std::string value;
+    std::string name;
 
-    explicit Var(std::string value)
-        : value(std::move(value)) { }
+    explicit Var(std::string _name) :
+        name (std::move(_name)) { }
 
     ~Var() = default;
 
     inline bool operator<(const Var& rhs) const noexcept {
-        return value < rhs.value;
+        return name < rhs.name;
     }
 
     inline bool operator<=(const Var& rhs) const noexcept {
-        return value <= rhs.value;
+        return name <= rhs.name;
     }
 
     inline bool operator>(const Var& rhs) const noexcept {
-        return value > rhs.value;
+        return name > rhs.name;
     }
 
     inline bool operator>=(const Var& rhs) const noexcept {
-        return value >= rhs.value;
+        return name >= rhs.name;
     }
 
     inline bool operator==(const Var& rhs) const noexcept {
-        return value == rhs.value;
+        return name == rhs.name;
     }
 
     inline bool operator!=(const Var& rhs) const noexcept {
-        return value != rhs.value;
+        return name != rhs.name;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Var& var) {
-        return os << var.value;
+        return os << var.name;
     }
 };
 

@@ -5,9 +5,7 @@
 #include <vector>
 
 #include "base/graph/graph_object.h"
-#include "base/parser/logical_plan/op/op_label.h"
-#include "base/parser/logical_plan/op/op_unjoint_object.h"
-#include "base/parser/logical_plan/op/op.h" // NEW
+#include "base/parser/logical_plan/op/op.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
 
 /* Simplifies the logical plan generated based on certain properties of the logical plan.
@@ -31,25 +29,27 @@ private:
     bool optional_to_match = true;
 
 public:
-    void visit(OpSelect&) override;
-    void visit(OpMatch&) override;
-    void visit(OpFilter&) override;
-    void visit(OpConnection&) override;
-    void visit(OpLabel&) override;
-    void visit(OpProperty&) override;
-    void visit(OpOrderBy&) override;
-    void visit(OpGroupBy&) override;
-    void visit(OpOptional&) override;
-    void visit(OpUnjointObject&) override;
+    void visit(OpDistinct&)         override;
+    void visit(OpFilter&)           override;
     void visit(OpGraphPatternRoot&) override;
-    void visit(OpDistinct&) override;
-    void visit(OpPropertyPath&) override;
-    void visit(OpPath&) override;
-    void visit(OpPathAtom&) override;
-    void visit(OpPathAlternatives&) override;
-    void visit(OpPathSequence&) override;
-    void visit(OpPathKleeneStar&) override;
-    void visit(OpPathOptional&) override;
+    void visit(OpGroupBy&)          override;
+    void visit(OpMatch&)            override;
+    void visit(OpOptional&)         override;
+    void visit(OpOrderBy&)          override;
+    void visit(OpSelect&)           override;
+
+    void visit(OpConnection&)       override { }
+    void visit(OpIsolatedTerm&)     override { }
+    void visit(OpIsolatedVar&)      override { }
+    void visit(OpLabel&)            override { }
+    void visit(OpPath&)             override { }
+    void visit(OpPathAlternatives&) override { }
+    void visit(OpPathAtom&)         override { }
+    void visit(OpPathSequence&)     override { }
+    void visit(OpPathKleeneStar&)   override { }
+    void visit(OpPathOptional&)     override { }
+    void visit(OpProperty&)         override { }
+    void visit(OpPropertyPath&)     override { }
 };
 
 #endif // BASE__OPTIMIZE_TREE_H_

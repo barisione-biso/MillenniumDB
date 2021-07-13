@@ -13,6 +13,8 @@
 #include "base/parser/logical_plan/op/op_path_optional.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
 #include "relational_model/execution/binding_id_iter/leapfrog_join.h"
+#include "relational_model/execution/binding_id_iter/empty_binding_id_iter.h"
+#include "relational_model/execution/binding_id_iter/single_result_binding_id_iter.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/connection_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
@@ -24,7 +26,6 @@
 #include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_in_buffer_plan.h"
 #include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
 #include "storage/index/bplus_tree/leapfrog_iter.h"
-
 
 using namespace std;
 
@@ -40,13 +41,38 @@ VarId BindingIdIterVisitor::get_var_id(const Var& var) {
     if (search != var2var_id.end()) {
         return (*search).second;
     } else {
-        throw std::logic_error("variable " + var.value + " not present in var_name2var_id");
+        throw std::logic_error("variable " + var.name + " not present in var_name2var_id");
     }
 }
 
 
 void BindingIdIterVisitor::visit(OpMatch& op_match) {
+    // Process Isolated Terms
+    // if a term is not found we can asume the MATCH result is empty
+    for (auto& isolated_term : op_match.isolated_terms) {
+        ObjectId term = model.get_object_id(isolated_term.term.to_graph_object());
+        if (term.is_not_found()) {
+            tmp = make_unique<EmptyBindingIdIter>();
+            return;
+        } else {
+            // search in nodes
+            auto r = RecordFactory::get(term.id);
+            auto it = model.nodes->get_range(r, r);
+            if (it->next() == nullptr) {
+                tmp = make_unique<EmptyBindingIdIter>();
+                return;
+            }
+        }
+    }
     vector<unique_ptr<JoinPlan>> base_plans;
+
+    // Process Isolated Vars
+    for (auto& isolated_var : op_match.isolated_vars) {
+        base_plans.push_back(
+            make_unique<UnjointObjectPlan>(model, get_var_id(isolated_var.var))
+        );
+    }
+
     // Process Labels
     for (auto& op_label : op_match.labels) {
         auto label_id = model.get_object_id(GraphObject::make_string(op_label.label));
@@ -83,15 +109,6 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
         }
     }
 
-    // Process UnjointObjects
-    for (auto& unjoint_object : op_match.unjoint_objects) {
-        // TODO: unjoint object node_id may not be a variable
-        auto obj_var_id = get_var_id(unjoint_object.node_id.to_var());
-        base_plans.push_back(
-            make_unique<UnjointObjectPlan>(model, obj_var_id)
-        );
-    }
-
     // Process connections
     for (auto& op_connection : op_match.connections) {
         auto from_id = op_connection.from.is_var()
@@ -106,7 +123,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
 
         if (op_connection.types.empty()) {
             // Type not mentioned, creating anonymous variable for type
-            auto type_var_id = get_var_id(Var("_type_" + op_connection.edge.value));
+            auto type_var_id = get_var_id(Var("_type_" + op_connection.edge.name));
             base_plans.push_back(
                 make_unique<ConnectionPlan>(model, from_id, to_id, type_var_id, edge_id));
         }
@@ -152,7 +169,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     const auto binding_size = var2var_id.size();
     var_names.resize(binding_size);
     for (auto&& [var, var_id] : var2var_id) {
-        var_names[var_id.id] = var.value;
+        var_names[var_id.id] = var.name;
     }
 
     // construct input vars
@@ -164,7 +181,8 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
 
     unique_ptr<JoinPlan> root_plan = nullptr;
     if (base_plans.size() == 0) {
-        throw QuerySemanticException("Empty plan");
+        tmp = make_unique<SingleResultBindingIdIter>();
+        return;
     }
 
     // try to use leapfrog if the is a join
@@ -452,23 +470,3 @@ ObjectId BindingIdIterVisitor::get_value_id(const common::ast::Value& value) {
         throw logic_error("Unknown value type.");
     }
 }
-
-
-void BindingIdIterVisitor::visit(OpLabel&) { }
-void BindingIdIterVisitor::visit(OpProperty&) { }
-void BindingIdIterVisitor::visit(OpConnection&) { }
-void BindingIdIterVisitor::visit(OpUnjointObject&) { }
-void BindingIdIterVisitor::visit(OpGraphPatternRoot&) { }
-void BindingIdIterVisitor::visit(OpSelect&) { }
-void BindingIdIterVisitor::visit(OpFilter&) { }
-void BindingIdIterVisitor::visit(OpOrderBy&) { }
-void BindingIdIterVisitor::visit(OpGroupBy&) { }
-void BindingIdIterVisitor::visit(OpDistinct&) { }
-
-void BindingIdIterVisitor::visit(OpPath&)              { }
-void BindingIdIterVisitor::visit(OpPropertyPath&)      { }
-void BindingIdIterVisitor::visit(OpPathAlternatives&)  { }
-void BindingIdIterVisitor::visit(OpPathSequence&)      { }
-void BindingIdIterVisitor::visit(OpPathAtom&)          { }
-void BindingIdIterVisitor::visit(OpPathKleeneStar&)     { }
-void BindingIdIterVisitor::visit(OpPathOptional&)       { }

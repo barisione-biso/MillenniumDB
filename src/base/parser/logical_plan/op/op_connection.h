@@ -14,11 +14,11 @@ public:
     const Var edge;
     const std::vector<std::string> types; // TODO: use NodeId?
 
-    OpConnection(NodeId from, NodeId to, Var edge, std::vector<std::string> types) :
-        from  (from),
-        to    (to),
-        edge  (std::move(edge)),
-        types (std::move(types)) { }
+    OpConnection(NodeId _from, NodeId _to, Var _edge, std::vector<std::string> _types) :
+        from  (_from),
+        to    (_to),
+        edge  (std::move(_edge)),
+        types (std::move(_types)) { }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
