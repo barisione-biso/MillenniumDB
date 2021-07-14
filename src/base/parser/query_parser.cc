@@ -8,7 +8,7 @@
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
-#include "base/parser/logical_plan/op/op_match.h"
+#include "base/parser/logical_plan/op/op_basic_graph_pattern.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
@@ -26,7 +26,7 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
     if (ast.graph_pattern.optionals.size() > 0) {
         op = make_unique<OpOptional>(ast.graph_pattern, &anon_count);
     } else {
-        op = make_unique<OpMatch>(ast.graph_pattern.pattern, &anon_count);
+        op = make_unique<OpBasicGraphPattern>(ast.graph_pattern.pattern, &anon_count);
     }
 
     op = make_unique<OpGraphPatternRoot>(std::move(op));
@@ -44,28 +44,14 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
         op = make_unique<OpGroupBy>(move(op), ast.group_by.get());
     }
 
-    // TODO: si viene group_by + order by solo debería haber 1 OpGroupBy que sepa como ordenar?
+    // TODO: si viene group by + order by solo debería haber 1 OpGroupBy que sepa como ordenar?
     if (ast.order_by) {
         op = make_unique<OpOrderBy>(move(op), ast.order_by.get());
     }
 
-    // TODO: create op distinct if necesary
     if (ast.select.distinct) {
-        // TODO:
-        op = make_unique<OpDistinct>(move(op)); // tal vez hay que pasarle mas cosas?
+        op = make_unique<OpDistinct>(move(op));
     }
-
-    // OpSelect
-    //     |
-    // OpDistinct
-    //     |
-    // OpFilter
-    //     |
-    // OpMatch
-    //     |
-    //     - OpProperty
-    //     - OpLabel
-    //     - OpConnection
 
     return make_unique<OpSelect>(move(op), ast.select.selection, limit);
 }

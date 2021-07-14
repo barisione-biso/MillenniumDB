@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "base/parser/grammar/query/query_ast.h"
-#include "base/parser/logical_plan/op/op_match.h"
+#include "base/parser/logical_plan/op/op_basic_graph_pattern.h"
 #include "base/parser/logical_plan/op/op.h"
 
 
@@ -20,11 +20,11 @@ public:
         optionals (std::move(op_optional.optionals)) { }
 
     OpOptional(const query::ast::GraphPattern& graph_pattern, uint_fast32_t* anon_count) :
-        op ( std::make_unique<OpMatch>(graph_pattern.pattern, anon_count) )
+        op ( std::make_unique<OpBasicGraphPattern>(graph_pattern.pattern, anon_count) )
     {
         for (auto& optional : graph_pattern.optionals) {
             if (optional.get().optionals.size() == 0) {
-                optionals.emplace_back( std::make_unique<OpMatch>(optional.get().pattern, anon_count) );
+                optionals.emplace_back( std::make_unique<OpBasicGraphPattern>(optional.get().pattern, anon_count) );
             } else {
                 optionals.emplace_back( std::make_unique<OpOptional>(optional.get(), anon_count) );
             }

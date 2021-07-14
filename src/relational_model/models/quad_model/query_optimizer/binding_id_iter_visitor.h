@@ -48,8 +48,8 @@ public:
         const std::size_t binding_size,
         uint64_t input_vars);
 
-    void visit(OpMatch&)            override;
-    void visit(OpOptional&)         override;
+    void visit(OpBasicGraphPattern&) override;
+    void visit(OpOptional&)          override;
 
     void visit(OpConnection&)       override { }
     void visit(OpDistinct&)         override { }

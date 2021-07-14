@@ -42,20 +42,20 @@ public:
     void visit(OpOrderBy&)          override;
     void visit(OpSelect&)           override;
 
-    void visit(OpMatch&)            override { }
-    void visit(OpOptional&)         override { }
-    void visit(OpConnection&)       override { }
-    void visit(OpIsolatedTerm&)     override { }
-    void visit(OpIsolatedVar&)      override { }
-    void visit(OpLabel&)            override { }
-    void visit(OpPath&)             override { }
-    void visit(OpPathAlternatives&) override { }
-    void visit(OpPathAtom&)         override { }
-    void visit(OpPathSequence&)     override { }
-    void visit(OpPathKleeneStar&)   override { }
-    void visit(OpPathOptional&)     override { }
-    void visit(OpProperty&)         override { }
-    void visit(OpPropertyPath&)     override { }
+    void visit(OpBasicGraphPattern&) override { }
+    void visit(OpConnection&)        override { }
+    void visit(OpIsolatedTerm&)      override { }
+    void visit(OpIsolatedVar&)       override { }
+    void visit(OpLabel&)             override { }
+    void visit(OpOptional&)          override { }
+    void visit(OpPath&)              override { }
+    void visit(OpPathAlternatives&)  override { }
+    void visit(OpPathAtom&)          override { }
+    void visit(OpPathSequence&)      override { }
+    void visit(OpPathKleeneStar&)    override { }
+    void visit(OpPathOptional&)      override { }
+    void visit(OpProperty&)          override { }
+    void visit(OpPropertyPath&)      override { }
 };
 
 #endif // RELATIONAL_MODEL__BINDING_ITER_VISITOR_H_

@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "base/parser/logical_plan/op/op_match.h"
+#include "base/parser/logical_plan/op/op_basic_graph_pattern.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_path.h"
 #include "base/parser/logical_plan/op/op_path_alternatives.h"
@@ -46,10 +46,10 @@ VarId BindingIdIterVisitor::get_var_id(const Var& var) {
 }
 
 
-void BindingIdIterVisitor::visit(OpMatch& op_match) {
+void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
     // Process Isolated Terms
     // if a term is not found we can asume the MATCH result is empty
-    for (auto& isolated_term : op_match.isolated_terms) {
+    for (auto& isolated_term : op_basic_graph_pattern.isolated_terms) {
         ObjectId term = model.get_object_id(isolated_term.term.to_graph_object());
         if (term.is_not_found()) {
             tmp = make_unique<EmptyBindingIdIter>();
@@ -67,14 +67,14 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     vector<unique_ptr<JoinPlan>> base_plans;
 
     // Process Isolated Vars
-    for (auto& isolated_var : op_match.isolated_vars) {
+    for (auto& isolated_var : op_basic_graph_pattern.isolated_vars) {
         base_plans.push_back(
             make_unique<UnjointObjectPlan>(model, get_var_id(isolated_var.var))
         );
     }
 
     // Process Labels
-    for (auto& op_label : op_match.labels) {
+    for (auto& op_label : op_basic_graph_pattern.labels) {
         auto label_id = model.get_object_id(GraphObject::make_string(op_label.label));
 
         if (op_label.node_id.is_var()) {
@@ -91,7 +91,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     }
 
     // Process properties from Match
-    for (auto& op_property : op_match.properties) {
+    for (auto& op_property : op_basic_graph_pattern.properties) {
         auto key_id   = model.get_object_id(GraphObject::make_string(op_property.key));
         auto value_id = get_value_id(op_property.value);
 
@@ -110,7 +110,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
     }
 
     // Process connections
-    for (auto& op_connection : op_match.connections) {
+    for (auto& op_connection : op_basic_graph_pattern.connections) {
         auto from_id = op_connection.from.is_var()
                         ? (JoinPlan::Id) get_var_id(op_connection.from.to_var())
                         : (JoinPlan::Id) model.get_object_id(op_connection.from.to_graph_object());
@@ -146,7 +146,7 @@ void BindingIdIterVisitor::visit(OpMatch& op_match) {
         }
     }
 
-    for (auto& property_path : op_match.property_paths) {
+    for (auto& property_path : op_basic_graph_pattern.property_paths) {
         auto from_id = property_path.from.is_var()
                     ? (JoinPlan::Id) get_var_id(property_path.from.to_var())
                     : (JoinPlan::Id) model.get_object_id(property_path.from.to_graph_object());

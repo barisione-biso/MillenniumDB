@@ -5,7 +5,7 @@
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
-#include "base/parser/logical_plan/op/op_match.h"
+#include "base/parser/logical_plan/op/op_basic_graph_pattern.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
@@ -30,8 +30,8 @@ void CheckVarNames::visit(OpOptional& op_optional) {
 }
 
 
-void CheckVarNames::visit(OpMatch& op_match) {
-    for (const auto& var : op_match.vars) {
+void CheckVarNames::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
+    for (const auto& var : op_basic_graph_pattern.vars) {
         declared_object_names.insert(var.name);
     }
 }

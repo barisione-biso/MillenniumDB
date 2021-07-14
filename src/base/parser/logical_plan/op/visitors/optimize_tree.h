@@ -29,14 +29,14 @@ private:
     bool optional_to_match = true;
 
 public:
-    void visit(OpDistinct&)         override;
-    void visit(OpFilter&)           override;
-    void visit(OpGraphPatternRoot&) override;
-    void visit(OpGroupBy&)          override;
-    void visit(OpMatch&)            override;
-    void visit(OpOptional&)         override;
-    void visit(OpOrderBy&)          override;
-    void visit(OpSelect&)           override;
+    void visit(OpBasicGraphPattern&) override;
+    void visit(OpDistinct&)          override;
+    void visit(OpFilter&)            override;
+    void visit(OpGraphPatternRoot&)  override;
+    void visit(OpGroupBy&)           override;
+    void visit(OpOptional&)          override;
+    void visit(OpOrderBy&)           override;
+    void visit(OpSelect&)            override;
 
     void visit(OpConnection&)       override { }
     void visit(OpIsolatedTerm&)     override { }

@@ -5,7 +5,7 @@
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
-#include "base/parser/logical_plan/op/op_match.h"
+#include "base/parser/logical_plan/op/op_basic_graph_pattern.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
@@ -66,15 +66,15 @@ void OptimizeTree::visit(OpOptional& op_optional) {
 }
 
 
-void OptimizeTree::visit(OpMatch& op_match) {
+void OptimizeTree::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
     // delete already assigned properties
-    for (auto it = op_match.properties.begin(); it != op_match.properties.end(); ) {
+    for (auto it = op_basic_graph_pattern.properties.begin(); it != op_basic_graph_pattern.properties.end(); ) {
         auto op_property = *it;
         auto property_search = global_properties_set.find(op_property);
         if (property_search != global_properties_set.end()) {
             auto found_property = *property_search;
             if (op_property.value != found_property.value) {
-                it = op_match.properties.erase(it);
+                it = op_basic_graph_pattern.properties.erase(it);
             } else {
                 ++it;
             }
@@ -83,11 +83,11 @@ void OptimizeTree::visit(OpMatch& op_match) {
     }
 
     // delete already assigned labels
-    for (auto it = op_match.labels.begin(); it != op_match.labels.end(); ) {
+    for (auto it = op_basic_graph_pattern.labels.begin(); it != op_basic_graph_pattern.labels.end(); ) {
         auto op_label = *it;
         auto label_search = global_label_set.find(op_label);
         if (label_search != global_label_set.end()) {
-            it = op_match.labels.erase(it);
+            it = op_basic_graph_pattern.labels.erase(it);
         } else {
             ++it;
         }
@@ -95,28 +95,28 @@ void OptimizeTree::visit(OpMatch& op_match) {
     }
 
     // delete already assigned isolated vars
-    for (auto it = op_match.isolated_vars.begin(); it != op_match.isolated_vars.end(); ) {
+    for (auto it = op_basic_graph_pattern.isolated_vars.begin(); it != op_basic_graph_pattern.isolated_vars.end(); ) {
         auto op_unjoint_object = *it;
 
         if (global_vars.find(op_unjoint_object.var) != global_vars.end()) {
-            it = op_match.isolated_vars.erase(it);
+            it = op_basic_graph_pattern.isolated_vars.erase(it);
         } else {
             ++it;
         }
     }
 
     // if nothing to match, will be deleted
-    if (   op_match.connections.empty()
-        && op_match.labels.empty()
-        && op_match.properties.empty()
-        && op_match.property_paths.empty()
-        && op_match.isolated_vars.empty())
+    if (   op_basic_graph_pattern.connections.empty()
+        && op_basic_graph_pattern.labels.empty()
+        && op_basic_graph_pattern.properties.empty()
+        && op_basic_graph_pattern.property_paths.empty()
+        && op_basic_graph_pattern.isolated_vars.empty())
     {
         delete_current = true;
     }
 
     std::set<Var> match_vars;
-    op_match.get_vars(match_vars);
+    op_basic_graph_pattern.get_vars(match_vars);
     for (auto& var_name : match_vars) {
         global_vars.insert(var_name);
     }

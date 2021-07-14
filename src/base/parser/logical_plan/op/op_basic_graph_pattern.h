@@ -1,5 +1,5 @@
-#ifndef BASE__OP_MATCH_H_
-#define BASE__OP_MATCH_H_
+#ifndef BASE__OP_BASIC_GRAPH_PATTERN_H_
+#define BASE__OP_BASIC_GRAPH_PATTERN_H_
 
 #include <set>
 #include <vector>
@@ -15,7 +15,7 @@
 #include "base/parser/logical_plan/op/op_isolated_var.h"
 #include "base/parser/logical_plan/op/property_paths/path_constructor.h"
 
-class OpMatch : public Op {
+class OpBasicGraphPattern : public Op {
 public:
     std::set<OpLabel>        labels;
     std::set<OpProperty>     properties;
@@ -28,7 +28,7 @@ public:
 
     uint_fast32_t* anon_count; // pointer to a global count of anonymous variables
 
-    OpMatch(const std::vector<query::ast::LinearPattern>& graph_pattern, uint_fast32_t* _anon_count) :
+    OpBasicGraphPattern(const std::vector<query::ast::LinearPattern>& graph_pattern, uint_fast32_t* _anon_count) :
         anon_count(_anon_count)
     {
         std::vector<Var> pending_unjoint_vars;
@@ -195,7 +195,7 @@ public:
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
         os << std::string(indent, ' ');
-        os << "OpMatch()\n";
+        os << "OpBasicGraphPattern()\n";
 
         for (auto &label : labels) {
             label.print_to_ostream(os, indent + 2);
@@ -231,4 +231,4 @@ public:
     }
 };
 
-#endif // BASE__OP_MATCH_H_
+#endif // BASE__OP_BASIC_GRAPH_PATTERN_H_

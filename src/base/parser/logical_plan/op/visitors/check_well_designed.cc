@@ -5,7 +5,7 @@
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
-#include "base/parser/logical_plan/op/op_match.h"
+#include "base/parser/logical_plan/op/op_basic_graph_pattern.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
@@ -29,9 +29,9 @@ void CheckWellDesigned::visit(OpOptional& op_optional) {
 }
 
 
-void CheckWellDesigned::visit(OpMatch& op_match) {
+void CheckWellDesigned::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
     std::set<Var> local_vars;
-    op_match.get_vars(local_vars);
+    op_basic_graph_pattern.get_vars(local_vars);
 
     for (const auto var : local_vars) {
         if (global.find(var) != global.end() && parent.find(var) == parent.end()) {
