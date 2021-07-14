@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
             namespace fs = std::experimental::filesystem;
             if (fs::exists(db_folder) && !fs::is_empty(db_folder)) {
                 cout << "Database folder already exists and it's not empty\n";
-                return 1;
+                return EXIT_FAILURE;
             }
         }
 
@@ -67,17 +67,24 @@ int main(int argc, char **argv) {
 
         auto start = chrono::system_clock::now();
         cout << "Initializing system...\n";
-        auto model = QuadModel(db_folder, buffer_size, 0, 0);
-        auto end_model = chrono::system_clock::now();
-        chrono::duration<float, milli> model_duration = end_model - start;
-        cout << "  done in " << model_duration.count() << " ms\n\n";
+        {
+            QuadModel model(db_folder, buffer_size, 0, 0);
 
-        auto import = BulkImport(input_filename, model);
-        import.start_import();
+            // to measure time initializing the model
+            auto end_model = chrono::system_clock::now();
+            chrono::duration<float, milli> model_duration = end_model - start;
+            cout << "  done in " << model_duration.count() << " ms\n\n";
 
+            // start the import
+            auto import = BulkImport(input_filename, model);
+            import.start_import();
+
+        }
         auto end = chrono::system_clock::now();
         chrono::duration<float, milli> duration = end - start;
         cout << "Total duration: " << duration.count() << " ms\n";
+
+        return EXIT_SUCCESS;
     }
     catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";
@@ -87,5 +94,4 @@ int main(int argc, char **argv) {
         cerr << "Exception of unknown type!\n";
         return EXIT_FAILURE;
     }
-	return EXIT_SUCCESS;
 }
