@@ -6,16 +6,15 @@
 
 using namespace std;
 
-TupleBufferBlock::TupleBufferBlock(FileId file_id,
+TupleBufferBlock::TupleBufferBlock(TmpFileId file_id,
                                    uint_fast32_t page_number,
                                    const std::vector<VarId>& enumeration_vars) :
-    page             (buffer_manager.get_page(file_id, page_number)),
+    page             (buffer_manager.get_tmp_page(file_id, page_number)),
     tuple_size       (enumeration_vars.size()),
     enumeration_vars (enumeration_vars),
     max_tuples       (get_max_tuples(tuple_size)),
     tuple_count      (reinterpret_cast<uint32_t*>(page.get_bytes())),
-    tuples           (reinterpret_cast<uint64_t*>(page.get_bytes() + sizeof(uint32_t)))
-    { }
+    tuples           (reinterpret_cast<uint64_t*>(page.get_bytes() + sizeof(uint32_t))) { }
 
 
 TupleBufferBlock::~TupleBufferBlock() {

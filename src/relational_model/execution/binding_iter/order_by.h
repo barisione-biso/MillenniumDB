@@ -36,12 +36,12 @@ private:
     std::size_t binding_size;
     BindingOrderBy my_binding;
 
-    FileId first_file_id;
-    FileId second_file_id;
+    TmpFileId first_file_id;
+    TmpFileId second_file_id;
 
     std::unique_ptr<TupleCollection> run;
     std::unique_ptr<MergeOrderedTupleCollection> merger;
-    FileId* output_file_id;
+    TmpFileId* output_file_id;
     uint_fast32_t total_pages = 0;
     uint_fast32_t current_page = 0;
     uint64_t page_position = 0;

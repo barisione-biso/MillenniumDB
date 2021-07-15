@@ -4,10 +4,8 @@
 
 using namespace std;
 
-uint32_t TupleBuffer::instance_count = 0;
-
 TupleBuffer::TupleBuffer(const vector<VarId>& enumeration_vars) :
-    file_id          (file_manager.get_file_id("TupleBuffer_" + std::to_string(++instance_count))), // TODO: use tmp file
+    file_id          (file_manager.get_tmp_file_id()),
     enumeration_vars (enumeration_vars),
     tuple_size       (enumeration_vars.size()),
     max_tuples       (TupleBufferBlock::get_max_tuples(tuple_size))
@@ -20,7 +18,7 @@ TupleBuffer::TupleBuffer(const vector<VarId>& enumeration_vars) :
 TupleBuffer::~TupleBuffer() {
     current_block.reset();
     last_block.reset();
-    file_manager.remove(file_id);
+    file_manager.remove_tmp(file_id);
 }
 
 

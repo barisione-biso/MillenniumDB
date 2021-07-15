@@ -25,9 +25,7 @@ public:
     void reset();
 
 private:
-    static uint32_t instance_count; // TODO: remove when tmp files are implemented
-
-    const FileId file_id;
+    const TmpFileId file_id;
     const std::vector<VarId>& enumeration_vars; // enumeration_vars.size() = tuple_size
     const uint_fast32_t tuple_size;             // WARNING: tuple_size can be 0
     const uint_fast32_t max_tuples;             // How many tuples fit in a page

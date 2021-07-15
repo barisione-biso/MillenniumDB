@@ -12,7 +12,7 @@
 
 class TupleBufferBlock {
 public:
-    TupleBufferBlock(FileId file_id, uint_fast32_t page_number, const std::vector<VarId>& enumeration_vars);
+    TupleBufferBlock(TmpFileId file_id, uint_fast32_t page_number, const std::vector<VarId>& enumeration_vars);
     ~TupleBufferBlock();
 
     inline bool is_full()         const noexcept { return *tuple_count == max_tuples; }

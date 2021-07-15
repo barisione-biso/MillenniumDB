@@ -20,14 +20,13 @@ GroupBy::GroupBy(GraphModel& model,
     binding_size   (binding_size),
     group_vars     (move(_group_vars)),
     my_binding     (BindingGroupBy(model, group_vars, order_child.get_binding(), binding_size)),
-    group_file_id  (file_manager.get_file_id("group_file.txt")) // TODO: use temp file
-    { }
+    group_file_id  (file_manager.get_tmp_file_id()) { }
 
 
 void GroupBy::begin() {
     order_child.begin();
     auto& child_binding = order_child.get_binding();
-    group_run = make_unique<TupleCollection>(buffer_manager.get_page(group_file_id, n_pages), binding_size);
+    group_run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(group_file_id, n_pages), binding_size);
     group_run->reset();
     current_group_tuple = std::vector<GraphObject>(binding_size);
     current_tuple = std::vector<GraphObject>(binding_size);
@@ -56,7 +55,7 @@ bool GroupBy::next() {
         } else {
             compute_agregation_function();
             n_pages = 0;
-            group_run = make_unique<TupleCollection>(buffer_manager.get_page(group_file_id, n_pages), binding_size);
+            group_run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(group_file_id, n_pages), binding_size);
             group_run->reset();
             add_tuple_to_group();
             current_group_tuple = current_tuple;
@@ -66,7 +65,7 @@ bool GroupBy::next() {
     if (group_run->get_tuple_count()) {
         compute_agregation_function();
         n_pages = 0;
-        group_run = make_unique<TupleCollection>(buffer_manager.get_page(group_file_id, 0), binding_size);
+        group_run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(group_file_id, 0), binding_size);
         group_run->reset();
           return true;
     }
@@ -92,7 +91,7 @@ bool GroupBy::has_same_group_vars() {
 void GroupBy::add_tuple_to_group() {
     if (group_run->is_full()) {
         n_pages++;
-        group_run = make_unique<TupleCollection>(buffer_manager.get_page(group_file_id, n_pages), binding_size);
+        group_run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(group_file_id, n_pages), binding_size);
         group_run->reset();
     }
     group_run->add(current_tuple);
@@ -101,6 +100,6 @@ void GroupBy::add_tuple_to_group() {
 
 // TODO: Agregation function. Now only return the first tuple of the group
 void GroupBy::compute_agregation_function() {
-    group_run = make_unique<TupleCollection>(buffer_manager.get_page(group_file_id, 0), binding_size);
+    group_run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(group_file_id, 0), binding_size);
     my_binding.update_binding(group_run->get(0));
 }

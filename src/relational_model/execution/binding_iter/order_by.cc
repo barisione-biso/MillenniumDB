@@ -22,11 +22,8 @@ OrderBy::OrderBy(const GraphModel& model,
     ascending      (move(ascending)),
     binding_size   (binding_size),
     my_binding     (BindingOrderBy(model, binding_size)),
-    first_file_id  (file_manager.get_file_id("temp0.txt")),
-    second_file_id (file_manager.get_file_id("temp1.txt"))
-    // first_file_id  (file_manager.get_tmp_file_id(query_id)), // TODO:
-    // second_file_id (file_manager.get_tmp_file_id(query_id))  // TODO:
-    { }
+    first_file_id  (file_manager.get_tmp_file_id()),
+    second_file_id (file_manager.get_tmp_file_id()) { }
 
 
 void OrderBy::begin() {
@@ -38,7 +35,7 @@ void OrderBy::begin() {
 
     total_pages = 0;
     merger = make_unique<MergeOrderedTupleCollection>(binding_size, order_ids, ascending);
-    run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, total_pages), binding_size);
+    run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(first_file_id, total_pages), binding_size);
     run->reset();
     std::vector<GraphObject> graph_objects(binding_size);
     auto& child_binding = child->get_binding();
@@ -47,7 +44,7 @@ void OrderBy::begin() {
         if (run->is_full()) {
             total_pages++;
             run->sort(order_ids, ascending);
-            run = make_unique<TupleCollection>(buffer_manager.get_page(first_file_id, total_pages), binding_size);
+            run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(first_file_id, total_pages), binding_size);
             run->reset();
         }
         for (size_t i = 0; i < binding_size; i++) {
@@ -60,7 +57,7 @@ void OrderBy::begin() {
     total_pages++;
     run = nullptr;
     merge_sort();
-    run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, 0), binding_size);
+    run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(*output_file_id, 0), binding_size);
 }
 
 
@@ -70,7 +67,7 @@ bool OrderBy::next() {
         if (current_page >= total_pages) {
             return false;
         }
-        run = make_unique<TupleCollection>(buffer_manager.get_page(*output_file_id, current_page), binding_size);
+        run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(*output_file_id, current_page), binding_size);
         page_position = 0;
     }
     auto graph_object = run->get(page_position);
@@ -95,8 +92,8 @@ void OrderBy::merge_sort() {
     // output_file_id = &first_file_id;
     bool output_is_in_second = false;
 
-    FileId* source_pointer = &first_file_id;
-    FileId* dest_pointer   = &second_file_id;
+    TmpFileId* source_pointer = &first_file_id;
+    TmpFileId* dest_pointer   = &second_file_id;
 
     while (runs_to_merge < total_pages) {
         runs_to_merge *= 2;

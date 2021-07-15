@@ -63,12 +63,12 @@ public:
                uint_fast64_t left_end,
                uint_fast64_t right_start,
                uint_fast64_t right_end,
-               FileId source_file_id,
-               FileId output_file_id);
+               TmpFileId source_file_id,
+               TmpFileId output_file_id);
 
     void copy_page(uint_fast64_t source_page,
-                   FileId source_file_id,
-                   FileId output_file_id);
+                   TmpFileId source_file_id,
+                   TmpFileId output_file_id);
 
 private:
     size_t                     tuple_size;

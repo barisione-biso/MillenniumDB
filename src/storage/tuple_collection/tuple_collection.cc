@@ -160,14 +160,14 @@ void MergeOrderedTupleCollection::merge(uint_fast64_t left_start,
                                         uint_fast64_t left_end,
                                         uint_fast64_t right_start,
                                         uint_fast64_t right_end,
-                                        FileId source_file_id,
-                                        FileId output_file_id)
+                                        TmpFileId source_file_id,
+                                        TmpFileId output_file_id)
 {
     // Merge [left_start-left_end] with [right_start-right_end] from source_file_id in output_file_id,
     // in output_file_id is sorted
-    auto left_run  = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, left_start),  tuple_size);
-    auto right_run = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, right_start), tuple_size);
-    auto out_run   = make_unique<TupleCollection>(buffer_manager.get_page(output_file_id, left_start),  tuple_size);
+    auto left_run  = make_unique<TupleCollection>(buffer_manager.get_tmp_page(source_file_id, left_start),  tuple_size);
+    auto right_run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(source_file_id, right_start), tuple_size);
+    auto out_run   = make_unique<TupleCollection>(buffer_manager.get_tmp_page(output_file_id, left_start),  tuple_size);
     out_run->reset();
 
     auto left_tuple  = left_run->get(0);
@@ -182,7 +182,7 @@ void MergeOrderedTupleCollection::merge(uint_fast64_t left_start,
     while (open_left || open_right) {
         if (out_run->is_full()) {
             out_page_counter++;
-            out_run = make_unique<TupleCollection>(buffer_manager.get_page(output_file_id, out_page_counter), tuple_size);
+            out_run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(output_file_id, out_page_counter), tuple_size);
             out_run->reset();
         }
         left_first = TupleCollection::has_priority(left_tuple, right_tuple, order_vars, ascending);
@@ -192,7 +192,7 @@ void MergeOrderedTupleCollection::merge(uint_fast64_t left_start,
             if (left_counter == left_run->get_tuple_count()) {
                 left_start++;
                 if (left_start <= left_end) {
-                    left_run = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, left_start), tuple_size);
+                    left_run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(source_file_id, left_start), tuple_size);
                     left_counter = 0;
                 } else {
                     open_left = false;
@@ -207,7 +207,7 @@ void MergeOrderedTupleCollection::merge(uint_fast64_t left_start,
             if (right_counter == right_run->get_tuple_count()) {
                 right_start++;
                 if (right_start <= right_end) {
-                    right_run = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, right_start), tuple_size);
+                    right_run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(source_file_id, right_start), tuple_size);
                     right_counter = 0;
                 } else {
                     open_right = false;
@@ -221,11 +221,11 @@ void MergeOrderedTupleCollection::merge(uint_fast64_t left_start,
 
 
 void MergeOrderedTupleCollection::copy_page(uint_fast64_t source_page,
-                                            FileId source_file_id,
-                                            FileId output_file_id)
+                                            TmpFileId source_file_id,
+                                            TmpFileId output_file_id)
 {
-    auto source_tuples = make_unique<TupleCollection>(buffer_manager.get_page(source_file_id, source_page), tuple_size);
-    auto output_tuples = make_unique<TupleCollection>(buffer_manager.get_page(output_file_id, source_page), tuple_size);
+    auto source_tuples = make_unique<TupleCollection>(buffer_manager.get_tmp_page(source_file_id, source_page), tuple_size);
+    auto output_tuples = make_unique<TupleCollection>(buffer_manager.get_tmp_page(output_file_id, source_page), tuple_size);
     output_tuples->reset();
     for (size_t i = 0; i < source_tuples->get_tuple_count(); i++) {
         auto t = source_tuples->get(i);

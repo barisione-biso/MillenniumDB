@@ -33,7 +33,7 @@ private:
     std::size_t binding_size;
     std::vector<std::pair<Var, VarId>> group_vars;
     BindingGroupBy my_binding;
-    FileId group_file_id;
+    TmpFileId group_file_id;
     std::vector<GraphObject> current_group_tuple;
     std::vector<GraphObject> current_tuple;
     std::unique_ptr<TupleCollection> group_run;
