@@ -1,3 +1,0 @@
-SELECT DISTINCT ?x.Agassi
-MATCH (?x)->(?y)
-WHERE ?x.Agassi < 100 OR ?x.Agassi > 9950

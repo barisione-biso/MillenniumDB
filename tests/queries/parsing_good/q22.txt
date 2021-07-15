@@ -1,2 +1,2 @@
 SELECT ?n.name
-MATCH (?n :Person {name:"John"}) -[:knows]-> (?m :Person {name: "John"})
+MATCH (?n :Person {name:"John"})-[knows]->(?m :Person {name: "John"})

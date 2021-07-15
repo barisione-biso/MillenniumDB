@@ -1,4 +1,0 @@
-// (All the people who died in France -- runs with limit 1 on the server)
-
-SELECT ?p
-MATCH (?p)=[:P20/:P131+]=>(Q142)

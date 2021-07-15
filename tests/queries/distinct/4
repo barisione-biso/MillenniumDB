@@ -1,2 +1,0 @@
-SELECT DISTINCT ?x.Agassi
-MATCH (?x)->(?y)

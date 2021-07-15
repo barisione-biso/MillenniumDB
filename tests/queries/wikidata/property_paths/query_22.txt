@@ -1,0 +1,3 @@
+// Spouses of people who died in the US
+SELECT *
+MATCH (?p)=[P26 / P20 / P131 / P30]=>(Q30)

@@ -1,0 +1,2 @@
+SELECT ?creature
+MATCH (?creature)=[P31]=>(Q5)

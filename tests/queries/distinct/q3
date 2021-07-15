@@ -1,3 +1,0 @@
-SELECT DISTINCT ?x.constant // expected to be a constant value
-MATCH (?x)->(?y)
-// 10

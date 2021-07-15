@@ -1,6 +1,0 @@
-// Populations of Berlin, ordered by least recent
-// Wrong because BUG at qualifiers imported
-SELECT ?pop.amount, ?time.time
-MATCH (Q64)-[?e :P1082]->(?pop),
-      (?e)-[:P585]->(?time)
-ORDER BY ?time.time

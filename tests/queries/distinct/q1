@@ -1,3 +1,0 @@
-SELECT DISTINCT ?x
-MATCH (?x)
-// 8

@@ -1,8 +1,0 @@
-
-// People born in the US:
-SELECT ?person
-MATCH (?person)=[:P31]=>(Q5),
-      (?person)=[:P19 / :P131*]=>(Q30)
-
-// LIMIT 100
-// --> runs in 40 seconds

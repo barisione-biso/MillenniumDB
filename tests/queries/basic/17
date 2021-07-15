@@ -1,2 +1,2 @@
 SELECT ?x
-MATCH (?x)-[=TYPE(?x)]->(?x)
+MATCH (?x)-[:TYPE(?x)]->(?x)

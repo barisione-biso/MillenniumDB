@@ -1,21 +1,12 @@
-// SELECT DISTINCT ?city ?citylabel ?mayorlabel (MAX(?pop) AS ?max_pop)
-// WHERE {
-//     ?city :P31/:P279* :Q515 .
-//     <?city :P6 ?mayor ?i1> .
-//     FILTER NOT EXISTS { ?i1 :P582q ?x }
-//     <?mayor :P21 :Q6581072 _:i2> .
-//     <?city :P1082 ?pop _:i3> .
-//     ?pop :numericValue ?pop .
-//     OPTIONAL { ?city rs:label ?citylabel . FILTER ( LANG(?citylabel) = "en" ) }
-//     OPTIONAL { ?mayor rs:label ?mayorlabel . FILTER ( LANG(?mayorlabel) = "en" ) }
-// }
-// GROUP BY ?city ?citylabel ?mayorlabel ORDER BY DESC(?max_pop)
-// LIMIT 10
-
-SELECT ?city, ?citylabel.string_value, ?mayorlabel.string_value, ?pop.amount
-MATCH (?city)-[:P31]->(Q515),
-      (?city)-[:P6]->(?mayor),
-      (?city)-[:P1082]->(?pop),
-      (?city)-[:Label]->(?citylabel),
-      (?mayor)-[:Label]->(?mayorlabel)
+// Original: Cities with female mayors ordered by population
+// Modified, missing property path, FILTER NOT EXISTS and GROUP BY
+SELECT DISTINCT ?city, ?citylabel, ?mayorlabel//, ?pop.amount
+MATCH (?city)-[P31]->(Q515),
+      (?city)-[P6]->(?mayor),
+      (?mayor)-[P21]->(Q6581072),
+      (?city)-[P1082]->(?pop)
+OPTIONAL {
+      (?city)-[Label {language:"en"}]->(?citylabel),
+      (?mayor)-[Label {language:"en"}]->(?mayorlabel)
+}
 LIMIT 100

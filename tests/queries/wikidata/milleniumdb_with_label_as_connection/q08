@@ -1,3 +1,0 @@
-// All property–value pairs for Douglas Adams
-SELECT ?property, ?value.string_value
-MATCH (Q42)-[=TYPE(?property)]->(?value)

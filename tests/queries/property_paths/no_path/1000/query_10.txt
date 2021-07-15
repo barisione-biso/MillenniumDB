@@ -1,6 +1,0 @@
-// (People born in a country that is part of Europe -- timeout with limit 1)
-
-SELECT ?p
-MATCH (?p)=[:P19 / :P131+]=>(Q46)
-
-LIMIT 1000

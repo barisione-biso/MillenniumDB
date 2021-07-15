@@ -1,3 +1,0 @@
-SELECT DISTINCT ?x, ?y, ?z
-MATCH (?x)-[=TYPE(?y)]->(?z)
-// 11

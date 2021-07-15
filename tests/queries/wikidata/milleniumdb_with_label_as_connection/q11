@@ -1,8 +1,0 @@
-// US Presidents and their terms, ordered by start-date
-// Wrong because BUG at qualifiers imported
-SELECT ?president, ?start.time, ?end.time
-MATCH (Q30)-[?e :P6]->(?president),
-      (?e)-[:P580]->(?start),
-      (?e)-[:P582]->(?end)
-ORDER BY ?start.time
-LIMIT 100

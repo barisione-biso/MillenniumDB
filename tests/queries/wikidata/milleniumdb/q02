@@ -1,4 +1,8 @@
 // US presidents and causes of death
-SELECT ?h, ?c, ?h.label, ?c.label
-MATCH (?h)-[:P39]->(Q11696),
-      (?h)-[:P509]->(?c)
+SELECT ?h, ?c, ?hl, ?cl
+MATCH (?h)-[P39]->(Q11696),
+      (?h)-[P509]->(?c)
+OPTIONAL {
+      (?h)-[Label {language:"en"}]->(?hl),
+      (?c)-[Label {language:"en"}]->(?cl)
+}

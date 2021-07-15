@@ -1,4 +1,4 @@
-// Variables present in WHERE need to exists
+// Variables present in WHERE need to be declared in MATCH
 SELECT *
 MATCH (?n :Label1)
 WHERE ?m.name == "John"

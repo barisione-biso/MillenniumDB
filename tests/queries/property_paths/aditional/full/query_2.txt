@@ -1,3 +1,0 @@
-// - All scientists:
-SELECT ?scientist
-MATCH (?scientist)=[:P106 / :P31 / :P279*]=>(Q901)

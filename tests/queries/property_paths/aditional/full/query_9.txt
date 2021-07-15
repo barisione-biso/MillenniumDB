@@ -1,5 +1,0 @@
-
-SELECT ?river
-MATCH (?river)=[^:P974*]=>(Q1653)
-
-// --> gives an error

@@ -1,6 +1,0 @@
-SELECT ?city
-
-// Todas las entidades que son instancias de alguna subclase de ciudad
-MATCH (?city)=[:P31 / :P279*]=>(Q515)
-
-LIMIT 1000

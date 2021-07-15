@@ -1,9 +1,0 @@
-// Original: People whose birthday is "today"
-// Modified: now() not supported, cannot compare days of a date
-// People shose birthdays is at a certain day (1950-02-01)
-SELECT ?entity, ?entitylabel.string_value
-MATCH (?entity)-[:P569]->(?value {time:"+1950-02-01T00:00:00Z"})
-OPTIONAL{
-      (?entity)-[:Label {language:"en"}]->(?entitylabel)
-}
-LIMIT 100

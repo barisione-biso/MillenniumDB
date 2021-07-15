@@ -1,0 +1,3 @@
+// Todas las organizaciones a las que pertenece algo ubicado en Berlin
+SELECT *
+MATCH (Q64)=[P131* / P463]=>(?z)

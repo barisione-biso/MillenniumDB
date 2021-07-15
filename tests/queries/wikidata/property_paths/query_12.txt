@@ -1,0 +1,3 @@
+// Bacon number
+SELECT *
+MATCH (Q3454165)=[(^P161 / P161)*]=>(?actor)

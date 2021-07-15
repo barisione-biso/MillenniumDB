@@ -1,3 +1,4 @@
-// Nodes and edges cant share same name
+// Limit must be positive
 SELECT *
-MATCH ()-[?e]->(?e)
+MATCH (?n)
+LIMIT 0

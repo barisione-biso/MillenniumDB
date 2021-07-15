@@ -1,0 +1,3 @@
+// People born in a country that is part of Europe
+SELECT *
+MATCH (?p)=[P19 / P131+]=>(Q46)

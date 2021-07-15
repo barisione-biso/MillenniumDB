@@ -1,0 +1,3 @@
+// Todas las entidades que son instancias de alguna subclase de ciudad
+SELECT *
+MATCH (?city)=[P31 / P279*]=>(Q515)

@@ -1,4 +1,0 @@
-// Nodes from different graphs can't have same name
-SELECT *
-MATCH (?n :Label1) ON "graph1",
-      (?n :Label1) ON "graph2"

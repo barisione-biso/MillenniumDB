@@ -1,22 +1,11 @@
-// SELECT ?country ?label (COUNT(*) as ?count)
-// WHERE {
-//     ?city :P31/:P279* :Q515 .
-//     <?city :P6 ?mayor ?i1> .
-//     FILTER NOT EXISTS { ?i1 :P582q ?x }
-//     <?mayor :P21 :Q6581072 ?i2> .
-//     <?city :P17 ?country ?i3> .
-//     ?pop :numericValue ?pop .
-//     OPTIONAL {
-//         ?country rs:label ?label .
-//         FILTER ( LANG(?label) = "en" ) }
-//     }
-// GROUP BY ?country ?label ORDER BY DESC(?count)
-// LIMIT 100
-SELECT ?country, ?countrylabel.string_value
-MATCH (?city)-[:P31]->(Q515),
-      (?city)-[?e1 :P6]->(?mayor),
-      (?e1)-[:P582]->(?x),
-      (?mayor)-[:P21]->(?Q6581072),
-      (?city)-[:P17]->(?country),
-      (?country)-[:Label]->(?countrylabel)
+// Original: Countries ordered by number of female city mayors
+// Modified, missing property path, FILTER NOT EXISTS and GROUP BY
+SELECT ?country, ?countrylabel
+MATCH (?city)-[P31]->(Q515),
+      (?city)-[P6]->(?mayor),
+      (?mayor)-[P21]->(?Q6581072),
+      (?city)-[P17]->(?country)
+OPTIONAL {
+      (?country)-[Label {language:"en"}]->(?countrylabel)
+}
 LIMIT 100

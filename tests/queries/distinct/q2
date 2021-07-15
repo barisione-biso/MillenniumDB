@@ -1,3 +1,0 @@
-SELECT DISTINCT ?y
-MATCH (Q1)-[:Q2]->(?y)
-// 9
