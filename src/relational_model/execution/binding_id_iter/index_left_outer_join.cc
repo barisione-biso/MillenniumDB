@@ -62,17 +62,19 @@ void IndexLeftOuterJoin::reset() {
     has_result = false;
     lhs->reset();
     if (lhs->next()) {
-        rhs->reset();
         has_left = true;
+        rhs = original_rhs.get();
+        rhs->reset();
     } else {
         has_left = false;
+        rhs = &EmptyBindingIdIter::instance;
     }
 }
 
 
 void IndexLeftOuterJoin::assign_nulls() {
     lhs->assign_nulls();
-    rhs->assign_nulls();
+    original_rhs->assign_nulls();
 }
 
 
@@ -83,7 +85,7 @@ void IndexLeftOuterJoin::analyze(int indent) const {
     cout << "IndexLeftOuterJoin(\n";
     lhs->analyze(indent + 2);
     cout << ",\n";
-    rhs->analyze(indent + 2);
+    original_rhs->analyze(indent + 2);
     cout << "\n";
     for (int i = 0; i < indent; ++i) {
         cout << ' ';

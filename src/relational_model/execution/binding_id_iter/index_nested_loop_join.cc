@@ -41,14 +41,18 @@ bool IndexNestedLoopJoin::next() {
 
 void IndexNestedLoopJoin::reset() {
     lhs->reset();
-    if (lhs->next())
+    if (lhs->next()) {
+        rhs = original_rhs.get();
         rhs->reset();
+    } else {
+        rhs = &EmptyBindingIdIter::instance;
+    }
 }
 
 
 void IndexNestedLoopJoin::assign_nulls() {
-    rhs->assign_nulls();
     lhs->assign_nulls();
+    original_rhs->assign_nulls();
 }
 
 
@@ -59,7 +63,7 @@ void IndexNestedLoopJoin::analyze(int indent) const {
     cout << "IndexNestedLoopJoin(\n";
     lhs->analyze(indent + 2);
     cout << ",\n";
-    rhs->analyze(indent + 2);
+    original_rhs->analyze(indent + 2);
     cout << "\n";
     for (int i = 0; i < indent; ++i) {
         cout << ' ';
