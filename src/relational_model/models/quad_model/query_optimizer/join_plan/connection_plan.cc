@@ -383,8 +383,8 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(const std::set<VarId>
         || (std::holds_alternative<VarId>(from) && from == type)
         || (std::holds_alternative<VarId>(to)   && to == type)
         || (std::holds_alternative<VarId>(from) && std::get<VarId>(from) == edge)
-        || (std::holds_alternative<VarId>(to)   && std::get<VarId>(from) == edge)
-        || (std::holds_alternative<VarId>(type) && std::get<VarId>(from) == edge))
+        || (std::holds_alternative<VarId>(to)   && std::get<VarId>(to)   == edge)
+        || (std::holds_alternative<VarId>(type) && std::get<VarId>(type) == edge))
     {
         return nullptr;
     }
