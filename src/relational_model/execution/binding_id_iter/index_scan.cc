@@ -21,31 +21,25 @@ template class std::unique_ptr<IndexScan<3>>;
 template class std::unique_ptr<IndexScan<4>>;
 
 template <std::size_t N>
-IndexScan<N>::IndexScan(std::size_t /*binding_size*/, BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges) :
+IndexScan<N>::IndexScan(BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges) :
     bpt    (bpt),
     ranges (move(ranges)) { }
 
 
 template <std::size_t N>
-void IndexScan<N>::begin(BindingId& parent_binding, bool parent_has_next) {
+void IndexScan<N>::begin(BindingId& parent_binding) {
     assert(ranges.size() == N && "Inconsistent size of ranges and bpt");
 
     this->parent_binding = &parent_binding;
     std::array<uint64_t, N> min_ids;
     std::array<uint64_t, N> max_ids;
-    if (!parent_has_next) {
-        // TODO: would be better to not search in the bpt, something like it = bpt.get_range_null()
-        for (uint_fast32_t i = 0; i < N; ++i) {
-            min_ids[i] = UINT64_MAX;
-            max_ids[i] = UINT64_MAX;
-        }
-    } else {
-        for (uint_fast32_t i = 0; i < N; ++i) {
-            assert(ranges[i] != nullptr);
-            min_ids[i] = ranges[i]->get_min(parent_binding);
-            max_ids[i] = ranges[i]->get_max(parent_binding);
-        }
+
+    for (uint_fast32_t i = 0; i < N; ++i) {
+        assert(ranges[i] != nullptr);
+        min_ids[i] = ranges[i]->get_min(parent_binding);
+        max_ids[i] = ranges[i]->get_max(parent_binding);
     }
+
     it = bpt.get_range(
         Record<N>(std::move(min_ids)),
         Record<N>(std::move(max_ids))

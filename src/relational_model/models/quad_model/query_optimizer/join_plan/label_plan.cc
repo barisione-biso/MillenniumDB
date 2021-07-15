@@ -135,16 +135,16 @@ uint64_t LabelPlan::get_vars() {
  * ║4║       no      ║       no        ║    LN   ║
  * ╚═╩═══════════════╩═════════════════╩═════════╝
  */
-unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter(std::size_t binding_size) {
+unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter() {
     array<unique_ptr<ScanRange>, 2> ranges;
     if (node_assigned) {
         ranges[0] = ScanRange::get(node, node_assigned);
         ranges[1] = ScanRange::get(label, label_assigned);
-        return make_unique<IndexScan<2>>(binding_size, *model.node_label, move(ranges));
+        return make_unique<IndexScan<2>>(*model.node_label, move(ranges));
     } else {
         ranges[0] = ScanRange::get(label, label_assigned);
         ranges[1] = ScanRange::get(node, node_assigned);
-        return make_unique<IndexScan<2>>(binding_size, *model.label_node, move(ranges));
+        return make_unique<IndexScan<2>>(*model.label_node, move(ranges));
     }
 }
 

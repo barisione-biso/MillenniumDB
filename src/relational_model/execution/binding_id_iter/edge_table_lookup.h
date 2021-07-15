@@ -29,11 +29,11 @@ private:
     BindingId* parent_binding;
 
 public:
-    EdgeTableLookup(std::size_t binding_size, RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type);
+    EdgeTableLookup(RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type);
     ~EdgeTableLookup() = default;
 
     void analyze(int indent = 0) const override;
-    void begin(BindingId& parent_binding, bool parent_has_next) override;
+    void begin(BindingId& parent_binding) override;
     bool next() override;
     void reset() override;
     void assign_nulls() override;

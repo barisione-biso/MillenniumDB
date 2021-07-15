@@ -2,20 +2,15 @@
 
 using namespace std;
 
-ObjectEnum::ObjectEnum(std::size_t /*binding_size*/, VarId var_id, const uint64_t mask, const uint64_t max_count) :
+ObjectEnum::ObjectEnum(VarId var_id, const uint64_t mask, const uint64_t max_count) :
     var_id    (var_id),
     mask      (mask),
     max_count (max_count) { }
 
 
-void ObjectEnum::begin(BindingId& parent_binding, bool parent_has_next) {
+void ObjectEnum::begin(BindingId& parent_binding) {
     this->parent_binding = &parent_binding;
-    if (parent_has_next) {
-        current_node = 0;
-    }
-    else {
-        current_node = max_count;
-    }
+    current_node = 0;
 }
 
 

@@ -173,7 +173,7 @@ uint64_t PropertyPlan::get_vars() {
  * ║8║      no      ║      no       ║        no        ║   KVO   ║
  * ╚═╩══════════════╩═══════════════╩══════════════════╩═════════╝
  */
-unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter(std::size_t binding_size) {
+unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter() {
     array<unique_ptr<ScanRange>, 3> ranges;
 
     assert((key_assigned || !value_assigned) && "fixed values with open key is not supported");
@@ -182,12 +182,12 @@ unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter(std::size_t binding_
         ranges[0] = ScanRange::get(object, object_assigned);
         ranges[1] = ScanRange::get(key, key_assigned);
         ranges[2] = ScanRange::get(value, value_assigned);
-        return make_unique<IndexScan<3>>(binding_size, *model.object_key_value, move(ranges));
+        return make_unique<IndexScan<3>>(*model.object_key_value, move(ranges));
     } else {
         ranges[0] = ScanRange::get(key, key_assigned);
         ranges[1] = ScanRange::get(value, value_assigned);
         ranges[2] = ScanRange::get(object, object_assigned);
-        return make_unique<IndexScan<3>>(binding_size, *model.key_value_object, move(ranges));
+        return make_unique<IndexScan<3>>(*model.key_value_object, move(ranges));
     }
 }
 

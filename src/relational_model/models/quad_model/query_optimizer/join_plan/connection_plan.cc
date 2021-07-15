@@ -279,10 +279,10 @@ uint64_t ConnectionPlan::get_vars() {
  * ║9║      *       ║     *      ║      *        ║      yes        ║  table   ║
  * ╚═╩══════════════╩════════════╩═══════════════╩═════════════════╩══════════╝
  */
-unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(std::size_t binding_size) {
+unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
 
     if (edge_assigned) {
-        return make_unique<EdgeTableLookup>(binding_size, *model.edge_table, edge, from, to, type);
+        return make_unique<EdgeTableLookup>(*model.edge_table, edge, from, to, type);
     }
     // check for special cases
     if (from == to) {
@@ -291,7 +291,7 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(std::size_t bindin
             array<unique_ptr<ScanRange>, 2> ranges;
             ranges[0] = ScanRange::get(from, from_assigned);
             ranges[1] = ScanRange::get(edge, edge_assigned);
-            return make_unique<IndexScan<2>>(binding_size,*model.equal_from_to_type, move(ranges));
+            return make_unique<IndexScan<2>>(*model.equal_from_to_type, move(ranges));
         } else {
             // equal_from_to
             array<unique_ptr<ScanRange>, 3> ranges;
@@ -299,11 +299,11 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(std::size_t bindin
             if (type_assigned) {
                 ranges[0] = ScanRange::get(type, type_assigned);
                 ranges[1] = ScanRange::get(from, from_assigned);
-                return make_unique<IndexScan<3>>(binding_size, *model.equal_from_to_inverted, move(ranges));
+                return make_unique<IndexScan<3>>(*model.equal_from_to_inverted, move(ranges));
             } else {
                 ranges[0] = ScanRange::get(from, from_assigned);
                 ranges[1] = ScanRange::get(type, type_assigned);
-                return make_unique<IndexScan<3>>(binding_size, *model.equal_from_to, move(ranges));
+                return make_unique<IndexScan<3>>(*model.equal_from_to, move(ranges));
             }
         }
     } else if (to == type) {
@@ -313,11 +313,11 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(std::size_t bindin
         if (from_assigned) {
             ranges[0] = ScanRange::get(from, from_assigned);
             ranges[1] = ScanRange::get(to, to_assigned);
-            return make_unique<IndexScan<3>>(binding_size, *model.equal_to_type_inverted, move(ranges));
+            return make_unique<IndexScan<3>>(*model.equal_to_type_inverted, move(ranges));
         } else {
             ranges[0] = ScanRange::get(to, to_assigned);
             ranges[1] = ScanRange::get(from, from_assigned);
-            return make_unique<IndexScan<3>>(binding_size, *model.equal_to_type, move(ranges));
+            return make_unique<IndexScan<3>>(*model.equal_to_type, move(ranges));
         }
     } else if (from == type) {
         // equal_from_type
@@ -326,11 +326,11 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(std::size_t bindin
         if (to_assigned) {
             ranges[0] = ScanRange::get(to, to_assigned);
             ranges[1] = ScanRange::get(from, from_assigned);
-            return make_unique<IndexScan<3>>(binding_size, *model.equal_from_type_inverted, move(ranges));
+            return make_unique<IndexScan<3>>(*model.equal_from_type_inverted, move(ranges));
         } else {
             ranges[0] = ScanRange::get(from, from_assigned);
             ranges[1] = ScanRange::get(to, to_assigned);
-            return make_unique<IndexScan<3>>(binding_size, *model.equal_from_type, move(ranges));
+            return make_unique<IndexScan<3>>(*model.equal_from_type, move(ranges));
         }
     } else {
         // No special case
@@ -344,14 +344,14 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(std::size_t bindin
                 ranges[1] = ScanRange::get(from, from_assigned);
                 ranges[2] = ScanRange::get(to,   to_assigned);
 
-                return make_unique<IndexScan<4>>(binding_size, *model.type_from_to_edge, move(ranges));
+                return make_unique<IndexScan<4>>(*model.type_from_to_edge, move(ranges));
             } else { // CASES 2 and 4 => FTYE
                 // cout << "using from to type edge\n";
                 ranges[0] = ScanRange::get(from, from_assigned);
                 ranges[1] = ScanRange::get(to,   to_assigned);
                 ranges[2] = ScanRange::get(type, type_assigned);
 
-                return make_unique<IndexScan<4>>(binding_size, *model.from_to_type_edge, move(ranges));
+                return make_unique<IndexScan<4>>(*model.from_to_type_edge, move(ranges));
             }
         } else {
             if (to_assigned) { // CASES 5 and 6 => TYFE
@@ -360,14 +360,14 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(std::size_t bindin
                 ranges[1] = ScanRange::get(type, type_assigned);
                 ranges[2] = ScanRange::get(from, from_assigned);
 
-                return make_unique<IndexScan<4>>(binding_size, *model.to_type_from_edge, move(ranges));
+                return make_unique<IndexScan<4>>(*model.to_type_from_edge, move(ranges));
             } else { // CASES 7 and 8 => YFTE
                 // cout << "using type from to edge\n";
                 ranges[0] = ScanRange::get(type, type_assigned);
                 ranges[1] = ScanRange::get(from, from_assigned);
                 ranges[2] = ScanRange::get(to,   to_assigned);
 
-                return make_unique<IndexScan<4>>(binding_size, *model.type_from_to_edge, move(ranges));
+                return make_unique<IndexScan<4>>(*model.type_from_to_edge, move(ranges));
             }
         }
     }

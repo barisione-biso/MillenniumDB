@@ -9,9 +9,9 @@ DistinctIdHash::DistinctIdHash(unique_ptr<BindingIdIter> _child_iter, std::vecto
     { }
 
 
-void DistinctIdHash::begin(BindingId& parent_binding, bool parent_has_next) {
+void DistinctIdHash::begin(BindingId& parent_binding) {
     this->parent_binding = &parent_binding;
-    child_iter->begin(parent_binding, parent_has_next);
+    child_iter->begin(parent_binding);
     current_tuple = std::vector<ObjectId>(projected_vars.size());
 }
 

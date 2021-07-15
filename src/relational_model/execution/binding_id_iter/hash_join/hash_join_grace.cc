@@ -7,10 +7,10 @@
 using namespace std;
 
 HashJoinGrace::HashJoinGrace(unique_ptr<BindingIdIter> lhs,
-                   unique_ptr<BindingIdIter> rhs,
-                   vector<VarId> left_vars,
-                   vector<VarId> common_vars,
-                   vector<VarId> right_vars) :
+                             unique_ptr<BindingIdIter> rhs,
+                             vector<VarId> left_vars,
+                             vector<VarId> common_vars,
+                             vector<VarId> right_vars) :
     lhs         (move(lhs)),
     rhs         (move(rhs)),
     left_vars   (left_vars),
@@ -21,11 +21,11 @@ HashJoinGrace::HashJoinGrace(unique_ptr<BindingIdIter> lhs,
     { }
 
 
-void HashJoinGrace::begin(BindingId& _parent_binding, bool parent_has_next) {
+void HashJoinGrace::begin(BindingId& _parent_binding) {
     this->parent_binding = &_parent_binding;
 
-    lhs->begin(_parent_binding, parent_has_next);
-    rhs->begin(_parent_binding, parent_has_next);
+    lhs->begin(_parent_binding);
+    rhs->begin(_parent_binding);
 
     saved_pair = make_pair(vector<ObjectId>(common_vars.size()), vector<ObjectId>(left_vars.size()));
     lhs_hash.begin();

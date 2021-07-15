@@ -9,20 +9,18 @@
 
 using namespace std;
 
-OptionalNode::OptionalNode(std::size_t binding_size,
-                           unique_ptr<BindingIdIter> _graph_pattern,
+OptionalNode::OptionalNode(unique_ptr<BindingIdIter> _graph_pattern,
                            std::vector<std::unique_ptr<BindingIdIter>> children) :
-    graph_pattern (move(_graph_pattern)),
-    binding_size  (binding_size)
+    graph_pattern (move(_graph_pattern))
 {
     for (auto& child : children) {
-        graph_pattern = make_unique<IndexLeftOuterJoin>(binding_size, move(graph_pattern), move(child));
+        graph_pattern = make_unique<IndexLeftOuterJoin>(move(graph_pattern), move(child));
     }
 }
 
 
-void OptionalNode::begin(BindingId& parent_binding, bool parent_has_next) {
-    graph_pattern->begin(parent_binding, parent_has_next);
+void OptionalNode::begin(BindingId& parent_binding) {
+    graph_pattern->begin(parent_binding);
 }
 
 

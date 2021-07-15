@@ -1,18 +1,13 @@
 #include "node_table_enum.h"
 
-NodeTableEnum::NodeTableEnum(std::size_t /*binding_size*/, const VarId var_id, RandomAccessTable<1>& table) :
+NodeTableEnum::NodeTableEnum(const VarId var_id, RandomAccessTable<1>& table) :
     var_id (var_id),
     table  (table) { }
 
 
-void NodeTableEnum::begin(BindingId& parent_binding, bool parent_has_next) {
+void NodeTableEnum::begin(BindingId& parent_binding) {
     this->parent_binding = &parent_binding;
-    if (parent_has_next) {
-        current_pos = 0;
-    }
-    else {
-        current_pos = -1;
-    }
+    current_pos = 0;
 }
 
 

@@ -6,22 +6,25 @@
 
 using namespace std;
 
-HashJoinInBuffer::HashJoinInBuffer(unique_ptr<BindingIdIter> lhs, unique_ptr<BindingIdIter> rhs,
-        std::vector<VarId> left_vars, std::vector<VarId> common_vars, std::vector<VarId> right_vars) :
-    lhs             (move(lhs)),
-    rhs             (move(rhs)),
-    left_vars       (left_vars),
-    common_vars     (common_vars),
-    right_vars      (right_vars),
-    lhs_hash        (KeyValueHash<ObjectId, ObjectId>(common_vars.size(), left_vars.size()))  // empty initialization
+HashJoinInBuffer::HashJoinInBuffer(unique_ptr<BindingIdIter> lhs,
+                                   unique_ptr<BindingIdIter> rhs,
+                                   std::vector<VarId> left_vars,
+                                   std::vector<VarId> common_vars,
+                                   std::vector<VarId> right_vars) :
+    lhs         (move(lhs)),
+    rhs         (move(rhs)),
+    left_vars   (left_vars),
+    common_vars (common_vars),
+    right_vars  (right_vars),
+    lhs_hash    (KeyValueHash<ObjectId, ObjectId>(common_vars.size(), left_vars.size()))  // empty initialization
     { }
 
 
-void HashJoinInBuffer::begin(BindingId& _parent_binding, bool parent_has_next) {
+void HashJoinInBuffer::begin(BindingId& _parent_binding) {
     this->parent_binding = &_parent_binding;
 
-    lhs->begin(_parent_binding, parent_has_next);
-    rhs->begin(_parent_binding, parent_has_next);
+    lhs->begin(_parent_binding);
+    rhs->begin(_parent_binding);
     lhs_hash.begin();
 
     current_key = std::vector<ObjectId>(common_vars.size());

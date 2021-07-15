@@ -155,8 +155,8 @@ It can have the following variants:
 This interface is used to iterate over the binding ids that are specific to a certain operation (e.g. Joins and Table Lookups). This iteration works by assigning the relevant binding ids in a specific address. It is faster to use than `BindingIter` interface.
 
 Any class that inherits from the BindingIdIter must implement the following methods:
-- `begin(BindingId& parent_binding, bool parent_has_next)`: sets the starting position of the binding_ids to iterate over, and sets any relevant variable for the execution of the next methods.
-`parent_binding` is the address where the bindings will be written, and `parent_has_next` is used to see if current parent has a next binding or not (mainly used for Joins).
+- `begin(BindingId& parent_binding)`: sets the starting position of the binding_ids to iterate over, and sets any relevant variable for the execution of the next methods.
+`parent_binding` is the address where the bindings will be written.
 - `next()`: This method must return if the iterator has a next element or not (boolean), and it must also write into `parent_binding` the current binding. If the member of the class is recursive, it must be ensured that the leafs write into `parent_binding`.
 - `reset()`: resets the iterator to the first position.
 - `assign_nulls()`: Assign the variables that are relevant to the current member of the class to `null`.

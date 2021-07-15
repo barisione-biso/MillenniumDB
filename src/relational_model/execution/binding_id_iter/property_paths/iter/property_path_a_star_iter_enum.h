@@ -74,7 +74,7 @@ private:
 
     // Attributes determined in begin
     BindingId* parent_binding;
-    bool is_first = false;
+    bool is_first = false; // allows next() method to know if it is the first call
 
     // Ranges to search in BPT. They are not local variables because some positions are reused.
     std::array<uint64_t, 4> min_ids;
@@ -106,7 +106,7 @@ public:
     ~PropertyPathAStarIterEnum() = default;
 
     void analyze(int indent = 0) const override;
-    void begin(BindingId& parent_binding, bool parent_has_next) override;
+    void begin(BindingId& parent_binding) override;
     void reset() override;
     void assign_nulls() override;
     bool next() override;

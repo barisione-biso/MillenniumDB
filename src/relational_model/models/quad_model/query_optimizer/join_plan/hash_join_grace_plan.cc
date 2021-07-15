@@ -75,7 +75,7 @@ void HashJoinGracePlan::set_input_vars(uint64_t /*input_var_order*/) {
 }
 
 
-unique_ptr<BindingIdIter> HashJoinGracePlan::get_binding_id_iter(std::size_t binding_size) {
+unique_ptr<BindingIdIter> HashJoinGracePlan::get_binding_id_iter() {
     auto common_vars_bitmap = lhs->get_vars() & rhs->get_vars();
     auto not_commons = ~common_vars_bitmap;
     auto left_vars_bitmap = lhs->get_vars() & not_commons;
@@ -84,7 +84,7 @@ unique_ptr<BindingIdIter> HashJoinGracePlan::get_binding_id_iter(std::size_t bin
     std::vector<VarId> common_vars;
     std::vector<VarId> left_vars;
     std::vector<VarId> right_vars;
-    for (uint_fast32_t position = 0; position < binding_size; position++) {
+    for (uint_fast32_t position = 0; position < 64; position++) {
         auto current_mask = 1 << position; // from right to left
         if ((common_vars_bitmap & current_mask) > 0) {
             common_vars.push_back(VarId(position));
@@ -98,10 +98,9 @@ unique_ptr<BindingIdIter> HashJoinGracePlan::get_binding_id_iter(std::size_t bin
     }
 
     return make_unique<HashJoinGrace>(
-        lhs->get_binding_id_iter(binding_size),
-        rhs->get_binding_id_iter(binding_size),
+        lhs->get_binding_id_iter(),
+        rhs->get_binding_id_iter(),
         move(left_vars),
         move(common_vars),
-        move(right_vars)
-    );
+        move(right_vars));
 }

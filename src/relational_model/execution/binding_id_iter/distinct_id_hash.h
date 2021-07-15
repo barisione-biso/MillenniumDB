@@ -7,12 +7,13 @@
 #include "base/binding/binding_id_iter.h"
 #include "base/ids/var_id.h"
 #include "storage/index/hash/distinct_binding_hash/distinct_binding_hash.h"
+
 class DistinctIdHash : public BindingIdIter {
 public:
     DistinctIdHash(std::unique_ptr<BindingIdIter> child_iter, std::vector<VarId> projected_vars);
     ~DistinctIdHash() = default;
 
-    void begin(BindingId& parent_binding, bool parent_has_next) override;
+    void begin(BindingId& parent_binding) override;
     void reset() override;
     bool next() override;
     void assign_nulls() override;

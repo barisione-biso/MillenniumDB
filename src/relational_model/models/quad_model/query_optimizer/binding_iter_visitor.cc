@@ -133,12 +133,13 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
                 ScanRange::get(key_id, true),
                 ScanRange::get(value_var, false)
             };
-            auto index_scan = make_unique<IndexScan<3>>(binding_size, *model.object_key_value, move(ranges));
+            auto index_scan = make_unique<IndexScan<3>>(*model.object_key_value, move(ranges));
             optional_children.push_back(move(index_scan));
         }
     }
     if (optional_children.size() > 0) {
-        binding_id_iter_current_root = make_unique<OptionalNode>(binding_size, move(binding_id_iter_current_root), move(optional_children));
+        binding_id_iter_current_root = make_unique<OptionalNode>(move(binding_id_iter_current_root),
+                                                                 move(optional_children));
     }
     if (distinct_into_id) {
         std::vector<VarId> projected_var_ids;

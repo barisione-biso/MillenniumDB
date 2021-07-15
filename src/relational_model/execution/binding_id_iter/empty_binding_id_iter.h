@@ -17,10 +17,12 @@ public:
         std::cout << "EmptyBindingIdIter()";
     }
 
-    void begin(BindingId&, bool) override { }
+    void begin(BindingId&) override { }
     bool next() override { return false; }
     void reset() override { }
     void assign_nulls() override { }
+
+    static EmptyBindingIdIter instance;
 };
 
 #endif // RELATIONAL_MODEL__EMPTY_BINDING_ID_ITER_H_

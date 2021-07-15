@@ -79,7 +79,7 @@ public:
     ~PropertyPathBFSIterEnum() = default;
 
     void analyze(int indent = 0) const override;
-    void begin(BindingId& parent_binding, bool parent_has_next) override;
+    void begin(BindingId& parent_binding) override;
     void reset() override;
     void assign_nulls() override;
     bool next() override;

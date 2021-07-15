@@ -14,7 +14,7 @@ Match::Match(const GraphModel& model, unique_ptr<BindingIdIter> root, size_t bin
 
 
 void Match::begin() {
-    root->begin(input, true);
+    root->begin(input);
 }
 
 

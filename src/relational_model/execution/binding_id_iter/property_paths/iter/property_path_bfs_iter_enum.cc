@@ -28,31 +28,28 @@ PropertyPathBFSIterEnum::PropertyPathBFSIterEnum(BPlusTree<1>& _nodes,
     { }
 
 
-void PropertyPathBFSIterEnum::begin(BindingId& _parent_binding, bool parent_has_next) {
+void PropertyPathBFSIterEnum::begin(BindingId& _parent_binding) {
     parent_binding = &_parent_binding;
-    if (parent_has_next) {
-        // First next = true allow to next method knows if is doing the first iteration
-        first_next = true;
+    first_next = true;
 
-        iter = nullptr;
-        // Add start object id to open and visited
-        ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
-            std::get<ObjectId>(start) :
-            (*parent_binding)[std::get<VarId>(start)]);
+    iter = nullptr;
+    // Add start object id to open and visited
+    ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
+        std::get<ObjectId>(start) :
+        (*parent_binding)[std::get<VarId>(start)]);
 
-        auto state_inserted = visited.emplace(automaton.get_start(),
-                                              start_object_id,
-                                              nullptr,
-                                              true,
-                                              ObjectId::get_null());
+    auto state_inserted = visited.emplace(automaton.get_start(),
+                                            start_object_id,
+                                            nullptr,
+                                            true,
+                                            ObjectId::get_null());
 
-        open.push(state_inserted.first.operator->());
+    open.push(state_inserted.first.operator->());
 
-        min_ids[2] = 0;
-        max_ids[2] = 0xFFFFFFFFFFFFFFFF;
-        min_ids[3] = 0;
-        max_ids[3] = 0xFFFFFFFFFFFFFFFF;
-    }
+    min_ids[2] = 0;
+    max_ids[2] = 0xFFFFFFFFFFFFFFFF;
+    min_ids[3] = 0;
+    max_ids[3] = 0xFFFFFFFFFFFFFFFF;
 }
 
 

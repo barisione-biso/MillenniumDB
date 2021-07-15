@@ -40,7 +40,7 @@ public:
     virtual void set_input_vars(const uint64_t input_vars) = 0;
     virtual uint64_t get_vars() = 0;
 
-    virtual std::unique_ptr<BindingIdIter> get_binding_id_iter(std::size_t binding_size) = 0;
+    virtual std::unique_ptr<BindingIdIter> get_binding_id_iter() = 0;
 
     virtual std::unique_ptr<LeapfrogIter> get_leapfrog_iter(const std::set<VarId>&    assigned_vars,
                                                             const std::vector<VarId>& local_var_order,

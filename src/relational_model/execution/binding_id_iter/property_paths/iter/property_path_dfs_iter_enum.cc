@@ -30,29 +30,27 @@ PropertyPathDFSIterEnum::PropertyPathDFSIterEnum(BPlusTree<1>& _nodes,
     { }
 
 
-void PropertyPathDFSIterEnum::begin(BindingId& _parent_binding, bool parent_has_next) {
+void PropertyPathDFSIterEnum::begin(BindingId& _parent_binding) {
     parent_binding = &_parent_binding;
-    if (parent_has_next) {
-        first_next = true;
+    first_next = true;
 
-        // Add inital state to queue
-        ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
-            std::get<ObjectId>(start) :
-            (*parent_binding)[std::get<VarId>(start)]);
+    // Add inital state to queue
+    ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
+        std::get<ObjectId>(start) :
+        (*parent_binding)[std::get<VarId>(start)]);
 
-        open.emplace(automaton.get_start(), start_object_id);
+    open.emplace(automaton.get_start(), start_object_id);
 
-        visited.emplace(automaton.get_start(),
-                        start_object_id,
-                        nullptr,
-                        true,
-                        ObjectId::get_null());
+    visited.emplace(automaton.get_start(),
+                    start_object_id,
+                    nullptr,
+                    true,
+                    ObjectId::get_null());
 
-        min_ids[2] = 0;
-        max_ids[2] = 0xFFFFFFFFFFFFFFFF;
-        min_ids[3] = 0;
-        max_ids[3] = 0xFFFFFFFFFFFFFFFF;
-    }
+    min_ids[2] = 0;
+    max_ids[2] = 0xFFFFFFFFFFFFFFFF;
+    min_ids[3] = 0;
+    max_ids[3] = 0xFFFFFFFFFFFFFFFF;
 }
 
 

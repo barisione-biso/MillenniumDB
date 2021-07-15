@@ -2,14 +2,14 @@
 
 using namespace std;
 
-Union::Union(std::size_t, std::vector<std::unique_ptr<BindingIdIter>> iters) :
+Union::Union(std::vector<std::unique_ptr<BindingIdIter>> iters) :
     iters(move(iters)) { }
 
 
-void Union::begin(BindingId& parent_binding, bool parent_has_next) {
+void Union::begin(BindingId& parent_binding) {
     current_iter = 0;
     for (auto& iter : iters) {
-        iter->begin(parent_binding, parent_has_next);
+        iter->begin(parent_binding);
     }
 }
 

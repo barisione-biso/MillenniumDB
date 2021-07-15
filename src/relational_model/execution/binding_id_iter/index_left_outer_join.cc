@@ -4,32 +4,28 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
+#include "relational_model/execution/binding_id_iter/empty_binding_id_iter.h"
 
 using namespace std;
 
-IndexLeftOuterJoin::IndexLeftOuterJoin(std::size_t /*binding_size*/,
-                             unique_ptr<BindingIdIter> lhs,
-                             unique_ptr<BindingIdIter> rhs) :
-    lhs           (move(lhs)),
-    rhs           (move(rhs)) { }
+IndexLeftOuterJoin::IndexLeftOuterJoin(unique_ptr<BindingIdIter> _lhs,
+                                       unique_ptr<BindingIdIter> _rhs) :
+    lhs          (move(_lhs)),
+    original_rhs (move(_rhs)) { }
 
 
-void IndexLeftOuterJoin::begin(BindingId& parent_binding, bool parent_has_next) {
+void IndexLeftOuterJoin::begin(BindingId& parent_binding) {
     has_result = false;
     this->parent_binding = &parent_binding;
-    if (!parent_has_next) {
-        has_left = false;
-        lhs->begin(parent_binding, false);
-        rhs->begin(parent_binding, false);
+
+    lhs->begin(parent_binding);
+    if (lhs->next()) {
+        has_left = true;
+        rhs = original_rhs.get();
+        rhs->begin(parent_binding);
     } else {
-        lhs->begin(parent_binding, true);
-        if (lhs->next()) {
-            has_left = true;
-            rhs->begin(parent_binding, true);
-        } else {
-            has_left = false;
-            rhs->begin(parent_binding, false);
-        }
+        has_left = false;
+        rhs = &EmptyBindingIdIter::instance;
     }
 }
 

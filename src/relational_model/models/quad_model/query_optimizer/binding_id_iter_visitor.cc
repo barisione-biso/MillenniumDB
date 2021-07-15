@@ -210,7 +210,7 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
         root_plan->print(2, true, var_names);
         std::cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
 
-        tmp = root_plan->get_binding_id_iter(binding_size);
+        tmp = root_plan->get_binding_id_iter();
     }
 }
 
@@ -230,9 +230,8 @@ void BindingIdIterVisitor::visit(OpOptional& op_optional) {
         // assigned_vars = current_scope_assigned_vars;
     }
 
-    auto binding_size = var2var_id.size();
     assert(tmp == nullptr);
-    tmp = make_unique<OptionalNode>(binding_size, move(binding_id_iter), move(optional_children));
+    tmp = make_unique<OptionalNode>(move(binding_id_iter), move(optional_children));
 }
 
 

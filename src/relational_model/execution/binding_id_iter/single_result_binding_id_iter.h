@@ -10,7 +10,7 @@ public:
     SingleResultBindingIdIter() = default;
     ~SingleResultBindingIdIter() = default;
 
-    void begin(BindingId&, bool) override { }
+    void begin(BindingId&) override { }
     void reset() override { returned = false; }
     void assign_nulls() override { }
 

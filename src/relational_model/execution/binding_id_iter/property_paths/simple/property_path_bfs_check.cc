@@ -28,38 +28,34 @@ PropertyPathBFSCheck::PropertyPathBFSCheck(BPlusTree<1>& _nodes,
     { }
 
 
-void PropertyPathBFSCheck::begin(BindingId& _parent_binding, bool parent_has_next) {
+void PropertyPathBFSCheck::begin(BindingId& _parent_binding) {
     parent_binding = &_parent_binding;
-    // Init open and visited if only if parent has next
-    if (parent_has_next) {
-        // Init start object id
-        ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
-            std::get<ObjectId>(start) :
-            (*parent_binding)[std::get<VarId>(start)]);
+    // Init start object id
+    ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
+        std::get<ObjectId>(start) :
+        (*parent_binding)[std::get<VarId>(start)]);
 
-        // Add to open and visited structures
-        auto start_state = visited.emplace(automaton.get_start(),
-                                           start_object_id,
-                                           nullptr,
-                                           true,
-                                           ObjectId::get_null());
+    // Add to open and visited structures
+    auto start_state = visited.emplace(automaton.get_start(),
+                                        start_object_id,
+                                        nullptr,
+                                        true,
+                                        ObjectId::get_null());
 
-        open.push(start_state.first.operator->());
+    open.push(start_state.first.operator->());
 
-        // Set end_object_id
-        if (std::holds_alternative<ObjectId>(end)) {
-            end_object_id = std::get<ObjectId>(end);
-        } else {
-            auto end_var_id = std::get<VarId>(end);
-            end_object_id = (*parent_binding)[end_var_id];
-        }
-        is_first = true;
-        min_ids[2] = 0;
-        max_ids[2] = 0xFFFFFFFFFFFFFFFF;
-        min_ids[3] = 0;
-        max_ids[3] = 0xFFFFFFFFFFFFFFFF;
-        // pos 0 and 1 will be set at next()
+    // Set end_object_id
+    if (std::holds_alternative<ObjectId>(end)) {
+        end_object_id = std::get<ObjectId>(end);
+    } else {
+        auto end_var_id = std::get<VarId>(end);
+        end_object_id = (*parent_binding)[end_var_id];
     }
+    is_first = true;
+    min_ids[2] = 0;
+    max_ids[2] = 0xFFFFFFFFFFFFFFFF;
+    min_ids[3] = 0;
+    max_ids[3] = 0xFFFFFFFFFFFFFFFF;
 }
 
 

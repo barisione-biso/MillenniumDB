@@ -19,11 +19,11 @@ HashJoinInMemory::HashJoinInMemory(unique_ptr<BindingIdIter> lhs,
     { }
 
 
-void HashJoinInMemory::begin(BindingId& _parent_binding, bool parent_has_next) {
+void HashJoinInMemory::begin(BindingId& _parent_binding) {
     this->parent_binding = &_parent_binding;
 
-    lhs->begin(_parent_binding, parent_has_next);
-    rhs->begin(_parent_binding, parent_has_next);
+    lhs->begin(_parent_binding);
+    rhs->begin(_parent_binding);
 
     current_key = std::vector<ObjectId>(common_vars.size());
     current_value = std::vector<ObjectId>(left_vars.size());

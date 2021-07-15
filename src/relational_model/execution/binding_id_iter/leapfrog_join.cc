@@ -16,13 +16,8 @@ LeapfrogJoin::LeapfrogJoin(vector<unique_ptr<LeapfrogIter>> _leapfrog_iters,
     { }
 
 
-void LeapfrogJoin::begin(BindingId& _parent_binding, bool parent_has_next) {
+void LeapfrogJoin::begin(BindingId& _parent_binding) {
     parent_binding = &_parent_binding;
-
-    if (!parent_has_next) {
-        // level = - 1 so next() will return false
-        return;
-    }
 
     // initialize iters_for_var
     for (size_t i = 0; i < var_order.size(); i++) {

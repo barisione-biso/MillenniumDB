@@ -18,11 +18,11 @@ private:
     BindingId* parent_binding;
 
 public:
-    ObjectEnum(std::size_t binding_size, VarId var_id, const uint64_t mask, const uint64_t max_count);
+    ObjectEnum(VarId var_id, const uint64_t mask, const uint64_t max_count);
     ~ObjectEnum() = default;
 
     void analyze(int indent = 0) const override;
-    void begin(BindingId& parent_binding, bool parent_has_next) override;
+    void begin(BindingId& parent_binding) override;
     bool next() override;
     void reset() override;
     void assign_nulls() override;

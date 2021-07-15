@@ -36,14 +36,14 @@ public:
     static constexpr uint_fast32_t MAX_SIZE_SMALL_HASH = Page::PAGE_SIZE*1024;
 
     HashJoinGrace(std::unique_ptr<BindingIdIter> lhs,
-             std::unique_ptr<BindingIdIter> rhs,
-             std::vector<VarId>             left_vars,
-             std::vector<VarId>             common_vars,
-             std::vector<VarId>             right_vars);
+                  std::unique_ptr<BindingIdIter> rhs,
+                  std::vector<VarId>             left_vars,
+                  std::vector<VarId>             common_vars,
+                  std::vector<VarId>             right_vars);
     ~HashJoinGrace() = default;
 
     void analyze(int indent = 0) const override;
-    void begin(BindingId& parent_binding, bool parent_has_next) override;
+    void begin(BindingId& parent_binding) override;
     bool next() override;
     void reset() override;
     void assign_nulls() override;

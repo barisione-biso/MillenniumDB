@@ -4,7 +4,7 @@
 
 #include "relational_model/models/quad_model/quad_model.h"
 
-EdgeTableLookup::EdgeTableLookup(std::size_t, RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type) :
+EdgeTableLookup::EdgeTableLookup(RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type) :
     table (table),
     edge  (edge),
     from  (from),
@@ -20,9 +20,9 @@ void EdgeTableLookup::analyze(int indent) const {
 }
 
 
-void EdgeTableLookup::begin(BindingId& parent_binding, bool parent_has_next) {
+void EdgeTableLookup::begin(BindingId& parent_binding) {
     this->parent_binding = &parent_binding;
-    already_looked = !parent_has_next;
+    already_looked = false;
 }
 
 

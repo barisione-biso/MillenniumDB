@@ -29,32 +29,29 @@ PropertyPathAStarIterEnum::PropertyPathAStarIterEnum(BPlusTree<1>& _nodes,
     { }
 
 
-void PropertyPathAStarIterEnum::begin(BindingId& _parent_binding, bool parent_has_next) {
+void PropertyPathAStarIterEnum::begin(BindingId& _parent_binding) {
     parent_binding = &_parent_binding;
-    if (parent_has_next) {
-        // Is_first = true allow next method knows if that iteration is the first
-        is_first = true;
-        // Create and add start object id
-        ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
-            std::get<ObjectId>(start) :
-            (*parent_binding)[std::get<VarId>(start)]);
+    is_first = true;
+    // Create and add start object id
+    ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
+        std::get<ObjectId>(start) :
+        (*parent_binding)[std::get<VarId>(start)]);
 
-        open.emplace(automaton.get_start(),
-                     start_object_id,
-                     automaton.distance_to_final[automaton.get_start()]);
+    open.emplace(automaton.get_start(),
+                    start_object_id,
+                    automaton.distance_to_final[automaton.get_start()]);
 
-        visited.emplace(automaton.get_start(),
-                        start_object_id,
-                        nullptr,
-                        true,
-                        ObjectId::get_null());
+    visited.emplace(automaton.get_start(),
+                    start_object_id,
+                    nullptr,
+                    true,
+                    ObjectId::get_null());
 
-        min_ids[2] = 0;
-        max_ids[2] = 0xFFFFFFFFFFFFFFFF;
-        min_ids[3] = 0;
-        max_ids[3] = 0xFFFFFFFFFFFFFFFF;
-        // pos 0 and 1 will be set at next()
-    }
+    min_ids[2] = 0;
+    max_ids[2] = 0xFFFFFFFFFFFFFFFF;
+    min_ids[3] = 0;
+    max_ids[3] = 0xFFFFFFFFFFFFFFFF;
+    // pos 0 and 1 will be set at next()
 }
 
 

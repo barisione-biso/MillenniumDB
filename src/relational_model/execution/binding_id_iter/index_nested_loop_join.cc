@@ -4,28 +4,25 @@
 #include <iostream>
 
 #include "base/ids/var_id.h"
+#include "relational_model/execution/binding_id_iter/empty_binding_id_iter.h"
 
 using namespace std;
 
-IndexNestedLoopJoin::IndexNestedLoopJoin(std::size_t /*binding_size*/,
-                                         unique_ptr<BindingIdIter> lhs,
-                                         unique_ptr<BindingIdIter> rhs) :
-    lhs (move(lhs)),
-    rhs (move(rhs)) { }
+IndexNestedLoopJoin::IndexNestedLoopJoin(unique_ptr<BindingIdIter> _lhs,
+                                         unique_ptr<BindingIdIter> _rhs) :
+    lhs          (move(_lhs)),
+    original_rhs (move(_rhs)) { }
 
 
-void IndexNestedLoopJoin::begin(BindingId& parent_binding, bool parent_has_next) {
+void IndexNestedLoopJoin::begin(BindingId& parent_binding) {
     this->parent_binding = &parent_binding;
-    if (!parent_has_next) {
-        lhs->begin(parent_binding, false);
-        rhs->begin(parent_binding, false);
+
+    lhs->begin(parent_binding);
+    if (lhs->next()) {
+        rhs = original_rhs.get();
+        rhs->begin(parent_binding);
     } else {
-        lhs->begin(parent_binding, true);
-        if (lhs->next()) {
-            rhs->begin(parent_binding, true);
-        } else {
-            rhs->begin(parent_binding, false);
-        }
+        rhs = &EmptyBindingIdIter::instance;
     }
 }
 
