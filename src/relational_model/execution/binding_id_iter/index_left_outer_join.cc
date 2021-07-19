@@ -22,11 +22,11 @@ void IndexLeftOuterJoin::begin(BindingId& parent_binding) {
     if (lhs->next()) {
         has_left = true;
         rhs = original_rhs.get();
-        rhs->begin(parent_binding);
     } else {
         has_left = false;
         rhs = &EmptyBindingIdIter::instance;
     }
+    original_rhs->begin(parent_binding);
 }
 
 

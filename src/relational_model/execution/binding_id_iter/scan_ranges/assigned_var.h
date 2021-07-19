@@ -14,15 +14,11 @@ public:
         var_id(var_id) { }
 
     uint64_t get_min(BindingId& binding_id) override {
-        auto obj_id = binding_id[var_id];
-        assert(!obj_id.is_null() && "var should be assigned in binding");
-        return obj_id.id;
+        return binding_id[var_id].id;
     }
 
     uint64_t get_max(BindingId& binding_id) override {
-        auto obj_id = binding_id[var_id];
-        assert(!obj_id.is_null() && "var should be assigned in binding");
-        return obj_id.id;
+        return binding_id[var_id].id;
     }
 
     void try_assign(BindingId&, ObjectId) override { }

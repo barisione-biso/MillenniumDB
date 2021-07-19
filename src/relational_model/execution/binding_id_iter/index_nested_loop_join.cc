@@ -20,10 +20,10 @@ void IndexNestedLoopJoin::begin(BindingId& parent_binding) {
     lhs->begin(parent_binding);
     if (lhs->next()) {
         rhs = original_rhs.get();
-        rhs->begin(parent_binding);
     } else {
         rhs = &EmptyBindingIdIter::instance;
     }
+    original_rhs->begin(parent_binding);
 }
 
 bool IndexNestedLoopJoin::next() {
