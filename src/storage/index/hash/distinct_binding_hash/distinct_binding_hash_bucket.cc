@@ -11,19 +11,18 @@ using namespace std;
 template class DistinctBindingHashBucket<GraphObject>;
 template class DistinctBindingHashBucket<ObjectId>;
 
-
 template <class T>
-DistinctBindingHashBucket<T>::DistinctBindingHashBucket(const TmpFileId file_id, const uint_fast32_t bucket_number, std::size_t _tuple_size) :
+DistinctBindingHashBucket<T>::DistinctBindingHashBucket(const TmpFileId file_id,
+                                                        const uint_fast32_t bucket_number,
+                                                        std::size_t _tuple_size) :
     page        (buffer_manager.get_tmp_page(file_id, bucket_number)),
     MAX_TUPLES  ( (Page::PAGE_SIZE - sizeof(*tuple_size) - sizeof(*tuple_count) - sizeof(local_depth))
                   / (2*sizeof(*hashes) + _tuple_size*sizeof(T) ) ),
-
-    // TODO: fix alignment
-    tuple_size  ( reinterpret_cast<uint16_t*>(page.get_bytes()) ),
-    tuple_count ( reinterpret_cast<uint8_t*> (page.get_bytes() + sizeof(*tuple_size)) ),
-    local_depth ( reinterpret_cast<uint8_t*> (page.get_bytes() + sizeof(*tuple_size) + sizeof(*tuple_count)) ),
-    hashes      ( reinterpret_cast<uint64_t*>(page.get_bytes() + sizeof(*tuple_size) + sizeof(*tuple_count) + sizeof(*local_depth)) ),
-    tuples      ( reinterpret_cast<T*> (reinterpret_cast<uint8_t*>(hashes) + 2*MAX_TUPLES*sizeof(*hashes)) )
+    tuples      (reinterpret_cast<T*>(page.get_bytes())),
+    hashes      (reinterpret_cast<uint64_t*>(page.get_bytes() + _tuple_size*MAX_TUPLES*sizeof(T))),
+    tuple_size  (reinterpret_cast<uint16_t*>(reinterpret_cast<uint8_t*>(hashes) + 2*MAX_TUPLES*sizeof(*hashes))),
+    tuple_count (reinterpret_cast<uint8_t*> (reinterpret_cast<uint8_t*>(tuple_size) + sizeof(*tuple_size))),
+    local_depth (reinterpret_cast<uint8_t*> (reinterpret_cast<uint8_t*>(tuple_count) + sizeof(*tuple_count)))
 {
     *tuple_size = _tuple_size;
 }
@@ -36,7 +35,10 @@ DistinctBindingHashBucket<T>::~DistinctBindingHashBucket() {
 
 
 template <class T>
-bool DistinctBindingHashBucket<T>::is_in(std::vector<T>& tuple, const uint64_t hash1, const uint64_t hash2) {
+bool DistinctBindingHashBucket<T>::is_in(const std::vector<T>& tuple,
+                                         uint64_t hash1,
+                                         uint64_t hash2)
+{
     for (uint8_t i = 0; i < *tuple_count; ++i) {
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             bool tuple_found = true;
@@ -57,7 +59,11 @@ bool DistinctBindingHashBucket<T>::is_in(std::vector<T>& tuple, const uint64_t h
 
 
 template <class T>
-bool DistinctBindingHashBucket<T>::is_in_or_insert(std::vector<T>& tuple, const uint64_t hash1, const uint64_t hash2, bool* const need_split) {
+bool DistinctBindingHashBucket<T>::is_in_or_insert(const std::vector<T>& tuple,
+                                                   uint64_t hash1,
+                                                   uint64_t hash2,
+                                                   bool* const need_split)
+{
     for (uint8_t i = 0; i < *tuple_count; ++i) {
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             bool tuple_found = true;
@@ -94,7 +100,10 @@ bool DistinctBindingHashBucket<T>::is_in_or_insert(std::vector<T>& tuple, const 
 
 
 template <class T>
-void DistinctBindingHashBucket<T>::redistribute(DistinctBindingHashBucket<T>& other, const uint64_t mask, const uint64_t other_suffix) {
+void DistinctBindingHashBucket<T>::redistribute(DistinctBindingHashBucket<T>& other,
+                                                const uint64_t mask,
+                                                const uint64_t other_suffix)
+{
     uint8_t other_pos = 0;
     uint8_t this_pos = 0;
 
