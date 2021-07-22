@@ -44,8 +44,8 @@ private:
     FileId const dir_file_id;
     FileId const leaf_file_id;
     Page& page;
-    uint32_t* const key_count;
     uint64_t* const keys;
+    uint32_t* const key_count;
     int32_t* const children;
 
     int search_child_index(int from, int to, const Record<N>& record) const;

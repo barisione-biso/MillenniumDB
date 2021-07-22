@@ -7,6 +7,8 @@
 
 using namespace std;
 
+template class RandomAccessTable<3>;
+
 template <size_t N>
 RandomAccessTable<N>::RandomAccessTable(const string& name) :
     file_id(file_manager.get_file_id(name))

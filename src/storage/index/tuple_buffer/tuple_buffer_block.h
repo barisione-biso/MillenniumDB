@@ -40,8 +40,8 @@ private:
     const std::vector<VarId>& enumeration_vars;
 
     const uint_fast32_t max_tuples;
+    uint64_t* const tuples;
     uint32_t* const tuple_count;
-    uint64_t* tuples;
 };
 
 

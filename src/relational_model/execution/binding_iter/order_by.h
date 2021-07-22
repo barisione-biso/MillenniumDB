@@ -20,7 +20,7 @@ public:
             std::size_t binding_size,
             std::vector<std::pair<Var, VarId>> order_vars,
             std::vector<bool> ascending);
-    ~OrderBy() = default;
+    ~OrderBy();
 
     inline Binding& get_binding() noexcept override { return my_binding; }
 
@@ -40,13 +40,12 @@ private:
     TmpFileId second_file_id;
 
     std::unique_ptr<TupleCollection> run;
-    std::unique_ptr<MergeOrderedTupleCollection> merger;
     TmpFileId* output_file_id;
     uint_fast32_t total_pages = 0;
     uint_fast32_t current_page = 0;
     uint64_t page_position = 0;
 
-    void merge_sort();
+    void merge_sort(const std::vector<VarId>& order_var_ids);
 };
 
 template class std::unique_ptr<OrderBy>;

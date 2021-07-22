@@ -12,28 +12,16 @@
 using namespace std;
 
 TupleCollection::TupleCollection(Page& page, const size_t tuple_size) :
-    page(page),
-    tuple_size(tuple_size)
-{
-    tuple_count = reinterpret_cast<uint64_t*>(page.get_bytes());
-    tuples = reinterpret_cast<GraphObject*>(page.get_bytes() + sizeof(tuple_count));
-}
+    page        (page),
+    tuple_size  (tuple_size),
+    tuples      (reinterpret_cast<GraphObject*>(page.get_bytes())),
+    tuple_count (reinterpret_cast<uint64_t*>(page.get_bytes() + Page::PAGE_SIZE - sizeof(uint64_t)))
+    { }
 
 
 TupleCollection::~TupleCollection() {
     page.make_dirty();
     buffer_manager.unpin(page);
-}
-
-
-bool TupleCollection::is_full() const {
-    const auto bytes_used = (*tuple_count) * tuple_size * GRAPH_OBJECT_SIZE + sizeof(tuple_count);
-    const auto size_new_tuple = tuple_size * GRAPH_OBJECT_SIZE;
-    // if (bytes_used + size_new_tuple < Page::PAGE_SIZE) {
-    //     return false;
-    // }
-    // return true;
-    return bytes_used + size_new_tuple >= Page::PAGE_SIZE;
 }
 
 
@@ -47,7 +35,7 @@ void TupleCollection::add(std::vector<GraphObject> new_tuple) {
 }
 
 
-std::vector<GraphObject> TupleCollection::get(uint_fast64_t id) const {
+std::vector<GraphObject> TupleCollection::get(uint64_t id) const {
     // Return the n-th tuple of the page
     std::vector<GraphObject> res(tuple_size);
     size_t tuple_position = id * tuple_size;
@@ -58,12 +46,12 @@ std::vector<GraphObject> TupleCollection::get(uint_fast64_t id) const {
 }
 
 
-void TupleCollection::override_tuple(std::vector<GraphObject> tuple_to_override, int position) {
-    // Write a tupĺe in the specific position. tuple_count don't increase because
+void TupleCollection::override_tuple(const std::vector<GraphObject>& tuple, int position) {
+    // Write a tuple in the specific position. tuple_count don't increase because
     // this method assume that is overriding a tuple
-    size_t position_to_override = position * tuple_size;
+    const auto position_to_override = position * tuple_size;
     for (size_t i = 0; i < tuple_size; i++) {
-        tuples[position_to_override + i] = tuple_to_override[i];
+        tuples[position_to_override + i] = tuple[i];
     }
 }
 
@@ -84,7 +72,7 @@ void TupleCollection::swap(int x, int y) {
 }
 
 
-void TupleCollection::sort(std::vector<uint_fast64_t>& order_vars, std::vector<bool>& ascending) {
+void TupleCollection::sort(std::vector<VarId>& order_vars, std::vector<bool>& ascending) {
     // Sort all the tuples. order_vars the position of the vars in each array that
     // define the order.
     quicksort(0, (*tuple_count) - 1, order_vars, ascending);
@@ -100,21 +88,23 @@ void TupleCollection::sort(std::vector<uint_fast64_t>& order_vars, std::vector<b
 }
 
 
-bool TupleCollection::has_priority(std::vector<GraphObject> lhs, std::vector<GraphObject> rhs,
-                                   std::vector<uint_fast64_t>& order_vars, std::vector<bool>& ascending)
+bool TupleCollection::has_priority(const std::vector<GraphObject>& lhs,
+                                   const std::vector<GraphObject>& rhs,
+                                   const std::vector<VarId>&       order_vars,
+                                   const std::vector<bool>&        ascending)
 {
     assert(order_vars.size() == ascending.size());
     for (size_t i = 0; i < order_vars.size(); i++) {
         if (ascending[i]) {
-            if (lhs[order_vars[i]] < rhs[order_vars[i]]) {
+            if (lhs[order_vars[i].id] < rhs[order_vars[i].id]) {
                 return true;
-            } else if (rhs[order_vars[i]] < lhs[order_vars[i]]) {
+            } else if (rhs[order_vars[i].id] < lhs[order_vars[i].id]) {
                 return false;
             }
         } else {
-            if (lhs[order_vars[i]] > rhs[order_vars[i]]) {
+            if (lhs[order_vars[i].id] > rhs[order_vars[i].id]) {
                 return true;
-            } else if (rhs[order_vars[i]] > lhs[order_vars[i]]) {
+            } else if (rhs[order_vars[i].id] > lhs[order_vars[i].id]) {
                 return false;
             }
         }
@@ -123,7 +113,7 @@ bool TupleCollection::has_priority(std::vector<GraphObject> lhs, std::vector<Gra
 }
 
 
-void TupleCollection::quicksort(int i, int f, std::vector<uint_fast64_t>& order_vars, std::vector<bool>& ascending) {
+void TupleCollection::quicksort(int i, int f, std::vector<VarId>& order_vars, std::vector<bool>& ascending) {
     if (i < f) {
         int p = partition(i, f, order_vars, ascending);
         quicksort(i, p - 1, order_vars, ascending);
@@ -132,7 +122,7 @@ void TupleCollection::quicksort(int i, int f, std::vector<uint_fast64_t>& order_
 }
 
 
-int TupleCollection::partition(int i, int f, std::vector<uint_fast64_t>& order_vars, std::vector<bool>& ascending) {
+int TupleCollection::partition(int i, int f, std::vector<VarId>& order_vars, std::vector<bool>& ascending) {
     int x = i + (rand() % (f - i + 1));
     auto p = get(x);
     swap(x, f);
@@ -149,17 +139,17 @@ int TupleCollection::partition(int i, int f, std::vector<uint_fast64_t>& order_v
 
 
 MergeOrderedTupleCollection::MergeOrderedTupleCollection(size_t tuple_size,
-                                                         std::vector<uint_fast64_t> order_vars,
-                                                         std::vector<bool> ascending) :
+                                                         const std::vector<VarId>& order_vars,
+                                                         const std::vector<bool>& ascending) :
     tuple_size (tuple_size),
     order_vars (order_vars),
     ascending  (ascending) { }
 
 
-void MergeOrderedTupleCollection::merge(uint_fast64_t left_start,
-                                        uint_fast64_t left_end,
-                                        uint_fast64_t right_start,
-                                        uint_fast64_t right_end,
+void MergeOrderedTupleCollection::merge(uint64_t left_start,
+                                        uint64_t left_end,
+                                        uint64_t right_start,
+                                        uint64_t right_end,
                                         TmpFileId source_file_id,
                                         TmpFileId output_file_id)
 {
@@ -172,9 +162,9 @@ void MergeOrderedTupleCollection::merge(uint_fast64_t left_start,
 
     auto left_tuple  = left_run->get(0);
     auto right_tuple = right_run->get(0);
-    uint_fast64_t left_counter = 0;
-    uint_fast64_t right_counter = 0;
-    uint_fast64_t out_page_counter = left_start;
+    uint64_t left_counter = 0;
+    uint64_t right_counter = 0;
+    uint64_t out_page_counter = left_start;
     bool left_first;
     bool open_left = true;
     bool open_right = true;
@@ -220,7 +210,7 @@ void MergeOrderedTupleCollection::merge(uint_fast64_t left_start,
 }
 
 
-void MergeOrderedTupleCollection::copy_page(uint_fast64_t source_page,
+void MergeOrderedTupleCollection::copy_page(uint64_t source_page,
                                             TmpFileId source_file_id,
                                             TmpFileId output_file_id)
 {

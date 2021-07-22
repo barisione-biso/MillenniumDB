@@ -6,7 +6,7 @@
 
 class VarId {
 public:
-    const uint_fast32_t id;
+    uint_fast32_t id;
 
     explicit VarId(uint_fast32_t id)
         : id(id) { }

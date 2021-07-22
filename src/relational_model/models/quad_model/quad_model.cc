@@ -126,11 +126,11 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) const {
 
         case VALUE_INLINE_STR_MASK : {
             char c[8];
-            int shift_size = 0;
+            int shift_size = 6*8;
             for (int i = 0; i < MAX_INLINED_BYTES; i++) {
                 uint8_t byte = (object_id.id >> shift_size) & 0xFF;
                 c[i] = byte;
-                shift_size += 8;
+                shift_size -= 8;
             }
             c[7] = '\0';
             return GraphObject::make_string_inlined(c);
@@ -144,7 +144,7 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) const {
 
         case VALUE_NEGATIVE_INT_MASK : {
             static_assert(sizeof(int64_t) == 8, "int64_t must be 8 bytes");
-            int64_t i = object_id.id & 0x00FF'FFFF'FFFF'FFFFUL;
+            int64_t i = (~object_id.id) & 0x00FF'FFFF'FFFF'FFFFUL;
             return GraphObject::make_int(i*-1);
         }
 
@@ -173,11 +173,11 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) const {
 
         case IDENTIFIABLE_INLINED_MASK : {
             char c[8];
-            int shift_size = 0;
+            int shift_size = 6*8;
             for (int i = 0; i < MAX_INLINED_BYTES; i++) {
                 uint8_t byte = (object_id.id >> shift_size) & 0xFF;
                 c[i] = byte;
-                shift_size += 8;
+                shift_size -= 8;
             }
             c[7] = '\0';
             return GraphObject::make_identifiable_inlined(c);

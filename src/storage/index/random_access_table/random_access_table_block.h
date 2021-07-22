@@ -24,12 +24,8 @@ public:
 
 // private:
     Page& page;
-    uint32_t* record_count;
-    uint64_t* records;
+    uint64_t* const records;
+    uint32_t* const record_count;
 };
-
-template class RandomAccessTableBlock<1>;
-template class RandomAccessTableBlock<3>;
-
 
 #endif // STORAGE__RANDOM_ACCESS_TABLE_BLOCK_H_

@@ -12,14 +12,15 @@
 class ObjectFileHashBucket {
 friend class ObjectFileHash;
 
-// 2 bytes needed for key_count and local_depth, 16 bytes from hash and 6 bytes from id
+// 2 bytes needed for key_count and local_depth, 2*8 bytes for the hash
+// and 6 bytes for the id (it assumes the other 2 bytes of the id are 0x00)
 // TODO: maybe 5 bytes is enough => ~1TB of objects
 static constexpr auto BYTES_FOR_ID = 6U;
-static constexpr auto MAX_KEYS = (Page::PAGE_SIZE - 2) / (16+BYTES_FOR_ID);
+static constexpr auto MAX_KEYS = (Page::PAGE_SIZE - 2*sizeof(uint8_t)) / (2*sizeof(uint64_t) + BYTES_FOR_ID);
 static_assert(MAX_KEYS <= UINT8_MAX, "ObjectFileHashBucket KEY_COUNT(UINT8) CAN'T REACH MAX_KEYS");
 
 public:
-    ObjectFileHashBucket(const FileId file_id, const uint_fast32_t bucket_number, ObjectFile& objecy_file);
+    ObjectFileHashBucket(FileId file_id, uint_fast32_t bucket_number, ObjectFile& objecy_file);
     ~ObjectFileHashBucket();
 
     uint64_t get_id(const std::string& str, const uint64_t hash1, const uint64_t hash2) const;
@@ -31,9 +32,9 @@ private:
     Page& page;
     ObjectFile& object_file;
 
+    uint64_t* const hashes; // each tuple is (hash1, hash2)
     uint8_t*  const key_count;
     uint8_t*  const local_depth;
-    uint64_t* const hashes; // each tuple is (hash1, hash2)
     uint8_t*  const ids;
 
     void write_id(const uint64_t id, const uint_fast32_t index);

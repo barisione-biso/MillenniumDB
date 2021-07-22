@@ -8,13 +8,13 @@ GraphObjectVisitor::GraphObjectVisitor(const QuadModel& model, bool create_if_no
 ObjectId GraphObjectVisitor::operator()(const IdentifiableInlined& identifiable_inlined) const {
     std::string str(identifiable_inlined.id);
     uint64_t res = 0;
-    int shift_size = 0;
+    int shift_size = 8*6;
     // MUST convert to uint8_t and then to uint64_t.
     // Shift with shift_size >=32 is undefined behaviour.
     for (uint8_t byte : str) {
         uint64_t byte64 = static_cast<uint64_t>(byte);
         res |= byte64 << shift_size;
-        shift_size += 8;
+        shift_size -= 8;
     }
     return ObjectId(res | GraphModel::IDENTIFIABLE_INLINED_MASK);
 }
@@ -51,13 +51,13 @@ ObjectId GraphObjectVisitor::operator()(const StringInlined& string_inlined) con
     std::string str(string_inlined.id);
 
     uint64_t res = 0;
-    int shift_size = 0;
+    int shift_size = 8*6;
     // MUST convert to uint8_t and then to uint64_t.
     // Shift with shift_size >=32 is undefined behaviour.
     for (uint8_t byte : str) {
         uint64_t byte64 = static_cast<uint64_t>(byte);
         res |= byte64 << shift_size;
-        shift_size += 8;
+        shift_size -= 8;
     }
     return ObjectId(res | GraphModel::VALUE_INLINE_STR_MASK);
 }
@@ -92,18 +92,27 @@ ObjectId GraphObjectVisitor::operator()(const NotFoundObject&) const {
 
 ObjectId GraphObjectVisitor::operator()(const int64_t n) const {
     int64_t int_value = n;
-    uint64_t mask = GraphModel::VALUE_POSITIVE_INT_MASK;
+
     if (int_value < 0) {
         int_value *= -1;
-        mask = GraphModel::VALUE_NEGATIVE_INT_MASK;
-    }
 
-    // check if it needs more than 7 bytes
-    if ( (int_value & 0xFF00'0000'0000'0000UL) == 0) {
-        return ObjectId(mask | int_value);
-    } else {
-        // VALUE_EXTERNAL_INT_MASK
-        throw std::logic_error("NOT SUPPORTED YET");
+        // check if it needs more than 7 bytes
+        if ( (int_value & 0xFF00'0000'0000'0000UL) == 0) {
+            int_value = (~int_value) & 0x00FF'FFFF'FFFF'FFFFUL;
+            return ObjectId(GraphModel::VALUE_NEGATIVE_INT_MASK | int_value);
+        } else {
+            // VALUE_EXTERNAL_INT_MASK
+            throw std::logic_error("BIG INTEGERS NOT SUPPORTED YET");
+        }
+    }
+    else {
+        // check if it needs more than 7 bytes
+        if ( (int_value & 0xFF00'0000'0000'0000UL) == 0) {
+            return ObjectId(GraphModel::VALUE_POSITIVE_INT_MASK | int_value);
+        } else {
+            // VALUE_EXTERNAL_INT_MASK
+            throw std::logic_error("BIG INTEGERS NOT SUPPORTED YET");
+        }
     }
 }
 

@@ -23,6 +23,12 @@ GroupBy::GroupBy(GraphModel& model,
     group_file_id  (file_manager.get_tmp_file_id()) { }
 
 
+GroupBy::~GroupBy() {
+    group_run.reset();
+    file_manager.remove_tmp(group_file_id);
+}
+
+
 void GroupBy::begin() {
     order_child.begin();
     auto& child_binding = order_child.get_binding();

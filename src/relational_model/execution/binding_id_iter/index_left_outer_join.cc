@@ -15,15 +15,14 @@ IndexLeftOuterJoin::IndexLeftOuterJoin(unique_ptr<BindingIdIter> _lhs,
 
 
 void IndexLeftOuterJoin::begin(BindingId& parent_binding) {
-    has_result = false;
     this->parent_binding = &parent_binding;
 
     lhs->begin(parent_binding);
     if (lhs->next()) {
-        has_left = true;
+        must_return_null = true;
         rhs = original_rhs.get();
     } else {
-        has_left = false;
+        must_return_null = false;
         rhs = &EmptyBindingIdIter::instance;
     }
     original_rhs->begin(parent_binding);
@@ -31,25 +30,23 @@ void IndexLeftOuterJoin::begin(BindingId& parent_binding) {
 
 
 bool IndexLeftOuterJoin::next() {
-    if (!has_left) {
-        return false;
-    }
     while (true) {
         if (rhs->next()) {
-            has_result = true;
+            must_return_null = false;
             ++results_found;
             return true;
         } else {
-            if (!has_result) {
+            if (must_return_null) {
                 rhs->assign_nulls();
-                has_result = true;
+                must_return_null = false;
                 ++results_found;
                 return true;
             } else {
                 if (lhs->next()) {
-                    has_result = false;
+                    must_return_null = true;
                     rhs->reset();
                 } else {
+                    must_return_null = false;
                     return false;
                 }
             }
@@ -59,14 +56,13 @@ bool IndexLeftOuterJoin::next() {
 
 
 void IndexLeftOuterJoin::reset() {
-    has_result = false;
     lhs->reset();
     if (lhs->next()) {
-        has_left = true;
+        must_return_null = true;
         rhs = original_rhs.get();
         rhs->reset();
     } else {
-        has_left = false;
+        must_return_null = false;
         rhs = &EmptyBindingIdIter::instance;
     }
 }

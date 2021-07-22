@@ -18,8 +18,9 @@ public:
     bool next() override;
     void reset() override;
     void assign_nulls() override;
-    bool has_result;
-    bool has_left;
+
+    // true if next rhs->next() == false has to return with nulls at the right
+    bool must_return_null;
     uint_fast32_t results_found = 0;
 
 private:

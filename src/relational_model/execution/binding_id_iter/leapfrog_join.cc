@@ -79,6 +79,7 @@ bool LeapfrogJoin::next() {
                 // to avoid having the same intersection
                 while (true) {
                     if (level == 0) {
+                        level = -1; // assign level to -1 so the upcoming calls returns false
                         return false;
                     } else {
                         up();
@@ -112,6 +113,7 @@ bool LeapfrogJoin::next() {
         level--;
 
         if (iters_for_var.size() == 0) {
+            level = -1; // assign level to -1 so the upcoming calls returns false
             return false;
         } else {
             // We are in a previous intersection, so we need to move the last iterator forward

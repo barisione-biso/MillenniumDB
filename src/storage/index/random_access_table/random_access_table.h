@@ -27,8 +27,4 @@ private:
     std::unique_ptr<RandomAccessTableBlock<N>> last_block;
 };
 
-template class RandomAccessTable<1>;
-template class RandomAccessTable<3>;
-
-
 #endif // STORAGE__RANDOM_ACCESS_TABLE_H_

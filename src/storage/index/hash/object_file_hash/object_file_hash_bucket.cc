@@ -9,13 +9,13 @@
 
 using namespace std;
 
-ObjectFileHashBucket::ObjectFileHashBucket(const FileId file_id, const uint_fast32_t bucket_number, ObjectFile& object_file) :
+ObjectFileHashBucket::ObjectFileHashBucket(FileId file_id, uint_fast32_t bucket_number, ObjectFile& object_file) :
     page        (buffer_manager.get_page(file_id, bucket_number)),
     object_file (object_file),
-    key_count   ( reinterpret_cast<uint8_t*> (page.get_bytes()) ),
-    local_depth ( reinterpret_cast<uint8_t*> (page.get_bytes() + sizeof(uint8_t)) ),
-    hashes      ( reinterpret_cast<uint64_t*>(page.get_bytes() + 2*sizeof(uint8_t)) ),
-    ids         ( reinterpret_cast<uint8_t*> (page.get_bytes() + 2*sizeof(uint8_t) + 2*MAX_KEYS*sizeof(uint64_t)) )
+    hashes      (reinterpret_cast<uint64_t*>(page.get_bytes())),
+    key_count   (reinterpret_cast<uint8_t*>(page.get_bytes() + 2*sizeof(uint64_t)*MAX_KEYS)),
+    local_depth (reinterpret_cast<uint8_t*>(page.get_bytes() + 2*sizeof(uint64_t)*MAX_KEYS + sizeof(uint8_t))),
+    ids         (reinterpret_cast<uint8_t*>(page.get_bytes() + 2*sizeof(uint64_t)*MAX_KEYS + 2*sizeof(uint8_t)))
 { }
 
 
@@ -39,8 +39,11 @@ uint64_t ObjectFileHashBucket::get_id(const string& str, const uint64_t hash1, c
 }
 
 
-uint64_t ObjectFileHashBucket::get_or_create_id(const string& str, const uint64_t hash1, const uint64_t hash2,
-                                  bool* const need_split, bool* const created)
+uint64_t ObjectFileHashBucket::get_or_create_id(const string& str,
+                                                const uint64_t hash1,
+                                                const uint64_t hash2,
+                                                bool* const need_split,
+                                                bool* const created)
 {
     for (uint8_t i = 0; i < *key_count; ++i) {
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {

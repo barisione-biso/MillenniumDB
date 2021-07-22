@@ -20,7 +20,7 @@ public:
             std::size_t binding_size,
             std::vector<std::pair<Var,VarId>> _group_vars,
             std::vector<bool> ascending);
-    ~GroupBy() = default;
+    ~GroupBy();
 
     inline Binding& get_binding() noexcept override { return my_binding; }
 

@@ -1,25 +1,22 @@
 #include "random_access_table_block.h"
 
-#include <iostream>
-
 #include "storage/buffer_manager.h"
 
 using namespace std;
 
+template class RandomAccessTableBlock<3>;
+
 template <std::size_t N>
 RandomAccessTableBlock<N>::RandomAccessTableBlock(Page& page) :
-    page(page)
-{
-    record_count = reinterpret_cast<uint32_t*>(page.get_bytes());
-    records      = reinterpret_cast<uint64_t*>(page.get_bytes() + sizeof(uint32_t));
-}
+    page         (page),
+    records      (reinterpret_cast<uint64_t*>(page.get_bytes())),
+    record_count (reinterpret_cast<uint32_t*>(page.get_bytes()
+                  + (N * sizeof(uint64_t) * RandomAccessTableBlock<N>::max_records)))
+    { }
 
 
 template <std::size_t N>
 RandomAccessTableBlock<N>::~RandomAccessTableBlock() {
-    // std::cout << "~RandomAccessTableBlock()\n";
-    // std::cout << "  page number: " << page.get_page_number() << "\n";
-    // std::cout << "  record count: " << (*record_count) << "\n";
     buffer_manager.unpin(page);
 }
 

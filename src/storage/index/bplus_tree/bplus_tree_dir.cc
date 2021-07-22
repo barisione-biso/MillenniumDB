@@ -22,11 +22,13 @@ BPlusTreeDir<N>::BPlusTreeDir(FileId const leaf_file_id, Page& page) :
     dir_file_id  (page.page_id.file_id),
     leaf_file_id (leaf_file_id),
     page         (page),
-    key_count    ( reinterpret_cast<uint32_t*>(page.get_bytes()) ),
-    keys         ( reinterpret_cast<uint64_t*>(page.get_bytes() + sizeof(uint32_t)) ),
-    children     ( reinterpret_cast<int32_t*>(page.get_bytes() + sizeof(int32_t)
-                   + (sizeof(uint64_t) * BPlusTree<N>::dir_max_records * N)) )
-{ }
+    keys         (reinterpret_cast<uint64_t*>(page.get_bytes())),
+    key_count    (reinterpret_cast<uint32_t*>(page.get_bytes()
+                      + (sizeof(uint64_t) * BPlusTree<N>::dir_max_records * N))),
+    children     (reinterpret_cast<int32_t*>(page.get_bytes()
+                      + (sizeof(uint64_t) * BPlusTree<N>::dir_max_records * N)
+                      + sizeof(uint32_t)))
+    { }
 
 
 template <std::size_t N>

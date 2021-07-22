@@ -18,7 +18,7 @@ DistinctBindingHashBucket<T>::DistinctBindingHashBucket(const TmpFileId file_id,
     MAX_TUPLES  ( (Page::PAGE_SIZE - sizeof(*tuple_size) - sizeof(*tuple_count) - sizeof(local_depth))
                   / (2*sizeof(*hashes) + _tuple_size*sizeof(T) ) ),
 
-
+    // TODO: fix alignment
     tuple_size  ( reinterpret_cast<uint16_t*>(page.get_bytes()) ),
     tuple_count ( reinterpret_cast<uint8_t*> (page.get_bytes() + sizeof(*tuple_size)) ),
     local_depth ( reinterpret_cast<uint8_t*> (page.get_bytes() + sizeof(*tuple_size) + sizeof(*tuple_count)) ),
