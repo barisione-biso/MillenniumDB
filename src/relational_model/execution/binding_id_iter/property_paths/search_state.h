@@ -1,3 +1,15 @@
+/*
+SearchState is the data structure used for bookeeping in standard graph search algorithm (BFS, DFS, A*). We use these algorithms evaluate path queries. Typically, such an algorithm maintains a queue (in the case of BFS), stack (DFS), or a priority queue (A*) of SearchState objects, in order to track which nodes have already been explored.
+
+Elements of SearchState are:
+    - state: this is the state of the automaton defining the path query
+    - object_id: the ID of the graph object the algorithm is currently processing
+    - previous: a pointer to the previous SearchState that leads to the current one (used to reconstruct paths)
+    - direction: indicates which direction the edge was traversed (the language allows traversing in both directions)
+    - label_id: the type/label of the traversed edge (used to reconstruct paths)
+
+The operators < and == between SearchState elements need to be defined in order to work with the data structures used in different algorithms.
+*/
 #ifndef BASE__SEARCH_STATE_H_
 #define BASE__SEARCH_STATE_H_
 
