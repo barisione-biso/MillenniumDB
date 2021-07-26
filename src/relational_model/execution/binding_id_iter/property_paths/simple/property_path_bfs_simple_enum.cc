@@ -1,3 +1,59 @@
+/*
+This is the implementation of PropertyPathBFSSimpleEnum BindingID iterator,
+which uses BFS in order to find results of a single property path query.
+
+More theoretical details on the deployed algorithms can be found in:
+Evaluating Navigational RDF Queries over the Web, HT2017
+https://doi.org/10.1145/3078714.3078731
+
+The main components of the algorithm can be summarized as follows:
+1. The property path query is defined by a regular expression, so it gets
+   converted into a finite state automaton (see the class YYY for detail).
+2. The query has either a startNode or endNode specified, either in the
+   query itself, or by an operator that piped results to it previously.
+3. The graph database is viewed as an automaton itself.
+4. A "virtual" cross product of automaton states and graph nodes is
+   "constructed" (virtual since it is never materialized, but fetched
+   on the fly).
+5. An edge in this new graph exists between (nodeID1,automatonState1) and
+   (nodeID2,automatonState2) if in our graph there is a connection
+   (nodeID1,type,nodeID2,edge), and (automatonState1,type,automatonState2),
+   is a transition in the automaton.
+6. A BFS is done from (startNode,initState), where startNode is the starting
+   node for the query (if specified), and initState is the initial state
+   of the query automaton (if endNode is specified we run the automaton for
+   the reverse regex).
+7. A result is found if a pair (nodeID,finalState) is found in this product
+   graph, where finalState is an accepting state of the automaton.
+
+Another way of looking at the procedure is as follows:
+(assume startNode is given as ID1, and the pattern is (ID1)=[a*]=>(?x))
+1. We start with (ID1,initState) pushed onto the queue "open" (a class variable)
+2. A B+ tree iter that looks for all nodes reachable from ID1 by an a-typed
+   connection is constructed and iterated on. This is in "type_from_to_edge"
+   B+ tree.
+3. If IDn is a reached node, and (initState,a,nextState) is a transition in the
+   query automaton, we:
+    - check if (IDn,stateNext) was visited before 
+      (we store this in a set called "visited")
+    - we push (IDn,stateNext) onto the queue called "open" (classic BFS)
+    - we put (IDn,stateNext) in "visited" to not revisit it again
+4. If the state we were processing is of the form (ID, endState)
+   we can return a result.
+5. Repeat (from step 2) until open is not empty
+
+There is a glaring inefficiency in this algorithm: we return the result ID only
+after iterating over all of it neighbours reached via an a-typed edge. This means
+That we could have to do a large iteration while already having a result in hand,
+in order to not lose the neighbours of the node. We solve this problem in a version
+implemented in PropertyPathBFSIterEnum (see documentation there).
+
+The is_first flag is revised to check if we are in the very first node, and when this
+node can already be a result (such as in (Q1)=[a*]=>(?x), where a zero-length path
+conforming to a* matches a path between Q1 and Q1).
+
+*/
+
 #include "property_path_bfs_simple_enum.h"
 
 #include <cassert>
