@@ -1,3 +1,25 @@
+/*
+This is a similar implementation to PropertyPathBFSSimpleEnum.
+
+The first difference is the end condition, which is now determined not only
+by reacing an end state of the automaton, but also the target node, whose
+object ID we store in end_object_id.
+
+The second and biggest difference, is that we need not scan all the neighbours
+of a node in order to find the result. Namely, the process can be describe as
+follows:
+- We are looking for a path from start_object_id to end_object_id
+- (start_object_id,initState) initializes BFS (both visited and open)
+- If start_object_id == end_object_id, and initState is also a finalState
+  we can return a result and the execution halts.
+- Else, we iterate over the neighbours of start_object_id node according to
+  the automaton.
+- If at any point we detect end_object_id we can return.
+
+Notice that here the results can be returned as soon as detected, since we
+are simply checking whether the two nodes are connected by a path.
+*/
+
 #include "property_path_bfs_check.h"
 
 #include <cassert>
@@ -31,6 +53,7 @@ PropertyPathBFSCheck::PropertyPathBFSCheck(BPlusTree<1>& _nodes,
 void PropertyPathBFSCheck::begin(BindingId& _parent_binding) {
     parent_binding = &_parent_binding;
     // Init start object id
+    // TODO: make this the same code as with end_object_id
     ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
         std::get<ObjectId>(start) :
         (*parent_binding)[std::get<VarId>(start)]);
@@ -44,6 +67,7 @@ void PropertyPathBFSCheck::begin(BindingId& _parent_binding) {
 
     open.push(start_state.first.operator->());
 
+    // TODO: make this the same code as with start_object_id
     // Set end_object_id
     if (std::holds_alternative<ObjectId>(end)) {
         end_object_id = std::get<ObjectId>(end);

@@ -35,6 +35,9 @@ Elements of the class are:
         (if specified)
     - start:
         the ID of the start node
+        (it is possible that this was assigned in a previous iterator that
+        piped its results to PropertyPathBFSSimpleEnum; in this case the value
+        of this variable is transformed into an object ID in begin())
     - end:
         the ID of the variable storing the end node of the path
         (
