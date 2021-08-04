@@ -10,7 +10,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY bin)
 
 # set the project name and version
-project(MilleniumDB VERSION 0.1)
+project(MillenniumDB VERSION 0.1)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -O0 -g3 -pthread \
 -fPIC -msse4.2 -mpclmul -march=native -funroll-loops -Wstrict-overflow -Wstrict-aliasing -pedantic \
@@ -29,7 +29,7 @@ file(GLOB_RECURSE SRCS src/*.cc)
 set(sources ${SRCS})
 list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/main/*)
 list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/*)
-add_library(milleniumdb STATIC ${sources})
+add_library(millenniumdb STATIC ${sources})
 
 set(BUILD_TARGETS
     create_db
@@ -45,11 +45,11 @@ set(TEST_TARGETS
 
 foreach(target ${BUILD_TARGETS})
     add_executable(${target} ${CMAKE_SOURCE_DIR}/src/main/${target}.cc)
-    target_link_libraries(${target} milleniumdb stdc++fs boost_program_options boost_system)
+    target_link_libraries(${target} millenniumdb stdc++fs boost_program_options boost_system)
 endforeach(target)
 
 foreach(target ${TEST_TARGETS})
     add_executable(${target} ${CMAKE_SOURCE_DIR}/src/tests/${target}.cc)
-    target_link_libraries(${target} milleniumdb stdc++fs boost_program_options boost_system)
+    target_link_libraries(${target} millenniumdb stdc++fs boost_program_options boost_system)
     # add_test(NAME ${target} COMMAND ${target})
 endforeach(target)
