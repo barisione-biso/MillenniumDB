@@ -35,10 +35,20 @@ Elements of the class are:
         (if specified)
     - start:
         the ID of the start node
-        (if assigned in the query or by previous operators in the execution pipeline)
+        (it is possible that this was assigned in a previous iterator that
+        piped its results to PropertyPathBFSSimpleEnum; in this case the value
+        of this variable is transformed into an object ID in begin())
     - end:
-        the ID of the end node
-        (if assigned in the query or by previous operators in the execution pipeline)
+        the ID of the variable storing the end node of the path
+        (
+        Property path is always evaluated start to end.
+        If the patter is of the form (Q1)=[:a*]=>(?x) this is natural.
+        A query of the form (?x)=[:a*]=>(Q1) uses the inverse automaton;
+        that is, an automaton for (^:a)*, which traverses :a-typed edges
+        in reverse. The set of query answers is equivalent to the original
+        query (?x)=[:a*]=>(Q1), but the actual query gets rewritten to
+        (Q1)=[(^:a)*]=>(?x), and then evaluated.
+        )
 
     - automaton:
         the automaton for the regular expression used to specify the query

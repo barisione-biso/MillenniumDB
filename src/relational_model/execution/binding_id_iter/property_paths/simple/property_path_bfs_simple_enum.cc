@@ -11,6 +11,8 @@ The main components of the algorithm can be summarized as follows:
    converted into a finite state automaton (see the class YYY for detail).
 2. The query has either a startNode or endNode specified, either in the
    query itself, or by an operator that piped results to it previously.
+   Recall that this is always stored in start (even when the end node
+   is assigned, in which case we run the regex in "reverse").
 3. The graph database is viewed as an automaton itself.
 4. A "virtual" cross product of automaton states and graph nodes is
    "constructed" (virtual since it is never materialized, but fetched
