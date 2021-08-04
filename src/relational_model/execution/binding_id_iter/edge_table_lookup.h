@@ -8,6 +8,7 @@
 #include "base/binding/binding_id_iter.h"
 #include "base/ids/object_id.h"
 #include "base/ids/var_id.h"
+#include "base/thread/thread_info.h"
 #include "storage/index/random_access_table/random_access_table.h"
 
 class EdgeTableLookup : public BindingIdIter {
@@ -15,6 +16,7 @@ class EdgeTableLookup : public BindingIdIter {
 
 private:
     RandomAccessTable<3>& table;
+    ThreadInfo* const thread_info;
     VarId edge;
     Id from;
     Id to;
@@ -29,7 +31,7 @@ private:
     BindingId* parent_binding;
 
 public:
-    EdgeTableLookup(RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type);
+    EdgeTableLookup(RandomAccessTable<3>& table, ThreadInfo*, VarId edge, Id from, Id to, Id type);
     ~EdgeTableLookup() = default;
 
     void analyze(int indent = 0) const override;

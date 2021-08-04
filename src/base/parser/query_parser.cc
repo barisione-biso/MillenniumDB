@@ -2,9 +2,9 @@
 
 #include <iostream>
 
+#include "base/exceptions.h"
 #include "base/parser/grammar/manual_plan/manual_plan_def.h"
 #include "base/parser/grammar/query/query_def.h"
-#include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"

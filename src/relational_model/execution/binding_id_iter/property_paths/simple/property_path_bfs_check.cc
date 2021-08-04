@@ -11,13 +11,15 @@
 
 using namespace std;
 
-PropertyPathBFSCheck::PropertyPathBFSCheck(BPlusTree<1>& _nodes,
+PropertyPathBFSCheck::PropertyPathBFSCheck(ThreadInfo*   _thread_info,
+                                           BPlusTree<1>& _nodes,
                                            BPlusTree<4>& _type_from_to_edge,
                                            BPlusTree<4>& _to_type_from_edge,
                                            VarId         _path_var,
                                            Id            _start,
                                            Id            _end,
                                            PathAutomaton _automaton) :
+    thread_info       (_thread_info),
     nodes             (_nodes),
     type_from_to_edge (_type_from_to_edge),
     to_type_from_edge (_to_type_from_edge),
@@ -30,27 +32,24 @@ PropertyPathBFSCheck::PropertyPathBFSCheck(BPlusTree<1>& _nodes,
 
 void PropertyPathBFSCheck::begin(BindingId& _parent_binding) {
     parent_binding = &_parent_binding;
-    // Init start object id
+
     ObjectId start_object_id(std::holds_alternative<ObjectId>(start) ?
         std::get<ObjectId>(start) :
         (*parent_binding)[std::get<VarId>(start)]);
 
+    end_object_id = (std::holds_alternative<ObjectId>(end)) ?
+        std::get<ObjectId>(end) :
+        (*parent_binding)[std::get<VarId>(end)];
+
     // Add to open and visited structures
     auto start_state = visited.emplace(automaton.get_start(),
-                                        start_object_id,
-                                        nullptr,
-                                        true,
-                                        ObjectId::get_null());
+                                       start_object_id,
+                                       nullptr,
+                                       true,
+                                       ObjectId::get_null());
 
     open.push(start_state.first.operator->());
 
-    // Set end_object_id
-    if (std::holds_alternative<ObjectId>(end)) {
-        end_object_id = std::get<ObjectId>(end);
-    } else {
-        auto end_var_id = std::get<VarId>(end);
-        end_object_id = (*parent_binding)[end_var_id];
-    }
     is_first = true;
     min_ids[2] = 0;
     max_ids[2] = 0xFFFFFFFFFFFFFFFF;
@@ -65,7 +64,8 @@ bool PropertyPathBFSCheck::next() {
         is_first = false;
 
         auto current_state = open.front();
-        auto node_iter = nodes.get_range(Record<1>({current_state->object_id.id}),
+        auto node_iter = nodes.get_range(&thread_info->interruption_requested,
+                                         Record<1>({current_state->object_id.id}),
                                          Record<1>({current_state->object_id.id}));
         // Return false if node does not exists in bd
         if (node_iter->next() == nullptr) {
@@ -134,13 +134,17 @@ void PropertyPathBFSCheck::set_iter(const TransitionId& transition, const Search
         max_ids[0] = current_state->object_id.id;
         min_ids[1] = transition.label.id;
         max_ids[1] = transition.label.id;
-        iter = to_type_from_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
+        iter = to_type_from_edge.get_range(&thread_info->interruption_requested,
+                                           Record<4>(min_ids),
+                                           Record<4>(max_ids));
     } else {
         min_ids[0] = transition.label.id;
         max_ids[0] = transition.label.id;
         min_ids[1] = current_state->object_id.id;
         max_ids[1] = current_state->object_id.id;
-        iter = type_from_to_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
+        iter = type_from_to_edge.get_range(&thread_info->interruption_requested,
+                                           Record<4>(min_ids),
+                                           Record<4>(max_ids));
     }
     bpt_searches++;
 }

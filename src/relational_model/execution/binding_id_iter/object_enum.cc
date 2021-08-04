@@ -1,11 +1,14 @@
 #include "object_enum.h"
 
+#include "base/exceptions.h"
+
 using namespace std;
 
-ObjectEnum::ObjectEnum(VarId var_id, const uint64_t mask, const uint64_t max_count) :
-    var_id    (var_id),
-    mask      (mask),
-    max_count (max_count) { }
+ObjectEnum::ObjectEnum(ThreadInfo* thread_info, VarId var_id, const uint64_t mask, const uint64_t max_count) :
+    thread_info (thread_info),
+    var_id      (var_id),
+    mask        (mask),
+    max_count   (max_count) { }
 
 
 void ObjectEnum::begin(BindingId& parent_binding) {
@@ -16,6 +19,9 @@ void ObjectEnum::begin(BindingId& parent_binding) {
 
 bool ObjectEnum::next() {
     if (current_node < max_count) {
+        if (__builtin_expect(!!(thread_info->interruption_requested), 0)) {
+            throw InterruptedException();
+        }
         current_node++;
         parent_binding->add(var_id, ObjectId(mask | current_node));
         results++;

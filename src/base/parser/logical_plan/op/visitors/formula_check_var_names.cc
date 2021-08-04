@@ -1,6 +1,6 @@
 #include "formula_check_var_names.h"
 
-#include "base/parser/logical_plan/exceptions.h"
+#include "base/exceptions.h"
 
 FormulaCheckVarNames::FormulaCheckVarNames(const std::set<std::string>& declared_var_names) :
     declared_var_names(declared_var_names) { }

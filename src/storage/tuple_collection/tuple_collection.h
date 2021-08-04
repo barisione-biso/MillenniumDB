@@ -62,7 +62,8 @@ class MergeOrderedTupleCollection {
 public:
     MergeOrderedTupleCollection(size_t tuple_size,
                                 const std::vector<VarId>& order_vars,
-                                const std::vector<bool>& ascending);
+                                const std::vector<bool>& ascending,
+                                bool* interruption_requested);
 
     void merge(uint64_t  left_start,
                uint64_t  left_end,
@@ -79,6 +80,7 @@ private:
     const size_t              tuple_size;
     const std::vector<VarId>& order_vars;
     const std::vector<bool>&  ascending;
+    bool const *              interruption_requested;
 };
 
 #endif // STORAGE__TUPLE_COLLECTION_H_

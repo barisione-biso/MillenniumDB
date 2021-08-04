@@ -94,19 +94,19 @@ QuadModel::~QuadModel() {
 }
 
 
-std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select) const {
+std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select, ThreadInfo* thread_info) const {
     set<Var> vars;
     op_select.get_vars(vars);
-    auto query_optimizer = BindingIterVisitor(*this, std::move(vars));
+    auto query_optimizer = BindingIterVisitor(*this, std::move(vars), thread_info);
     return query_optimizer.exec(op_select);
 }
 
 
-std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& manual_plan) const {
-    std::set<Var> var_names; // TODO: fill the set
-    auto query_optimizer = BindingIterVisitor(*this, var_names);
-    return query_optimizer.exec(manual_plan);
-}
+// std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& manual_plan) const {
+//     std::set<Var> var_names; // TODO: fill the set
+//     auto query_optimizer = BindingIterVisitor(*this, var_names);
+//     return query_optimizer.exec(manual_plan);
+// }
 
 
 GraphObject QuadModel::get_graph_object(ObjectId object_id) const {
@@ -208,10 +208,10 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) const {
 GraphObject QuadModel::get_property_value(GraphObject& obj, const ObjectId key) const {
     auto obj_id = get_object_id(obj);
 
-    auto it = object_key_value->get_range(
-        RecordFactory::get(obj_id.id, key.id, 0),
-        RecordFactory::get(obj_id.id, key.id, UINT64_MAX)
-    );
+    bool interruption_requested = false;
+    auto it = object_key_value->get_range(&interruption_requested,
+                                          RecordFactory::get(obj_id.id, key.id, 0),
+                                          RecordFactory::get(obj_id.id, key.id, UINT64_MAX));
 
     auto res = it->next();
     if (res != nullptr) {

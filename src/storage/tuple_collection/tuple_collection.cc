@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "base/exceptions.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_id.h"
 #include "storage/file_manager.h"
@@ -140,10 +141,12 @@ int TupleCollection::partition(int i, int f, std::vector<VarId>& order_vars, std
 
 MergeOrderedTupleCollection::MergeOrderedTupleCollection(size_t tuple_size,
                                                          const std::vector<VarId>& order_vars,
-                                                         const std::vector<bool>& ascending) :
-    tuple_size (tuple_size),
-    order_vars (order_vars),
-    ascending  (ascending) { }
+                                                         const std::vector<bool>& ascending,
+                                                         bool* interruption_requested) :
+    tuple_size             (tuple_size),
+    order_vars             (order_vars),
+    ascending              (ascending),
+    interruption_requested (interruption_requested) { }
 
 
 void MergeOrderedTupleCollection::merge(uint64_t left_start,
@@ -171,6 +174,9 @@ void MergeOrderedTupleCollection::merge(uint64_t left_start,
 
     while (open_left || open_right) {
         if (out_run->is_full()) {
+            if (__builtin_expect(!!(*interruption_requested), 0)) {
+                throw InterruptedException();
+            }
             out_page_counter++;
             out_run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(output_file_id, out_page_counter), tuple_size);
             out_run->reset();

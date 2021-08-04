@@ -173,7 +173,7 @@ uint64_t PropertyPlan::get_vars() {
  * ║8║      no      ║      no       ║        no        ║   KVO   ║
  * ╚═╩══════════════╩═══════════════╩══════════════════╩═════════╝
  */
-unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter() {
+unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter(ThreadInfo* thread_info) {
     array<unique_ptr<ScanRange>, 3> ranges;
 
     assert((key_assigned || !value_assigned) && "fixed values with open key is not supported");
@@ -182,17 +182,18 @@ unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter() {
         ranges[0] = ScanRange::get(object, object_assigned);
         ranges[1] = ScanRange::get(key, key_assigned);
         ranges[2] = ScanRange::get(value, value_assigned);
-        return make_unique<IndexScan<3>>(*model.object_key_value, move(ranges));
+        return make_unique<IndexScan<3>>(*model.object_key_value, thread_info, move(ranges));
     } else {
         ranges[0] = ScanRange::get(key, key_assigned);
         ranges[1] = ScanRange::get(value, value_assigned);
         ranges[2] = ScanRange::get(object, object_assigned);
-        return make_unique<IndexScan<3>>(*model.key_value_object, move(ranges));
+        return make_unique<IndexScan<3>>(*model.key_value_object, thread_info, move(ranges));
     }
 }
 
 
-unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const std::set<VarId>& assigned_vars,
+unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(ThreadInfo*            thread_info,
+                                                         const std::set<VarId>& assigned_vars,
                                                          const vector<VarId>&   var_order,
                                                          uint_fast32_t          enumeration_level)
 {
@@ -273,6 +274,7 @@ unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const std::set<VarId>& 
         assign(value_index, value);
 
         return make_unique<LeapfrogBptIter<3>>(
+            &thread_info->interruption_requested,
             *model.object_key_value,
             move(initial_ranges),
             move(intersection_vars),
@@ -286,6 +288,7 @@ unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(const std::set<VarId>& 
         assign(obj_index,   object);
 
         return make_unique<LeapfrogBptIter<3>>(
+            &thread_info->interruption_requested,
             *model.key_value_object,
             move(initial_ranges),
             move(intersection_vars),

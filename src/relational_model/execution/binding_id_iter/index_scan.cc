@@ -21,9 +21,10 @@ template class std::unique_ptr<IndexScan<3>>;
 template class std::unique_ptr<IndexScan<4>>;
 
 template <std::size_t N>
-IndexScan<N>::IndexScan(BPlusTree<N>& bpt, std::array<std::unique_ptr<ScanRange>, N> ranges) :
-    bpt    (bpt),
-    ranges (move(ranges)) { }
+IndexScan<N>::IndexScan(BPlusTree<N>& bpt, ThreadInfo* thread_info, std::array<std::unique_ptr<ScanRange>, N> ranges) :
+    bpt         (bpt),
+    thread_info (thread_info),
+    ranges      (move(ranges)) { }
 
 
 template <std::size_t N>
@@ -41,6 +42,7 @@ void IndexScan<N>::begin(BindingId& parent_binding) {
     }
 
     it = bpt.get_range(
+        &thread_info->interruption_requested,
         Record<N>(std::move(min_ids)),
         Record<N>(std::move(max_ids))
     );
@@ -75,6 +77,7 @@ void IndexScan<N>::reset() {
     }
 
     it = bpt.get_range(
+        &thread_info->interruption_requested,
         Record<N>(std::move(min_ids)),
         Record<N>(std::move(max_ids))
     );
@@ -83,7 +86,7 @@ void IndexScan<N>::reset() {
 
 
 template <std::size_t N>
-void IndexScan<N>::assign_nulls(){
+void IndexScan<N>::assign_nulls() {
     for (uint_fast32_t i = 0; i < N; ++i) {
         ranges[i]->try_assign(*parent_binding, ObjectId::get_null());
     }

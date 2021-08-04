@@ -31,9 +31,12 @@ using namespace std;
 
 constexpr auto MAX_SELINGER_PLANS = 0;
 
-BindingIdIterVisitor::BindingIdIterVisitor(const QuadModel& model, const map<Var, VarId>& var2var_id) :
-    model      (model),
-    var2var_id (var2var_id) { }
+BindingIdIterVisitor::BindingIdIterVisitor(const QuadModel& model,
+                                           const map<Var, VarId>& var2var_id,
+                                           ThreadInfo* thread_info) :
+    model       (model),
+    var2var_id  (var2var_id),
+    thread_info (thread_info) { }
 
 
 VarId BindingIdIterVisitor::get_var_id(const Var& var) {
@@ -57,7 +60,8 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
         } else {
             // search in nodes
             auto r = RecordFactory::get(term.id);
-            auto it = model.nodes->get_range(r, r);
+            bool interruption_requested = false;
+            auto it = model.nodes->get_range(&interruption_requested, r, r);
             if (it->next() == nullptr) {
                 tmp = make_unique<EmptyBindingIdIter>();
                 return;
@@ -210,7 +214,7 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
         root_plan->print(2, true, var_names);
         std::cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
 
-        tmp = root_plan->get_binding_id_iter();
+        tmp = root_plan->get_binding_id_iter(thread_info);
     }
 }
 
@@ -433,7 +437,7 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
     // Segunda pasada ahora si creando los LFIters
     vector<unique_ptr<LeapfrogIter>> leapfrog_iters;
     for (const auto& plan : base_plans) {
-        auto lf_iter = plan->get_leapfrog_iter(assigned_vars, var_order, enumeration_level);
+        auto lf_iter = plan->get_leapfrog_iter(thread_info, assigned_vars, var_order, enumeration_level);
         if (lf_iter == nullptr) {
             return nullptr;
         } else {

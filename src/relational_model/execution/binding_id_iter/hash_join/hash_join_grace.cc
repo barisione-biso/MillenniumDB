@@ -67,6 +67,7 @@ void HashJoinGrace::begin(BindingId& _parent_binding) {
 
 
 bool HashJoinGrace::next() {
+    // TODO: should check for interruption
     while (true) {
         switch (current_state)
         {

@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "base/parser/logical_plan/exceptions.h"
+#include "base/exceptions.h"
 #include "storage/file_manager.h"
 
 using namespace std;

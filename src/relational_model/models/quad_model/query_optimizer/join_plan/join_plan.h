@@ -9,6 +9,7 @@
 #include "base/binding/binding_id_iter.h"
 #include "base/ids/object_id.h"
 #include "base/ids/var_id.h"
+#include "base/thread/thread_info.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/assigned_var.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/term.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/unassigned_var.h"
@@ -40,9 +41,10 @@ public:
     virtual void set_input_vars(const uint64_t input_vars) = 0;
     virtual uint64_t get_vars() = 0;
 
-    virtual std::unique_ptr<BindingIdIter> get_binding_id_iter() = 0;
+    virtual std::unique_ptr<BindingIdIter> get_binding_id_iter(ThreadInfo* thread_info) = 0;
 
-    virtual std::unique_ptr<LeapfrogIter> get_leapfrog_iter(const std::set<VarId>&    assigned_vars,
+    virtual std::unique_ptr<LeapfrogIter> get_leapfrog_iter(ThreadInfo*               thread_info,
+                                                            const std::set<VarId>&    assigned_vars,
                                                             const std::vector<VarId>& local_var_order,
                                                             uint_fast32_t             enumeration_level) = 0;
     virtual std::unique_ptr<JoinPlan> duplicate() = 0;

@@ -75,7 +75,7 @@ void HashJoinInMemoryPlan::set_input_vars(uint64_t /*input_var_order*/) {
 }
 
 
-unique_ptr<BindingIdIter> HashJoinInMemoryPlan::get_binding_id_iter() {
+unique_ptr<BindingIdIter> HashJoinInMemoryPlan::get_binding_id_iter(ThreadInfo* thread_info) {
     auto common_vars_bitmap = lhs->get_vars() & rhs->get_vars();
     auto not_commons = ~common_vars_bitmap;
     auto left_vars_bitmap = lhs->get_vars() & not_commons;
@@ -98,8 +98,8 @@ unique_ptr<BindingIdIter> HashJoinInMemoryPlan::get_binding_id_iter() {
     }
 
     return make_unique<HashJoinInMemory>(
-        lhs->get_binding_id_iter(),
-        rhs->get_binding_id_iter(),
+        lhs->get_binding_id_iter(thread_info),
+        rhs->get_binding_id_iter(thread_info),
         move(left_vars),
         move(common_vars),
         move(right_vars));

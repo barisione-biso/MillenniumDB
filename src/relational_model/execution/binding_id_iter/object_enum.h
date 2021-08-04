@@ -6,9 +6,11 @@
 
 #include "base/binding/binding_id_iter.h"
 #include "base/ids/var_id.h"
+#include "base/thread/thread_info.h"
 
 class ObjectEnum : public BindingIdIter {
 private:
+    ThreadInfo* thread_info;
     const VarId var_id;
     const uint64_t mask;
     const uint64_t max_count;
@@ -18,7 +20,7 @@ private:
     BindingId* parent_binding;
 
 public:
-    ObjectEnum(VarId var_id, const uint64_t mask, const uint64_t max_count);
+    ObjectEnum(ThreadInfo*, VarId var_id, const uint64_t mask, const uint64_t max_count);
     ~ObjectEnum() = default;
 
     void analyze(int indent = 0) const override;

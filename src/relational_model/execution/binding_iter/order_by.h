@@ -9,6 +9,7 @@
 #include "base/graph/graph_model.h"
 #include "base/ids/var_id.h"
 #include "base/parser/logical_plan/var.h"
+#include "base/thread/thread_info.h"
 #include "relational_model/execution/binding/binding_order_by.h"
 #include "storage/file_id.h"
 #include "storage/tuple_collection/tuple_collection.h"
@@ -16,6 +17,7 @@
 class OrderBy : public BindingIter {
 public:
     OrderBy(const GraphModel& model,
+            ThreadInfo* thread_info,
             std::unique_ptr<BindingIter> child,
             std::size_t binding_size,
             std::vector<std::pair<Var, VarId>> order_vars,
@@ -29,6 +31,7 @@ public:
     void analyze(int indent = 0) const override;
 
 private:
+    ThreadInfo* thread_info;
     std::unique_ptr<BindingIter> child;
     std::vector<std::pair<Var, VarId>> order_vars;
     std::vector<bool> ascending;

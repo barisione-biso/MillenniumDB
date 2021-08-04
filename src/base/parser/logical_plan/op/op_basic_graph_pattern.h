@@ -4,8 +4,8 @@
 #include <set>
 #include <vector>
 
+#include "base/exceptions.h"
 #include "base/ids/node_id.h"
-#include "base/parser/logical_plan/exceptions.h"
 #include "base/parser/logical_plan/op/op_connection.h"
 #include "base/parser/logical_plan/op/op_label.h"
 #include "base/parser/logical_plan/op/op_property.h"

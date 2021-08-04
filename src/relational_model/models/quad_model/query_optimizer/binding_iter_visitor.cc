@@ -21,9 +21,10 @@
 
 using namespace std;
 
-BindingIterVisitor::BindingIterVisitor(const QuadModel& model, std::set<Var> vars) :
-    model      (model),
-    var2var_id (construct_var2var_id(vars)) { }
+BindingIterVisitor::BindingIterVisitor(const QuadModel& model, std::set<Var> vars, ThreadInfo* thread_info) :
+    model       (model),
+    var2var_id  (construct_var2var_id(vars)),
+    thread_info (thread_info) { }
 
 
 map<Var, VarId> BindingIterVisitor::construct_var2var_id(std::set<Var>& vars) {
@@ -53,10 +54,10 @@ std::unique_ptr<BindingIter> BindingIterVisitor::exec(OpSelect& op_select) {
 }
 
 
-std::unique_ptr<BindingIter> BindingIterVisitor::exec(manual_plan::ast::ManualRoot&) {
-    // TODO:
-    return nullptr;
-}
+// std::unique_ptr<BindingIter> BindingIterVisitor::exec(manual_plan::ast::ManualRoot&) {
+//     // TODO:
+//     return nullptr;
+// }
 
 
 void BindingIterVisitor::visit(OpSelect& op_select) {
@@ -107,17 +108,15 @@ void BindingIterVisitor::visit(OpFilter& op_filter) {
 
 
 void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
-    // TODO: do we need a op_graph_pattern_root.op->get_vars() ?
-
-    BindingIdIterVisitor id_visitor(model, var2var_id);
+    BindingIdIterVisitor id_visitor(model, var2var_id, thread_info);
     op_graph_pattern_root.op->accept_visitor(id_visitor);
 
     unique_ptr<BindingIdIter> binding_id_iter_current_root = move(id_visitor.tmp);
 
     const auto binding_size = var2var_id.size();
 
-    // TODO: Pass materialize = true or false in correct case
-    path_manager.begin(binding_size, false);
+    // TODO: set need_materialize_paths where needed
+    path_manager.begin(binding_size, need_materialize_paths);
 
     vector<unique_ptr<BindingIdIter>> optional_children;
 
@@ -133,7 +132,7 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
                 ScanRange::get(key_id, true),
                 ScanRange::get(value_var, false)
             };
-            auto index_scan = make_unique<IndexScan<3>>(*model.object_key_value, move(ranges));
+            auto index_scan = make_unique<IndexScan<3>>(*model.object_key_value, thread_info, move(ranges));
             optional_children.push_back(move(index_scan));
         }
     }
@@ -174,7 +173,7 @@ void BindingIterVisitor::visit(OpOrderBy& op_order_by) {
         order_vars.push_back(make_pair(var, var_id));
     }
     auto binding_size = var2var_id.size();
-    tmp = make_unique<OrderBy>(model, move(tmp), binding_size, order_vars, op_order_by.ascending_order);
+    tmp = make_unique<OrderBy>(model, thread_info, move(tmp), binding_size, order_vars, op_order_by.ascending_order);
 }
 
 

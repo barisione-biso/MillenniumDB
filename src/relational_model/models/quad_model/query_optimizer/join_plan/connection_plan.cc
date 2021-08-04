@@ -279,10 +279,10 @@ uint64_t ConnectionPlan::get_vars() {
  * ║9║      *       ║     *      ║      *        ║      yes        ║  table   ║
  * ╚═╩══════════════╩════════════╩═══════════════╩═════════════════╩══════════╝
  */
-unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
+unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(ThreadInfo* thread_info) {
 
     if (edge_assigned) {
-        return make_unique<EdgeTableLookup>(*model.edge_table, edge, from, to, type);
+        return make_unique<EdgeTableLookup>(*model.edge_table, thread_info, edge, from, to, type);
     }
     // check for special cases
     if (from == to) {
@@ -291,7 +291,7 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
             array<unique_ptr<ScanRange>, 2> ranges;
             ranges[0] = ScanRange::get(from, from_assigned);
             ranges[1] = ScanRange::get(edge, edge_assigned);
-            return make_unique<IndexScan<2>>(*model.equal_from_to_type, move(ranges));
+            return make_unique<IndexScan<2>>(*model.equal_from_to_type, thread_info, move(ranges));
         } else {
             // equal_from_to
             array<unique_ptr<ScanRange>, 3> ranges;
@@ -299,11 +299,11 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
             if (type_assigned) {
                 ranges[0] = ScanRange::get(type, type_assigned);
                 ranges[1] = ScanRange::get(from, from_assigned);
-                return make_unique<IndexScan<3>>(*model.equal_from_to_inverted, move(ranges));
+                return make_unique<IndexScan<3>>(*model.equal_from_to_inverted, thread_info, move(ranges));
             } else {
                 ranges[0] = ScanRange::get(from, from_assigned);
                 ranges[1] = ScanRange::get(type, type_assigned);
-                return make_unique<IndexScan<3>>(*model.equal_from_to, move(ranges));
+                return make_unique<IndexScan<3>>(*model.equal_from_to, thread_info, move(ranges));
             }
         }
     } else if (to == type) {
@@ -313,11 +313,11 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
         if (from_assigned) {
             ranges[0] = ScanRange::get(from, from_assigned);
             ranges[1] = ScanRange::get(to, to_assigned);
-            return make_unique<IndexScan<3>>(*model.equal_to_type_inverted, move(ranges));
+            return make_unique<IndexScan<3>>(*model.equal_to_type_inverted, thread_info, move(ranges));
         } else {
             ranges[0] = ScanRange::get(to, to_assigned);
             ranges[1] = ScanRange::get(from, from_assigned);
-            return make_unique<IndexScan<3>>(*model.equal_to_type, move(ranges));
+            return make_unique<IndexScan<3>>(*model.equal_to_type, thread_info, move(ranges));
         }
     } else if (from == type) {
         // equal_from_type
@@ -326,11 +326,11 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
         if (to_assigned) {
             ranges[0] = ScanRange::get(to, to_assigned);
             ranges[1] = ScanRange::get(from, from_assigned);
-            return make_unique<IndexScan<3>>(*model.equal_from_type_inverted, move(ranges));
+            return make_unique<IndexScan<3>>(*model.equal_from_type_inverted, thread_info, move(ranges));
         } else {
             ranges[0] = ScanRange::get(from, from_assigned);
             ranges[1] = ScanRange::get(to, to_assigned);
-            return make_unique<IndexScan<3>>(*model.equal_from_type, move(ranges));
+            return make_unique<IndexScan<3>>(*model.equal_from_type, thread_info, move(ranges));
         }
     } else {
         // No special case
@@ -344,14 +344,14 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
                 ranges[1] = ScanRange::get(from, from_assigned);
                 ranges[2] = ScanRange::get(to,   to_assigned);
 
-                return make_unique<IndexScan<4>>(*model.type_from_to_edge, move(ranges));
+                return make_unique<IndexScan<4>>(*model.type_from_to_edge, thread_info, move(ranges));
             } else { // CASES 2 and 4 => FTYE
                 // cout << "using from to type edge\n";
                 ranges[0] = ScanRange::get(from, from_assigned);
                 ranges[1] = ScanRange::get(to,   to_assigned);
                 ranges[2] = ScanRange::get(type, type_assigned);
 
-                return make_unique<IndexScan<4>>(*model.from_to_type_edge, move(ranges));
+                return make_unique<IndexScan<4>>(*model.from_to_type_edge, thread_info, move(ranges));
             }
         } else {
             if (to_assigned) { // CASES 5 and 6 => TYFE
@@ -360,21 +360,22 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter() {
                 ranges[1] = ScanRange::get(type, type_assigned);
                 ranges[2] = ScanRange::get(from, from_assigned);
 
-                return make_unique<IndexScan<4>>(*model.to_type_from_edge, move(ranges));
+                return make_unique<IndexScan<4>>(*model.to_type_from_edge, thread_info, move(ranges));
             } else { // CASES 7 and 8 => YFTE
                 // cout << "using type from to edge\n";
                 ranges[0] = ScanRange::get(type, type_assigned);
                 ranges[1] = ScanRange::get(from, from_assigned);
                 ranges[2] = ScanRange::get(to,   to_assigned);
 
-                return make_unique<IndexScan<4>>(*model.type_from_to_edge, move(ranges));
+                return make_unique<IndexScan<4>>(*model.type_from_to_edge, thread_info, move(ranges));
             }
         }
     }
 }
 
 
-unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(const std::set<VarId>& assigned_vars,
+unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*            thread_info,
+                                                           const std::set<VarId>& assigned_vars,
                                                            const vector<VarId>&   var_order,
                                                            uint_fast32_t          enumeration_level)
 {
@@ -459,11 +460,12 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(const std::set<VarId>
         }
     };
 
-    auto get_leapfrog_iter = [&initial_ranges, &enumeration_vars, &intersection_vars]
+    auto get_leapfrog_iter = [&thread_info, &initial_ranges, &enumeration_vars, &intersection_vars]
                              (BPlusTree<4>& bpt)
                              -> unique_ptr<LeapfrogIter>
     {
         return make_unique<LeapfrogBptIter<4>>(
+            &thread_info->interruption_requested,
             bpt,
             move(initial_ranges),
             move(intersection_vars),
@@ -536,6 +538,7 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(const std::set<VarId>
         }
 
         return make_unique<LeapfrogEdgeTableIter>(
+            &thread_info->interruption_requested,
             *model.edge_table,
             move(initial_ranges),
             move(intersection_vars),

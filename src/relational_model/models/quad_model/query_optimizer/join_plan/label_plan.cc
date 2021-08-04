@@ -135,21 +135,22 @@ uint64_t LabelPlan::get_vars() {
  * ║4║       no      ║       no        ║    LN   ║
  * ╚═╩═══════════════╩═════════════════╩═════════╝
  */
-unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter() {
+unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter(ThreadInfo* thread_info) {
     array<unique_ptr<ScanRange>, 2> ranges;
     if (node_assigned) {
         ranges[0] = ScanRange::get(node, node_assigned);
         ranges[1] = ScanRange::get(label, label_assigned);
-        return make_unique<IndexScan<2>>(*model.node_label, move(ranges));
+        return make_unique<IndexScan<2>>(*model.node_label, thread_info, move(ranges));
     } else {
         ranges[0] = ScanRange::get(label, label_assigned);
         ranges[1] = ScanRange::get(node, node_assigned);
-        return make_unique<IndexScan<2>>(*model.label_node, move(ranges));
+        return make_unique<IndexScan<2>>(*model.label_node, thread_info, move(ranges));
     }
 }
 
 
-unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(const std::set<VarId>& assigned_vars,
+unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(ThreadInfo*            thread_info,
+                                                      const std::set<VarId>& assigned_vars,
                                                       const vector<VarId>&   var_order,
                                                       uint_fast32_t          enumeration_level)
 {
@@ -214,6 +215,7 @@ unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(const std::set<VarId>& ass
         assign(label_index, label);
 
         return make_unique<LeapfrogBptIter<2>>(
+            &thread_info->interruption_requested,
             *model.node_label,
             move(initial_ranges),
             move(intersection_vars),
@@ -226,6 +228,7 @@ unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(const std::set<VarId>& ass
         assign(node_index,  node);
 
         return make_unique<LeapfrogBptIter<2>>(
+            &thread_info->interruption_requested,
             *model.label_node,
             move(initial_ranges),
             move(intersection_vars),

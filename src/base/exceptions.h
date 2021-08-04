@@ -4,6 +4,16 @@
 #include <stdexcept>
 #include <string>
 
+struct ConnectionException : public std::runtime_error {
+	ConnectionException(std::string msg)
+		: std::runtime_error(msg) { }
+};
+
+struct InterruptedException : public std::runtime_error {
+	InterruptedException()
+		: std::runtime_error("Interruption request received") { }
+};
+
 struct QueryException : public std::runtime_error {
 	QueryException(std::string msg)
 		: std::runtime_error(msg) { }
@@ -22,11 +32,6 @@ struct QuerySemanticException : public QueryException {
 struct NotSupportedException : public QueryException {
 	NotSupportedException(std::string operation)
 		: QueryException("Operation " + operation + " not supported yet.") { }
-};
-
-struct GraphDoesNotExist : public QueryException {
-	GraphDoesNotExist(std::string graph_name)
-		: QueryException("Graph '" + graph_name + "' does not exist.") { }
 };
 
 #endif // BASE__PARSING_EXCEPTIONS_H_

@@ -13,10 +13,12 @@
 using namespace std;
 
 OrderBy::OrderBy(const GraphModel& model,
+                 ThreadInfo* thread_info,
                  unique_ptr<BindingIter> child,
                  size_t binding_size,
                  vector<pair<Var, VarId>> order_vars,
                  vector<bool> ascending) :
+    thread_info    (thread_info),
     child          (move(child)),
     order_vars     (move(order_vars)),
     ascending      (move(ascending)),
@@ -95,7 +97,7 @@ void OrderBy::merge_sort(const std::vector<VarId>& order_var_ids) {
     uint_fast64_t middle;
     uint_fast64_t runs_to_merge = 1;
 
-    MergeOrderedTupleCollection merger(binding_size, order_var_ids, ascending);
+    MergeOrderedTupleCollection merger(binding_size, order_var_ids, ascending, &thread_info->interruption_requested);
 
     // output_file_id = &first_file_id;
     bool output_is_in_second = false;
@@ -120,7 +122,7 @@ void OrderBy::merge_sort(const std::vector<VarId>& order_var_ids) {
                 merger.merge(start_page, middle, middle + 1, end_page, *source_pointer, *dest_pointer);
             }
             start_page = end_page + 1;
-            middle = start_page +  (runs_to_merge / 2)  - 1;
+            middle = start_page + (runs_to_merge / 2) - 1;
             end_page += runs_to_merge;
             if (end_page >= total_pages) {
                 end_page = total_pages - 1;

@@ -13,11 +13,12 @@ template <std::size_t N> class OrderedFile;
 
 template <std::size_t N> class BptIter {
 public:
-    BptIter(SearchLeafResult<N>&& leaf_and_pos, const Record<N>& max) noexcept;
+    BptIter(bool* interruption_requested, SearchLeafResult<N>&& leaf_and_pos, const Record<N>& max) noexcept;
     ~BptIter() = default;
-    std::unique_ptr<Record<N>> next() noexcept;
+    std::unique_ptr<Record<N>> next();
 
 private:
+    bool* const interruption_requested;
     const Record<N> max;
     uint32_t current_pos;
     std::unique_ptr<BPlusTreeLeaf<N>> current_leaf;
@@ -43,7 +44,10 @@ public:
     // returns false if an error in the BPT is found
     bool check() const;
 
-    std::unique_ptr<BptIter<N>> get_range(const Record<N>& min, const Record<N>& max) const noexcept;
+    std::unique_ptr<BptIter<N>> get_range(bool* interruption_requested,
+                                          const Record<N>& min,
+                                          const Record<N>& max) const noexcept;
+
     std::unique_ptr<BPlusTreeDir<N>> get_root() const noexcept;
 
 private:

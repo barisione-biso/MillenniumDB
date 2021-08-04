@@ -12,11 +12,12 @@
 using namespace std;
 
 GroupBy::GroupBy(GraphModel& model,
+                 ThreadInfo* thread_info,
                  std::unique_ptr<BindingIter> child,
                  size_t binding_size,
                  vector<pair<Var, VarId>> _group_vars,
                  vector<bool> ascending) :
-    order_child    (OrderBy(model, move(child), binding_size, _group_vars, ascending)),
+    order_child    (OrderBy(model, thread_info, move(child), binding_size, _group_vars, ascending)),
     binding_size   (binding_size),
     group_vars     (move(_group_vars)),
     my_binding     (BindingGroupBy(model, group_vars, order_child.get_binding(), binding_size)),

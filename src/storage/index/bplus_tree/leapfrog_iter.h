@@ -16,6 +16,8 @@ class LeapfrogIter {
 public:
     virtual ~LeapfrogIter() = default;
 
+    bool* const interruption_requested;
+    
     virtual void up() { level--; }
     virtual void down() = 0;
     virtual bool open_terms(BindingId& input_binding) = 0;
@@ -36,22 +38,25 @@ protected:
 
     int_fast32_t level = -1; // can go from -1 to N-1
 
-    LeapfrogIter(std::vector<std::unique_ptr<ScanRange>> _initial_ranges,
+    LeapfrogIter(bool*                                   _interruption_requested,
+                 std::vector<std::unique_ptr<ScanRange>> _initial_ranges,
                  std::vector<VarId>                      _intersection_vars,
                  std::vector<VarId>                      _enumeration_vars) :
-        initial_ranges    (std::move(_initial_ranges)),
-        intersection_vars (std::move(_intersection_vars)),
-        enumeration_vars  (std::move(_enumeration_vars)) { }
+        interruption_requested (_interruption_requested),
+        initial_ranges         (std::move(_initial_ranges)),
+        intersection_vars      (std::move(_intersection_vars)),
+        enumeration_vars       (std::move(_enumeration_vars)) { }
 };
 
 
 template <std::size_t N>
 class LeapfrogBptIter : public LeapfrogIter {
 public:
-    LeapfrogBptIter(const BPlusTree<N>&                     btree,
-                     std::vector<std::unique_ptr<ScanRange>> initial_ranges,
-                     std::vector<VarId>                      intersection_vars,
-                     std::vector<VarId>                      enumeration_vars);
+    LeapfrogBptIter(bool*                                   interruption_requested,
+                    const BPlusTree<N>&                     btree,
+                    std::vector<std::unique_ptr<ScanRange>> initial_ranges,
+                    std::vector<VarId>                      intersection_vars,
+                    std::vector<VarId>                      enumeration_vars);
 
     ~LeapfrogBptIter() = default;
 
@@ -90,12 +95,16 @@ private:
 
 class LeapfrogEdgeTableIter : public LeapfrogIter {
 public:
-    LeapfrogEdgeTableIter(RandomAccessTable<3>&                   _edge_table,
+    LeapfrogEdgeTableIter(bool*                                   interruption_requested,
+                          RandomAccessTable<3>&                   _edge_table,
                           std::vector<std::unique_ptr<ScanRange>> _initial_ranges,
                           std::vector<VarId>                      _intersection_vars,
                           std::vector<VarId>                      _enumeration_vars,
                           std::array<uint_fast32_t, 3>            _permutation) :
-        LeapfrogIter (move(_initial_ranges), move(_intersection_vars), move(_enumeration_vars)),
+        LeapfrogIter (interruption_requested,
+                      move(_initial_ranges),
+                      move(_intersection_vars),
+                      move(_enumeration_vars)),
         edge_table   (_edge_table),
         permutation  (_permutation) { }
 

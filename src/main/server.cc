@@ -23,19 +23,25 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <queue>
 #include <memory>
+#include <mutex>
 #include <ostream>
+#include <random>
 #include <thread>
+#include <unordered_map>
 
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 
+#include "base/exceptions.h"
 #include "base/binding/binding.h"
 #include "base/binding/binding_iter.h"
 #include "base/graph/graph_model.h"
-#include "base/parser/logical_plan/exceptions.h"
+#include "base/exceptions.h"
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/query_parser.h"
+#include "base/thread/thread_key.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
@@ -44,6 +50,27 @@
 using namespace std;
 using boost::asio::ip::tcp;
 namespace po = boost::program_options;
+
+// For random generation
+std::uniform_int_distribution<uint64_t> random_uint64;
+std::random_device rd;
+std::mt19937_64 gen(rd());
+
+std::queue<ThreadKey> running_threads_queue;
+std::unordered_map<ThreadKey, ThreadInfo, ThreadKeyHasher> running_threads;
+std::mutex running_threads_mutex;
+
+std::chrono::seconds query_timeout;
+
+
+void finish_thread(const ThreadKey thread_key) {
+    std::lock_guard<std::mutex> guard(running_threads_mutex);
+    auto it = running_threads.find(thread_key);
+    if (it != running_threads.end()) {
+        running_threads.erase(it);
+    }
+}
+
 
 void execute_query(unique_ptr<BindingIter> binding_iter, std::ostream& os) {
     // prepare to start the execution
@@ -55,13 +82,11 @@ void execute_query(unique_ptr<BindingIter> binding_iter, std::ostream& os) {
 
     // get all results
     while (binding_iter->next()) {
-        // TODO: uncomment/comment to enable/disable printing results
         os << binding << endl;
         result_count++;
     }
 
-    auto end = chrono::system_clock::now();
-    chrono::duration<float, std::milli> duration = end - start;
+    chrono::duration<float, std::milli> duration = chrono::system_clock::now() - start;
 
     // print execution stats in server console
     cout << "\nPlan Executed:\n";
@@ -74,7 +99,7 @@ void execute_query(unique_ptr<BindingIter> binding_iter, std::ostream& os) {
 }
 
 
-void session(tcp::socket sock, GraphModel* model) {
+void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, GraphModel* model) {
     try {
         unsigned char query_size_b[db_server::BYTES_FOR_QUERY_LENGTH];
         boost::asio::read(sock, boost::asio::buffer(query_size_b, db_server::BYTES_FOR_QUERY_LENGTH));
@@ -88,6 +113,7 @@ void session(tcp::socket sock, GraphModel* model) {
         boost::asio::read(sock, boost::asio::buffer(query.data(), query_size));
         cout << "--------------------------\n";
         cout << " Query received:\n";
+        cout << "--------------------------\n";
         cout << query << "\n";
         cout << "--------------------------\n";
 
@@ -95,56 +121,136 @@ void session(tcp::socket sock, GraphModel* model) {
         tcp_buffer.begin(db_server::MessageType::plain_text);
         std::ostream os(&tcp_buffer);
 
+        // without this line ConnectionException won't be catched propertly
+        os.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+        unique_ptr<BindingIter> physical_plan;
+
         // start timer
         auto start = chrono::system_clock::now();
         try {
             auto logical_plan = QueryParser::get_query_plan(query);
-            auto physical_plan = model->exec(*logical_plan);
-
-            auto end = chrono::system_clock::now();
-            chrono::duration<float, std::milli> duration = end - start;
-            execute_query(move(physical_plan), os);
-            os << "Query Parser/Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
+            physical_plan = model->exec(*logical_plan, thread_info);
         }
-        catch (QueryParsingException& e) {
-            // Try with manual plan
-            try {
-                auto manual_plan = QueryParser::get_manual_plan(query);
-                auto physical_plan = model->exec(manual_plan);
-                auto end = chrono::system_clock::now();
-                chrono::duration<float, std::milli> duration = end - start;
-                os << "Manual Plan Optimizer time: " << std::to_string(duration.count()) << " ms.\n";
-                execute_query(move(physical_plan), os);
-            }
-            catch (QueryException& e) {
-                os << "(Manual Plan) Query Parsing Exception: " << e.what() << "\n";
-                tcp_buffer.set_error();
-            }
-        }
-        catch (QueryException& e) {
+        // catch (QueryParsingException& e) {
+        //     // Try with manual plan
+        //     try {
+        //         auto manual_plan = QueryParser::get_manual_plan(query);
+        //         physical_plan = model->exec(manual_plan);
+        //     }
+        //     catch (QueryException& e) {
+        //         os << "(Manual Plan) Query Parsing Exception: " << e.what() << "\n";
+        //         tcp_buffer.set_error();
+        //     }
+        // }
+        catch (const QueryException& e) {
             os << "Query Exception: " << e.what() << "\n";
             tcp_buffer.set_error();
+            finish_thread(thread_key);
+            return;
         }
-        tcp_buffer.end();
+        chrono::duration<float, std::milli> parser_duration = chrono::system_clock::now() - start;
+        try {
+            execute_query(move(physical_plan), os);
+        }
+        catch (const InterruptedException& e) {
+            std::cerr << "QueryInterrupted" << endl;
+            auto t = chrono::system_clock::now() - start;
+            os << "\nTimeout thrown after "
+               << std::chrono::duration_cast<std::chrono::milliseconds>(t).count()
+               << " milliseconds.\n";
+            os << "Query Parser/Optimizer time: " << parser_duration.count() << " ms.\n";
+            tcp_buffer.set_error();
+            finish_thread(thread_key);
+            return;
+        }
+        os << "Query Parser/Optimizer time: " << parser_duration.count() << " ms.\n";
     }
-    catch (std::exception& e) {
-        std::cerr << "Exception in thread: " << e.what() << "\n";
+    catch (const ConnectionException& e) {
+        std::cerr << "Lost connection with client: " << e.what() << endl;
+        finish_thread(thread_key);
+    }
+    catch (...) {
+        std::cerr << "Unknown exception." << endl;
+        finish_thread(thread_key);
+    }
+    finish_thread(thread_key);
+}
+
+
+void execute_timeouts() {
+    std::chrono::nanoseconds sleep_time;
+    while (true) {
+        bool should_sleep = false;
+        if (running_threads_queue.empty()) {
+            // cout << "running_threads_queue empty\n";
+            should_sleep = true;
+            sleep_time = query_timeout;
+        } else {
+            auto thread_key = running_threads_queue.front();
+            std::lock_guard<std::mutex> guard(running_threads_mutex);
+            auto it = running_threads.find(thread_key);
+            if (it == running_threads.end()) {
+                // if thread_key is not in running_threads, it means the thread already finished
+                running_threads_queue.pop();
+            } else {
+                auto now = chrono::system_clock::now();
+                if (it->second.timeout <= now) {
+                    it->second.interruption_requested = true;
+                    // cout << "Requested cancelation for thread (" << thread_key.timestamp << ", " << thread_key.salt << ")\n";
+                    // cout << "timeout: " << it->second.timeout.time_since_epoch().count() << ")\n";
+                    // cout << "now:     " << now.time_since_epoch().count() << ")\n";
+                    running_threads_queue.pop();
+                }
+                else {
+                    // can't sleep here because the mutex is active
+                    // cout << "Not canceling\n";
+                    auto remaining = it->second.timeout - now;
+                    // cout << "timeout:   " << it->second.timeout.time_since_epoch().count() << ")\n";
+                    // cout << "now:       " << now.time_since_epoch().count() << ")\n";
+                    // cout << "remaining: " << std::chrono::duration_cast<std::chrono::milliseconds>(remaining).count() << "ms.\n";
+                    should_sleep = true;
+                    sleep_time = remaining;
+                }
+            }
+        }
+        if (should_sleep) {
+            // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            std::this_thread::sleep_for(sleep_time);
+        }
     }
 }
 
 
-void server(boost::asio::io_service& io_service, unsigned short port, GraphModel* model) {
-    tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), port));
+void server(boost::asio::io_context& io_context, unsigned short port, GraphModel* model) {
+    std::thread(execute_timeouts).detach();
+
+    tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
     cout << "Server running." << endl;
     while (true) {
-        tcp::socket sock(io_service);
-        a.accept(sock);
-        std::thread(session, std::move(sock), model).detach();
+        tcp::socket sock(io_context);
+        acceptor.accept(sock);
+
+        auto now = chrono::system_clock::now();
+
+        auto timeout = now + query_timeout;
+        uint64_t timestamp = now.time_since_epoch().count();
+        uint64_t rand = random_uint64(gen);
+
+        ThreadKey thread_key(timestamp, rand);
+        ThreadInfo thread_info(timeout);
+
+        // cout << "Created new thread (" << timestamp << ", " << rand << ")\n";
+
+        running_threads_queue.push(thread_key);
+        auto insertion = running_threads.insert({thread_key, thread_info});
+        std::thread(session, thread_key, &insertion.first->second, std::move(sock), model).detach();
     }
 }
 
 
 int main(int argc, char **argv) {
+    int seconds_timeout;
     int port;
     int shared_buffer_size;
     int private_buffer_size;
@@ -159,11 +265,12 @@ int main(int argc, char **argv) {
             ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
             ("buffer-size,b", po::value<int>(&shared_buffer_size)->default_value(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE),
                 "set shared buffer pool size")
-            ("private-buffer-size,r", po::value<int>(&private_buffer_size)->default_value(BufferManager::DEFAULT_PRIVATE_BUFFER_POOL_SIZE),
+            ("private-buffer-size,", po::value<int>(&private_buffer_size)->default_value(BufferManager::DEFAULT_PRIVATE_BUFFER_POOL_SIZE),
                 "set private buffer pool size for each thread")
-            ("max-threads,t", po::value<int>(&max_threads)->default_value(8),
+            ("max-threads,", po::value<int>(&max_threads)->default_value(8),
                 "set max threads")
             ("port,p", po::value<int>(&port)->default_value(db_server::DEFAULT_PORT), "database server port")
+            ("timeout", po::value<int>(&seconds_timeout)->default_value(60), "timeout (in seconds)")
         ;
 
         po::positional_options_description p;
@@ -185,13 +292,18 @@ int main(int argc, char **argv) {
             return 1;
         }
 
+        if (seconds_timeout < 0) {
+            cerr << "Timeout cannot be a negative number.\n";
+            return 1;
+        }
+
         if (shared_buffer_size < 0) {
             cerr << "Buffer size cannot be a negative number.\n";
             return 1;
         }
 
         if (private_buffer_size < 0) {
-            cerr << "Buffer size cannot be a negative number.\n";
+            cerr << "Private buffer size cannot be a negative number.\n";
             return 1;
         }
 
@@ -201,10 +313,11 @@ int main(int argc, char **argv) {
         cout << "Initializing server...\n";
         model.catalog().print();
 
-        boost::asio::io_service io_service;
-        boost::asio::deadline_timer t(io_service, boost::posix_time::seconds(5));
+        query_timeout = std::chrono::seconds(seconds_timeout);
+        boost::asio::io_context io_context;
+        boost::asio::deadline_timer t(io_context, boost::posix_time::seconds(5));
 
-        server(io_service, port, &model);
+        server(io_context, port, &model);
     }
     catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";

@@ -1,6 +1,6 @@
 #include "path_constructor.h"
 
-#include "base/parser/logical_plan/exceptions.h"
+#include "base/exceptions.h"
 #include "base/parser/logical_plan/op/op_path_alternatives.h"
 #include "base/parser/logical_plan/op/op_path_atom.h"
 #include "base/parser/logical_plan/op/op_path_sequence.h"

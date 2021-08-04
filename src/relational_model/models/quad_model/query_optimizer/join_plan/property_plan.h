@@ -22,9 +22,10 @@ public:
     void set_input_vars(const uint64_t input_vars) override;
     uint64_t get_vars() override;
 
-    std::unique_ptr<BindingIdIter> get_binding_id_iter() override;
+    std::unique_ptr<BindingIdIter> get_binding_id_iter(ThreadInfo*) override;
 
-    std::unique_ptr<LeapfrogIter> get_leapfrog_iter(const std::set<VarId>&    assigned_vars,
+    std::unique_ptr<LeapfrogIter> get_leapfrog_iter(ThreadInfo*               thread_info,
+                                                    const std::set<VarId>&    assigned_vars,
                                                     const std::vector<VarId>& var_order,
                                                     uint_fast32_t             enumeration_level) override;
 

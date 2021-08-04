@@ -14,6 +14,7 @@
 #include "base/parser/logical_plan/var.h"
 #include "base/parser/grammar/query/query_ast.h"
 #include "base/parser/grammar/manual_plan/manual_plan_ast.h"
+#include "base/thread/thread_info.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "relational_model/execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "relational_model/execution/binding_id_iter/index_scan.h"
@@ -24,13 +25,16 @@ public:
     const std::map<Var, VarId> var2var_id;
     std::unique_ptr<BindingIter> tmp;
     std::vector<query::ast::SelectItem> select_items;
-    bool distinct_into_id = false;
+    ThreadInfo* thread_info;
 
-    BindingIterVisitor(const QuadModel& model, std::set<Var> var_names);
+    bool distinct_into_id = false;
+    bool need_materialize_paths = false;
+
+    BindingIterVisitor(const QuadModel& model, std::set<Var> var_names, ThreadInfo* thread_info);
     ~BindingIterVisitor() = default;
 
     std::unique_ptr<BindingIter> exec(OpSelect&);
-    std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&);
+    // std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&);
 
     VarId get_var_id(const Var& var_name) const;
     static std::map<Var, VarId> construct_var2var_id(std::set<Var>& var_names);

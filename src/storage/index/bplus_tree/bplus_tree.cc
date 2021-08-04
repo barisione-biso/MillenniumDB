@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "base/exceptions.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 #include "storage/index/ordered_file/ordered_file.h"
@@ -63,9 +64,11 @@ void BPlusTree<N>::bulk_import(OrderedFile<N>& leaf_provider) {
 
 
 template <std::size_t N>
-unique_ptr<BptIter<N>> BPlusTree<N>::get_range(const Record<N>& min, const Record<N>& max) const noexcept {
+unique_ptr<BptIter<N>> BPlusTree<N>::get_range(bool* interruption_requested,
+                                               const Record<N>& min,
+                                               const Record<N>& max) const noexcept {
     auto leaf_and_pos = root.search_leaf(min);
-    return make_unique<BptIter<N>>(std::move(leaf_and_pos), max);
+    return make_unique<BptIter<N>>(interruption_requested, std::move(leaf_and_pos), max);
 }
 
 
@@ -97,16 +100,22 @@ bool BPlusTree<N>::check() const {
 
 /******************************* BptIter ********************************/
 template <std::size_t N>
-BptIter<N>::BptIter(SearchLeafResult<N>&& leaf_and_pos, const Record<N>& max) noexcept :
-    max          (max),
-    current_pos  (leaf_and_pos.result_index),
-    current_leaf (move(leaf_and_pos.leaf))
+BptIter<N>::BptIter(bool* interruption_requested,
+                   SearchLeafResult<N>&& leaf_and_pos,
+                   const Record<N>& max) noexcept :
+    interruption_requested (interruption_requested),
+    max                    (max),
+    current_pos            (leaf_and_pos.result_index),
+    current_leaf           (move(leaf_and_pos.leaf))
 { }
 
 
 template <std::size_t N>
-unique_ptr<Record<N>> BptIter<N>::next() noexcept {
-    do {
+unique_ptr<Record<N>> BptIter<N>::next() {
+    while (true) {
+        if (__builtin_expect(!!(*interruption_requested), 0)) {
+            throw InterruptedException();
+        }
         if (current_pos < current_leaf->get_value_count()) {
             unique_ptr<Record<N>> res = current_leaf->get_record(current_pos);
             // check if res is less than max
@@ -131,5 +140,5 @@ unique_ptr<Record<N>> BptIter<N>::next() noexcept {
         else {
             return nullptr;
         }
-    } while (true);
+    }
 }

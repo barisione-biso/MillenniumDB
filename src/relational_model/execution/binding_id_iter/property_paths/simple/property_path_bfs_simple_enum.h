@@ -57,9 +57,9 @@ Elements of the class are:
         search range in the connections B+tree
 
     - visited:
-        the set of visited SearchState elements 
+        the set of visited SearchState elements
         (i.e. pairs (nodeID,automatonState) already used in our search)
-    - open: 
+    - open:
         the queue of SearchState elements we are currently exploring
 
     - results_found: for statistics
@@ -107,6 +107,7 @@ class PropertyPathBFSSimpleEnum : public BindingIdIter {
 
 private:
     // Attributes determined in the constuctor
+    ThreadInfo*   thread_info;
     BPlusTree<1>& nodes;
     BPlusTree<4>& type_from_to_edge;  // Used to search foward
     BPlusTree<4>& to_type_from_edge;  // Used to search backward
@@ -135,7 +136,8 @@ private:
     std::unique_ptr<BptIter<4>> set_iter(const TransitionId& transition, const SearchState& current_state);
 
 public:
-    PropertyPathBFSSimpleEnum(BPlusTree<1>& nodes,
+    PropertyPathBFSSimpleEnum(ThreadInfo*   thread_info,
+                              BPlusTree<1>& nodes,
                               BPlusTree<4>& type_from_to_edge,
                               BPlusTree<4>& to_type_from_edge,
                               VarId         path_var,

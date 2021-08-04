@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "base/exceptions.h"
 #include "storage/index/tuple_buffer/tuple_buffer.h"
 
 using namespace std;
@@ -68,6 +69,9 @@ void LeapfrogJoin::begin(BindingId& _parent_binding) {
 bool LeapfrogJoin::next() {
     // cout << "next called\n";
     // cout << "level: " << level << "\n";
+    if (__builtin_expect(!!(*leapfrog_iters[0]->interruption_requested), 0)) {
+        throw InterruptedException();
+    }
 
     while (level >= 0) {
         while (level < enumeration_level) {
@@ -197,6 +201,9 @@ bool LeapfrogJoin::find_intersection_for_current_level() {
     // cout << "max: " << max << "\n";
 
     while (min != max) { // min = max means all are equal
+        if (__builtin_expect(!!(*leapfrog_iters[0]->interruption_requested), 0)) {
+            throw InterruptedException();
+        }
         if (iters_for_var[level][p]->seek(max)) {
             // after the seek, the previous min is the max
             max = iters_for_var[level][p]->get_key();

@@ -1,6 +1,5 @@
 #include "unjoint_object_plan.h"
 
-#include "relational_model/execution/binding_id_iter/node_table_enum.h"
 #include "relational_model/execution/binding_id_iter/object_enum.h"
 #include "relational_model/execution/binding_id_iter/union.h"
 #include "relational_model/execution/binding_id_iter/index_scan.h"
@@ -58,18 +57,25 @@ void UnjointObjectPlan::set_input_vars(uint64_t) {
 }
 
 
-unique_ptr<BindingIdIter> UnjointObjectPlan::get_binding_id_iter() {
+unique_ptr<BindingIdIter> UnjointObjectPlan::get_binding_id_iter(ThreadInfo* thread_info) {
     vector<unique_ptr<BindingIdIter>> iters;
     array<unique_ptr<ScanRange>, 1> ranges;
     ranges[0] = make_unique<UnassignedVar>(object_var_id);
     iters.push_back(
-        make_unique<IndexScan<1>>(*model.nodes, move(ranges))
-    );
+        make_unique<IndexScan<1>>(*model.nodes,
+                                  thread_info,
+                                  move(ranges)));
+
     iters.push_back(
-        make_unique<ObjectEnum>(object_var_id, QuadModel::ANONYMOUS_NODE_MASK, model.catalog().anonymous_nodes_count)
-    );
+        make_unique<ObjectEnum>(thread_info,
+                                object_var_id,
+                                QuadModel::ANONYMOUS_NODE_MASK,
+                                model.catalog().anonymous_nodes_count));
+
     iters.push_back(
-        make_unique<ObjectEnum>(object_var_id, QuadModel::CONNECTION_MASK, model.catalog().connections_count)
-    );
+        make_unique<ObjectEnum>(thread_info,
+                                object_var_id,
+                                QuadModel::CONNECTION_MASK,
+                                model.catalog().connections_count));
     return make_unique<Union>(move(iters));
 }

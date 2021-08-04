@@ -14,6 +14,7 @@
 #include "base/parser/grammar/query/query_ast.h"
 #include "base/parser/logical_plan/var.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
+#include "base/thread/thread_info.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "relational_model/models/quad_model/query_optimizer/join_plan/join_plan.h"
 
@@ -21,7 +22,7 @@ class BindingIdIter;
 
 class BindingIdIterVisitor : public OpVisitor {
 public:
-    BindingIdIterVisitor(const QuadModel& model, const std::map<Var, VarId>& var2var_id);
+    BindingIdIterVisitor(const QuadModel& model, const std::map<Var, VarId>& var2var_id, ThreadInfo* thread_info);
     ~BindingIdIterVisitor() = default;
 
     std::unique_ptr<BindingIdIter> exec(OpSelect&);
@@ -31,6 +32,7 @@ public:
     std::vector<query::ast::SelectItem> select_items;
     const std::map<Var, VarId>& var2var_id;
     std::set<VarId> assigned_vars;
+    ThreadInfo* thread_info;
     std::unique_ptr<BindingIdIter> tmp;
 
     VarId get_var_id(const Var& var);

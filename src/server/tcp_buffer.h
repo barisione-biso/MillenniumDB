@@ -8,14 +8,14 @@
 
 using boost::asio::ip::tcp;
 
-class TcpBuffer : public std::stringbuf  {
+class TcpBuffer : public std::stringbuf {
 public:
     TcpBuffer(tcp::socket& sock);
     ~TcpBuffer();
 
     void begin(db_server::MessageType msg_type);
     void set_error();
-    void end();
+    // void end();
 
 protected:
     int overflow(int c) override;

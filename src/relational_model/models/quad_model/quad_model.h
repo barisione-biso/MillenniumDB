@@ -44,8 +44,8 @@ public:
               uint_fast32_t max_threads);
     ~QuadModel();
 
-    std::unique_ptr<BindingIter> exec(OpSelect&) const override;
-    std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&) const override;
+    std::unique_ptr<BindingIter> exec(OpSelect&, ThreadInfo*) const override;
+    // std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&) const override;
 
     ObjectId get_object_id(const GraphObject&) const override;
 

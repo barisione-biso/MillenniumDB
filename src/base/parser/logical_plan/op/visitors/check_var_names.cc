@@ -1,6 +1,6 @@
 #include "check_var_names.h"
 
-#include "base/parser/logical_plan/exceptions.h"
+#include "base/exceptions.h"
 #include "base/parser/logical_plan/op/op_distinct.h"
 #include "base/parser/logical_plan/op/op_filter.h"
 #include "base/parser/logical_plan/op/op_graph_pattern_root.h"

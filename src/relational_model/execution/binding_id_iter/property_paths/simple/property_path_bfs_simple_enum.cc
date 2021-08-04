@@ -67,13 +67,15 @@ conforming to a* matches a path between Q1 and Q1).
 
 using namespace std;
 
-PropertyPathBFSSimpleEnum::PropertyPathBFSSimpleEnum(BPlusTree<1>& _nodes,
+PropertyPathBFSSimpleEnum::PropertyPathBFSSimpleEnum(ThreadInfo*   _thread_info,
+                                                     BPlusTree<1>& _nodes,
                                                      BPlusTree<4>& _type_from_to_edge,
                                                      BPlusTree<4>& _to_type_from_edge,
                                                      VarId         _path_var,
                                                      Id            _start,
                                                      VarId         _end,
                                                      PathAutomaton _automaton) :
+    thread_info       (_thread_info),
     nodes             (_nodes),
     type_from_to_edge (_type_from_to_edge),
     to_type_from_edge (_to_type_from_edge),
@@ -142,7 +144,8 @@ bool PropertyPathBFSSimpleEnum::next() {
         }
         if (is_first) {
             is_first = false;
-            auto start_node_iter = nodes.get_range(Record<1>({current_state.object_id.id}),
+            auto start_node_iter = nodes.get_range(&thread_info->interruption_requested,
+                                                   Record<1>({current_state.object_id.id}),
                                                    Record<1>({current_state.object_id.id}));
 
             // Return false if node does not exists in bd
@@ -190,13 +193,17 @@ unique_ptr<BptIter<4>>  PropertyPathBFSSimpleEnum::set_iter(
         max_ids[0] = current_state.object_id.id;
         min_ids[1] = transition.label.id;
         max_ids[1] = transition.label.id;
-        iter = to_type_from_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
+        iter = to_type_from_edge.get_range(&thread_info->interruption_requested,
+                                           Record<4>(min_ids),
+                                           Record<4>(max_ids));
     } else {
         min_ids[0] = transition.label.id;
         max_ids[0] = transition.label.id;
         min_ids[1] = current_state.object_id.id;
         max_ids[1] = current_state.object_id.id;
-        iter = type_from_to_edge.get_range(Record<4>(min_ids), Record<4>(max_ids));
+        iter = type_from_to_edge.get_range(&thread_info->interruption_requested,
+                                           Record<4>(min_ids),
+                                           Record<4>(max_ids));
     }
     bpt_searches++;
     return iter;

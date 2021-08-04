@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 
+#include "base/exceptions.h"
 #include "storage/buffer_manager.h"
 
 template class LeapfrogBptIter<2>;
@@ -12,11 +13,13 @@ template class LeapfrogBptIter<4>;
 using namespace std;
 
 template <size_t N>
-LeapfrogBptIter<N>::LeapfrogBptIter(const BPlusTree<N>&           btree,
+LeapfrogBptIter<N>::LeapfrogBptIter(bool*                         interruption_requested,
+                                    const BPlusTree<N>&           btree,
                                     vector<unique_ptr<ScanRange>> _initial_ranges,
                                     vector<VarId>                 _intersection_vars,
                                     vector<VarId>                 _enumeration_vars) :
-    LeapfrogIter (move(_initial_ranges),
+    LeapfrogIter (interruption_requested,
+                  move(_initial_ranges),
                   move(_intersection_vars),
                   move(_enumeration_vars))
 {
@@ -198,8 +201,10 @@ void LeapfrogBptIter<N>::enum_no_intersection(TupleBuffer& buffer) {
         max[i] = UINT64_MAX;
     }
 
-    BptIter it = BptIter(SearchLeafResult<N>(current_leaf->duplicate(), current_pos_in_leaf),
-                         Record<N>(max));
+    BptIter it(interruption_requested,
+               SearchLeafResult<N>(current_leaf->duplicate(), current_pos_in_leaf),
+               Record<N>(max));
+
     auto record = it.next();
     while (record != nullptr) {
         vector<ObjectId> tuple;

@@ -2,14 +2,21 @@
 
 #include <cassert>
 
+#include "base/exceptions.h"
 #include "relational_model/models/quad_model/quad_model.h"
 
-EdgeTableLookup::EdgeTableLookup(RandomAccessTable<3>& table, VarId edge, Id from, Id to, Id type) :
-    table (table),
-    edge  (edge),
-    from  (from),
-    to    (to),
-    type  (type) { }
+EdgeTableLookup::EdgeTableLookup(RandomAccessTable<3>& table,
+                                 ThreadInfo* thread_info,
+                                 VarId edge,
+                                 Id from,
+                                 Id to,
+                                 Id type) :
+    table       (table),
+    thread_info (thread_info),
+    edge        (edge),
+    from        (from),
+    to          (to),
+    type        (type) { }
 
 
 void EdgeTableLookup::analyze(int indent) const {
@@ -30,6 +37,9 @@ bool EdgeTableLookup::next() {
     if (already_looked) {
         return false;
     } else {
+        if (__builtin_expect(!!(thread_info->interruption_requested), 0)) {
+            throw InterruptedException();
+        }
         already_looked = true;
         ++lookups;
 

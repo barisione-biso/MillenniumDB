@@ -27,7 +27,7 @@ void HashJoinInMemory::begin(BindingId& _parent_binding) {
 
     current_key = std::vector<ObjectId>(common_vars.size());
     current_value = std::vector<ObjectId>(left_vars.size());
-    while (lhs->next()){
+    while (lhs->next()) {
         // save left keys and value
         for (size_t i = 0; i < common_vars.size(); i++) {
             current_key[i] = (*parent_binding)[common_vars[i]];

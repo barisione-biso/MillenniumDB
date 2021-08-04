@@ -8,6 +8,7 @@
 #include "base/binding/binding_id.h"
 #include "base/graph/graph_model.h"
 #include "base/ids/var_id.h"
+#include "base/thread/thread_info.h"
 #include "relational_model/execution/binding_iter/order_by.h"
 #include "relational_model/execution/binding/binding_group_by.h"
 #include "storage/file_id.h"
@@ -16,6 +17,7 @@
 class GroupBy : public BindingIter {
 public:
     GroupBy(GraphModel& model,
+            ThreadInfo* thread_info,
             std::unique_ptr<BindingIter> child,
             std::size_t binding_size,
             std::vector<std::pair<Var,VarId>> _group_vars,
