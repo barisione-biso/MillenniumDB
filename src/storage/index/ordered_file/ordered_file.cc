@@ -60,7 +60,7 @@ void OrderedFile<N>::copy_to_bpt_leaf(BPlusTreeLeaf<N>& leaf, uint_fast32_t page
     std::memcpy(
         leaf.get_page().get_bytes(),
         ordered_file_page.get_page().get_bytes(),
-        Page::PAGE_SIZE
+        Page::MDB_PAGE_SIZE
     );
 }
 

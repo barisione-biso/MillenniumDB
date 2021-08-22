@@ -84,11 +84,11 @@ private:
     FileManager(const std::string& db_folder);
 
     // write the data pointed by `bytes` page represented by `page_id` to disk.
-    // `bytes` must point to the start memory position of `Page::PAGE_SIZE` allocated bytes
+    // `bytes` must point to the start memory position of `Page::MDB_PAGE_SIZE` allocated bytes
     void flush(PageId page_id, char* bytes) const;
 
     // read a page from disk into memory pointed by `bytes`.
-    // `bytes` must point to the start memory position of `Page::PAGE_SIZE` allocated bytes
+    // `bytes` must point to the start memory position of `Page::MDB_PAGE_SIZE` allocated bytes
     void read_page(PageId page_id, char* bytes) const;
 
     inline const std::string get_file_path(const std::string& filename) const noexcept {

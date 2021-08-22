@@ -11,7 +11,7 @@ public:
     static constexpr auto MAX_RECORDS = BPlusTree<N>::leaf_max_records;
 
     static_assert(
-        MAX_RECORDS*N*sizeof(uint64_t) + sizeof(uint32_t) + sizeof(uint32_t) <= Page::PAGE_SIZE
+        MAX_RECORDS*N*sizeof(uint64_t) + sizeof(uint32_t) + sizeof(uint32_t) <= Page::MDB_PAGE_SIZE
     );
 
     OrderedFilePage(Page& page) noexcept;

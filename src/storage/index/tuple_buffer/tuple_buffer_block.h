@@ -29,7 +29,7 @@ public:
         if (tuple_size == 0) {
             return UINT32_MAX;
         } else {
-            const auto bytes_avalilables = Page::PAGE_SIZE - sizeof(*tuple_count);
+            const auto bytes_avalilables = Page::MDB_PAGE_SIZE - sizeof(*tuple_count);
             return bytes_avalilables / (tuple_size * sizeof(uint64_t));
         }
     }

@@ -11,7 +11,7 @@
 // N is the columns of the table
 template <std::size_t N> class RandomAccessTableBlock {
 public:
-    static constexpr auto max_records = (Page::PAGE_SIZE - sizeof(uint32_t)) / (sizeof(uint64_t) * N);
+    static constexpr auto max_records = (Page::MDB_PAGE_SIZE - sizeof(uint32_t)) / (sizeof(uint64_t) * N);
 
     RandomAccessTableBlock(Page& page);
     ~RandomAccessTableBlock();

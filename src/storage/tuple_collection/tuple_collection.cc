@@ -16,7 +16,7 @@ TupleCollection::TupleCollection(Page& page, const size_t tuple_size) :
     page        (page),
     tuple_size  (tuple_size),
     tuples      (reinterpret_cast<GraphObject*>(page.get_bytes())),
-    tuple_count (reinterpret_cast<uint64_t*>(page.get_bytes() + Page::PAGE_SIZE - sizeof(uint64_t)))
+    tuple_count (reinterpret_cast<uint64_t*>(page.get_bytes() + Page::MDB_PAGE_SIZE - sizeof(uint64_t)))
     { }
 
 

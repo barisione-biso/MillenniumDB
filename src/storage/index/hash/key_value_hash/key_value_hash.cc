@@ -17,7 +17,7 @@ template <class K, class V>
 KeyValueHash<K, V>::KeyValueHash(std::size_t key_size, std::size_t value_size) :
     key_size        (key_size),
     value_size      (value_size),
-    max_tuples      ( (Page::PAGE_SIZE - sizeof(uint64_t)) / (key_size*sizeof(K) + value_size*sizeof(V)) ),
+    max_tuples      ( (Page::MDB_PAGE_SIZE - sizeof(uint64_t)) / (key_size*sizeof(K) + value_size*sizeof(V)) ),
     buckets_file    ( file_manager.get_tmp_file_id())
     { }
 
@@ -296,12 +296,12 @@ void KeyValueHash<K, V>::split() {
 
 
 template <class K, class V>
-uint64_t KeyValueHash<K, V>::get_bucket(const std::vector<K>& key) const {
+uint_fast32_t KeyValueHash<K, V>::get_bucket(const std::vector<K>& key) const {
     assert(key.size() == key_size);
 
     uint64_t hash_ = hash_function_wrapper(key.data(), key_size);
     uint64_t mask = (1 << depth) - 1;
-    uint64_t bucket_number = hash_ & mask;  // suffix = bucket_number in this case
+    uint_fast32_t bucket_number = hash_ & mask;  // suffix = bucket_number in this case
     return bucket_number;
 }
 

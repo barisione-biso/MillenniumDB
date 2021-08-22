@@ -22,8 +22,8 @@ BufferManager::BufferManager(uint_fast32_t shared_buffer_pool_size,
     max_private_buffers       (max_threads),
     buffer_pool               (new Page[shared_buffer_pool_size]),
     private_buffer_pool       (new Page[private_buffer_pool_size * max_private_buffers]),
-    bytes                     (new char[shared_buffer_pool_size * Page::PAGE_SIZE]),
-    private_bytes             (new char[private_buffer_pool_size * max_private_buffers * Page::PAGE_SIZE]),
+    bytes                     (new char[shared_buffer_pool_size * Page::MDB_PAGE_SIZE]),
+    private_bytes             (new char[private_buffer_pool_size * max_private_buffers * Page::MDB_PAGE_SIZE]),
     clock_pos                 (0)
 {
     for (uint_fast32_t i=0; i < max_private_buffers; i++) {
@@ -118,7 +118,7 @@ Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcep
             auto old_page_id = buffer_pool[buffer_available].page_id;
             pages.erase(old_page_id);
         }
-        buffer_pool[buffer_available] = Page(page_id, &bytes[buffer_available*Page::PAGE_SIZE]);
+        buffer_pool[buffer_available] = Page(page_id, &bytes[buffer_available*Page::MDB_PAGE_SIZE]);
 
         file_manager.read_page(page_id, buffer_pool[buffer_available].get_bytes());
         pages.insert(pair<PageId, int>(page_id, buffer_available));
@@ -143,7 +143,7 @@ Page& BufferManager::get_tmp_page(TmpFileId tmp_file_id, uint_fast32_t page_numb
             private_tmp_pages[thread_pos].erase(page.page_id);
         }
         page = Page(page_id,
-                    &private_bytes[Page::PAGE_SIZE * ((thread_pos * private_buffer_pool_size) + buffer_available)]
+                    &private_bytes[Page::MDB_PAGE_SIZE * ((thread_pos * private_buffer_pool_size) + buffer_available)]
         );
         file_manager.read_page(page_id, page.get_bytes());
         private_tmp_pages[thread_pos].insert(pair<PageId, int>(page_id, buffer_available));

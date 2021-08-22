@@ -420,7 +420,7 @@ bool BPlusTreeDir<N>::check_range(const Record<N>& r) const {
 
 template <std::size_t N>
 bool BPlusTreeDir<N>::check() const {
-    if (*key_count < 0) {
+    if (*key_count > BPlusTree<N>::dir_max_records) {
         std::cerr << "  ERROR: key_count shouldn't be less than 0\n";
         return false;
     }

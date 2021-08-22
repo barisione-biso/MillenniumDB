@@ -27,7 +27,7 @@ public:
     ~TupleCollection();
 
     bool is_full() const {
-        return sizeof(tuple_count) + (sizeof(GraphObject)*tuple_size*(1 + *tuple_count)) > Page::PAGE_SIZE;
+        return sizeof(tuple_count) + (sizeof(GraphObject)*tuple_size*(1 + *tuple_count)) > Page::MDB_PAGE_SIZE;
     }
 
     inline uint64_t get_tuple_count() const noexcept { return *tuple_count; }

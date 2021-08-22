@@ -33,7 +33,7 @@ class HashJoinGrace : public BindingIdIter {
 
 public:
 
-    static constexpr uint_fast32_t MAX_SIZE_SMALL_HASH = Page::PAGE_SIZE*1024;
+    static constexpr uint_fast32_t MAX_SIZE_SMALL_HASH = Page::MDB_PAGE_SIZE*1024;
 
     HashJoinGrace(std::unique_ptr<BindingIdIter> lhs,
                   std::unique_ptr<BindingIdIter> rhs,

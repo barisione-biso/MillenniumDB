@@ -22,7 +22,7 @@ DistinctBindingHash<T>::DistinctBindingHash(std::size_t tuple_size) :
 {
     // create directory with 2^global_depth empty buckets
     uint_fast32_t dir_size = 1 << global_depth;
-    dir = new uint64_t[dir_size];
+    dir = new uint_fast32_t[dir_size];
     for (uint_fast32_t i = 0; i < dir_size; ++i) {
         DistinctBindingHashBucket<T> bucket(buckets_file_id, i, tuple_size);
         *bucket.tuple_count = 0;
@@ -125,18 +125,18 @@ void DistinctBindingHash<T>::duplicate_dirs() {
     uint64_t old_dir_size = 1UL << global_depth;
     ++global_depth;
     auto new_dir_size = 1UL << global_depth;
-    auto new_dir = new uint64_t[new_dir_size];
+    auto new_dir = new uint_fast32_t[new_dir_size];
 
     std::memcpy(
         new_dir,
         dir,
-        old_dir_size * sizeof(uint64_t)
+        old_dir_size * sizeof(uint_fast32_t)
     );
     // new pointers should still point to old buckets (no need to create all buckets at once when duplicating)
     std::memcpy(
         &new_dir[old_dir_size],
         dir,
-        old_dir_size * sizeof(uint64_t)
+        old_dir_size * sizeof(uint_fast32_t)
     );
 
     delete[](dir);
