@@ -1,15 +1,28 @@
 # Millennium DB
 MillenniumDB is a graph oriented database management system developed by the [Millennium Institute for Foundational Research on Data (IMFD)](https://imfd.cl/).
 
-TODO: The objectives of this project
+MilleniumDB was created because we though the existent graph models were not enough to represent efficiently the real world data as a graph.
 
-This project is in an early stage of development and is not production ready yet, as it may contain bugs.
+Our main objective with this project is to be a fully functional, easy-to-extend system that serves as the basis for testing new techniques and algorithms related to databases and graphs.
 
-This document is intended for new users that want to try MilleniumDB. For people that want to understand how the system works check out:
-- [MillenniumDB Internals]()
+## Main features
+- A flexible and more expressive graph [data model](#data-model).
+- Efficient property paths solving.
+- Worst case optimal join algorithm.
+
+This project is in an early stage of development and is not production ready yet, as it may contain bugs. Also, there are some features we think are important for a graph database and are not supported yet. However we want them to be supported in the future:
+
+- A database can't be modified after its created.
+- Only well-designed patterns are supported when using the `OPTIONAL` operator.
+- More datatypes for properties values, e.g: dates, points and lists.
+- Filters only support basic operations (<, <=, ==, != >=, >). We would like to support pattern matching and functions.
+
+
+This document is intended for new users that want to try MilleniumDB. People that want to understand how the system works should check out:
+- [MillenniumDB Internals]() TODO:
 
 And for people that want to contribute on the codebase see:
-- [MillenniumDB Developer Guide]()
+- [MillenniumDB Developer Guide]() TODO:
 
 ___
 # Table of Contents
@@ -23,8 +36,7 @@ ___
 ___
 # Project build
 
-You should be able to build the in any x86-64 linux distribution, but our instructions are for distributions based on Ubuntu 18.04 or newer. Some distributions (like Ubuntu 18.04) might have repositories with a too old version of the Boost Library and you will need to manually install a version 1.71.0 or higher (https://launchpad.net/~mhier/+archive/ubuntu/libboost-latest may help).
-Other linux distributions may need to install the prerequisites differenlty.
+MilleniumDB should be able to be built in any x86-64 linux distribution, but this instructions are for distributions based on **Ubuntu 20.04 or newer**. Other linux distributions may need to install the prerequisites differenlty. Some distributions might have repositories with too old versions and the project won't compile. For example, in Ubuntu 18.04 you need to manually install a Boost Library version >= 1.71.0 and gcc version >= 8.1 in order to compile the project.
 
 If you work on windows, you can use Windows Subsystem for Linux (WSL).
 
@@ -44,67 +56,149 @@ If you work on windows, you can use Windows Subsystem for Linux (WSL).
     - `cmake -H. -Bbuild/Release -DCMAKE_BUILD_TYPE=Release && cmake --build build/Release/`
 
 # Data model
+Our data model is similar to the known *labeled property graph* model. In simplified terms we could say that connections were extended such that the source or destination may be another connection. To be more precise, below is the full specification.
 
-Everything in our graph model is an **Object**, and there are 4 different types of objects:
+Everything in the graph model is an **Object**, and there are 4 different types of objects:
 
 1. **Literals**: they are the classic basic types:
     - **Integer**
-    - **String**
+    - **String**: also we have 3 important subsets of strings
+        - **Names**
+        - **Keys**
+        - **Labels**
+
     - **Float**
     - **Boolean**
-    - **TODO:** will arrays or composite objects (json-like) be supported in the future?
 
 2. **Nodes**:
-    they are objects that can have a an **identifier** set of **labels** and **properties**
-    - `labels`: a (possibly empty) set of strings.
-    - `properties`: a (possibly empty) set of pairs <key, value>. Where the key is a string and the value is a literal. A key cannot appear twice in the set.
+    they are objects that can have the following attributes:
+    - `ID`.
+    - `labels`: a (possibly empty) set of **labels**.
+    - `properties`: a (possibly empty) set of pairs **<Key, Literal>**. The set cannot have 2 properties with the same key.
 
-    We have 2 types of nodes:
+    We have 2 types of nodes depending on the ID:
 
-    - **Named Nodes**: they have a string as identifier when you add them into the database.
+    - **NamedNodes**: they have a **Name** as identifier when you add them into the database.
 
-    - **Anonymous Nodes**: they don't have a string as identifier when you add them into the database. They will have an auto-generated identifier to direcly refeer to them later.
-
+    - **AnonymousNodes**: they don't have a name as identifier when you add them into the database. They will have an auto-generated identifier to direcly refeer to them later.
 
 3. **Connections**: a connection is an object that relates other objects, having the following attributes:
-    - An auto generated identifier.
+    - `ID` (always auto generated).
     - `from`: any **Object** (including other connection object but not itself).
     - `to`: any **Object** (including other connection object but not itself).
-    - `types`: a (possibly empty) set of **Named Nodes**.
-    - `properties`: a (possibly empty) set of pairs <key, value>. Where the key is a string and the value is a literal. A key cannot appear twice in the set.
+    - `types`: a (possibly empty) set of **NamedNodes**.
+    - `properties`: a (possibly empty) set of pairs **<Key, Literal>**. The set cannot have 2 properties with the same key.
 
-
-## Domain restrictions
-- **Integer**: integers from -(2<sup>56</sup>-1) to 2<sup>56</sup>-1.
-
-- **String**:
-An important subset of strings are the property keys. They must match the regular expression `[A-Za-z][A-Za-z0-9_]*`. Property keys are not delimited by single nor double quotes.
-The rest of the strings are delimited by double quotes (`""`) and they are a sequence of arbitrary length of any UTF-8 character, but some characters need to be encoded: [`\n`, `\t`, `\b`, `\f`, `\r`, `\/`, `\\`, `\"`].
-
-- **Float**: same as in C language. Beware, you may lose precision.
-
-- **Boolean** `true` or `false`.
-
-- **Named Nodes**: they must match the regular expresion `[A-Za-z][A-Za-z0-9_]*`. There are exceptions for `true` and `false` because they are interpreted as booleans. Identifiers are case sensitive.
-
-- **Anonymous Nodes** The auto-generated identifier will match the regular expresion `_a[1-9][0-9]*`.
-
-- **Connections** The auto-generated identifier will match the regular expresion `_c[1-9][0-9]*`.
 
 ## Model constraints
-The model presented before is very flexible, being that flexible comes with a downside of performance.
-For that reason, we allow having multiple models, where each model meets the requirents of the generic data model and having some additional restrictions.
+The abstract model presented before is very flexible, but being that flexible may come with a downside of performance.
+For that reason, we allow having multiple concrete models, where each model meets the requirents of the generic data model with some additional restrictions.
 
 ### Quad Model
-Currently there is only one concrete model implemented. The only restriction to the generic model is that **every connection must have one type**. Thus connections can be saved as a tuple of 4 elements: (ConnectionID, FromID, ToID, TypeID).
+Currently **QuadModel** is the only one implemented. The only restriction to the generic model is that **every connection must have one type**. Thus connections can be saved as a tuple of 4 elements: <ConnectionID, FromID, ToID, TypeID>.
 
 ### Future Models
-We are planning to implement more data models in the future, for example a **TripleModel** where **every connection must have one type and we don't use connectionIDs**, as concequence, a Connection can't have any properties nor being connected. Thus connections can be saved as a tuple of 3 elements: (FromID, ToID, TypeID).
-
+We are planning to implement more data models in the future, for example a **TripleModel** where **every connection must have one type and we don't use connectionIDs**, as concequence, a Connection can't have any properties nor being connected. Thus connections can be saved as a tuple of 3 elements: <FromID, ToID, TypeID>.
 
 
 # Query language
-TODO:
+
+A query would look like:
+```
+// This query is asking for the age and name of people
+// that knows John having between 60 and 70 years old,
+// ordered by their age (ascending) and name (descending).
+SELECT ?x.age, ?x.name
+MATCH (?x :Person)-[Knows]->(John)
+WHERE ?x.age >= 60 AND ?x.age <= 70
+ORDER BY ?x.name DESC, ?x.age ASC
+LIMIT 1000
+```
+
+Let's analyze line by line
+
+- The first 3 lines are comments. A comment starts with a `//` and finish at the end of the line.
+
+- The next line is a SELECT clause. Every query must have a SELECT clause. This clause specify which objects or object properties will be returned. Select clauses look like this:
+    - `SELECT *`
+    - `SELECT ?x`
+    - `SELECT ?x.key`
+    - `SELECT ?x, ?y, ?z.key`
+
+- The next line is a MATCH clause. Every query must have a MATCH clause after the SELECT clause. The MATCH clause is followed by a **graph pattern**. To define a graph pattern we need to define some other smaller concepts. First we define the **node pattern**. The most basic **node pattern** looks like this:
+    - `()`
+
+        And there are some things you can add to a **node pattern**:
+    - A **variable** to bind the node.
+        - `(?x)`
+    - A **fixed node** can refeer to a specific node or literal. A **node pattern** can't have a **variable** and a **node identifier** at the same time.
+        - `(NodeName)`
+        - `("StringLiteral")`
+        - `(true)`
+        - `(123)`
+        - `(3.14)`
+        - `(_a123)`
+    - A list of labels (after the variable or node identifier if they are present)
+        - `(:Label)`
+        - `(:Label1 :Label2)`
+        - `(?x :Label)`
+        - `(?x :Label1 :Label2 :Label3)`
+    - A set of properties (a the end)
+        - `({key:"value"})`
+        - `(?x {key1:"value1", key2:"value2"})`
+        - `(?x :Label {key:"value"})`
+
+
+        Two **node patterns** can be connected to each other, and **connections** have a **direction**:
+        - `(?x)->(?y)`
+        - `(?y)<-(?z)`
+
+    And similar as in **node patterns**, **connections** may contain other some things:
+    - A **connection variable** to bind the connection object:
+        - `(?x)-[?c]->(?y)`
+    - Or instead of a **connection variable**, a **fixed connection**:
+        - `(?x)-[_c123]->(?y)`
+    - A **type variable** (after the connection variable or fixed connection if they are present):
+        - `(?x)-[:TYPE(?t)]->(?y)`
+        - `(?x)-[?c :TYPE(?t)]->(?y)`
+    - Or instad of a **type variable**, a **fixed type** (after the connection variable or fixed connection if they are present):
+        - `(?x)-[Type1]->(?y)`
+        - `(?x)-[?c Type2]->(?y)`
+    - A set of properties (at the end)
+        - `(?x)-[{key:"value"}]->(?y)`
+        - `(?x)-[?c Type {key:"value"}]->(?y)`
+
+    Then a **linear pattern** is a set of one or more **node patterns** linked by connections (TODO: or property paths):
+    - `(?x :Person)-[Knows]->(?y)<-[Knows]-(John)`
+
+    A set of one or more **linear patterns** (separeted by comma) forms a **simple graph pattern**
+    - `(?x :Person)-[Knows]->(?y)<-[Knows]-(John), (?y)-[LivesIn]->(Chile)`
+
+    Finally, a **graph pattern** is defined as follows:
+    - A **simple graph pattern** is a **graph pattern**.
+    - If `GP1` and `GP2` are **graph patterns**, `GP1 OPTIONAL { GP2 }` is a **graph pattern**
+
+- The next line is a WHERE clause. A query may not have a WHERE clause. The WHERE clause filters the results obtained by the MATCH clause according to certain **condition**. An **atomic condition** looks like:
+    - `?x == ?y`
+    - `?x == ?y.key`
+    - `?x == "literal"`
+    - `?x.key == ?y`
+    - `?x.key1 == ?y.key2`
+    - `?x.key1 == "literal"`
+
+    and `==` may be replaced with the following operators `<, <=, !=, >=, >` and `"literal"` can be replaced with a literal of any type. Complex conditions are defined as:
+    - An **atomic condition** is a valid **condition**.
+    - If `C1` is a valid condition, `NOT C1` and `(C1)` are valid conditions.
+    - If `C1` and `C2` are valid conditions. `C1 AND C2` and `C1 OR C2` are valid conditions.
+
+    The operator precedence is as usual: `()` > `NOT` > `AND` > `OR`.
+
+- The next line is an ORDER BY clause. A query may not have a ORDER BY clause. You can specify how the order works with the keywords `ASC`/`ASCENDING` and `DESC`/`DESCENDING` after each element. If the order is not specified the default is `ASCENNDING`
+
+- The last line is a LIMIT clause. A query may not have a LIMIT clause. A LIMIT clause gives an upper bound on the number of results returned.
+
+- TODO: link to example queries
+
 
 # Creating a database
 The command to create a new database looks like this:
