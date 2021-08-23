@@ -20,6 +20,8 @@ public:
 
     void begin(BindingId&);
 
+    void print_header(std::ostream&) const override { }
+
 private:
     const GraphModel& model;
     std::size_t binding_size;

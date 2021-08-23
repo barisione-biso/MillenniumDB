@@ -78,7 +78,7 @@ namespace query { namespace ast {
     };
 
     struct Edge {
-        std::string var; // Can a variable or empty
+        std::string id; // Can a variable, empty or a connection (e.g. "_c123")
         std::vector<std::string> types;
         std::vector<Property> properties;
         EdgeDirection direction;

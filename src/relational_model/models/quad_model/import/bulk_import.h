@@ -46,9 +46,9 @@ private:
     // std::unordered_set<uint64_t> inlined_ids;
     // std::unordered_set<uint64_t> external_ids;
 
-    uint64_t process_node(const import::ast::Node node);
-    uint64_t process_edge(const import::ast::Edge edge);
-    uint64_t process_implicit_edge(const import::ast::ImplicitEdge implicit_edge, const uint64_t implicit_object_id);
+    uint64_t process_node(const import::ast::Node& node);
+    uint64_t process_edge(const import::ast::Edge& edge);
+    uint64_t process_implicit_edge(const import::ast::ImplicitEdge& implicit_edge, const uint64_t implicit_object_id);
 
     uint64_t create_connection(const uint64_t from_id, const uint64_t to_id, const uint64_t type_id);
 

@@ -13,7 +13,6 @@ public:
 
     ~OpIsolatedTerm() = default;
 
-
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }

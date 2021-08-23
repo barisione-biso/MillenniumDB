@@ -65,10 +65,16 @@ namespace common {
             lexeme[char_('"') >> *(escaped | ~char_('"')) >> char_('"')];
 
         auto const node_name_def =
-            lexeme[char_("A-Za-z_") >> *char_("A-Za-z0-9_")];
+            lexeme[char_("A-Za-z") >> *char_("A-Za-z0-9_")];
+
+        auto const anon_or_connection =
+            lexeme[char_("_") >> char_("AaCc") >> char_("1-9") >> *char_("0-9")];
+
+        auto const connection =
+            lexeme[char_("_") >> char_("Cc") >> char_("1-9") >> *char_("0-9")];
 
         auto const node_id_str_def =
-            string_quoted | node_name | var | x3::eps;
+            string_quoted | node_name | var | anon_or_connection | x3::eps;
 
         auto const node_id =
             boolean | float_ | int64 | node_id_str;
@@ -77,10 +83,10 @@ namespace common {
             lexeme[char_('?') >> char_("A-Za-z") >> *char_("A-Za-z0-9_")];
 
         auto const key_def =
-            lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];
+            lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")]; // TODO: redefine this?
 
         auto const label =
-            lexeme[':' >> +char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")];
+            lexeme[':' >> +char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")]; // TODO: redefine this?
 
         auto const value_def =
             string | float_ | int64 | boolean;

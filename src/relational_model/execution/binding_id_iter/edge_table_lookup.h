@@ -17,7 +17,7 @@ class EdgeTableLookup : public BindingIdIter {
 private:
     RandomAccessTable<3>& table;
     ThreadInfo* const thread_info;
-    VarId edge;
+    Id edge;
     Id from;
     Id to;
     Id type;
@@ -31,7 +31,7 @@ private:
     BindingId* parent_binding;
 
 public:
-    EdgeTableLookup(RandomAccessTable<3>& table, ThreadInfo*, VarId edge, Id from, Id to, Id type);
+    EdgeTableLookup(RandomAccessTable<3>& table, ThreadInfo*, Id edge, Id from, Id to, Id type);
     ~EdgeTableLookup() = default;
 
     void analyze(int indent = 0) const override;

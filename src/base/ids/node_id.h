@@ -21,6 +21,14 @@ struct NodeIdToStringVisitor {
         return n.name;
     }
 
+    std::string operator()(const AnonymousNode& n) {
+        return "_a" + std::to_string(n.id);
+    }
+
+    std::string operator()(const Edge& e) {
+        return "_c" + std::to_string(e.id);
+    }
+
     std::string operator()(const std::string& s) {
         return s;
     }
@@ -49,6 +57,14 @@ struct NodeIdToGraphObjectVisitor {
         return GraphObject::make_identifiable(s.name);
     }
 
+    GraphObject operator()(const AnonymousNode& n) {
+        return GraphObject::make_anonymous(n.id);
+    }
+
+    GraphObject operator()(const Edge& e) {
+        return GraphObject::make_edge(e.id);
+    }
+
     GraphObject operator()(const std::string& s) {
         return GraphObject::make_string(s);
     }
@@ -68,13 +84,19 @@ struct NodeIdToGraphObjectVisitor {
 
 class NodeId {
 public:
-    std::variant<Var, NodeName, std::string, bool, int64_t, float> value;
+    std::variant<Var, NodeName, AnonymousNode, Edge, std::string, bool, int64_t, float> value;
 
     NodeId(Var var) :
         value (std::move(var)) { }
 
     NodeId(NodeName node_name) :
         value (std::move(node_name)) { }
+
+    NodeId(AnonymousNode anon) :
+        value (anon) { }
+
+    NodeId(Edge edge) :
+        value (edge) { }
 
     NodeId(std::string _value) :
         value (std::move(_value)) { }

@@ -82,8 +82,11 @@ namespace query {
         auto const type =
             lexeme[no_case[":TYPE"]] >> '(' >> (var | node_name) >> ')';
 
+        auto const connection_id =
+            var | connection | x3::eps;
+
         auto const edge_inside =
-            -var >> *(type | node_name) >> -("{" >> -(property % ',') >> "}");
+            connection_id >> *(type | node_name) >> -("{" >> -(property % ',') >> "}");
 
         auto const node_def =
             '(' >> node_inside >> ")";

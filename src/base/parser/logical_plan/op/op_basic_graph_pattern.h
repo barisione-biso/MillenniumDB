@@ -61,12 +61,12 @@ public:
                         // EDGE
                         auto edge = boost::get<query::ast::Edge>(linear_pattern_step.path);
                         std::vector<std::string> types;
-                        auto edge_name = process_edge(edge, types);
+                        auto edge_id = process_edge(edge, types);
 
                         connections.insert(
                             edge.direction == query::ast::EdgeDirection::right
-                                ? OpConnection(last_node_id, current_node_id, edge_name, std::move(types))
-                                : OpConnection(current_node_id, last_node_id, edge_name, std::move(types)));
+                                ? OpConnection(last_node_id, current_node_id, edge_id, std::move(types))
+                                : OpConnection(current_node_id, last_node_id, edge_id, std::move(types)));
                     } else {
                         auto property_path = boost::get<query::ast::PropertyPath>(linear_pattern_step.path);
 
@@ -112,10 +112,19 @@ public:
                 const Var v(str);
                 vars.insert(v);
                 return NodeId(v);
-            }  else if (str[0] == '"') { // string
+            } else if (str[0] == '"') { // string
                 std::string tmp = str.substr(1, str.size() - 2); // delete first and last characters: ("")
                 return NodeId(std::move(tmp));
-            }  else { // identifier
+            } else if (str[0] == '_') { // anonymous node or connection
+                std::string tmp = str.substr(2, str.size() - 2); // delete first 2 characters (_a1234)
+                if (str[1] == 'a') {
+                    return NodeId(AnonymousNode( std::stoi(tmp) ));
+                } else if (str[1] == 'c') {
+                    return NodeId(Edge( std::stoi(tmp) ));
+                } else {
+                    throw QuerySemanticException("Invalid Id");
+                }
+            } else { // identifier
                 return NodeId(NodeName(str));
             }
         } else if (id.type() == typeid(bool)) {
@@ -157,11 +166,19 @@ public:
     }
 
 
-    Var process_edge(const query::ast::Edge& edge, std::vector<std::string>& types) {
-        Var edge_var =  edge.var.empty()
-            ? Var("?_e" + std::to_string((*anon_count)++))
-            : Var(edge.var);
-        vars.insert(edge_var);
+    NodeId process_edge(const query::ast::Edge& edge, std::vector<std::string>& types) {
+        NodeId edge_id = NodeId(Edge(1)); // This value doesn't matter, it will be setted after
+
+        if (edge.id.empty()) {
+            edge_id = NodeId(Var("?_c" + std::to_string((*anon_count)++)));
+            vars.insert(edge_id.to_var());
+        } else if (edge.id[0] == '?') {
+            edge_id = NodeId(Var(edge.id));
+            vars.insert(edge_id.to_var());
+        } else {
+            auto tmp = edge.id.substr(2, edge.id.size() - 2);
+            edge_id = NodeId(Edge(std::stoi(tmp)));
+        }
 
         for (const auto &type : edge.types) {
             if (type[0] == '?') {
@@ -171,17 +188,21 @@ public:
         }
 
         if (edge.types.size() == 0) {
-            vars.insert(Var("_type_" + edge_var.name));
+            auto tmp = edge_id.to_string();
+            if (tmp[0] == '?') {
+                tmp.erase(0, 1);
+            }
+            vars.insert(Var("?_typeof_" + tmp));
         }
 
         for (auto& property : edge.properties) {
-            auto new_property = OpProperty(NodeId(edge_var), property.key, property.value);
+            auto new_property = OpProperty(edge_id, property.key, property.value);
             auto property_search = properties.find(new_property);
 
             if (property_search != properties.end()) {
                 auto old_property = *property_search;
                 if (old_property.value != property.value) {
-                    throw QuerySemanticException(edge_var.name + "." + property.key
+                    throw QuerySemanticException(edge_id.to_string() + "." + property.key
                                                  + " its declared with different values in MATCH");
                 }
             } else {
@@ -189,7 +210,7 @@ public:
             }
         }
 
-        return edge_var;
+        return edge_id;
     }
 
 

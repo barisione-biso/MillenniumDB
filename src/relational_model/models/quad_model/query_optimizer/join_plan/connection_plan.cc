@@ -7,7 +7,7 @@
 
 using namespace std;
 
-ConnectionPlan::ConnectionPlan(const QuadModel& model, Id from, Id to, Id type, VarId edge) :
+ConnectionPlan::ConnectionPlan(const QuadModel& model, Id from, Id to, Id type, Id edge) :
     model         (model),
     from          (from),
     to            (to),
@@ -16,7 +16,7 @@ ConnectionPlan::ConnectionPlan(const QuadModel& model, Id from, Id to, Id type, 
     from_assigned (std::holds_alternative<ObjectId>(from)),
     to_assigned   (std::holds_alternative<ObjectId>(to)),
     type_assigned (std::holds_alternative<ObjectId>(type)),
-    edge_assigned (false) { }
+    edge_assigned (std::holds_alternative<ObjectId>(edge)) { }
 
 
 ConnectionPlan::ConnectionPlan(const ConnectionPlan& other) :
@@ -56,7 +56,12 @@ void ConnectionPlan::print(int indent, bool estimated_cost, std::vector<std::str
     } else {
         cout << ", type: " << var_names[std::get<VarId>(type).id];
     }
-    cout << ", edge: " << var_names[edge.id];
+
+    if (std::holds_alternative<ObjectId>(edge)) {
+        cout << ", edge: " << model.get_graph_object(std::get<ObjectId>(edge));
+    } else {
+        cout << ", edge: " << var_names[std::get<VarId>(edge).id];
+    }
     cout << ")";
 
     if (estimated_cost) {
@@ -239,9 +244,11 @@ void ConnectionPlan::set_input_vars(const uint64_t input_vars) {
             type_assigned = true;
         }
     }
-
-    if ((input_vars & (1UL << edge.id)) != 0) {
-        edge_assigned = true;
+    if (std::holds_alternative<VarId>(edge)) {
+        auto edge_var_id = std::get<VarId>(edge);
+        if ((input_vars & (1UL << edge_var_id.id)) != 0) {
+            edge_assigned = true;
+        }
     }
 }
 
@@ -257,8 +264,9 @@ uint64_t ConnectionPlan::get_vars() {
     if ( std::holds_alternative<VarId>(type) ) {
         result |= 1UL << std::get<VarId>(type).id;
     }
-
-    result |= 1UL << edge.id;
+    if ( std::holds_alternative<VarId>(edge) ) {
+        result |= 1UL << std::get<VarId>(edge).id;
+    }
 
     return result;
 }
@@ -380,12 +388,13 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
                                                            uint_fast32_t          enumeration_level)
 {
     // TODO: support special cases
-    if (   (std::holds_alternative<VarId>(from) && from == to)
+    if (std::holds_alternative<ObjectId>(edge) // TODO: this case may be easy
+        || (std::holds_alternative<VarId>(from) && from == to)
         || (std::holds_alternative<VarId>(from) && from == type)
         || (std::holds_alternative<VarId>(to)   && to == type)
-        || (std::holds_alternative<VarId>(from) && std::get<VarId>(from) == edge)
-        || (std::holds_alternative<VarId>(to)   && std::get<VarId>(to)   == edge)
-        || (std::holds_alternative<VarId>(type) && std::get<VarId>(type) == edge))
+        || (std::holds_alternative<VarId>(from) && std::get<VarId>(from) == std::get<VarId>(edge))
+        || (std::holds_alternative<VarId>(to)   && std::get<VarId>(to)   == std::get<VarId>(edge))
+        || (std::holds_alternative<VarId>(type) && std::get<VarId>(type) == std::get<VarId>(edge)))
     {
         return nullptr;
     }
@@ -412,13 +421,7 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
     assign_index(from_index, from);
     assign_index(to_index,   to);
     assign_index(type_index, type);
-
-    // Assign edge_index
-    if (assigned_vars.find(edge) == assigned_vars.end()) {
-        edge_index = INT32_MAX;
-    } else {
-        edge_index = -1;
-    }
+    assign_index(edge_index, edge);
 
     // search for vars marked as enumeraion (INT32_MAX) that are intersection
     // and assign them the correct index
@@ -432,7 +435,7 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
         if (type_index == INT32_MAX && std::get<VarId>(type) == var_order[i]) {
             type_index = i;
         }
-        if (edge_index == INT32_MAX && edge == var_order[i]) {
+        if (edge_index == INT32_MAX && std::get<VarId>(edge) == var_order[i]) {
             edge_index = i;
         }
     }
@@ -447,16 +450,6 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
             enumeration_vars.push_back(std::get<VarId>(id));
         } else {
             intersection_vars.push_back(std::get<VarId>(id));
-        }
-    };
-
-    auto assign_edge = [&initial_ranges, &enumeration_vars, &intersection_vars, &edge_index](VarId edge) -> void {
-        if (edge_index == -1) {
-            initial_ranges.push_back(ScanRange::get(edge, true));
-        } else if (edge_index == INT32_MAX) {
-            enumeration_vars.push_back(edge);
-        } else {
-            intersection_vars.push_back(edge);
         }
     };
 
@@ -482,7 +475,7 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
 
     // if edge_index == -1 we can use the table
     if (edge_index == -1) {
-        assign_edge(edge);
+        assign(edge_index, edge);
         std::array<uint_fast32_t, 3> permutation;
 
         // Using the corresponding indexes from the edge table
@@ -552,7 +545,7 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
         assign(from_index, from);
         assign(to_index,   to);
         assign(type_index, type);
-        assign_edge(edge);
+        assign(edge_index, edge);
         return get_leapfrog_iter(*model.from_to_type_edge);
     }
     // to_type_from_edge
@@ -560,7 +553,7 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
         assign(to_index,   to);
         assign(type_index, type);
         assign(from_index, from);
-        assign_edge(edge);
+        assign(edge_index, edge);
         return get_leapfrog_iter(*model.to_type_from_edge);
     }
     // type_from_to_edge
@@ -568,7 +561,7 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
         assign(type_index, type);
         assign(from_index, from);
         assign(to_index,   to);
-        assign_edge(edge);
+        assign(edge_index, edge);
         return get_leapfrog_iter(*model.type_from_to_edge);
     }
     // type_to_from_edge
@@ -576,7 +569,7 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
         assign(type_index, type);
         assign(to_index,   to);
         assign(from_index, from);
-        assign_edge(edge);
+        assign(edge_index, edge);
         return get_leapfrog_iter(*model.type_to_from_edge);
     } else {
         cout << "no order for leapfrog\n"

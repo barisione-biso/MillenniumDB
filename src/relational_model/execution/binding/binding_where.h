@@ -18,6 +18,8 @@ public:
 
     std::ostream& print_to_ostream(std::ostream&) const override;
 
+    void print_header(std::ostream&) const override { }
+
     GraphObject operator[](const VarId var_id) override;
 
     void clear_cache(); // needs to be called when the binding changes

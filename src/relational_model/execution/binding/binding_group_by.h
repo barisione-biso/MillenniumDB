@@ -21,6 +21,8 @@ public:
     GraphObject operator[](const VarId var_id) override;
     void update_binding(std::vector<GraphObject>);
 
+    void print_header(std::ostream&) const override { }
+
 private:
     std::vector<std::pair<Var, VarId>> group_vars;
     GraphModel& model;

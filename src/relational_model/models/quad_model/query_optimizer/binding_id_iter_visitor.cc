@@ -57,6 +57,22 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
         if (term.is_not_found()) {
             tmp = make_unique<EmptyBindingIdIter>();
             return;
+        } else if ((term.id & GraphModel::TYPE_MASK) == GraphModel::ANONYMOUS_NODE_MASK) {
+            auto anon_id = term.id & GraphModel::VALUE_MASK;
+            if (anon_id > model.catalog().anonymous_nodes_count) {
+                tmp = make_unique<EmptyBindingIdIter>();
+                return;
+            } else {
+                tmp = make_unique<SingleResultBindingIdIter>();
+            }
+        } else if ((term.id & GraphModel::TYPE_MASK) == GraphModel::CONNECTION_MASK) {
+            auto conn_id = term.id & GraphModel::VALUE_MASK;
+            if (conn_id > model.catalog().connections_count) {
+                tmp = make_unique<EmptyBindingIdIter>();
+                return;
+            } else {
+                tmp = make_unique<SingleResultBindingIdIter>();
+            }
         } else {
             // search in nodes
             auto r = RecordFactory::get(term.id);
@@ -123,11 +139,18 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
                         ? (JoinPlan::Id) get_var_id(op_connection.to.to_var())
                         : (JoinPlan::Id) model.get_object_id(op_connection.to.to_graph_object());
 
-        auto edge_id = get_var_id(op_connection.edge);
+        auto edge_id = op_connection.edge.is_var()
+                        ? (JoinPlan::Id) get_var_id(op_connection.edge.to_var())
+                        : (JoinPlan::Id) model.get_object_id(op_connection.edge.to_graph_object());
 
         if (op_connection.types.empty()) {
             // Type not mentioned, creating anonymous variable for type
-            auto type_var_id = get_var_id(Var("_type_" + op_connection.edge.name));
+            // Important: this name must be consistent with generated at OpBasicGraphPattern
+            auto tmp_str = op_connection.edge.to_string();
+            if (tmp_str[0] == '?') {
+                tmp_str.erase(0, 1);
+            }
+            auto type_var_id = get_var_id(Var("?_typeof_" + tmp_str));
             base_plans.push_back(
                 make_unique<ConnectionPlan>(model, from_id, to_id, type_var_id, edge_id));
         }

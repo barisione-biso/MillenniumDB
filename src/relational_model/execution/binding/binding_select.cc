@@ -12,20 +12,38 @@ BindingSelect::BindingSelect(vector<pair<Var, VarId>> projection_vars, Binding& 
 
 
 std::ostream& BindingSelect::print_to_ostream(std::ostream& os) const {
-    os << '{';
+    // os << '{';
     auto it = projection_vars.cbegin();
 
     if (it != projection_vars.cend()) {
         auto& var_varid_pair = *it;
-        os << var_varid_pair.first << ':' << child_binding[var_varid_pair.second];
+        os << child_binding[var_varid_pair.second];
+        // os << var_varid_pair.first << ':' << child_binding[var_varid_pair.second];
         ++it;
     }
     while (it != projection_vars.cend()) {
         auto& var_varid_pair = *it;
-        os << ", " << var_varid_pair.first << ':' << child_binding[var_varid_pair.second];
+        os << "," << child_binding[var_varid_pair.second];
+        // os << ", " << var_varid_pair.first << ':' << child_binding[var_varid_pair.second];
         ++it;
     }
-    return os << "}";
+    return os;
+    // return os << "}";
+}
+
+void BindingSelect::print_header(std::ostream& os) const {
+    auto it = projection_vars.cbegin();
+    if (it != projection_vars.cend()) {
+        auto& var_varid_pair = *it;
+        os << var_varid_pair.first;
+        ++it;
+    }
+    while (it != projection_vars.cend()) {
+        auto& var_varid_pair = *it;
+        os << ", " << var_varid_pair.first;
+        ++it;
+    }
+    os << '\n';
 }
 
 

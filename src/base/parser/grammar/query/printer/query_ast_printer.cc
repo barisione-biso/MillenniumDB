@@ -232,8 +232,8 @@ void QueryAstPrinter::operator() (Edge const& edge) const {
     } else {
         out << "\"LEFT\",\n";
     }
-    indent("\"VAR\": ", 1);
-    out << "\"" << edge.var << "\",\n";
+    indent("\"ID\": ", 1);
+    out << "\"" << edge.id << "\",\n";
     indent("\"TYPES\": [", 1);
     auto label_iter = edge.types.begin();
     while (label_iter != edge.types.end()) {

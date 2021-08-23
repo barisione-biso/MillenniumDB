@@ -16,7 +16,11 @@ public:
     ~BindingOrderBy() = default;
 
     std::ostream& print_to_ostream(std::ostream&) const override;
+
     GraphObject operator[](const VarId var_id) override;
+
+    void print_header(std::ostream&) const override { }
+
     void update_binding_object(std::vector<GraphObject> graph_object);
 
 private:

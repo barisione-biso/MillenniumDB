@@ -339,7 +339,7 @@ uint64_t BulkImport::get_node_id(const boost::variant<std::string, bool, int64_t
 
 
 
-uint64_t BulkImport::process_node(const import::ast::Node node) {
+uint64_t BulkImport::process_node(const import::ast::Node& node) {
     uint64_t node_id = get_node_id(node.name);
 
     for (auto& label : node.labels) {
@@ -366,7 +366,7 @@ uint64_t BulkImport::process_node(const import::ast::Node node) {
 }
 
 
-uint64_t BulkImport::process_edge(const import::ast::Edge edge) {
+uint64_t BulkImport::process_edge(const import::ast::Edge& edge) {
     if (edge.labels.size() != 1) {
         throw logic_error("In this quad bulk import all edges must have 1 type");
     }
@@ -397,7 +397,7 @@ uint64_t BulkImport::process_edge(const import::ast::Edge edge) {
 }
 
 
-uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge edge,
+uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge& edge,
                                            const uint64_t implicit_object_id)
 {
     if (edge.labels.size() != 1) {
@@ -459,9 +459,12 @@ uint64_t BulkImport::create_connection(const uint64_t from_id, const uint64_t to
 
 uint64_t BulkImport::operator()(const std::string& str) {
     if (str[0] == '_') { // Anonymous Node
-        // delete first character: '_'
-        std::string tmp = str.substr(1, str.size() - 1);
-        uint64_t unmasked_id = std::stoull(tmp);
+        if (str[1] != 'a') {
+            throw logic_error("Invalid anonymous node declaration");
+        }
+        // delete first 2 characters: '_a'
+        std::string tmp = str.substr(2, str.size() - 2);
+        uint64_t unmasked_id = std::stoull(tmp); // TODO: may throw exception
         if (catalog.anonymous_nodes_count < unmasked_id) {
             catalog.anonymous_nodes_count = unmasked_id;
         }

@@ -8,6 +8,10 @@
 #include "base/ids/var_id.h"
 #include "storage/index/bplus_tree/leapfrog_iter.h"
 
+/* LeapfrogJoin is a Worst-Case Optimal join algorithm
+ * that performs a join between an arbitrary number of relations
+ * instead of the typical binary join.
+ */
 class LeapfrogJoin : public BindingIdIter {
 public:
     LeapfrogJoin(std::vector<std::unique_ptr<LeapfrogIter>> leapfrog_iters,

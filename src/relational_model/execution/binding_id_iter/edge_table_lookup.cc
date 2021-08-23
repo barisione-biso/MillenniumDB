@@ -7,7 +7,7 @@
 
 EdgeTableLookup::EdgeTableLookup(RandomAccessTable<3>& table,
                                  ThreadInfo* thread_info,
-                                 VarId edge,
+                                 Id edge,
                                  Id from,
                                  Id to,
                                  Id type) :
@@ -43,7 +43,12 @@ bool EdgeTableLookup::next() {
         already_looked = true;
         ++lookups;
 
-        auto edge_assignation = (*parent_binding)[edge];
+        ObjectId edge_assignation;
+        if (std::holds_alternative<VarId>(edge)) {
+            edge_assignation = (*parent_binding)[std::get<VarId>(edge)];
+        } else {
+            edge_assignation = std::get<ObjectId>(edge);
+        }
         if ( (QuadModel::TYPE_MASK & edge_assignation.id) != QuadModel::CONNECTION_MASK) {
             return false;
         }
@@ -92,7 +97,9 @@ void EdgeTableLookup::reset() {
 
 
 void EdgeTableLookup::assign_nulls() {
-    parent_binding->add(edge, ObjectId::get_null());
+    if (std::holds_alternative<VarId>(edge)) {
+        parent_binding->add(std::get<VarId>(edge), ObjectId::get_null());
+    }
     if (std::holds_alternative<VarId>(from)) {
         parent_binding->add(std::get<VarId>(from), ObjectId::get_null());
     }

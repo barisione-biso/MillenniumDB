@@ -26,7 +26,7 @@ BOOST_FUSION_ADAPT_STRUCT(query::ast::Node,
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::Edge,
-    var, types, properties, direction
+    id, types, properties, direction
 )
 
 BOOST_FUSION_ADAPT_STRUCT(query::ast::PropertyPath,

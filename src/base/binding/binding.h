@@ -14,6 +14,8 @@ class Binding {
 public:
     virtual ~Binding() = default;
 
+    virtual void print_header(std::ostream&) const = 0;
+
     friend std::ostream& operator<<(std::ostream& os, const Binding& b) {
         return b.print_to_ostream(os);
     }
