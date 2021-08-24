@@ -42,6 +42,7 @@ public:
                     std::string str = boost::get<std::string>(linear_pattern.root.id);
                     if (str.empty()) { // anonymous variable
                         const std::string s = "?_" + std::to_string((*anon_count)++);
+                        vars.emplace(s);
                         isolated_vars.insert(OpIsolatedVar(Var(s)));
                     } else if (str[0] == '?') { // explicit variable
                         pending_unjoint_vars.emplace_back(str);
