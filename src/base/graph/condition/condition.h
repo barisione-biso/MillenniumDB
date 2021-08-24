@@ -16,8 +16,8 @@ enum class ConditionType {
 class Condition {
 public:
     virtual ~Condition() = default;
-    virtual bool eval(Binding&) = 0;
-    virtual ConditionType type() = 0;
+    virtual bool eval(Binding&) const = 0;
+    virtual ConditionType type() const = 0;
 };
 
 #endif // BASE__CONDITION_H_

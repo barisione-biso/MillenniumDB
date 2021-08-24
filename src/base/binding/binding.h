@@ -1,8 +1,8 @@
 #ifndef BASE__BINDING_H_
 #define BASE__BINDING_H_
 
-#include <memory>
 #include <string>
+#include <ostream>
 
 #include "base/ids/object_id.h"
 #include "base/graph/graph_object.h"

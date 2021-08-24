@@ -14,7 +14,7 @@ public:
     Disjunction(std::vector<std::unique_ptr<Condition>> conditions)
         : conditions (std::move(conditions)) { }
 
-    bool eval(Binding& binding) {
+    bool eval(Binding& binding) const {
         for (auto& condition : conditions) {
             if (condition->eval(binding)) {
                 return true;
@@ -23,7 +23,7 @@ public:
         return false;
     }
 
-    ConditionType type() {
+    ConditionType type() const {
         return ConditionType::disjunction;
     }
 

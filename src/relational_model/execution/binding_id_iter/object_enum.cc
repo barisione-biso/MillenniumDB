@@ -1,5 +1,7 @@
 #include "object_enum.h"
 
+#include <iostream>
+
 #include "base/exceptions.h"
 
 using namespace std;

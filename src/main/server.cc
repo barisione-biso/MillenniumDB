@@ -168,6 +168,7 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
     catch (const ConnectionException& e) {
         std::cerr << "Lost connection with client: " << e.what() << endl;
     }
+    // TODO: uncomment when ready for production
     // catch (...) {
     //     std::cerr << "Unknown exception." << endl;
     // }

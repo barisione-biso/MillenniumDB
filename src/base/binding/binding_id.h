@@ -2,8 +2,6 @@
 #define BASE__BINDING_ID_H_
 
 #include <cstring>
-#include <iostream>
-#include <vector>
 
 #include "base/ids/object_id.h"
 #include "base/ids/var_id.h"

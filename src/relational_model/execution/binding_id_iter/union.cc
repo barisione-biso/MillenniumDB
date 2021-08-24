@@ -1,5 +1,7 @@
 #include "union.h"
 
+#include <iostream>
+
 using namespace std;
 
 Union::Union(std::vector<std::unique_ptr<BindingIdIter>> iters) :

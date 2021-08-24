@@ -14,7 +14,7 @@ public:
 
     ~ValueAssignVariable() = default;
 
-    GraphObject get_value(Binding& binding) {
+    GraphObject get_value(Binding& binding) const {
         return binding[var_id];
     }
 };

@@ -1,16 +1,14 @@
 #include "catalog.h"
 
 #include <cassert>
-#include <iostream>
 
-#include "base/exceptions.h"
 #include "storage/file_manager.h"
 
 using namespace std;
 
 Catalog::Catalog(const string& filename) :
-    file( file_manager.get_file(file_manager.get_file_id(filename)) )
-{ }
+    file (file_manager.get_file(file_manager.get_file_id(filename))) { }
+
 
 bool Catalog::is_empty() {
     file.seekg(0, file.end);

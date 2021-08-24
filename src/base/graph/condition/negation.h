@@ -12,11 +12,11 @@ public:
     Negation(std::unique_ptr<Condition> condition)
         : condition(std::move(condition)) { }
 
-    bool eval(Binding& binding) {
+    bool eval(Binding& binding) const {
         return !condition->eval(binding);
     }
 
-    ConditionType type() {
+    ConditionType type() const {
         return ConditionType::negation;
     }
 };

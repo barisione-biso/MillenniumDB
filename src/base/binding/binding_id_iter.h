@@ -6,7 +6,6 @@
 // Abstract class
 class BindingIdIter {
 public:
-
     virtual ~BindingIdIter() = default;
 
     // parent_binding is the input and the iter will write its results there.

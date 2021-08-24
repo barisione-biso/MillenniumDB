@@ -1,5 +1,9 @@
 #include "formula_to_condition.h"
 
+#include "base/graph/condition/value_assign/value_assign_variable.h"
+#include "base/graph/condition/value_assign/value_assign_constant.h"
+#include "base/parser/grammar/common/value_visitor.h"
+
 using namespace query::ast;
 
 Formula2ConditionVisitor::Formula2ConditionVisitor(const GraphModel& model, const std::map<Var, VarId>& var2var_ids) :

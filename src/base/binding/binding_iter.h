@@ -1,8 +1,6 @@
 #ifndef BASE__BINDING_ITER_H_
 #define BASE__BINDING_ITER_H_
 
-#include <memory>
-
 #include "base/binding/binding.h"
 
 // Abstract class

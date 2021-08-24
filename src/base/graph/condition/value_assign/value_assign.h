@@ -11,7 +11,7 @@
 class ValueAssign {
 public:
     virtual ~ValueAssign() = default;
-    virtual GraphObject get_value(Binding&) = 0;
+    virtual GraphObject get_value(Binding&) const = 0;
 };
 
 #endif // BASE__VALUE_ASSIGN_H_

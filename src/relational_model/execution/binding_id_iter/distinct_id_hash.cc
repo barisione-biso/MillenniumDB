@@ -1,5 +1,7 @@
 #include "distinct_id_hash.h"
 
+#include <iostream>
+
 using namespace std;
 
 DistinctIdHash::DistinctIdHash(unique_ptr<BindingIdIter> _child_iter, std::vector<VarId> projected_vars) :

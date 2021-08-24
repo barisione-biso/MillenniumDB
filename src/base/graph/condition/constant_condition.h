@@ -9,11 +9,11 @@ public:
 
     ConstantCondition (bool constant) : constant(constant) { }
 
-    bool eval(Binding&) {
+    bool eval(Binding&) const {
         return constant;
     }
 
-    ConditionType type() {
+    ConditionType type() const {
         return ConditionType::constant;
     }
 };

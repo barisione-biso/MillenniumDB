@@ -20,7 +20,7 @@ public:
 
     ~ValueAssignConstant() = default;
 
-    GraphObject get_value(Binding&) {
+    GraphObject get_value(Binding&) const {
         return value;
     }
 };
