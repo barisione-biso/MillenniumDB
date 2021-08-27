@@ -34,7 +34,7 @@ public:
     EdgeTableLookup(RandomAccessTable<3>& table, ThreadInfo*, Id edge, Id from, Id to, Id type);
     ~EdgeTableLookup() = default;
 
-    void analyze(int indent = 0) const override;
+    void analyze(std::ostream&, int indent = 0) const override;
     void begin(BindingId& parent_binding) override;
     bool next() override;
     void reset() override;

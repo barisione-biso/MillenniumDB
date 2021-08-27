@@ -80,8 +80,8 @@ bool GroupBy::next() {
 }
 
 
-void GroupBy::analyze(int indent) const {
-    order_child.analyze(indent);
+void GroupBy::analyze(std::ostream& os, int indent) const {
+    order_child.analyze(os, indent);
 }
 
 

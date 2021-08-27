@@ -37,6 +37,6 @@ bool Select::next() {
 }
 
 
-void Select::analyze(int indent) const {
-    child_iter->analyze(indent);
+void Select::analyze(std::ostream& os, int indent) const {
+    child_iter->analyze(os, indent);
 }

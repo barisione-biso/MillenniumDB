@@ -1,7 +1,5 @@
 #include "hash_join_grace.h"
 
-#include <iostream>
-
 #include "base/ids/var_id.h"
 
 using namespace std;
@@ -299,17 +297,11 @@ void HashJoinGrace::assign_nulls() {
 }
 
 
-void HashJoinGrace::analyze(int indent) const {
-    for (int i = 0; i < indent; ++i) {
-         cout << ' ';
-    }
-    cout << "HashJoinGrace(\n";
-    lhs->analyze(indent + 2);
-    cout << ",\n";
-    rhs->analyze(indent + 2);
-    cout << "\n";
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << ")";
+void HashJoinGrace::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "HashJoinGrace(\n";
+    lhs->analyze(os, indent + 2);
+    os << ",\n";
+    rhs->analyze(os, indent + 2);
+    os << "\n" << std::string(indent, ' ') << ")";
 }

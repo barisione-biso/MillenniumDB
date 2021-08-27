@@ -27,7 +27,7 @@ public:
 
     void begin() override;
     bool next() override;
-    void analyze(int indent = 0) const override;
+    void analyze(std::ostream&, int indent = 0) const override;
 };
 
 #endif // RELATIONAL_MODEL__PROJECTION_H_

@@ -36,7 +36,7 @@ Another way of looking at the procedure is as follows:
    B+ tree.
 3. If IDn is a reached node, and (initState,a,nextState) is a transition in the
    query automaton, we:
-    - check if (IDn,stateNext) was visited before 
+    - check if (IDn,stateNext) was visited before
       (we store this in a set called "visited")
     - we push (IDn,stateNext) onto the queue called "open" (classic BFS)
     - we put (IDn,stateNext) in "visited" to not revisit it again
@@ -59,7 +59,6 @@ conforming to a* matches a path between Q1 and Q1).
 #include "property_path_bfs_simple_enum.h"
 
 #include <cassert>
-#include <iostream>
 
 #include "base/ids/var_id.h"
 #include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
@@ -242,10 +241,8 @@ void PropertyPathBFSSimpleEnum::assign_nulls() {
 }
 
 
-void PropertyPathBFSSimpleEnum::analyze(int indent) const {
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << "PropertyPathBFSSimpleEnum(bpt_searches: " << bpt_searches
-         << ", found: " << results_found <<")\n";
+void PropertyPathBFSSimpleEnum::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "PropertyPathBFSSimpleEnum(bpt_searches: " << bpt_searches
+       << ", found: " << results_found <<")\n";
 }

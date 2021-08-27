@@ -146,7 +146,7 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
 
             // print execution stats in server console
             cout << "\nPlan Executed:\n";
-            physical_plan->analyze(2); // TODO: should pass cout as param
+            physical_plan->analyze(cout, 2);
             cout << "\nResults:" << result_count << "\n";
 
             // write execution stats in output stream

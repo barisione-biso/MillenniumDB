@@ -23,6 +23,6 @@ bool Match::next() {
 }
 
 
-void Match::analyze(int indent) const {
-    root->analyze(indent);
+void Match::analyze(std::ostream& os, int indent) const {
+    root->analyze(os, indent);
 }

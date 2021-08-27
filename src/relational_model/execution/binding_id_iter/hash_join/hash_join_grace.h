@@ -42,7 +42,7 @@ public:
                   std::vector<VarId>             right_vars);
     ~HashJoinGrace() = default;
 
-    void analyze(int indent = 0) const override;
+    void analyze(std::ostream& os, int indent = 0) const override;
     void begin(BindingId& parent_binding) override;
     bool next() override;
     void reset() override;

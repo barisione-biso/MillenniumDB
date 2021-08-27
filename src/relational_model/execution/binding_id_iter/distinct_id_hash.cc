@@ -1,7 +1,5 @@
 #include "distinct_id_hash.h"
 
-#include <iostream>
-
 using namespace std;
 
 DistinctIdHash::DistinctIdHash(unique_ptr<BindingIdIter> _child_iter, std::vector<VarId> projected_vars) :
@@ -49,8 +47,8 @@ bool DistinctIdHash::current_tuple_distinct() {
 }
 
 
-void DistinctIdHash::analyze(int indent) const {
-    std::cout << std::string(indent, ' ');
-    std::cout << "DistinctIdHash()\n";
-    child_iter->analyze(indent+2);
+void DistinctIdHash::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "DistinctIdHash()\n";
+    child_iter->analyze(os, indent+2);
 }

@@ -85,8 +85,8 @@ bool OrderBy::next() {
 }
 
 
-void OrderBy::analyze(int indent) const {
-    child->analyze(indent);
+void OrderBy::analyze(std::ostream& os, int indent) const {
+    child->analyze(os, indent);
 }
 
 

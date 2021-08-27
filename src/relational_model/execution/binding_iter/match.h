@@ -20,7 +20,7 @@ public:
 
     void begin() override;
     bool next() override;
-    void analyze(int indent = 0) const override;
+    void analyze(std::ostream&, int indent = 0) const override;
 
 private:
     const GraphModel& model;

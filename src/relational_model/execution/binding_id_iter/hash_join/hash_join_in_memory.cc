@@ -1,7 +1,5 @@
 #include "hash_join_in_memory.h"
 
-#include <iostream>
-
 #include "base/ids/var_id.h"
 
 using namespace std;
@@ -122,17 +120,13 @@ void HashJoinInMemory::assign_nulls() {
 }
 
 
-void HashJoinInMemory::analyze(int indent) const {
-    for (int i = 0; i < indent; ++i) {
-         cout << ' ';
-    }
-    cout << "HashJoinInMemoryInMemory(\n";
-    lhs->analyze(indent + 2);
-    cout << ",\n";
-    rhs->analyze(indent + 2);
-    cout << "\n";
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << ")";
+void HashJoinInMemory::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "HashJoinInMemoryInMemory(\n";
+    lhs->analyze(os, indent + 2);
+    os << ",\n";
+    rhs->analyze(os, indent + 2);
+    os << "\n";
+    os << std::string(indent, ' ');
+    os << ")";
 }

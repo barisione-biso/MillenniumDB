@@ -225,9 +225,9 @@ bool LeapfrogJoin::find_intersection_for_current_level() {
 }
 
 
-void LeapfrogJoin::analyze(int indent) const {
-    cout << std::string(indent, ' ');
-    cout << "LeapfrogJoin(found: " << results_found << ")";
+void LeapfrogJoin::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "LeapfrogJoin(found: " << results_found << ")";
 }
 
 

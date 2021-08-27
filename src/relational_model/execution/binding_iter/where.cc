@@ -1,7 +1,5 @@
 #include "where.h"
 
-#include <iostream>
-
 #include "base/binding/binding.h"
 #include "base/graph/condition/condition.h"
 
@@ -35,7 +33,7 @@ bool Where::next() {
 }
 
 
-void Where::analyze(int indent) const {
-    std::cout << "Where(found: " << results << ")\n";
-    child_iter->analyze(indent+2);
+void Where::analyze(std::ostream& os, int indent) const {
+    os << "Where(found: " << results << ")\n";
+    child_iter->analyze(os, indent+2);
 }

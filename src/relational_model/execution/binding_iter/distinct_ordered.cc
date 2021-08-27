@@ -6,8 +6,7 @@ DistinctOrdered::DistinctOrdered(const GraphModel& model, unique_ptr<BindingIter
     model          (model),
     child_iter     (move(_child_iter)),
     child_binding  (child_iter->get_binding()),
-    projected_vars (projected_vars)
-    { }
+    projected_vars (projected_vars) { }
 
 
 void DistinctOrdered::begin() {
@@ -45,8 +44,8 @@ bool DistinctOrdered::next() {
 }
 
 
-void DistinctOrdered::analyze(int indent) const {
-    std::cout << std::string(indent, ' ');
-    std::cout << "DistinctOrdered()\n";
-    child_iter->analyze(indent+2);
+void DistinctOrdered::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "DistinctOrdered()\n";
+    child_iter->analyze(os, indent+2);
 }

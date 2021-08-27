@@ -1,7 +1,6 @@
 #include "property_path_a_star_iter_enum.h"
 
 #include <cassert>
-#include <iostream>
 
 #include "base/ids/var_id.h"
 #include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
@@ -220,10 +219,8 @@ void PropertyPathAStarIterEnum::assign_nulls() {
 }
 
 
-void PropertyPathAStarIterEnum::analyze(int indent) const {
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << "PropertyPathAStarIterEnum(bpt_searches: " << bpt_searches
-         << ", found: " << results_found <<")\n";
+void PropertyPathAStarIterEnum::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "PropertyPathAStarIterEnum(bpt_searches: " << bpt_searches
+       << ", found: " << results_found <<")\n";
 }

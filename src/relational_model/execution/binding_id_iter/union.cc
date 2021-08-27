@@ -1,7 +1,5 @@
 #include "union.h"
 
-#include <iostream>
-
 using namespace std;
 
 Union::Union(std::vector<std::unique_ptr<BindingIdIter>> iters) :
@@ -41,10 +39,10 @@ void Union::assign_nulls() {
 }
 
 
-void Union::analyze(int indent) const {
-    cout << "Union:\n";
+void Union::analyze(std::ostream& os, int indent) const {
+    os << "Union:\n";
     for (const auto& iter : iters) {
-        iter->analyze(indent + 2);
-        cout << "\n";
+        iter->analyze(os, indent + 2);
+        os << "\n";
     }
 }

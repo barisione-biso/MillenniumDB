@@ -1,15 +1,12 @@
 #include "distinct_hash.h"
 
-#include <iostream>
-
 using namespace std;
 
 DistinctHash::DistinctHash(unique_ptr<BindingIter> _child_iter, std::vector<VarId> projected_vars) :
     child_iter       (move(_child_iter)),
     child_binding    (child_iter->get_binding()),
     projected_vars   (projected_vars),
-    extendable_table (DistinctBindingHash<GraphObject>(projected_vars.size()))
-    { }
+    extendable_table (DistinctBindingHash<GraphObject>(projected_vars.size())) { }
 
 
 void DistinctHash::begin() {
@@ -38,8 +35,8 @@ bool DistinctHash::current_tuple_distinct() {
 }
 
 
-void DistinctHash::analyze(int indent) const {
-    std::cout << std::string(indent, ' ');
-    std::cout << "DistinctHash()\n";
-    child_iter->analyze(indent+2);
+void DistinctHash::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "DistinctHash()\n";
+    child_iter->analyze(os, indent+2);
 }

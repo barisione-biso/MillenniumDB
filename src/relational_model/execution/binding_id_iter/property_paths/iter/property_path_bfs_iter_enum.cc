@@ -1,7 +1,6 @@
 #include "property_path_bfs_iter_enum.h"
 
 #include <cassert>
-#include <iostream>
 
 #include "base/ids/var_id.h"
 #include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
@@ -206,10 +205,8 @@ void PropertyPathBFSIterEnum::assign_nulls() {
 }
 
 
-void PropertyPathBFSIterEnum::analyze(int indent) const {
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << "PropertyPathBFSIterEnum(bpt_searches: " << bpt_searches
-         << ", found: " << results_found <<")\n";
+void PropertyPathBFSIterEnum::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "PropertyPathBFSIterEnum(bpt_searches: " << bpt_searches
+       << ", found: " << results_found <<")\n";
 }

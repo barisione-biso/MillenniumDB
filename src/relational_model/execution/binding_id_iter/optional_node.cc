@@ -2,7 +2,6 @@
 #include "optional_node.h"
 
 #include <algorithm>
-#include <iostream>
 
 #include "base/ids/var_id.h"
 #include "index_left_outer_join.h"
@@ -39,19 +38,8 @@ void OptionalNode::assign_nulls() {
 }
 
 
-void OptionalNode::analyze(int indent) const {
-
-    //
-    /*for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << "OptionalNode(\n";*/
-    graph_pattern->analyze(indent);
-    /*cout << "\n";
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << ")";*/
+void OptionalNode::analyze(std::ostream& os, int indent) const {
+    graph_pattern->analyze(os, indent);
 }
 
 template class std::unique_ptr<OptionalNode>;

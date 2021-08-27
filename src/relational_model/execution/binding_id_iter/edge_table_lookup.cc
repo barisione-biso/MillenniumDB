@@ -19,11 +19,9 @@ EdgeTableLookup::EdgeTableLookup(RandomAccessTable<3>& table,
     type        (type) { }
 
 
-void EdgeTableLookup::analyze(int indent) const {
-    for (int i = 0; i < indent; ++i) {
-        std::cout << ' ';
-    }
-    std::cout << "EdgeTableLookup(lookups: " << lookups << ", found: " << results << ")\n";
+void EdgeTableLookup::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "EdgeTableLookup(lookups: " << lookups << ", found: " << results << ")\n";
 }
 
 

@@ -1,6 +1,8 @@
 #ifndef BASE__BINDING_ID_ITER_H_
 #define BASE__BINDING_ID_ITER_H_
 
+#include <ostream>
+
 #include "base/binding/binding_id.h"
 
 // Abstract class
@@ -24,7 +26,7 @@ public:
     virtual void assign_nulls() = 0;
 
     // prints execution statistics
-    virtual void analyze(int indent = 0) const = 0;
+    virtual void analyze(std::ostream&, int indent = 0) const = 0;
 };
 
 #endif // BASE__BINDING_ID_ITER_H_

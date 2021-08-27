@@ -18,7 +18,7 @@ public:
     bool next() override;
     void assign_nulls() override;
 
-    void analyze(int indent = 0) const override;
+    void analyze(std::ostream&, int indent = 0) const override;
 
     bool current_tuple_distinct();
 

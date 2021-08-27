@@ -1,7 +1,5 @@
 #include "object_enum.h"
 
-#include <iostream>
-
 #include "base/exceptions.h"
 
 using namespace std;
@@ -44,9 +42,7 @@ void ObjectEnum::assign_nulls() {
 }
 
 
-void ObjectEnum::analyze(int indent) const {
-    for (int i = 0; i < indent; ++i) {
-        cout << ' ';
-    }
-    cout << "ObjectEnum(results: " << results << ")";
+void ObjectEnum::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "ObjectEnum(results: " << results << ")";
 }
