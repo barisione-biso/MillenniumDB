@@ -9,7 +9,7 @@ Structures like B+trees and hash tables are designed to be divided in pages so i
 
 * Working memory used by the buffer manager is divided into two sections:
     - `bytes`: array of all the data that is persistent on disk. // TODO: change name to data?
-        - Size: PAGE_SIZE * buffer_pool_size
+        - Size: MDB_PAGE_SIZE * buffer_pool_size
     - `buffer_pool`: used as an array of Pages. Each Page has:
         - PageId, which is a pair (FileId, page_number)
         - pin counter
@@ -41,6 +41,6 @@ have the same sistems for pages replacement.
 * Pages are obtained via `get_page(file_id, page_number)`, (there also exists `get_last_page(file_id)` and `append_page(file_id)`, but they just call `get_page` with the correct page_number).
 When you get a page, it will be pinned automatically, and its your responsability to call `unpin()` when you are done using it. Otherwise the page won't be able to be replaced in the buffer. Getting a page and unpinnig it is thread safe.
 
-* After you get a page, the bytes you can use are in the range from `page.get_bytes()[0]` to `page.get_bytes()[Page::PAGE_SIZE - 1]`. You have te be cautious to not write outside these bounds, otherwise you may be writing in other page or in uninitialized memory because no bound checking is done. Writing and reading bytes in the page is not thread safe (for now it's not necesary because the database is created once and cannot be modified later, maybe later each page will need to have a mutex, but the buffer manager won't be resposable to lock/unlock  the page, the class that asked for a page will have the responsability to manage that if needed).
+* After you get a page, the bytes you can use are in the range from `page.get_bytes()[0]` to `page.get_bytes()[Page::MDB_PAGE_SIZE - 1]`. You have te be cautious to not write outside these bounds, otherwise you may be writing in other page or in uninitialized memory because no bound checking is done. Writing and reading bytes in the page is not thread safe (for now it's not necesary because the database is created once and cannot be modified later, maybe later each page will need to have a mutex, but the buffer manager won't be resposable to lock/unlock  the page, the class that asked for a page will have the responsability to manage that if needed).
 
 * When you modify the bytes in a page, if you want to make the changes persistent when the page is ejected from the buffer, you need to call `make_dirty()`.
