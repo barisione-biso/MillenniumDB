@@ -26,7 +26,7 @@ using boost::asio::ip::tcp;
 namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
-    string query_file;
+    // string query_file;
     string host;
     int port;
     try {
@@ -36,11 +36,11 @@ int main(int argc, char **argv) {
             ("help", "show this help message")
             ("host,h", po::value<string>(&host)->default_value("127.0.0.1"), "database server host")
             ("port,p", po::value<int>(&port)->default_value(db_server::DEFAULT_PORT), "database server port")
-            ("query-file,q", po::value<string>(&query_file)->required(), "query file")
+            // ("query-file,q", po::value<string>(&query_file)->required(), "query file")
         ;
 
         po::positional_options_description p;
-        p.add("query-file", -1);
+        // p.add("query-file", -1);
 
         po::variables_map vm;
         po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
@@ -53,13 +53,13 @@ int main(int argc, char **argv) {
         po::notify(vm);
 
         // Read query-file
-        ifstream in(query_file, ios_base::in);
-        if (!in) {
-            cerr << "Error: Could not open input file: " << query_file << "\n";
-            return 1;
-        }
+        // ifstream in(query_file, ios_base::in);
+        // if (!in) {
+        //     cerr << "Error: Could not open input file: " << query_file << "\n";
+        //     return 1;
+        // }
         stringstream str_stream;
-        str_stream << in.rdbuf();
+        str_stream << std::cin.rdbuf();
         string query = str_stream.str();
         // cout << "Query:\n" << query << "\n";
 

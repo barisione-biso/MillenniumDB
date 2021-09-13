@@ -86,11 +86,11 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
         std::string query;
         query.resize(query_size);
         boost::asio::read(sock, boost::asio::buffer(query.data(), query_size));
-        cout << "--------------------------\n";
+        cout << "---------------------------------------\n";
         cout << " Query received:\n";
-        cout << "--------------------------\n";
+        cout << "---------------------------------------\n";
         cout << query << "\n";
-        cout << "--------------------------\n";
+        cout << "---------------------------------------\n";
 
         TcpBuffer tcp_buffer = TcpBuffer(sock);
         tcp_buffer.begin(db_server::MessageType::plain_text);
@@ -121,7 +121,9 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
         //     }
         // }
         catch (const QueryException& e) {
+            os << "---------------------------------------\n";
             os << "Query Exception: " << e.what() << "\n";
+            os << "---------------------------------------\n";
             tcp_buffer.set_error();
             remove_thread_from_running_threads();
             return;
@@ -135,6 +137,7 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
             auto& binding = physical_plan->get_binding();
 
             binding.print_header(os);
+            os << "---------------------------------------\n";
 
             // get all results
             while (physical_plan->next()) {
@@ -150,6 +153,7 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
             cout << "\nResults:" << result_count << "\n";
 
             // write execution stats in output stream
+            os << "---------------------------------------\n";
             os << "Found " << result_count << " results.\n";
             os << "Execution time: " << execution_duration.count() << " ms.\n";
             os << "Query Parser/Optimizer time: " << parser_duration.count() << " ms.\n";
@@ -157,6 +161,7 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
         catch (const InterruptedException& e) {
             std::cerr << "QueryInterrupted" << endl;
             auto t = chrono::system_clock::now() - start;
+            os << "---------------------------------------\n";
             os << "Timeout thrown after "
                << std::chrono::duration_cast<std::chrono::milliseconds>(t).count()
                << " milliseconds.\n";
@@ -168,10 +173,9 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
     catch (const ConnectionException& e) {
         std::cerr << "Lost connection with client: " << e.what() << endl;
     }
-    // TODO: uncomment when ready for production
-    // catch (...) {
-    //     std::cerr << "Unknown exception." << endl;
-    // }
+    catch (...) {
+        std::cerr << "Unknown exception." << endl;
+    }
 
     remove_thread_from_running_threads();
 }
