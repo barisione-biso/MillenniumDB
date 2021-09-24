@@ -1,12 +1,18 @@
 #include "tcp_buffer.h"
 
 #include <cassert>
-#include <iostream>
 
 #include "base/exceptions.h"
 
+using boost::asio::ip::tcp;
+
 TcpBuffer::TcpBuffer(tcp::socket& sock) :
-    sock (sock) { }
+    sock (sock)
+{
+    buffer[0] = static_cast<unsigned char>(db_server::MessageType::not_end);
+    // skip first byte for type and 2 bytes for length
+    current_pos = 3;
+}
 
 
 TcpBuffer::~TcpBuffer() {
@@ -18,13 +24,6 @@ TcpBuffer::~TcpBuffer() {
         }
         send();
     }
-}
-
-
-void TcpBuffer::begin(db_server::MessageType msg_type) {
-    buffer[0] = static_cast<unsigned char>(msg_type);
-    // skip first byte for type and 2 bytes for length
-    current_pos = 3;
 }
 
 
@@ -40,8 +39,15 @@ int TcpBuffer::overflow(int i) {
 }
 
 
-void TcpBuffer::set_error() {
+void TcpBuffer::set_error(db_server::ErrorCode error_code) {
+    buffer[1] = static_cast<unsigned char>(error_code);
     error = true;
+}
+
+
+int TcpBuffer::sync() {
+    send();
+    return 0;
 }
 
 

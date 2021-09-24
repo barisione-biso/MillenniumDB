@@ -89,24 +89,24 @@ int main(int argc, char **argv) {
             reply_length += result_buffer[1];
             reply_length += result_buffer[2] << 8;
             std::cout.write(reinterpret_cast<char*>(result_buffer+3), reply_length-3);
-        } while ( result_buffer[0] == static_cast<unsigned char>(db_server::MessageType::plain_text) );
+        } while ( result_buffer[0] == static_cast<unsigned char>(db_server::MessageType::not_end) );
 
         if (result_buffer[0] == static_cast<unsigned char>(db_server::MessageType::end_success)) {
             return 0;
         } else {
-            return -1;
+            return result_buffer[1];
         }
     }
     catch (boost::system::system_error const& e) {
         std::cout << "Error connecting to server: " << e.what() << "\n";
-        return -1;
+        return static_cast<int>(db_server::ErrorCode::connection_error);
     }
-    catch(exception& e) {
+    catch(const std::exception& e) {
         cerr << e.what() << "\n";
-        return -1;
+        return static_cast<int>(db_server::ErrorCode::unexpected_error);
     }
     catch(...) {
-        cerr << "Exception of unknown type!\n";
-        return -1;
+        cerr << "Exception of unexpected type!\n";
+        return static_cast<int>(db_server::ErrorCode::unexpected_error);
     }
 }

@@ -93,7 +93,6 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
         cout << "---------------------------------------\n";
 
         TcpBuffer tcp_buffer = TcpBuffer(sock);
-        tcp_buffer.begin(db_server::MessageType::plain_text);
         std::ostream os(&tcp_buffer);
 
         // without this line ConnectionException won't be catched propertly
@@ -124,7 +123,7 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
             os << "---------------------------------------\n";
             os << "Query Exception: " << e.what() << "\n";
             os << "---------------------------------------\n";
-            tcp_buffer.set_error();
+            tcp_buffer.set_error(db_server::ErrorCode::query_error);
             remove_thread_from_running_threads();
             return;
         }
@@ -133,15 +132,15 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
         try {
             auto execution_start = chrono::system_clock::now();
 
-            physical_plan->begin();
             auto& binding = physical_plan->get_binding();
-
             binding.print_header(os);
             os << "---------------------------------------\n";
 
+            physical_plan->begin();
+
             // get all results
             while (physical_plan->next()) {
-                os << binding << endl;
+                os << binding << '\n';
                 result_count++;
             }
 
@@ -167,7 +166,7 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
                << " milliseconds.\n";
             os << "Found " << result_count << " results before timeout.\n";
             os << "Query Parser/Optimizer time: " << parser_duration.count() << " ms.\n";
-            tcp_buffer.set_error();
+            tcp_buffer.set_error(db_server::ErrorCode::timeout);
         }
     }
     catch (const ConnectionException& e) {

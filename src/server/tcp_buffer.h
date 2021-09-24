@@ -6,25 +6,22 @@
 
 #include "server/server.h"
 
-using boost::asio::ip::tcp;
-
 class TcpBuffer : public std::stringbuf {
 public:
-    TcpBuffer(tcp::socket& sock);
+    TcpBuffer(boost::asio::ip::tcp::socket& sock);
     ~TcpBuffer();
 
-    void begin(db_server::MessageType msg_type);
-    void set_error();
-    // void end();
+    void set_error(db_server::ErrorCode error_code);
 
 protected:
     int overflow(int c) override;
+    int sync() override;
 
 private:
     int current_pos;
     bool error = false;
     unsigned char buffer[db_server::BUFFER_SIZE];
-    tcp::socket& sock;
+    boost::asio::ip::tcp::socket& sock;
     void send();
 };
 
