@@ -52,16 +52,9 @@ int main(int argc, char **argv) {
         }
         po::notify(vm);
 
-        // Read query-file
-        // ifstream in(query_file, ios_base::in);
-        // if (!in) {
-        //     cerr << "Error: Could not open input file: " << query_file << "\n";
-        //     return 1;
-        // }
         stringstream str_stream;
         str_stream << std::cin.rdbuf();
         string query = str_stream.str();
-        // cout << "Query:\n" << query << "\n";
 
         boost::asio::io_service io_service;
 
@@ -71,7 +64,6 @@ int main(int argc, char **argv) {
 
         // Send Query
         auto query_length = query.size();
-        // cout << "Query length: " << query_length << "\n";
 
         unsigned char query_size_b[db_server::BYTES_FOR_QUERY_LENGTH];
         for (int i = 0, offset = 0; i < db_server::BYTES_FOR_QUERY_LENGTH; i++, offset += 8) {
