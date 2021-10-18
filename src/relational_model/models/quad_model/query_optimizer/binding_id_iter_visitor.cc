@@ -346,116 +346,115 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
                                                                       const size_t binding_size,
                                                                       uint64_t input_vars)
 {
-    const auto base_plans_size = base_plans.size();
-    assert(base_plans_size > 0);
-    vector<unique_ptr<JoinPlan>> ordered_plans;
-    vector<bool> base_plan_selected(base_plans_size, false);
+    /* To choose the variable order:
+    1. Crear map de var a lista de relaciones que mencionan a esa var
+    2. Assign a cost to each variable, equal to the min cost of the relations it appears in.
+       Para desempatar usar el numero de apariciones
+    3. Take the variable with least cost as the first variable in the order
+    4. Crear set con vecinos no asignados
+       (por cada relacion de la variable se agregan las otras variables)
+    5. Ir sacando variables y actualizando la vecindad de forma iterativa hasta que no queden variables
+       por elegir. Si el set de vecinos no asignados queda vacío se elige de entre las que quedan
+    */
 
-    vector<VarId> intersection_vars;
+    map<VarId, vector<JoinPlan*>> var2plans;
+    map<VarId, pair<double, std::size_t>> var2cost; // TODO: need custom comparator, maybe custom struct?
+    set<VarId> unchoosen_intersection_vars; // deberia contener las de enumeracion tambien?
+    set<VarId> unchoosen_connected_intersection_vars;
     set<VarId> enumeration_vars;
-    set<VarId> assigned_vars_set(assigned_vars.begin(), assigned_vars.end());
-    set<VarId> intersection_vars_set;
+    vector<VarId> var_order;
 
-    // choose the first plan
-    int best_index = 0;
-    double best_cost = std::numeric_limits<double>::max();
-    for (size_t j = 0; j < base_plans_size; j++) {
-        base_plans[j]->set_input_vars(input_vars);
-        auto current_element_cost = base_plans[j]->estimate_cost();
-        if (current_element_cost < best_cost) {
-            best_cost = current_element_cost;
-            best_index = j;
-        }
+    // Construct var2plans and unchoosen_vars
+    for (std::size_t i = 0; i < binding_size; i++) {
+        var2plans.insert( make_pair(VarId(i), std::vector<JoinPlan*>()) );
     }
-    base_plan_selected[best_index] = true;
-    // cout << "selected index " << best_index << "\n";
-    ordered_plans.push_back(base_plans[best_index]->duplicate());
-
-    // choose the next plan
-    for (size_t i = 1; i < base_plans_size; i++) {
-        best_index = 0;
-        best_cost = std::numeric_limits<double>::max();
-        unique_ptr<JoinPlan> best_step_plan = nullptr;
-
-        for (size_t j = 0; j < base_plans_size; j++) {
-            if (!base_plan_selected[j]
-                && !base_plans[j]->cartesian_product_needed(input_vars) )
-            {
-                auto duplicated_plan = base_plans[j]->duplicate();
-                duplicated_plan->set_input_vars(input_vars);
-                auto cost = duplicated_plan->estimate_cost();
-
-                if (cost < best_cost) {
-                    best_cost = cost;
-                    best_index = j;
-                    best_step_plan = move(duplicated_plan);
-                }
-            }
-        }
-
-        // All elements would form a cross product, iterate again, allowing cross products
-        if (best_cost == std::numeric_limits<double>::max()) {
-            best_index = 0;
-
-            for (size_t j = 0; j < base_plans_size; j++) {
-                if (base_plan_selected[j]) {
-                    continue;
-                }
-                auto duplicated_plan = base_plans[j]->duplicate();
-                duplicated_plan->set_input_vars(input_vars);
-                auto cost = duplicated_plan->estimate_cost();
-
-                if (cost < best_cost) {
-                    best_cost = cost;
-                    best_index = j;
-                    best_step_plan = move(duplicated_plan);
-                }
-            }
-        }
-        base_plan_selected[best_index] = true;
-        input_vars |= best_step_plan->get_vars();
-        // cout << "selected index " << best_index << "\n";
-        ordered_plans.push_back(move(best_step_plan));
-    }
-
-    // set intersection and enumeration vars
-    for (const auto& plan : ordered_plans) {
+    for (auto& plan : base_plans) {
+        plan->set_input_vars(input_vars); // TODO: is it necessary to do it, shoud I do it before?
         auto encoded_vars = plan->get_vars();
         for (std::size_t i = 0; i < binding_size; i++) {
             if ((encoded_vars & (1UL << i)) != 0) {
                 VarId var(i);
-                // only consider variables not present in assigned_vars
-                if (assigned_vars_set.find(var) == assigned_vars_set.end()) {
-                    // Var is in enumeration_vars
-                    if (enumeration_vars.find(var) != enumeration_vars.end()) {
-                        enumeration_vars.erase(var);
-                        intersection_vars_set.insert(var);
-                        intersection_vars.push_back(var);
-                    }
-                    // Var is not in intersection vars
-                    else if (intersection_vars_set.find(var) == intersection_vars_set.end()) {
-                        enumeration_vars.insert(var);
-                    }
-                    // else var is already in intersection_vars, do nothing
-                }
+                var2plans[var].push_back(plan.get());
             }
         }
     }
 
-    vector<VarId> var_order = intersection_vars; // TODO: move?
-    for (const auto& var : enumeration_vars) {
-        var_order.push_back(var);
+    // Construct var2cost
+    for (auto&&[var, plans] : var2plans) {
+        double best_cost = std::numeric_limits<double>::max();
+        for (auto plan : plans) {
+            auto cost = plan->estimate_cost();
+            if (cost < best_cost) {
+                best_cost = cost;
+            }
+        }
+        if (plans.size() > 1) {
+            unchoosen_intersection_vars.insert(var);
+        } else {
+            enumeration_vars.insert(var);
+        }
+        var2cost.insert( make_pair(var, make_pair(best_cost, plans.size()) ) );
     }
 
-    const auto enumeration_level = intersection_vars.size();
+    while (!unchoosen_intersection_vars.empty()) {
+        double choosen_cost = std::numeric_limits<double>::max();
+        std::size_t choosen_appereances = 0;
+        uint_fast32_t choosen_var_id = UINT_FAST32_MAX;
 
+        if (!unchoosen_connected_intersection_vars.empty()) {
+            for (auto var : unchoosen_connected_intersection_vars) {
+                auto [current_cost, current_appereances] = var2cost[var];
+                if (current_cost < choosen_cost
+                    || (current_cost == choosen_cost && current_appereances > choosen_appereances) )
+                {
+                    choosen_var_id = var.id;
+                    choosen_cost = current_cost;
+                    choosen_appereances = current_appereances;
+                }
+            }
+        } else {
+            for (auto var : unchoosen_intersection_vars) {
+                auto [current_cost, current_appereances] = var2cost[var];
+                if (current_cost < choosen_cost
+                    || (current_cost == choosen_cost && current_appereances > choosen_appereances) )
+                {
+                    choosen_var_id = var.id;
+                    choosen_cost = current_cost;
+                    choosen_appereances = current_appereances;
+                }
+            }
+        }
+        VarId choosen_var(choosen_var_id);
+        unchoosen_intersection_vars.erase(choosen_var);
+        unchoosen_connected_intersection_vars.erase(choosen_var);
+        // actualizar unchoosen_connected_intersection_vars
+        for (auto plan : var2plans[choosen_var]) {
+            auto encoded_vars = plan->get_vars();
+            for (std::size_t i = 0; i < binding_size; i++) {
+                if ((encoded_vars & (1UL << i)) != 0) {
+                    VarId var(i);
+                    // si no ha sido elegida la agrego a las connectadas
+                    if (unchoosen_intersection_vars.find(var) != unchoosen_intersection_vars.end()) {
+                        unchoosen_connected_intersection_vars.insert(var);
+                    }
+                }
+            }
+        }
+        var_order.push_back(choosen_var);
+    }
+
+    const auto enumeration_level = var_order.size();
+
+    for (auto enumeration_var : enumeration_vars) {
+        var_order.push_back(enumeration_var);
+    }
+
+    // TODO: only for debugging
     cout << "Var order: [";
     for (const auto& var : var_order) {
         cout << " " << var_names[var.id] << "(" << var.id << ")";
     }
     cout << " ]\n";
-
-    cout << "   enumeration_level: " << enumeration_level << "\n";
 
     // Segunda pasada ahora si creando los LFIters
     vector<unique_ptr<LeapfrogIter>> leapfrog_iters;
@@ -474,6 +473,137 @@ unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vect
     }
 
     return make_unique<LeapfrogJoin>(move(leapfrog_iters), move(var_order), enumeration_level);
+
+    // TODO: al final hare algo como plan->get_leapfrog_iter(thread_info, assigned_vars, var_order, enumeration_level)
+
+    // const auto base_plans_size = base_plans.size();
+    // assert(base_plans_size > 0);
+    // vector<unique_ptr<JoinPlan>> ordered_plans;
+    // vector<bool> base_plan_selected(base_plans_size, false);
+
+    // vector<VarId> intersection_vars;
+    // set<VarId> enumeration_vars;
+    // set<VarId> assigned_vars_set(assigned_vars.begin(), assigned_vars.end());
+    // set<VarId> intersection_vars_set;
+
+    // // choose the first plan
+    // int best_index = 0;
+    // double best_cost = std::numeric_limits<double>::max();
+    // for (size_t j = 0; j < base_plans_size; j++) {
+    //     base_plans[j]->set_input_vars(input_vars);
+    //     auto current_element_cost = base_plans[j]->estimate_cost();
+    //     if (current_element_cost < best_cost) {
+    //         best_cost = current_element_cost;
+    //         best_index = j;
+    //     }
+    // }
+    // base_plan_selected[best_index] = true;
+    // // cout << "selected index " << best_index << "\n";
+    // ordered_plans.push_back(base_plans[best_index]->duplicate());
+
+    // // choose the next plan
+    // for (size_t i = 1; i < base_plans_size; i++) {
+    //     best_index = 0;
+    //     best_cost = std::numeric_limits<double>::max();
+    //     unique_ptr<JoinPlan> best_step_plan = nullptr;
+
+    //     for (size_t j = 0; j < base_plans_size; j++) {
+    //         if (!base_plan_selected[j]
+    //             && !base_plans[j]->cartesian_product_needed(input_vars) )
+    //         {
+    //             auto duplicated_plan = base_plans[j]->duplicate();
+    //             duplicated_plan->set_input_vars(input_vars);
+    //             auto cost = duplicated_plan->estimate_cost();
+
+    //             if (cost < best_cost) {
+    //                 best_cost = cost;
+    //                 best_index = j;
+    //                 best_step_plan = move(duplicated_plan);
+    //             }
+    //         }
+    //     }
+
+    //     // All elements would form a cross product, iterate again, allowing cross products
+    //     if (best_cost == std::numeric_limits<double>::max()) {
+    //         best_index = 0;
+
+    //         for (size_t j = 0; j < base_plans_size; j++) {
+    //             if (base_plan_selected[j]) {
+    //                 continue;
+    //             }
+    //             auto duplicated_plan = base_plans[j]->duplicate();
+    //             duplicated_plan->set_input_vars(input_vars);
+    //             auto cost = duplicated_plan->estimate_cost();
+
+    //             if (cost < best_cost) {
+    //                 best_cost = cost;
+    //                 best_index = j;
+    //                 best_step_plan = move(duplicated_plan);
+    //             }
+    //         }
+    //     }
+    //     base_plan_selected[best_index] = true;
+    //     input_vars |= best_step_plan->get_vars();
+    //     // cout << "selected index " << best_index << "\n";
+    //     ordered_plans.push_back(move(best_step_plan));
+    // }
+
+    // // set intersection and enumeration vars
+    // for (const auto& plan : ordered_plans) {
+    //     auto encoded_vars = plan->get_vars();
+    //     for (std::size_t i = 0; i < binding_size; i++) {
+    //         if ((encoded_vars & (1UL << i)) != 0) {
+    //             VarId var(i);
+    //             // only consider variables not present in assigned_vars
+    //             if (assigned_vars_set.find(var) == assigned_vars_set.end()) {
+    //                 // Var is in enumeration_vars
+    //                 if (enumeration_vars.find(var) != enumeration_vars.end()) {
+    //                     enumeration_vars.erase(var);
+    //                     intersection_vars_set.insert(var);
+    //                     intersection_vars.push_back(var);
+    //                 }
+    //                 // Var is not in intersection vars
+    //                 else if (intersection_vars_set.find(var) == intersection_vars_set.end()) {
+    //                     enumeration_vars.insert(var);
+    //                 }
+    //                 // else var is already in intersection_vars, do nothing
+    //             }
+    //         }
+    //     }
+    // }
+
+    // vector<VarId> var_order = intersection_vars; // TODO: move?
+    // for (const auto& var : enumeration_vars) {
+    //     var_order.push_back(var);
+    // }
+
+    // const auto enumeration_level = intersection_vars.size();
+
+    // cout << "Var order: [";
+    // for (const auto& var : var_order) {
+    //     cout << " " << var_names[var.id] << "(" << var.id << ")";
+    // }
+    // cout << " ]\n";
+
+    // cout << "   enumeration_level: " << enumeration_level << "\n";
+
+    // // Segunda pasada ahora si creando los LFIters
+    // vector<unique_ptr<LeapfrogIter>> leapfrog_iters;
+    // for (const auto& plan : base_plans) {
+    //     auto lf_iter = plan->get_leapfrog_iter(thread_info, assigned_vars, var_order, enumeration_level);
+    //     if (lf_iter == nullptr) {
+    //         return nullptr;
+    //     } else {
+    //         leapfrog_iters.push_back(move(lf_iter));
+    //     }
+    // }
+
+    // // At this point we know it won't return nullptr so we can change assigned_vars
+    // for (const auto& var : var_order) {
+    //     assigned_vars.insert(var);
+    // }
+
+    // return make_unique<LeapfrogJoin>(move(leapfrog_iters), move(var_order), enumeration_level);
 }
 
 
