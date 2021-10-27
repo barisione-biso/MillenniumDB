@@ -33,7 +33,7 @@ struct Transition {
         inverse   (inverse) { }
 
     bool operator==(Transition other) {
-        return from == other.from && to == other.to && label == other.label;
+        return from == other.from && to == other.to && label == other.label && inverse == other.inverse;
     }
 };
 
