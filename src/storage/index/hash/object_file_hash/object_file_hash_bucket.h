@@ -14,7 +14,7 @@ friend class ObjectFileHash;
 
 // 2 bytes needed for key_count and local_depth, 2*8 bytes for the hash
 // and 6 bytes for the id (it assumes the other 2 bytes of the id are 0x00)
-// TODO: maybe 5 bytes is enough => ~1TB of objects
+// TODO: maybe 5 bytes is enough => ~1TB for object_file
 static constexpr auto BYTES_FOR_ID = 6U;
 static constexpr auto MAX_KEYS = (Page::MDB_PAGE_SIZE - 2*sizeof(uint8_t)) / (2*sizeof(uint64_t) + BYTES_FOR_ID);
 static_assert(MAX_KEYS <= UINT8_MAX, "ObjectFileHashBucket KEY_COUNT(UINT8) CAN'T REACH MAX_KEYS");

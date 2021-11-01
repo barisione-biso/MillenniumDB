@@ -47,8 +47,8 @@ namespace query { namespace ast {
     };
 
     struct PropertyPathBoundSuffix {
-        uint_fast32_t min;
-        uint_fast32_t max;
+        uint64_t min;
+        uint64_t max;
     };
 
     struct PropertyPathAtom;
@@ -140,7 +140,7 @@ namespace query { namespace ast {
         boost::optional<FormulaDisjunction>              where;
         boost::optional<std::vector<OrderedSelectItem>>  group_by;
         boost::optional<std::vector<OrderedSelectItem>>  order_by;
-        boost::optional<uint_fast32_t>                   limit;
+        boost::optional<uint64_t>                        limit;
     };
 }}
 

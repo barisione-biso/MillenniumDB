@@ -34,8 +34,8 @@
 #include "storage/page_id.h"
 
 class FileManager {
-friend class Page; // to allow pages call file_manager.flush
-friend class BufferManager; // to allow pages call file_manager.read_page
+friend class Page; // to allow calling file_manager.flush
+friend class BufferManager; // to calling file_manager.read_page
 public:
     ~FileManager() = default;
 

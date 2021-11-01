@@ -6,7 +6,6 @@
 #include "base/binding/binding_id.h"
 #include "base/parser/logical_plan/var.h"
 
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -20,7 +19,6 @@ public:
 
     GraphObject operator[](const VarId var_id) override;
 
-private:
     std::vector<std::pair<Var, VarId>> projection_vars;
     Binding& child_binding;
 };

@@ -47,10 +47,12 @@ public:
     std::unique_ptr<BindingIter> exec(OpSelect&, ThreadInfo*) const override;
     // std::unique_ptr<BindingIter> exec(manual_plan::ast::ManualRoot&) const override;
 
+    ObjectId get_value_id(const common::ast::Value& value) const;
     ObjectId get_object_id(const GraphObject&) const override;
 
     GraphObject get_graph_object(ObjectId) const override;
     GraphObject get_property_value(GraphObject& obj, const ObjectId key) const override;
+
 
     // Methods used by bulk_import
     uint64_t get_or_create_object_id(const GraphObject&);

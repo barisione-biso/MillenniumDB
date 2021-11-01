@@ -5,14 +5,14 @@
 #include "base/exceptions.h"
 #include "base/parser/grammar/manual_plan/manual_plan_def.h"
 #include "base/parser/grammar/query/query_def.h"
-#include "base/parser/logical_plan/op/op_filter.h"
-#include "base/parser/logical_plan/op/op_graph_pattern_root.h"
-#include "base/parser/logical_plan/op/op_group_by.h"
 #include "base/parser/logical_plan/op/op_basic_graph_pattern.h"
+#include "base/parser/logical_plan/op/op_distinct.h"
+#include "base/parser/logical_plan/op/op_group_by.h"
+#include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
-#include "base/parser/logical_plan/op/op_distinct.h"
+#include "base/parser/logical_plan/op/op_where.h"
 #include "base/parser/logical_plan/op/visitors/check_var_names.h"
 #include "base/parser/logical_plan/op/visitors/check_well_designed.h"
 #include "base/parser/logical_plan/op/visitors/optimize_tree.h"
@@ -29,22 +29,19 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
         op = make_unique<OpBasicGraphPattern>(ast.graph_pattern.pattern, &anon_count);
     }
 
-    op = make_unique<OpGraphPatternRoot>(std::move(op));
-
-    uint_fast32_t limit = 0;
-    if (ast.limit) {
-        limit = ast.limit.get();
-    }
+    op = make_unique<OpMatch>(std::move(op));
 
     if (ast.where) {
-        op = make_unique<OpFilter>(move(op), ast.where.get());
+        op = make_unique<OpWhere>(move(op), ast.where.get());
     }
 
+    // TODO: GroupBy not ready yet. When we have GroupBy + OrderBy, the Order By may be redundant if the
+    // GroupBy use the correct order
     if (ast.group_by) {
-        op = make_unique<OpGroupBy>(move(op), ast.group_by.get());
+    //     op = make_unique<OpGroupBy>(move(op), ast.group_by.get());
+        throw NotSupportedException("Group By is not supported yet.");
     }
 
-    // TODO: si viene group by + order by solo debería haber 1 OpGroupBy que sepa como ordenar?
     if (ast.order_by) {
         op = make_unique<OpOrderBy>(move(op), ast.order_by.get());
     }
@@ -53,6 +50,11 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
         op = make_unique<OpDistinct>(move(op));
     }
 
+    // TODO: we might be able to configure a hard limit for query results
+    uint64_t limit = UINT64_MAX;
+    if (ast.limit) {
+        limit = ast.limit.get();
+    }
     return make_unique<OpSelect>(move(op), ast.select.selection, limit);
 }
 

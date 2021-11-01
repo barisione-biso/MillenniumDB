@@ -46,6 +46,10 @@ bool DistinctOrdered::next() {
 
 void DistinctOrdered::analyze(std::ostream& os, int indent) const {
     os << std::string(indent, ' ');
-    os << "DistinctOrdered()\n";
-    child_iter->analyze(os, indent+2);
+    os << "DistinctOrdered(";
+    for (auto& var_id : projected_vars) {
+        os << " VarId(" << var_id.id << ")";
+    }
+    os << " )\n";
+    child_iter->analyze(os, indent);
 }

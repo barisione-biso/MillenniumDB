@@ -8,14 +8,16 @@
 
 class OpLabel : public Op {
 public:
-    const NodeId node_id; // TODO: solo deberia poder ser un node_name o var
+    // it only can be a NodeName or Var
+    const NodeId node_id;
+
     const std::string label;
 
-    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');
         os << "OpLabel(" << node_id << "," << label << ")\n";
         return os;
-    };
+    }
 
     OpLabel(NodeId node_id, std::string label) :
         node_id (std::move(node_id)),
@@ -38,11 +40,13 @@ public:
         }
     }
 
-    void get_vars(std::set<Var>& set) const override {
+    std::set<Var> get_vars() const override {
+        std::set<Var> res;
         if (node_id.is_var()) {
-            set.insert(node_id.to_var());
+            res.insert(node_id.to_var());
         }
         // we assume label won't be a variable
+        return res;
     }
 };
 

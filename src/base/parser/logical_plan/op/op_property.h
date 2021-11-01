@@ -4,6 +4,7 @@
 #include <string>
 
 #include "base/ids/node_id.h"
+#include "base/parser/grammar/common/common_ast.h"
 #include "base/parser/logical_plan/op/op.h"
 
 class OpProperty : public Op {
@@ -33,12 +34,14 @@ public:
         return false;
     }
 
-    void get_vars(std::set<Var>& set) const override {
+    std::set<Var> get_vars() const override {
+        std::set<Var> res;
         if (node_id.is_var()) {
-            set.insert(node_id.to_var());
+            res.insert(node_id.to_var());
         }
         // we assume key cant't be a variable
         // we assume value can't be a variable
+        return res;
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {

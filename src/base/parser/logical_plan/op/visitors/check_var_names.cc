@@ -1,20 +1,21 @@
 #include "check_var_names.h"
 
 #include "base/exceptions.h"
-#include "base/parser/logical_plan/op/op_distinct.h"
-#include "base/parser/logical_plan/op/op_filter.h"
-#include "base/parser/logical_plan/op/op_graph_pattern_root.h"
-#include "base/parser/logical_plan/op/op_group_by.h"
 #include "base/parser/logical_plan/op/op_basic_graph_pattern.h"
+#include "base/parser/logical_plan/op/op_distinct.h"
+#include "base/parser/logical_plan/op/op_group_by.h"
+#include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/op_where.h"
+#include "base/parser/logical_plan/op/visitors/check_var_names_formula.h"
 
 void CheckVarNames::visit(OpSelect& op_select) {
     op_select.op->accept_visitor(*this);
 
     for (auto& select_item : op_select.select_items) {
-        if (declared_object_names.find(select_item.var) == declared_object_names.end()) {
+        if (declared_vars.find(Var(select_item.var)) == declared_vars.end()) {
             throw QuerySemanticException("Variable \"" + select_item.var +
                 "\" used in SELECT is not declared in MATCH");
         }
@@ -32,14 +33,16 @@ void CheckVarNames::visit(OpOptional& op_optional) {
 
 void CheckVarNames::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
     for (const auto& var : op_basic_graph_pattern.vars) {
-        declared_object_names.insert(var.name);
+        declared_vars.emplace(var.name);
     }
 }
 
 
-void CheckVarNames::visit(OpFilter& op_filter) {
-    op_filter.op->accept_visitor(*this);
-    op_filter.check_var_names(declared_object_names);
+void CheckVarNames::visit(OpWhere& op_where) {
+    op_where.op->accept_visitor(*this);
+
+    CheckVarNamesFormula formula_visitor(declared_vars);
+    formula_visitor(op_where.formula_disjunction);
 }
 
 
@@ -53,8 +56,8 @@ void CheckVarNames::visit(OpOrderBy& op_order_by) {
 }
 
 
-void CheckVarNames::visit(OpGraphPatternRoot& op_graph_pattern_root) {
-     op_graph_pattern_root.op->accept_visitor(*this);
+void CheckVarNames::visit(OpMatch& op_match) {
+     op_match.op->accept_visitor(*this);
 }
 
 

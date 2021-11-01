@@ -17,6 +17,7 @@ TupleBufferBlock::TupleBufferBlock(TmpFileId                 file_id,
     tuple_count      (reinterpret_cast<uint32_t*>(page.get_bytes() + max_tuples*tuple_size*sizeof(uint64_t)))
     { }
 
+
 TupleBufferBlock::~TupleBufferBlock() {
     buffer_manager.unpin(page);
 }
@@ -27,7 +28,7 @@ void TupleBufferBlock::append_tuple(const std::vector<ObjectId>& tuple) {
         tuples[ (*tuple_count) * tuple_size + i ] = tuple[i].id;
     }
     ++(*tuple_count);
-    page.make_dirty(); // TODO: may be better to mark dirty in destructor?
+    page.make_dirty();
 }
 
 

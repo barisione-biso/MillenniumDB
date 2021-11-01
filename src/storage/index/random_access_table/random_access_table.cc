@@ -1,7 +1,5 @@
 #include "random_access_table.h"
 
-#include <iostream>
-
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 

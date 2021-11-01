@@ -31,6 +31,8 @@ namespace common {
             var = "var";
         x3::rule<class key, std::string>
             key = "key";
+        x3::rule<class label, std::string>
+            label = "label";
         x3::rule<class value, ast::Value>
             value = "value";
         x3::rule<class property, ast::Property>
@@ -83,10 +85,10 @@ namespace common {
             lexeme[char_('?') >> char_("A-Za-z") >> *char_("A-Za-z0-9_")];
 
         auto const key_def =
-            lexeme[+char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")]; // TODO: redefine this?
+            lexeme[char_("A-Za-z") >> *char_("A-Za-z0-9_")];
 
-        auto const label =
-            lexeme[':' >> +char_("A-Za-zÁÉÍÓÚáéíóúÑñèç0-9#'_")]; // TODO: redefine this?
+        auto const label_def =
+            lexeme[':' >> char_("A-Za-z") >> *char_("A-Za-z0-9_")];
 
         auto const value_def =
             string | float_ | int64 | boolean;
@@ -97,6 +99,7 @@ namespace common {
         BOOST_SPIRIT_DEFINE(
             var,
             key,
+            label,
             value,
             property,
             node_name,

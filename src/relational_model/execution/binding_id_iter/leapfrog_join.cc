@@ -184,7 +184,7 @@ void LeapfrogJoin::down() {
             buffers[i]->assign_to_binding(*parent_binding, 0);
         }
         buffer_pos[0] = -1; // so when calling buffer_pos[0]++ it will be at 0
-        // TODO: does sorting by buffer size improve performance?
+        // TODO: maybe sorting by buffer size can improve performance
     }
 }
 

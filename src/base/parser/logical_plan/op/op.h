@@ -12,8 +12,7 @@ public:
 
     virtual void accept_visitor(OpVisitor&) = 0;
 
-    // OpFilter, OpGroupBy and OpOrderBy are not adding their new variables (properties)
-    virtual void get_vars(std::set<Var>& set) const = 0;
+    virtual std::set<Var> get_vars() const = 0;
 
     virtual std::ostream& print_to_ostream(std::ostream& os, int indent=0) const = 0;
 

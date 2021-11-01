@@ -5,21 +5,19 @@
 #define BASE__CHECK_VAR_NAMES_EXISTS_H_
 
 #include <set>
-#include <string>
 
-#include "base/graph/graph_object.h"
 #include "base/parser/logical_plan/op/visitors/op_visitor.h"
-// #include "base/parser/logical_plan/var.h"
+#include "base/parser/logical_plan/var.h"
 
 class CheckVarNames : public OpVisitor {
 private:
-    std::set<std::string> declared_object_names; // TODO: should be a set of Var?
+    std::set<Var> declared_vars;
 
 public:
     void visit(OpBasicGraphPattern&) override;
     void visit(OpDistinct&)          override;
-    void visit(OpFilter&)            override;
-    void visit(OpGraphPatternRoot&)  override;
+    void visit(OpWhere&)            override;
+    void visit(OpMatch&)  override;
     void visit(OpGroupBy&)           override;
     void visit(OpOptional&)          override;
     void visit(OpOrderBy&)           override;

@@ -28,7 +28,7 @@ public:
         visitor.visit(*this);
     }
 
-    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override{
+    std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');
         os << "OpGroupBy()";
         bool first = true;
@@ -45,9 +45,14 @@ public:
         return op->print_to_ostream(os, indent + 2);
     }
 
-    void get_vars(std::set<Var>& set) const override {
-        // TODO: should add properties mentioned in the GROUP BY that are not present in the MATCH?
-        op->get_vars(set);
+    std::set<Var> get_vars() const override {
+        auto res = op->get_vars();
+        for (const auto& item : items) {
+            if (item.key) {
+                res.emplace(item.var + '.' + item.key.get());
+            }
+        }
+        return res;
     }
 };
 

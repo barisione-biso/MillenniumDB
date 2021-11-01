@@ -12,12 +12,12 @@ public:
     const NodeId from;
     const NodeId to;
     const NodeId edge;
-    const std::vector<std::string> types; // TODO: use NodeId?
+    const std::vector<NodeId> types;
 
-    OpConnection(NodeId _from, NodeId _to, NodeId _edge, std::vector<std::string> _types) :
+    OpConnection(NodeId _from, NodeId _to, NodeId _edge, std::vector<NodeId> _types) :
         from  (_from),
         to    (_to),
-        edge  (std::move(_edge)),
+        edge  (_edge),
         types (std::move(_types)) { }
 
     void accept_visitor(OpVisitor& visitor) override {
@@ -25,7 +25,6 @@ public:
     }
 
     bool operator<(const OpConnection& other) const {
-        // TODO: consider types?
         if (from < other.from) {
             return true;
         } else if (from > other.from) {
@@ -34,31 +33,43 @@ public:
             return true;
         } else if (to > other.to) {
             return false;
+        } else if (edge < other.edge) {
+            return true;
+        } else if (edge > other.edge) {
+            return false;
         } else {
-            return edge < other.edge;
+            return types < other.types;
         }
     }
 
-    void get_vars(std::set<Var>& set) const override {
+    std::set<Var> get_vars() const override {
+        std::set<Var> res;
         if (from.is_var()) {
-            set.insert(from.to_var());
+            res.insert(from.to_var());
         }
         if (to.is_var()) {
-            set.insert(to.to_var());
+            res.insert(to.to_var());
         }
         for (auto& type : types) {
-            if (type[0] == '?') {
-                set.emplace(type);
+            if (type.is_var()) {
+                res.insert(type.to_var());
             }
         }
         if (edge.is_var()) {
-            set.insert(edge.to_var());
+            res.insert(edge.to_var());
         }
+        return res;
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');
-        os << "OpConnection( (" << from << ")-[" << edge << "]->(" << to <<") )\n";
+        os << "OpConnection( (" << from << ")-[" << edge;
+
+        for (auto& type : types) {
+            os << " " << type;
+        }
+
+        os << "]->(" << to <<") )\n";
         return os;
     };
 };

@@ -21,7 +21,7 @@ public:
     virtual std::unique_ptr<OpPath> invert() const = 0;
     virtual std::unique_ptr<OpPath> duplicate() const = 0;
 
-    void get_vars(std::set<Var>&) const override { }
+    std::set<Var> get_vars() const override { return std::set<Var>(); }
 
     bool operator<(const OpPath& other) const {
         return to_string() < other.to_string();

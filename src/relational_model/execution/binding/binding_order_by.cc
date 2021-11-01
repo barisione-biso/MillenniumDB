@@ -2,13 +2,10 @@
 
 #include <cassert>
 
-#include "base/binding/binding.h"
-
 using namespace std;
 
-BindingOrderBy::BindingOrderBy(const GraphModel& model, size_t binding_size) :
-    model        (model),
-    binding_size (binding_size) { }
+BindingOrderBy::BindingOrderBy(const std::map<VarId, uint_fast32_t>& saved_vars) :
+    saved_vars (saved_vars){ }
 
 
 std::ostream& BindingOrderBy::print_to_ostream(std::ostream& os) const {
@@ -17,11 +14,16 @@ std::ostream& BindingOrderBy::print_to_ostream(std::ostream& os) const {
 
 
 GraphObject BindingOrderBy::operator[](const VarId var) {
-    assert(var.id < binding_size);
-    return objects_vector[var.id];
+    auto search = saved_vars.find(var);
+    if (search != saved_vars.end()) {
+        return saved_objects[search->second];
+    } else {
+        throw std::logic_error("saved_vars must contain VarId(" + std::to_string(var.id) + ")");
+    }
 }
 
 
-void BindingOrderBy::update_binding_object(std::vector<GraphObject> graph_obj) {
-    objects_vector = move(graph_obj);
+void BindingOrderBy::update_binding(std::vector<GraphObject> graph_objects) {
+    assert(graph_objects.size() == saved_vars.size());
+    saved_objects = move(graph_objects);
 }

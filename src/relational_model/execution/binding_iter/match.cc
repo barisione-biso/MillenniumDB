@@ -1,9 +1,5 @@
 #include "match.h"
 
-#include <limits>
-
-#include "storage/index/object_file/object_file.h"
-
 using namespace std;
 
 Match::Match(const GraphModel& model, unique_ptr<BindingIdIter> root, size_t binding_size) :
@@ -24,5 +20,10 @@ bool Match::next() {
 
 
 void Match::analyze(std::ostream& os, int indent) const {
-    root->analyze(os, indent);
+    os << std::string(indent, ' ');
+    os << "Match (\n";
+    root->analyze(os, indent + 2);
+    os << "\n";
+    os << std::string(indent, ' ');
+    os << ")";
 }

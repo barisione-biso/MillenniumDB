@@ -1,17 +1,19 @@
-#ifndef BASE__FORMULA_CHECK_VAR_NAMES_H_
-#define BASE__FORMULA_CHECK_VAR_NAMES_H_
+#ifndef BASE__FORMULA_CHECK_VARS_H_
+#define BASE__FORMULA_CHECK_VARS_H_
 
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include <set>
 
 #include "base/parser/grammar/query/query_ast.h"
+#include "base/parser/logical_plan/var.h"
 
-class FormulaCheckVarNames : public boost::static_visitor<void> {
+// Checks every var used in the WHERE clause is declared in the MATCH clause
+class CheckVarNamesFormula : public boost::static_visitor<void> {
 public:
-    const std::set<std::string>& declared_var_names;
+    const std::set<Var>& declared_vars;
 
-    FormulaCheckVarNames(const std::set<std::string>& declared_var_names);
+    CheckVarNamesFormula(const std::set<Var>& declared_vars);
 
     void operator()(boost::optional<query::ast::FormulaDisjunction> const&) const;
     void operator()(query::ast::AtomicFormula const&) const;
@@ -22,4 +24,4 @@ public:
     void operator()(common::ast::Value const&) const;
 };
 
-#endif // BASE__FORMULA_CHECK_VAR_NAMES_H_
+#endif // BASE__FORMULA_CHECK_VARS_H_

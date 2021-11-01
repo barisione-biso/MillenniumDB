@@ -1,7 +1,5 @@
 #include "binding_select.h"
 
-#include <iostream>
-
 #include "base/binding/binding.h"
 
 using namespace std;

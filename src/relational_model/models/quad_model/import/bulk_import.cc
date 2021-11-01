@@ -464,7 +464,7 @@ uint64_t BulkImport::operator()(const std::string& str) {
         }
         // delete first 2 characters: '_a'
         std::string tmp = str.substr(2, str.size() - 2);
-        uint64_t unmasked_id = std::stoull(tmp); // TODO: may throw exception
+        uint64_t unmasked_id = std::stoull(tmp);
         if (catalog.anonymous_nodes_count < unmasked_id) {
             catalog.anonymous_nodes_count = unmasked_id;
         }
@@ -475,7 +475,6 @@ uint64_t BulkImport::operator()(const std::string& str) {
         std::string tmp = str.substr(1, str.size() - 2);
         auto obj_id = model.get_or_create_object_id(GraphObject::make_string(tmp));
         if (named_node_ids.insert(obj_id).second) {
-            // ++catalog.identifiable_nodes_count;
             nodes_ordered_file.append_record({obj_id});
         }
         return obj_id;
@@ -491,12 +490,9 @@ uint64_t BulkImport::operator()(const std::string& str) {
 }
 
 
-// TODO: update catalog.identifiable_nodes_count ?
-// TODO: nodes_ordered_file.append_record({ obj_id }) if not in there ?
 uint64_t BulkImport::operator()(bool b) {
     auto obj_id = model.get_object_id(GraphObject::make_bool(b)).id;
     if (named_node_ids.insert(obj_id).second) {
-        // ++catalog.identifiable_nodes_count;
         nodes_ordered_file.append_record({obj_id});
     }
     return obj_id;
@@ -506,7 +502,6 @@ uint64_t BulkImport::operator()(bool b) {
 uint64_t BulkImport::operator()(int64_t i) {
     auto obj_id = model.get_object_id(GraphObject::make_int(i)).id;
     if (named_node_ids.insert(obj_id).second) {
-        // ++catalog.identifiable_nodes_count;
         nodes_ordered_file.append_record({obj_id});
     }
     return obj_id;
@@ -516,7 +511,6 @@ uint64_t BulkImport::operator()(int64_t i) {
 uint64_t BulkImport::operator()(float f) {
     auto obj_id = model.get_object_id(GraphObject::make_float(f)).id;
     if (named_node_ids.insert(obj_id).second) {
-        // ++catalog.identifiable_nodes_count;
         nodes_ordered_file.append_record({obj_id});
     }
     return obj_id;

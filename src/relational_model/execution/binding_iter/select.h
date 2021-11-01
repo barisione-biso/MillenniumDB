@@ -13,14 +13,14 @@ class Select : public BindingIter {
 
 private:
     std::unique_ptr<BindingIter> child_iter;
-    uint_fast32_t limit;
-    uint_fast32_t count = 0;
+    uint64_t limit;
+    uint64_t count = 0;
     BindingSelect my_binding;
 
 public:
     Select(std::unique_ptr<BindingIter> child_iter,
            std::vector<std::pair<Var, VarId>> projection_vars,
-           uint_fast32_t limit);
+           uint64_t limit);
     ~Select();
 
     inline Binding& get_binding() noexcept override { return my_binding; }

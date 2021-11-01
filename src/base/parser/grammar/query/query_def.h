@@ -13,7 +13,7 @@ namespace query {
         namespace x3 = boost::spirit::x3;
         using namespace common::parser;
 
-        using x3::uint32;
+        using x3::uint64;
 
         // Declare rules
         x3::rule<class root, ast::Root>
@@ -106,7 +106,7 @@ namespace query {
             "<=[" >> -var >> property_path_alternatives >> "]="  >> attr(ast::EdgeDirection::left);
 
         auto const property_path_bound_suffix_def =
-            "{" >> uint32 >> "," >> uint32 >> "}";
+            "{" >> uint64 >> "," >> uint64 >> "}";
 
         auto const property_path_suffix =
             property_path_bound_suffix                              |
@@ -197,7 +197,7 @@ namespace query {
             no_case["order by"] >> ordered_select_items;
 
         auto const limit_statement =
-            no_case["limit"] >> uint32;
+            no_case["limit"] >> uint64;
 
         auto const root_def =
             explain_statement

@@ -1,11 +1,6 @@
 #include "binding_distinct.h"
 
-#include <cassert>
-
-#include "base/binding/binding.h"
-
 using namespace std;
-
 
 BindingDistinct::BindingDistinct(GraphModel& model, Binding& child_binding) :
     model         (model),

@@ -12,20 +12,25 @@
 
 using namespace std;
 
-OrderBy::OrderBy(const GraphModel& model,
-                 ThreadInfo* thread_info,
-                 unique_ptr<BindingIter> child,
-                 size_t binding_size,
-                 vector<pair<Var, VarId>> order_vars,
-                 vector<bool> ascending) :
-    thread_info    (thread_info),
-    child          (move(child)),
-    order_vars     (move(order_vars)),
-    ascending      (move(ascending)),
-    binding_size   (binding_size),
-    my_binding     (BindingOrderBy(model, binding_size)),
+OrderBy::OrderBy(ThreadInfo*             _thread_info,
+                 unique_ptr<BindingIter> _child,
+                 set<VarId>              _saved_vars,
+                 vector<VarId>           _order_vars,
+                 vector<bool>            _ascending) :
+    thread_info    (_thread_info),
+    child          (move(_child)),
+    order_vars     (move(_order_vars)),
+    ascending      (move(_ascending)),
+    my_binding     (BindingOrderBy(saved_vars)),
     first_file_id  (file_manager.get_tmp_file_id()),
-    second_file_id (file_manager.get_tmp_file_id()) { }
+    second_file_id (file_manager.get_tmp_file_id())
+{
+    uint_fast32_t current_index = 0;
+    for (auto& var : _saved_vars) {
+        saved_vars.insert({ var, current_index });
+        current_index++;
+    }
+}
 
 
 OrderBy::~OrderBy() {
@@ -35,37 +40,38 @@ OrderBy::~OrderBy() {
 }
 
 
+std::unique_ptr<TupleCollection> OrderBy::get_run(Page& run_page) {
+    return make_unique<TupleCollection>(run_page, saved_vars, order_vars, ascending);
+}
+
+
 void OrderBy::begin() {
     child->begin();
-    std::vector<VarId> order_var_ids;
-    for (const auto& order_var : order_vars) {
-        order_var_ids.push_back(order_var.second);
-    }
 
     total_pages = 0;
-    run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(first_file_id, total_pages), binding_size);
+    run = get_run(buffer_manager.get_tmp_page(first_file_id, total_pages));
     run->reset();
-    std::vector<GraphObject> graph_objects(binding_size);
+    std::vector<GraphObject> graph_objects(saved_vars.size());
+
     auto& child_binding = child->get_binding();
     // Save all the tuples of child in disk and apply sort to each page
     while (child->next()) {
         if (run->is_full()) {
             total_pages++;
-            run->sort(order_var_ids, ascending);
-            run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(first_file_id, total_pages), binding_size);
+            run->sort();
+            run = get_run(buffer_manager.get_tmp_page(first_file_id, total_pages));
             run->reset();
         }
-        for (size_t i = 0; i < binding_size; i++) {
-            GraphObject graph_obj = child_binding[VarId(i)];
-            graph_objects[i] = graph_obj;
+        for (auto&& [var, index] : saved_vars) {
+            graph_objects[index] = child_binding[var];
         }
         run->add(graph_objects);
     }
-    run->sort(order_var_ids, ascending);
+    run->sort();
     total_pages++;
     run = nullptr;
-    merge_sort(order_var_ids);
-    run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(*output_file_id, 0), binding_size);
+    merge_sort(order_vars);
+    run = get_run(buffer_manager.get_tmp_page(*output_file_id, 0));
 }
 
 
@@ -75,17 +81,23 @@ bool OrderBy::next() {
         if (current_page >= total_pages) {
             return false;
         }
-        run = make_unique<TupleCollection>(buffer_manager.get_tmp_page(*output_file_id, current_page), binding_size);
+        run = get_run(buffer_manager.get_tmp_page(*output_file_id, current_page));
         page_position = 0;
     }
     auto graph_object = run->get(page_position);
-    my_binding.update_binding_object(graph_object);
+    my_binding.update_binding(graph_object);
     page_position++;
     return true;
 }
 
 
 void OrderBy::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "OrderBy(";
+    for (auto& var_id : order_vars) {
+        os << " VarId(" << var_id.id << ")";
+    }
+    os << " )\n";
     child->analyze(os, indent);
 }
 
@@ -97,7 +109,10 @@ void OrderBy::merge_sort(const std::vector<VarId>& order_var_ids) {
     uint_fast64_t middle;
     uint_fast64_t runs_to_merge = 1;
 
-    MergeOrderedTupleCollection merger(binding_size, order_var_ids, ascending, &thread_info->interruption_requested);
+    MergeOrderedTupleCollection merger(saved_vars,
+                                       order_var_ids,
+                                       ascending,
+                                       &thread_info->interruption_requested);
 
     // output_file_id = &first_file_id;
     bool output_is_in_second = false;

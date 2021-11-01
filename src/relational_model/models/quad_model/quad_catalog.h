@@ -27,7 +27,7 @@ public:
     uint64_t equal_to_type_with_type      (uint64_t type_id);
 
 // private:
-    uint64_t identifiable_nodes_count;
+    uint64_t identifiable_nodes_count; // Does not consider the literals
     uint64_t anonymous_nodes_count;
     uint64_t connections_count;
 

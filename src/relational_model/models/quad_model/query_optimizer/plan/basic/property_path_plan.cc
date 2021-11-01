@@ -1,17 +1,13 @@
 #include "property_path_plan.h"
 
-#include <limits>
-
-
 #include "base/parser/logical_plan/op/op_path.h"
 #include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
+
 #include "relational_model/execution/binding_id_iter/property_paths/simple/property_path_bfs_check.h"
 #include "relational_model/execution/binding_id_iter/property_paths/simple/property_path_bfs_simple_enum.h"
-
 #include "relational_model/execution/binding_id_iter/property_paths/iter/property_path_bfs_iter_enum.h"
 #include "relational_model/execution/binding_id_iter/property_paths/iter/property_path_dfs_iter_enum.h"
 #include "relational_model/execution/binding_id_iter/property_paths/iter/property_path_a_star_iter_enum.h"
-
 
 using namespace std;
 
@@ -28,22 +24,8 @@ PropertyPathPlan::PropertyPathPlan(const QuadModel &model, VarId path_var, Id fr
     to_assigned   (std::holds_alternative<ObjectId>(to)) { }
 
 
-PropertyPathPlan::PropertyPathPlan(const PropertyPathPlan &other) :
-    model         (other.model),
-    path_var      (other.path_var),
-    from          (other.from),
-    to            (other.to),
-    path          (other.path),
-    from_assigned (other.from_assigned),
-    to_assigned   (other.to_assigned) { }
-
-
-unique_ptr<JoinPlan> PropertyPathPlan::duplicate() {
-    return make_unique<PropertyPathPlan>(*this);
-}
-
-
-double PropertyPathPlan::estimate_cost() {
+double PropertyPathPlan::estimate_cost() const {
+    // TODO: find a better estimation
     if (!to_assigned && !from_assigned) {
         return std::numeric_limits<double>::max();
     }
@@ -51,71 +33,59 @@ double PropertyPathPlan::estimate_cost() {
 }
 
 
-void PropertyPathPlan::print(int indent, bool estimated_cost, std::vector<std::string> &var_names) {
+void PropertyPathPlan::print(std::ostream& os, int indent, const std::vector<std::string>& var_names) const {
     for (int i = 0; i < indent; ++i) {
-        cout << ' ';
+        os << ' ';
     }
-    cout << "PropertyPathPlan(";
+    os << "PropertyPathPlan(";
     if (std::holds_alternative<ObjectId>(from)) {
-        cout << "from: " << model.get_graph_object(std::get<ObjectId>(from));
+        os << "from: " << model.get_graph_object(std::get<ObjectId>(from));
     } else {
-        cout << "from: " << var_names[std::get<VarId>(from).id];
+        os << "from: " << var_names[std::get<VarId>(from).id];
     }
     if (std::holds_alternative<ObjectId>(to)) {
-        cout << ", to: " << model.get_graph_object(std::get<ObjectId>(to));
+        os << ", to: " << model.get_graph_object(std::get<ObjectId>(to));
     } else {
-        cout << ", to: " << var_names[std::get<VarId>(to).id];
+        os << ", to: " << var_names[std::get<VarId>(to).id];
     }
-    cout << ", path: " <<  var_names[path_var.id] << ": " << path.to_string();
-    cout << ")";
+    os << ", path: " <<  var_names[path_var.id] << ": " << path.to_string();
+    os << ")";
 
-    if (estimated_cost) {
-        cout << ",\n";
-        for (int i = 0; i < indent; ++i) {
-            cout << ' ';
-        }
-        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    os << ",\n";
+    for (int i = 0; i < indent; ++i) {
+        os << ' ';
     }
+    os << "  ↳ Estimated factor: " << estimate_output_size();
 }
 
 
-double PropertyPathPlan::estimate_output_size() {
+double PropertyPathPlan::estimate_output_size() const {
     // TODO: find a better estimation
-    const auto total_connections = static_cast<double>(
-        model.catalog().connections_count);
+    const auto total_connections = static_cast<double>(model.catalog().connections_count);
     return total_connections * total_connections;
 }
 
 
-uint64_t PropertyPathPlan::get_vars() {
-    uint64_t result = 0;
-    if (std::holds_alternative<VarId>(from)) {
-        result |= 1UL << std::get<VarId>(from).id;
+std::set<VarId> PropertyPathPlan::get_vars() const {
+    std::set<VarId> result;
+    if ( std::holds_alternative<VarId>(from) && !from_assigned) {
+        result.insert( std::get<VarId>(from) );
     }
-    if (std::holds_alternative<VarId>(to)) {
-        result |= 1UL << std::get<VarId>(to).id;
+    if ( std::holds_alternative<VarId>(to) && !to_assigned) {
+        result.insert( std::get<VarId>(to) );
     }
+
     return result;
 }
 
 
-void PropertyPathPlan::set_input_vars(uint64_t input_vars) {
-    if (std::holds_alternative<VarId>(from)) {
-        auto from_var_id = std::get<VarId>(from);
-        if ((input_vars & (1UL << from_var_id.id)) != 0) {
-            from_assigned = true;
-        }
-    }
-    if (std::holds_alternative<VarId>(to)) {
-        auto to_var_id = std::get<VarId>(to);
-        if ((input_vars & (1UL << to_var_id.id)) != 0) {
-            to_assigned = true;
-        }
-    }
+void PropertyPathPlan::set_input_vars(const std::set<VarId>& input_vars) {
+    set_input_var(input_vars, from, &from_assigned);
+    set_input_var(input_vars, to,   &to_assigned);
 }
 
 
-unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(ThreadInfo* thread_info) {
+unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(ThreadInfo* thread_info) const {
     if (from_assigned) {
         auto automaton = path.get_transformed_automaton();
         set_automaton_transition_id(automaton);
@@ -162,7 +132,7 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(ThreadInfo* thre
 }
 
 
-void PropertyPathPlan::set_automaton_transition_id(PathAutomaton &automaton) {
+void PropertyPathPlan::set_automaton_transition_id(PathAutomaton& automaton) const {
     // For each Transition instance in from_to vector, creates a TransitionId
     // instance that have an object id object of string label. It will be stored
     // in transition attribute of automaton

@@ -1,8 +1,6 @@
 #ifndef RELATIONAL_MODEL__BINDING_DISTINCT_H_
 #define RELATIONAL_MODEL__BINDING_DISTINCT_H_
 
-#include <vector>
-
 #include "base/binding/binding.h"
 #include "base/graph/graph_model.h"
 

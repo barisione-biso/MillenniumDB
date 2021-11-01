@@ -1,8 +1,6 @@
 #ifndef RELATIONAL_MODEL__BINDING_MATERIALIZE_ID_H_
 #define RELATIONAL_MODEL__BINDING_MATERIALIZE_ID_H_
 
-#include <map>
-
 #include "base/binding/binding.h"
 #include "base/graph/graph_model.h"
 #include "base/ids/var_id.h"

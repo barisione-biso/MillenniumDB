@@ -1,20 +1,21 @@
 #include "select.h"
 
-#include "storage/index/object_file/object_file.h"
 #include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 
 using namespace std;
 
-Select::Select(unique_ptr<BindingIter> _child_iter,
-               vector<pair<Var, VarId>> projection_vars,
-               uint_fast32_t limit) :
-    child_iter      (move(_child_iter)),
-    limit           (limit),
-    my_binding      (BindingSelect(move(projection_vars), child_iter->get_binding()) ) { }
+Select::Select(unique_ptr<BindingIter>  _child_iter,
+               vector<pair<Var, VarId>> _projection_vars,
+               uint64_t                 _limit) :
+    child_iter (move(_child_iter)),
+    limit      (_limit),
+    my_binding (BindingSelect( move(_projection_vars), child_iter->get_binding() )) { }
 
 
 Select::~Select() {
-    // TODO: Move clear
+    // TODO: We always have the Select operator as the root of our physical query plans.
+    // If that changes we might need to call path_manager.clear() somewhere else
+    // (it needs to be called always at the destruction of the query and only once)
     path_manager.clear();
 }
 
@@ -25,10 +26,7 @@ void Select::begin() {
 
 
 bool Select::next() {
-    if (limit != 0 && count >= limit) {
-        return false;
-    }
-    if (child_iter->next()) {
+    if (count < limit && child_iter->next()) {
         count++;
         return true;
     } else {
@@ -38,5 +36,11 @@ bool Select::next() {
 
 
 void Select::analyze(std::ostream& os, int indent) const {
+    os << std::string(indent, ' ');
+    os << "Select(";
+    for (auto& pair : my_binding.projection_vars) {
+        os << " " << pair.first << "(" << pair.second.id << ")";
+    }
+    os << " )\n";
     child_iter->analyze(os, indent);
 }

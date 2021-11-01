@@ -5,7 +5,7 @@
 #include <iostream>
 #include <limits>
 
-#include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/plan/join/index_nested_loop_plan.h"
 
 using namespace std;
 
@@ -53,23 +53,21 @@ struct CombinationEnumerator {
 };
 
 
-SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<JoinPlan>>&& base_plans,
-                                     std::vector<std::string>& var_names,
-                                     uint64_t input_vars) :
-    plans_size(base_plans.size()),
-    var_names(var_names)
+SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<Plan>> base_plans,
+                                     const std::vector<std::string>& var_names) :
+    plans_size (base_plans.size()),
+    var_names  (var_names)
 {
     assert(plans_size > 0);
-    optimal_plans = new unique_ptr<JoinPlan>*[plans_size];
+    optimal_plans = new unique_ptr<Plan>*[plans_size];
 
     cout << "\nBase Plans:" << plans_size << "\n";
     for (size_t i = 0; i < plans_size; ++i) {
         auto arr_size = nCr(plans_size, i+1);
 
-        optimal_plans[i] = new unique_ptr<JoinPlan>[arr_size];
+        optimal_plans[i] = new unique_ptr<Plan>[arr_size];
         optimal_plans[0][i] = move(base_plans[i]);
-        optimal_plans[0][i]->set_input_vars(input_vars);
-        optimal_plans[0][i]->print(0, true, var_names);
+        optimal_plans[0][i]->print(std::cout, 0, var_names);
         cout << "\n";
     }
 }
@@ -83,7 +81,7 @@ SelingerOptimizer::~SelingerOptimizer() {
 }
 
 
-unique_ptr<JoinPlan> SelingerOptimizer::get_plan() {
+unique_ptr<Plan> SelingerOptimizer::get_plan() {
     for (size_t i = 2; i <= plans_size; ++i) {
         auto combination_enumerator = CombinationEnumerator(plans_size, i);
 
@@ -91,8 +89,8 @@ unique_ptr<JoinPlan> SelingerOptimizer::get_plan() {
         auto total_combinations = nCr(plans_size, i);
 
         for (uint_fast32_t c = 0; c < total_combinations; ++c) {
-            unique_ptr<JoinPlan> best_plan = nullptr;
-            auto best_cost = std::numeric_limits<double>::max();
+            unique_ptr<Plan> best_plan = nullptr;
+            auto best_cost = std::numeric_limits<double>::infinity();
             auto arr = combination_enumerator.get_next_combination();
 
             // for each one in array explore the plan forking that bit
@@ -105,14 +103,14 @@ unique_ptr<JoinPlan> SelingerOptimizer::get_plan() {
                 if (arr[bit_pos]) {
                     arr[bit_pos] = false;
 
-                    auto current_plan = make_unique<NestedLoopPlan>(
+                    auto current_plan = make_unique<IndexNestedLoopPlan>(
                         optimal_plans[i-2][get_index(arr, plans_size)]->duplicate(),
                         optimal_plans[0][bit_pos]->duplicate()
                     );
 
                     auto current_cost = current_plan->estimate_cost();
 
-                    if (current_cost < best_cost) {
+                    if (best_plan == nullptr || current_cost < best_cost) {
                         best_cost = current_cost;
                         best_plan = move(current_plan);
                     }

@@ -21,7 +21,7 @@ public:
         return term < other.term;
     }
 
-    void get_vars(std::set<Var>&) const override { }
+    std::set<Var> get_vars() const override { return std::set<Var>(); }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {
         os << std::string(indent, ' ');

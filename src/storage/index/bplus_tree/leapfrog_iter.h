@@ -17,7 +17,7 @@ public:
     virtual ~LeapfrogIter() = default;
 
     bool* const interruption_requested;
-    
+
     virtual void up() { level--; }
     virtual void down() = 0;
     virtual bool open_terms(BindingId& input_binding) = 0;

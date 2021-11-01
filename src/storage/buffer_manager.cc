@@ -134,9 +134,12 @@ Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcep
 Page& BufferManager::get_tmp_page(TmpFileId tmp_file_id, uint_fast32_t page_number) {
     const PageId page_id(tmp_file_id.file_id, page_number);
     auto thread_pos = tmp_file_id.private_buffer_pos;
+
+    // We don't need a mutex here because tmp pages are assigned to one specific thread
+    // TODO: If we change this in the future we might need a mutex lock
+
     auto pages_it = private_tmp_pages[thread_pos].find(page_id);
     if (pages_it == private_tmp_pages[thread_pos].end()) {
-        // TODO: handle exception?
         const auto buffer_available = get_private_buffer_available(thread_pos);
         auto& page = get_private_page(thread_pos, buffer_available);
         if (page.page_id.file_id.id != TmpFileId::UNASSIGNED) {

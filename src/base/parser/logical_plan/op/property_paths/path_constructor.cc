@@ -80,12 +80,12 @@ unique_ptr<OpPath> PathConstructor::operator()(query::ast::PropertyPathAtom& p, 
     if (suffix.min > suffix.max) {
         throw QuerySemanticException("Ill-formed property path. Suffix {m,n} m cannot be greater than n");
     }
-    for (size_t i = 0; i < suffix.min; i++) {
+    for (uint64_t i = 0; i < suffix.min; i++) {
         op_vector.push_back(tmp->duplicate());
     }
     auto optional = make_unique<OpPathOptional>(tmp->duplicate());
 
-    for (size_t i = suffix.min + 1; i < suffix.max; i++) {
+    for (uint64_t i = suffix.min + 1; i < suffix.max; i++) {
         vector<unique_ptr<OpPath>> seq_vector;
         seq_vector.push_back(tmp->duplicate());
         seq_vector.push_back(move(optional));

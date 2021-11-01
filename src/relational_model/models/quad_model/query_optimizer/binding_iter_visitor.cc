@@ -1,13 +1,14 @@
 #include "binding_iter_visitor.h"
 
 #include "base/parser/logical_plan/op/op_distinct.h"
-#include "base/parser/logical_plan/op/op_filter.h"
-#include "base/parser/logical_plan/op/op_graph_pattern_root.h"
 #include "base/parser/logical_plan/op/op_group_by.h"
+#include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/op_where.h"
 #include "base/parser/logical_plan/op/visitors/formula_to_condition.h"
+#include "base/parser/logical_plan/op/visitors/get_formula_property_vars.h"
 #include "relational_model/execution/binding_id_iter/distinct_id_hash.h"
 #include "relational_model/execution/binding_id_iter/optional_node.h"
 #include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
@@ -37,7 +38,6 @@ map<Var, VarId> BindingIterVisitor::construct_var2var_id(std::set<Var>& vars) {
 }
 
 
-// You only should use this after var2var_id was setted at visit(OpGraphPatternRoot)
 VarId BindingIterVisitor::get_var_id(const Var& var) const {
     auto search = var2var_id.find(var);
     if (search != var2var_id.end()) {
@@ -54,62 +54,61 @@ std::unique_ptr<BindingIter> BindingIterVisitor::exec(OpSelect& op_select) {
 }
 
 
-// std::unique_ptr<BindingIter> BindingIterVisitor::exec(manual_plan::ast::ManualRoot&) {
-//     // TODO:
-//     return nullptr;
-// }
-
-
 void BindingIterVisitor::visit(OpSelect& op_select) {
-    // need to save the select items to be able to push optional properties from select to match in visit(OpGraphPatternRoot&)
-    select_items = move(op_select.select_items);
+    // need to save the select items to be able to push optional properties from select to match in visit(OpMatch&)
+    for (const auto& select_item : op_select.select_items) {
+        string var_name = select_item.var;
 
-    op_select.op->accept_visitor(*this);
-
-    vector<pair<Var, VarId>> projection_vars;
-
-    if (select_items.size() == 0) { // SELECT *
-        for (auto&& [k, v] : var2var_id) {
-            projection_vars.push_back(make_pair(k, v));
+        if (select_item.key) {
+            var_properties.insert( make_pair(Var(select_item.var), select_item.key.get()) );
+            var_name += '.' + select_item.key.get();
         }
-    } else {
-        for (const auto& select_item : select_items) {
-            string var_name = select_item.var; // var_name = "?x"
-            if (select_item.key) {
-                var_name += '.';
-                var_name += select_item.key.get(); // var_name = "?x.key1" MATCH (?x)->(?y)
+
+        Var var(var_name);
+        auto var_id = get_var_id(var);
+        projection_vars.push_back(make_pair(var, var_id));
+    }
+
+    if (projection_vars.empty()) { // SELECT *
+        for (auto&& [k, v] : var2var_id) {
+            // TODO: here we may want to project anonymous variables too
+            if (k.name[1] != '_') { // k.name looks like '?x' or '?_1'
+                projection_vars.push_back(make_pair(k, v));
             }
-            const Var var(var_name);
-            auto var_id = get_var_id(var);
-            projection_vars.push_back(make_pair(var, var_id));
         }
     }
+
+    op_select.op->accept_visitor(*this);
     tmp = make_unique<Select>(move(tmp), move(projection_vars), op_select.limit);
 }
 
 
-void BindingIterVisitor::visit(OpFilter& op_filter) {
+void BindingIterVisitor::visit(OpWhere& op_where) {
     distinct_into_id = false;
-    op_filter.op->accept_visitor(*this);
-    auto match_binding_size = var2var_id.size();
+
+    // add corresponding var_properties
+    GetFormulaPropertyVars get_property_vars_visitor;
+    for (auto& pair : get_property_vars_visitor(op_where.formula_disjunction)) {
+        cout << pair.first.name << " " << pair.second << "\n";
+        var_properties.insert(pair);
+    }
+
+    op_where.op->accept_visitor(*this);
 
     Formula2ConditionVisitor visitor(model, var2var_id);
-    auto condition = visitor(op_filter.formula_disjunction);
-    auto new_property_var_id = move(visitor.property_map);
+    auto condition = visitor(op_where.formula_disjunction);
 
     tmp = make_unique<Where>(
         model,
         move(tmp),
-        move(condition),
-        match_binding_size,
-        move(new_property_var_id)
+        move(condition)
     );
 }
 
 
-void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
+void BindingIterVisitor::visit(OpMatch& op_match) {
     BindingIdIterVisitor id_visitor(model, var2var_id, thread_info);
-    op_graph_pattern_root.op->accept_visitor(id_visitor);
+    op_match.op->accept_visitor(id_visitor);
 
     unique_ptr<BindingIdIter> binding_id_iter_current_root = move(id_visitor.tmp);
 
@@ -120,21 +119,19 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
 
     vector<unique_ptr<BindingIdIter>> optional_children;
 
-    // Push properties from SELECT into MATCH as optional children
-    for (const auto& select_item : select_items) {
-        if (select_item.key) {
-            auto obj_var_id = get_var_id(Var(select_item.var));
-            auto value_var  = get_var_id(Var(select_item.var + '.' + select_item.key.get()));
-            auto key_id     = model.get_object_id(GraphObject::make_string(select_item.key.get()));
+    // Push properties from Select/Where/OrderBy into MATCH as optional children
+    for (const auto& [var, prop_name] : var_properties) {
+        auto obj_var_id = get_var_id(var);
+        auto value_var  = get_var_id(Var(var.name + '.' + prop_name));
+        auto key_id     = model.get_object_id(GraphObject::make_string(prop_name));
 
-            array<unique_ptr<ScanRange>, 3> ranges {
-                ScanRange::get(obj_var_id, true),
-                ScanRange::get(key_id, true),
-                ScanRange::get(value_var, false)
-            };
-            auto index_scan = make_unique<IndexScan<3>>(*model.object_key_value, thread_info, move(ranges));
-            optional_children.push_back(move(index_scan));
-        }
+        array<unique_ptr<ScanRange>, 3> ranges {
+            ScanRange::get(obj_var_id, true),
+            ScanRange::get(key_id, true),
+            ScanRange::get(value_var, false)
+        };
+        auto index_scan = make_unique<IndexScan<3>>(*model.object_key_value, thread_info, move(ranges));
+        optional_children.push_back(move(index_scan));
     }
     if (optional_children.size() > 0) {
         binding_id_iter_current_root = make_unique<OptionalNode>(move(binding_id_iter_current_root),
@@ -142,16 +139,11 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
     }
     if (distinct_into_id) {
         std::vector<VarId> projected_var_ids;
-        for (const auto& order_item : select_items) {
-            string var_name = order_item.var;
-            if (order_item.key) {
-                var_name += '.';
-                var_name += order_item.key.get();
-            }
-            auto var_id = get_var_id(Var(var_name));
+        for (const auto& [var, var_id] : projection_vars) {
             projected_var_ids.push_back(var_id);
         }
-        binding_id_iter_current_root = make_unique<DistinctIdHash>(move(binding_id_iter_current_root), projected_var_ids);
+
+        binding_id_iter_current_root = make_unique<DistinctIdHash>(move(binding_id_iter_current_root), move(projected_var_ids));
     }
 
     tmp = make_unique<Match>(model, move(binding_id_iter_current_root), binding_size);
@@ -159,69 +151,55 @@ void BindingIterVisitor::visit(OpGraphPatternRoot& op_graph_pattern_root) {
 
 
 void BindingIterVisitor::visit(OpOrderBy& op_order_by) {
-    op_order_by.op->accept_visitor(*this);
+    std::vector<VarId> order_vars;
+    std::set<VarId> saved_vars;
 
-    std::vector<std::pair<Var, VarId>> order_vars;
     for (const auto& order_item : op_order_by.items) {
         string var_name = order_item.var;
         if (order_item.key) {
-            var_name += '.';
-            var_name += order_item.key.get();
+            var_name += '.' + order_item.key.get();
+
+            // add properties to var_properties to use at visiting OpMatch
+            var_properties.insert( make_pair(Var(order_item.var), order_item.key.get()) );
         }
-        const Var var(var_name);
-        auto var_id = get_var_id(var);
-        order_vars.push_back(make_pair(var, var_id));
+        const auto var_id = get_var_id(Var(var_name));
+        order_vars.push_back(var_id);
+        saved_vars.insert(var_id);
     }
-    auto binding_size = var2var_id.size();
-    tmp = make_unique<OrderBy>(model, thread_info, move(tmp), binding_size, order_vars, op_order_by.ascending_order);
+
+    for (auto& [var, var_id] : projection_vars) {
+        saved_vars.insert(var_id);
+    }
+
+    // TODO: we could set distinct_ordered_possible=true if the projection vars are in the begining
+    // e.g. if we have SELECT DISTINCT ?x, ?y ... ORDER BY ?x, ?z, ?y we can't use DistinctOrdered
+    // distinct_ordered_possible = true;
+
+    op_order_by.op->accept_visitor(*this);
+    tmp = make_unique<OrderBy>(thread_info, move(tmp), saved_vars, order_vars, op_order_by.ascending_order);
 }
 
 
 void BindingIterVisitor::visit(OpGroupBy& op_group_by) {
-    // TODO:
+    // TODO: implement this when GroupBy are supported
     op_group_by.op->accept_visitor(*this);
 }
 
 
 void BindingIterVisitor::visit(OpDistinct& op_distinct) {
-    bool ordered = false; // TODO: in the future we want to know if op_distinct is already ordered
-    if (ordered) {
-        op_distinct.op->accept_visitor(*this);
-        // auto binding_size = var_name2var_id.size();
-        std::vector<VarId> projected_var_ids;
-        // need to discomment this lines if want to test with OrderBy
-        // std::vector<std::pair<std::string, VarId>> order_vars;
-        // std::vector<bool> ascending_order(binding_size);
-        for (const auto& order_item : select_items) {
-            string var_name = order_item.var;
-            if (order_item.key) {
-                var_name += '.';
-                var_name += order_item.key.get();
-            }
-            const Var var(var_name);
-            auto var_id = get_var_id(var);
-            // order_vars.push_back(make_pair(var_name, var_id));
-            projected_var_ids.push_back(var_id);
-        }
+    std::vector<VarId> projected_var_ids;
+    for (const auto& [var, var_id] : projection_vars) {
+        projected_var_ids.push_back(var_id);
+    }
+    distinct_into_id = true;  // OpWhere may change this value when accepting visitor
+    op_distinct.op->accept_visitor(*this);
 
-        //tmp = make_unique<OrderBy>(model, move(tmp), binding_size, order_vars, ascending_order);
-        tmp = make_unique<DistinctOrdered>(model, move(tmp), projected_var_ids);
+    if (distinct_ordered_possible) {
+        tmp = make_unique<DistinctOrdered>(model, move(tmp), move(projected_var_ids));
     } else {
-        distinct_into_id = true;  // OpFilter may change this value when accepting visitor
-        op_distinct.op->accept_visitor(*this);
         if (!distinct_into_id) {
-            std::vector<VarId> projected_var_ids;
-            for (const auto& order_item : select_items) {
-                string var_name = order_item.var;
-                if (order_item.key) {
-                    var_name += '.';
-                    var_name += order_item.key.get();
-                }
-                const Var var(var_name);
-                auto var_id = get_var_id(var);
-                projected_var_ids.push_back(var_id);
-            }
-            tmp = make_unique<DistinctHash>(move(tmp), projected_var_ids);
+            tmp = make_unique<DistinctHash>(move(tmp), move(projected_var_ids));
         }
+        // else DistinctIdHash was created when visiting OpMatch
     }
 }

@@ -1,7 +1,5 @@
 #include "connection_plan.h"
 
-#include <algorithm>
-
 #include "relational_model/execution/binding_id_iter/edge_table_lookup.h"
 #include "relational_model/execution/binding_id_iter/index_scan.h"
 
@@ -19,62 +17,43 @@ ConnectionPlan::ConnectionPlan(const QuadModel& model, Id from, Id to, Id type, 
     edge_assigned (std::holds_alternative<ObjectId>(edge)) { }
 
 
-ConnectionPlan::ConnectionPlan(const ConnectionPlan& other) :
-    model         (other.model),
-    from          (other.from),
-    to            (other.to),
-    type          (other.type),
-    edge          (other.edge),
-    from_assigned (other.from_assigned),
-    to_assigned   (other.to_assigned),
-    type_assigned (other.type_assigned),
-    edge_assigned (other.edge_assigned) { }
-
-
-std::unique_ptr<JoinPlan> ConnectionPlan::duplicate() {
-    return make_unique<ConnectionPlan>(*this);
-}
-
-
-void ConnectionPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
+void ConnectionPlan::print(std::ostream& os, int indent, const std::vector<std::string>& var_names) const {
     for (int i = 0; i < indent; ++i) {
-        cout << ' ';
+        os << ' ';
     }
-    cout << "Connection(";
+    os << "Connection(";
     if (std::holds_alternative<ObjectId>(from)) {
-        cout << "from: " << model.get_graph_object(std::get<ObjectId>(from));
+        os << "from: " << model.get_graph_object(std::get<ObjectId>(from));
     } else {
-        cout << "from: " << var_names[std::get<VarId>(from).id];
+        os << "from: " << var_names[std::get<VarId>(from).id];
     }
     if (std::holds_alternative<ObjectId>(to)) {
-        cout << ", to: " << model.get_graph_object(std::get<ObjectId>(to));
+        os << ", to: " << model.get_graph_object(std::get<ObjectId>(to));
     } else {
-        cout << ", to: " << var_names[std::get<VarId>(to).id];
+        os << ", to: " << var_names[std::get<VarId>(to).id];
     }
     if (std::holds_alternative<ObjectId>(type)) {
-        cout << ", type: " << model.get_graph_object(std::get<ObjectId>(type));
+        os << ", type: " << model.get_graph_object(std::get<ObjectId>(type));
     } else {
-        cout << ", type: " << var_names[std::get<VarId>(type).id];
+        os << ", type: " << var_names[std::get<VarId>(type).id];
     }
 
     if (std::holds_alternative<ObjectId>(edge)) {
-        cout << ", edge: " << model.get_graph_object(std::get<ObjectId>(edge));
+        os << ", edge: " << model.get_graph_object(std::get<ObjectId>(edge));
     } else {
-        cout << ", edge: " << var_names[std::get<VarId>(edge).id];
+        os << ", edge: " << var_names[std::get<VarId>(edge).id];
     }
-    cout << ")";
+    os << ")";
 
-    if (estimated_cost) {
-        cout << ",\n";
-        for (int i = 0; i < indent; ++i) {
-            cout << ' ';
-        }
-        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    os << ",\n";
+    for (int i = 0; i < indent; ++i) {
+        os << ' ';
     }
+    os << "  ↳ Estimated factor: " << estimate_output_size();
 }
 
 
-double ConnectionPlan::estimate_cost() {
+double ConnectionPlan::estimate_cost() const {
     // return 1 + estimate_output_size();
     // d: cost of traveling down the B+Tree;
     // t: cost per tuple;
@@ -84,7 +63,7 @@ double ConnectionPlan::estimate_cost() {
 }
 
 
-double ConnectionPlan::estimate_output_size() {
+double ConnectionPlan::estimate_output_size() const {
     const auto total_connections = static_cast<double>(model.catalog().connections_count);
     const auto distinct_from     = static_cast<double>(model.catalog().distinct_from);
     const auto distinct_to       = static_cast<double>(model.catalog().distinct_to);
@@ -225,47 +204,27 @@ double ConnectionPlan::estimate_output_size() {
 }
 
 
-void ConnectionPlan::set_input_vars(const uint64_t input_vars) {
-    if (std::holds_alternative<VarId>(from)) {
-        auto from_var_id = std::get<VarId>(from);
-        if ((input_vars & (1UL << from_var_id.id)) != 0) {
-            from_assigned = true;
-        }
-    }
-    if (std::holds_alternative<VarId>(to)) {
-        auto to_var_id = std::get<VarId>(to);
-        if ((input_vars & (1UL << to_var_id.id)) != 0) {
-            to_assigned = true;
-        }
-    }
-    if (std::holds_alternative<VarId>(type)) {
-        auto type_var_id = std::get<VarId>(type);
-        if ((input_vars & (1UL << type_var_id.id)) != 0) {
-            type_assigned = true;
-        }
-    }
-    if (std::holds_alternative<VarId>(edge)) {
-        auto edge_var_id = std::get<VarId>(edge);
-        if ((input_vars & (1UL << edge_var_id.id)) != 0) {
-            edge_assigned = true;
-        }
-    }
+void ConnectionPlan::set_input_vars(const std::set<VarId>& input_vars) {
+    set_input_var(input_vars, from, &from_assigned);
+    set_input_var(input_vars, to,   &to_assigned);
+    set_input_var(input_vars, type, &type_assigned);
+    set_input_var(input_vars, edge, &edge_assigned);
 }
 
-// Must be consistent with the index scan returned in get_binding_id_iter()
-uint64_t ConnectionPlan::get_vars() {
-    uint64_t result = 0;
-    if ( std::holds_alternative<VarId>(from) ) {
-        result |= 1UL << std::get<VarId>(from).id;
+
+std::set<VarId> ConnectionPlan::get_vars() const {
+    std::set<VarId> result;
+    if ( std::holds_alternative<VarId>(from) && !from_assigned) {
+        result.insert( std::get<VarId>(from) );
     }
-    if ( std::holds_alternative<VarId>(to) ) {
-        result |= 1UL << std::get<VarId>(to).id;
+    if ( std::holds_alternative<VarId>(to) && !to_assigned) {
+        result.insert( std::get<VarId>(to) );
     }
-    if ( std::holds_alternative<VarId>(type) ) {
-        result |= 1UL << std::get<VarId>(type).id;
+    if ( std::holds_alternative<VarId>(type) && !type_assigned) {
+        result.insert( std::get<VarId>(type) );
     }
-    if ( std::holds_alternative<VarId>(edge) ) {
-        result |= 1UL << std::get<VarId>(edge).id;
+    if ( std::holds_alternative<VarId>(edge) && !edge_assigned) {
+        result.insert( std::get<VarId>(edge) );
     }
 
     return result;
@@ -287,7 +246,7 @@ uint64_t ConnectionPlan::get_vars() {
  * ║9║      *       ║     *      ║      *        ║      yes        ║  table   ║
  * ╚═╩══════════════╩════════════╩═══════════════╩═════════════════╩══════════╝
  */
-unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(ThreadInfo* thread_info) {
+unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(ThreadInfo* thread_info) const {
 
     if (edge_assigned) {
         return make_unique<EdgeTableLookup>(*model.edge_table, thread_info, edge, from, to, type);
@@ -383,9 +342,8 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(ThreadInfo* thread
 
 
 unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*            thread_info,
-                                                           const std::set<VarId>& assigned_vars,
                                                            const vector<VarId>&   var_order,
-                                                           uint_fast32_t          enumeration_level)
+                                                           uint_fast32_t          enumeration_level) const
 {
     // TODO: support special cases
     if (std::holds_alternative<ObjectId>(edge) // TODO: this case may be easy
@@ -406,22 +364,18 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
     // index = INT32_MAX means enumeration, index = -1 means term or assigned_var
     int_fast32_t from_index, to_index, type_index, edge_index;
 
-    auto assign_index = [&assigned_vars] (int_fast32_t& index, Id& id) -> void {
-        if (std::holds_alternative<ObjectId>(id)) {
+    auto assign_index = [] (int_fast32_t& index, const Id& id, bool assigned) -> void {
+        if (std::holds_alternative<ObjectId>(id) || assigned) {
             index = -1;
         } else {
-            if (assigned_vars.find(std::get<VarId>(id)) == assigned_vars.end()) {
-                index = INT32_MAX;
-            } else {
-                index = -1;
-            }
+            index = INT32_MAX;
         }
     };
 
-    assign_index(from_index, from);
-    assign_index(to_index,   to);
-    assign_index(type_index, type);
-    assign_index(edge_index, edge);
+    assign_index(from_index, from, from_assigned);
+    assign_index(to_index,   to,   to_assigned);
+    assign_index(type_index, type, type_assigned);
+    assign_index(edge_index, edge, edge_assigned);
 
     // search for vars marked as enumeraion (INT32_MAX) that are intersection
     // and assign them the correct index
@@ -465,13 +419,6 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
             move(enumeration_vars)
         );
     };
-
-    // cout << "assigned vars: ";
-    // for (auto var : assigned_vars) {
-    //     cout << var.id << " ";
-    // }
-
-    // cout << "\nedge index: " << edge_index << "\n";
 
     // if edge_index == -1 we can use the table
     if (edge_index == -1) {

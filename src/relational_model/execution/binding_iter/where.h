@@ -16,8 +16,9 @@ class Condition;
 
 class Where : public BindingIter {
 public:
-    Where(const GraphModel& model, std::unique_ptr<BindingIter> iter, std::unique_ptr<Condition> condition,
-          std::size_t child_binding_size, std::map<VarId, std::pair<VarId, ObjectId>> property_map);
+    Where(const GraphModel& model,
+          std::unique_ptr<BindingIter> iter,
+          std::unique_ptr<Condition> condition);
     ~Where() = default;
 
     inline Binding& get_binding() noexcept override { return my_binding; }

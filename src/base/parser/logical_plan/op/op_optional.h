@@ -50,11 +50,14 @@ public:
         return os;
     }
 
-    void get_vars(std::set<Var>& set) const override {
-        op->get_vars(set);
+    std::set<Var> get_vars() const override {
+        auto res = op->get_vars();
         for (auto& child : optionals) {
-            child->get_vars(set);
+            for (auto& child_var : child->get_vars()) {
+                res.insert(child_var);
+            }
         }
+        return res;
     }
 };
 #endif // BASE__OP_OPTIONAL_H_

@@ -9,8 +9,6 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
-#include "base/ids/var_id.h"
-
 namespace common { namespace ast {
 
     namespace x3 = boost::spirit::x3;

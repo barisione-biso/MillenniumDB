@@ -11,21 +11,21 @@
 #include "base/parser/logical_plan/op/op_path_sequence.h"
 #include "base/parser/logical_plan/op/op_path_kleene_star.h"
 #include "base/parser/logical_plan/op/op_path_optional.h"
+
 #include "relational_model/execution/binding_id_iter/optional_node.h"
-#include "relational_model/execution/binding_id_iter/leapfrog_join.h"
 #include "relational_model/execution/binding_id_iter/empty_binding_id_iter.h"
 #include "relational_model/execution/binding_id_iter/single_result_binding_id_iter.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/connection_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/label_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/nested_loop_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/property_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/property_path_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/unjoint_object_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_grace_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_in_memory_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/join_plan/hash_join_in_buffer_plan.h"
-#include "relational_model/models/quad_model/query_optimizer/selinger_optimizer.h"
-#include "storage/index/bplus_tree/leapfrog_iter.h"
+
+#include "relational_model/models/quad_model/query_optimizer/plan/basic/connection_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/plan/basic/label_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/plan/basic/property_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/plan/basic/property_path_plan.h"
+#include "relational_model/models/quad_model/query_optimizer/plan/basic/unjoint_object_plan.h"
+// #include "relational_model/models/quad_model/query_optimizer/plan/join/hash_join_plan.h"
+
+#include "relational_model/models/quad_model/query_optimizer/join_order/greedy_optimizer.h"
+#include "relational_model/models/quad_model/query_optimizer/join_order/leapfrog_optimizer.h"
+#include "relational_model/models/quad_model/query_optimizer/join_order/selinger_optimizer.h"
 
 using namespace std;
 
@@ -84,7 +84,7 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
             }
         }
     }
-    vector<unique_ptr<JoinPlan>> base_plans;
+    vector<unique_ptr<Plan>> base_plans;
 
     // Process Isolated Vars
     for (auto& isolated_var : op_basic_graph_pattern.isolated_vars) {
@@ -113,7 +113,7 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
     // Process properties from Match
     for (auto& op_property : op_basic_graph_pattern.properties) {
         auto key_id   = model.get_object_id(GraphObject::make_string(op_property.key));
-        auto value_id = get_value_id(op_property.value);
+        auto value_id = model.get_value_id(op_property.value);
 
         if (op_property.node_id.is_var()) {
             auto obj_var_id = get_var_id(op_property.node_id.to_var());
@@ -132,16 +132,16 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
     // Process connections
     for (auto& op_connection : op_basic_graph_pattern.connections) {
         auto from_id = op_connection.from.is_var()
-                        ? (JoinPlan::Id) get_var_id(op_connection.from.to_var())
-                        : (JoinPlan::Id) model.get_object_id(op_connection.from.to_graph_object());
+                        ? (Id) get_var_id(op_connection.from.to_var())
+                        : (Id) model.get_object_id(op_connection.from.to_graph_object());
 
         auto to_id   = op_connection.to.is_var()
-                        ? (JoinPlan::Id) get_var_id(op_connection.to.to_var())
-                        : (JoinPlan::Id) model.get_object_id(op_connection.to.to_graph_object());
+                        ? (Id) get_var_id(op_connection.to.to_var())
+                        : (Id) model.get_object_id(op_connection.to.to_graph_object());
 
         auto edge_id = op_connection.edge.is_var()
-                        ? (JoinPlan::Id) get_var_id(op_connection.edge.to_var())
-                        : (JoinPlan::Id) model.get_object_id(op_connection.edge.to_graph_object());
+                        ? (Id) get_var_id(op_connection.edge.to_var())
+                        : (Id) model.get_object_id(op_connection.edge.to_graph_object());
 
         if (op_connection.types.empty()) {
             // Type not mentioned, creating anonymous variable for type
@@ -155,14 +155,14 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
                 make_unique<ConnectionPlan>(model, from_id, to_id, type_var_id, edge_id));
         }
         else if (op_connection.types.size() == 1) {
-            if (op_connection.types[0][0] == '?') {
+            if (op_connection.types[0].is_var()) {
                 // Type is an explicit variable
-                auto type_var_id = get_var_id(Var(op_connection.types[0]));
+                auto type_var_id = get_var_id(Var(op_connection.types[0].to_var()));
                 base_plans.push_back(
                     make_unique<ConnectionPlan>(model, from_id, to_id, type_var_id, edge_id));
             } else {
                 // Type is an IdentifiebleNode
-                auto type_obj_id = model.get_object_id(GraphObject::make_identifiable(op_connection.types[0]));
+                auto type_obj_id = model.get_object_id(op_connection.types[0].to_graph_object());
                 base_plans.push_back(
                     make_unique<ConnectionPlan>(model, from_id, to_id, type_obj_id, edge_id)
                 );
@@ -175,12 +175,12 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
 
     for (auto& property_path : op_basic_graph_pattern.property_paths) {
         auto from_id = property_path.from.is_var()
-                    ? (JoinPlan::Id) get_var_id(property_path.from.to_var())
-                    : (JoinPlan::Id) model.get_object_id(property_path.from.to_graph_object());
+                    ? (Id) get_var_id(property_path.from.to_var())
+                    : (Id) model.get_object_id(property_path.from.to_graph_object());
 
         auto to_id   = property_path.to.is_var()
-                    ? (JoinPlan::Id) get_var_id(property_path.to.to_var())
-                    : (JoinPlan::Id) model.get_object_id(property_path.to.to_graph_object());
+                    ? (Id) get_var_id(property_path.to.to_var())
+                    : (Id) model.get_object_id(property_path.to.to_graph_object());
 
 
         VarId path_var = get_var_id(property_path.var);
@@ -199,45 +199,42 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
         var_names[var_id.id] = var.name;
     }
 
-    // construct input vars
-    uint64_t input_vars = 0;
-    assert(assigned_vars.size() <= 64 && "for now, a maximum of 64 variables is supported");
-    for (auto var_id : assigned_vars) {
-        input_vars |= 1UL << var_id.id;
-    }
-
-    unique_ptr<JoinPlan> root_plan = nullptr;
     if (base_plans.size() == 0) {
         tmp = make_unique<SingleResultBindingIdIter>();
         return;
     }
 
-    // try to use leapfrog if the is a join
+    // Set input vars
+    for (auto& plan : base_plans) {
+        plan->set_input_vars(assigned_vars);
+    }
+
+    // try to use leapfrog if there is a join
     if (base_plans.size() > 1) {
-        tmp = try_get_leapfrog_plan(base_plans, var_names, binding_size, input_vars);
+        tmp = LeapfrogOptimizer::try_get_iter(thread_info, base_plans, var_names, binding_size);
     }
 
     if (tmp == nullptr) {
+        unique_ptr<Plan> root_plan = nullptr;
         if (base_plans.size() <= MAX_SELINGER_PLANS) {
-            SelingerOptimizer selinger_optimizer(move(base_plans), var_names, input_vars);
+            SelingerOptimizer selinger_optimizer(move(base_plans), var_names);
             root_plan = selinger_optimizer.get_plan();
         } else {
-            root_plan = get_greedy_join_plan(move(base_plans), var_names, input_vars);
-        }
-
-        // insert new assigned_vars
-        const auto new_assigned_vars = root_plan->get_vars();
-        for (std::size_t i = 0; i < binding_size; i++) {
-            if ((new_assigned_vars & (1UL << i)) != 0) {
-                assigned_vars.emplace(i);
-            }
+            root_plan = GreedyOptimizer::get_plan(move(base_plans), var_names);
         }
 
         std::cout << "\nPlan Generated:\n";
-        root_plan->print(2, true, var_names);
+        root_plan->print(std::cout, true, var_names);
         std::cout << "\nestimated cost: " << root_plan->estimate_cost() << "\n";
 
         tmp = root_plan->get_binding_id_iter(thread_info);
+    }
+
+    // insert new assigned_vars
+    for (auto& plan : base_plans) {
+        for (auto var : plan->get_vars()) {
+            assigned_vars.insert(var);
+        }
     }
 }
 
@@ -259,370 +256,4 @@ void BindingIdIterVisitor::visit(OpOptional& op_optional) {
 
     assert(tmp == nullptr);
     tmp = make_unique<OptionalNode>(move(binding_id_iter), move(optional_children));
-}
-
-
-unique_ptr<JoinPlan> BindingIdIterVisitor::get_greedy_join_plan(
-    vector<unique_ptr<JoinPlan>> base_plans,
-    vector<string>& var_names,
-    uint64_t input_vars)
-{
-    const auto base_plans_size = base_plans.size();
-    assert(base_plans_size > 0);
-
-    // choose the first scan
-    int best_index = 0;
-    double best_cost = std::numeric_limits<double>::max();
-    for (size_t j = 0; j < base_plans_size; j++) {
-        base_plans[j]->set_input_vars(input_vars);
-        auto current_element_cost = base_plans[j]->estimate_cost();
-        base_plans[j]->print(0, true, var_names);
-        std::cout << "\n";
-        if (current_element_cost < best_cost) {
-            best_cost = current_element_cost;
-            best_index = j;
-        }
-    }
-    auto root_plan = move(base_plans[best_index]);
-
-    // choose the next scan and make a IndexNestedLoopJoin
-    for (size_t i = 1; i < base_plans_size; i++) {
-        best_index = 0;
-        best_cost = std::numeric_limits<double>::max();
-        unique_ptr<JoinPlan> best_step_plan = nullptr;
-
-        for (size_t j = 0; j < base_plans_size; j++) {
-            if (base_plans[j] != nullptr
-                && !base_plans[j]->cartesian_product_needed(*root_plan) )
-            {
-                auto nested_loop_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
-                auto nested_loop_cost = nested_loop_plan->estimate_cost();
-
-                if (nested_loop_cost < best_cost) {
-                    best_cost = nested_loop_cost;
-                    best_index = j;
-                    best_step_plan = move(nested_loop_plan);
-                }
-                // <HashJoinGracePlan>, <HashJoinInMemoryPlan>, <HashJoinInBufferPlan>
-                // auto hash_join_plan = make_unique<HashJoinInBufferPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
-                // auto hash_join_cost = hash_join_plan->estimate_cost();
-
-                // if (hash_join_cost < best_cost) {
-                //     best_cost = hash_join_cost;
-                //     best_index = j;
-                //     best_step_plan = move(hash_join_plan);
-                // }
-            }
-        }
-
-        // All elements would form a cross product, iterate again, allowing cross products
-        if (best_cost == std::numeric_limits<double>::max()) {
-            best_index = 0;
-
-            for (size_t j = 0; j < base_plans_size; j++) {
-                if (base_plans[j] == nullptr) {
-                    continue;
-                }
-                auto nested_loop_plan = make_unique<NestedLoopPlan>(root_plan->duplicate(), base_plans[j]->duplicate());
-                auto nested_loop_cost = nested_loop_plan->estimate_cost();
-
-                if (nested_loop_cost < best_cost) {
-                    best_cost = nested_loop_cost;
-                    best_index = j;
-                    best_step_plan = move(nested_loop_plan);
-                }
-            }
-        }
-        base_plans[best_index] = nullptr;
-        root_plan = move(best_step_plan);
-    }
-
-    return root_plan;
-}
-
-
-unique_ptr<BindingIdIter> BindingIdIterVisitor::try_get_leapfrog_plan(const vector<unique_ptr<JoinPlan>>& base_plans,
-                                                                      vector<string>& var_names,
-                                                                      const size_t binding_size,
-                                                                      uint64_t input_vars)
-{
-    /* To choose the variable order:
-    1. Crear map de var a lista de relaciones que mencionan a esa var
-    2. Assign a cost to each variable, equal to the min cost of the relations it appears in.
-       Para desempatar usar el numero de apariciones
-    3. Take the variable with least cost as the first variable in the order
-    4. Crear set con vecinos no asignados
-       (por cada relacion de la variable se agregan las otras variables)
-    5. Ir sacando variables y actualizando la vecindad de forma iterativa hasta que no queden variables
-       por elegir. Si el set de vecinos no asignados queda vacío se elige de entre las que quedan
-    */
-
-    map<VarId, vector<JoinPlan*>> var2plans;
-    map<VarId, pair<double, std::size_t>> var2cost; // TODO: need custom comparator, maybe custom struct?
-    set<VarId> unchoosen_intersection_vars; // deberia contener las de enumeracion tambien?
-    set<VarId> unchoosen_connected_intersection_vars;
-    set<VarId> enumeration_vars;
-    vector<VarId> var_order;
-
-    // Construct var2plans and unchoosen_vars
-    for (std::size_t i = 0; i < binding_size; i++) {
-        var2plans.insert( make_pair(VarId(i), std::vector<JoinPlan*>()) );
-    }
-    for (auto& plan : base_plans) {
-        plan->set_input_vars(input_vars); // TODO: is it necessary to do it, shoud I do it before?
-        auto encoded_vars = plan->get_vars();
-        for (std::size_t i = 0; i < binding_size; i++) {
-            if ((encoded_vars & (1UL << i)) != 0) {
-                VarId var(i);
-                var2plans[var].push_back(plan.get());
-            }
-        }
-    }
-
-    // Construct var2cost
-    for (auto&&[var, plans] : var2plans) {
-        double best_cost = std::numeric_limits<double>::max();
-        for (auto plan : plans) {
-            auto cost = plan->estimate_cost();
-            if (cost < best_cost) {
-                best_cost = cost;
-            }
-        }
-        if (plans.size() > 1) {
-            unchoosen_intersection_vars.insert(var);
-        } else {
-            enumeration_vars.insert(var);
-        }
-        var2cost.insert( make_pair(var, make_pair(best_cost, plans.size()) ) );
-    }
-
-    while (!unchoosen_intersection_vars.empty()) {
-        double choosen_cost = std::numeric_limits<double>::max();
-        std::size_t choosen_appereances = 0;
-        uint_fast32_t choosen_var_id = UINT_FAST32_MAX;
-
-        if (!unchoosen_connected_intersection_vars.empty()) {
-            for (auto var : unchoosen_connected_intersection_vars) {
-                auto [current_cost, current_appereances] = var2cost[var];
-                if (current_cost < choosen_cost
-                    || (current_cost == choosen_cost && current_appereances > choosen_appereances) )
-                {
-                    choosen_var_id = var.id;
-                    choosen_cost = current_cost;
-                    choosen_appereances = current_appereances;
-                }
-            }
-        } else {
-            for (auto var : unchoosen_intersection_vars) {
-                auto [current_cost, current_appereances] = var2cost[var];
-                if (current_cost < choosen_cost
-                    || (current_cost == choosen_cost && current_appereances > choosen_appereances) )
-                {
-                    choosen_var_id = var.id;
-                    choosen_cost = current_cost;
-                    choosen_appereances = current_appereances;
-                }
-            }
-        }
-        VarId choosen_var(choosen_var_id);
-        unchoosen_intersection_vars.erase(choosen_var);
-        unchoosen_connected_intersection_vars.erase(choosen_var);
-        // actualizar unchoosen_connected_intersection_vars
-        for (auto plan : var2plans[choosen_var]) {
-            auto encoded_vars = plan->get_vars();
-            for (std::size_t i = 0; i < binding_size; i++) {
-                if ((encoded_vars & (1UL << i)) != 0) {
-                    VarId var(i);
-                    // si no ha sido elegida la agrego a las connectadas
-                    if (unchoosen_intersection_vars.find(var) != unchoosen_intersection_vars.end()) {
-                        unchoosen_connected_intersection_vars.insert(var);
-                    }
-                }
-            }
-        }
-        var_order.push_back(choosen_var);
-    }
-
-    const auto enumeration_level = var_order.size();
-
-    for (auto enumeration_var : enumeration_vars) {
-        var_order.push_back(enumeration_var);
-    }
-
-    // TODO: only for debugging
-    cout << "Var order: [";
-    for (const auto& var : var_order) {
-        cout << " " << var_names[var.id] << "(" << var.id << ")";
-    }
-    cout << " ]\n";
-
-    // Segunda pasada ahora si creando los LFIters
-    vector<unique_ptr<LeapfrogIter>> leapfrog_iters;
-    for (const auto& plan : base_plans) {
-        auto lf_iter = plan->get_leapfrog_iter(thread_info, assigned_vars, var_order, enumeration_level);
-        if (lf_iter == nullptr) {
-            return nullptr;
-        } else {
-            leapfrog_iters.push_back(move(lf_iter));
-        }
-    }
-
-    // At this point we know it won't return nullptr so we can change assigned_vars
-    for (const auto& var : var_order) {
-        assigned_vars.insert(var);
-    }
-
-    return make_unique<LeapfrogJoin>(move(leapfrog_iters), move(var_order), enumeration_level);
-
-    // TODO: al final hare algo como plan->get_leapfrog_iter(thread_info, assigned_vars, var_order, enumeration_level)
-
-    // const auto base_plans_size = base_plans.size();
-    // assert(base_plans_size > 0);
-    // vector<unique_ptr<JoinPlan>> ordered_plans;
-    // vector<bool> base_plan_selected(base_plans_size, false);
-
-    // vector<VarId> intersection_vars;
-    // set<VarId> enumeration_vars;
-    // set<VarId> assigned_vars_set(assigned_vars.begin(), assigned_vars.end());
-    // set<VarId> intersection_vars_set;
-
-    // // choose the first plan
-    // int best_index = 0;
-    // double best_cost = std::numeric_limits<double>::max();
-    // for (size_t j = 0; j < base_plans_size; j++) {
-    //     base_plans[j]->set_input_vars(input_vars);
-    //     auto current_element_cost = base_plans[j]->estimate_cost();
-    //     if (current_element_cost < best_cost) {
-    //         best_cost = current_element_cost;
-    //         best_index = j;
-    //     }
-    // }
-    // base_plan_selected[best_index] = true;
-    // // cout << "selected index " << best_index << "\n";
-    // ordered_plans.push_back(base_plans[best_index]->duplicate());
-
-    // // choose the next plan
-    // for (size_t i = 1; i < base_plans_size; i++) {
-    //     best_index = 0;
-    //     best_cost = std::numeric_limits<double>::max();
-    //     unique_ptr<JoinPlan> best_step_plan = nullptr;
-
-    //     for (size_t j = 0; j < base_plans_size; j++) {
-    //         if (!base_plan_selected[j]
-    //             && !base_plans[j]->cartesian_product_needed(input_vars) )
-    //         {
-    //             auto duplicated_plan = base_plans[j]->duplicate();
-    //             duplicated_plan->set_input_vars(input_vars);
-    //             auto cost = duplicated_plan->estimate_cost();
-
-    //             if (cost < best_cost) {
-    //                 best_cost = cost;
-    //                 best_index = j;
-    //                 best_step_plan = move(duplicated_plan);
-    //             }
-    //         }
-    //     }
-
-    //     // All elements would form a cross product, iterate again, allowing cross products
-    //     if (best_cost == std::numeric_limits<double>::max()) {
-    //         best_index = 0;
-
-    //         for (size_t j = 0; j < base_plans_size; j++) {
-    //             if (base_plan_selected[j]) {
-    //                 continue;
-    //             }
-    //             auto duplicated_plan = base_plans[j]->duplicate();
-    //             duplicated_plan->set_input_vars(input_vars);
-    //             auto cost = duplicated_plan->estimate_cost();
-
-    //             if (cost < best_cost) {
-    //                 best_cost = cost;
-    //                 best_index = j;
-    //                 best_step_plan = move(duplicated_plan);
-    //             }
-    //         }
-    //     }
-    //     base_plan_selected[best_index] = true;
-    //     input_vars |= best_step_plan->get_vars();
-    //     // cout << "selected index " << best_index << "\n";
-    //     ordered_plans.push_back(move(best_step_plan));
-    // }
-
-    // // set intersection and enumeration vars
-    // for (const auto& plan : ordered_plans) {
-    //     auto encoded_vars = plan->get_vars();
-    //     for (std::size_t i = 0; i < binding_size; i++) {
-    //         if ((encoded_vars & (1UL << i)) != 0) {
-    //             VarId var(i);
-    //             // only consider variables not present in assigned_vars
-    //             if (assigned_vars_set.find(var) == assigned_vars_set.end()) {
-    //                 // Var is in enumeration_vars
-    //                 if (enumeration_vars.find(var) != enumeration_vars.end()) {
-    //                     enumeration_vars.erase(var);
-    //                     intersection_vars_set.insert(var);
-    //                     intersection_vars.push_back(var);
-    //                 }
-    //                 // Var is not in intersection vars
-    //                 else if (intersection_vars_set.find(var) == intersection_vars_set.end()) {
-    //                     enumeration_vars.insert(var);
-    //                 }
-    //                 // else var is already in intersection_vars, do nothing
-    //             }
-    //         }
-    //     }
-    // }
-
-    // vector<VarId> var_order = intersection_vars; // TODO: move?
-    // for (const auto& var : enumeration_vars) {
-    //     var_order.push_back(var);
-    // }
-
-    // const auto enumeration_level = intersection_vars.size();
-
-    // cout << "Var order: [";
-    // for (const auto& var : var_order) {
-    //     cout << " " << var_names[var.id] << "(" << var.id << ")";
-    // }
-    // cout << " ]\n";
-
-    // cout << "   enumeration_level: " << enumeration_level << "\n";
-
-    // // Segunda pasada ahora si creando los LFIters
-    // vector<unique_ptr<LeapfrogIter>> leapfrog_iters;
-    // for (const auto& plan : base_plans) {
-    //     auto lf_iter = plan->get_leapfrog_iter(thread_info, assigned_vars, var_order, enumeration_level);
-    //     if (lf_iter == nullptr) {
-    //         return nullptr;
-    //     } else {
-    //         leapfrog_iters.push_back(move(lf_iter));
-    //     }
-    // }
-
-    // // At this point we know it won't return nullptr so we can change assigned_vars
-    // for (const auto& var : var_order) {
-    //     assigned_vars.insert(var);
-    // }
-
-    // return make_unique<LeapfrogJoin>(move(leapfrog_iters), move(var_order), enumeration_level);
-}
-
-
-// TODO: a visitor would be nice
-ObjectId BindingIdIterVisitor::get_value_id(const common::ast::Value& value) {
-    if (value.type() == typeid(string)) {
-        auto str = boost::get<string>(value);
-        return model.get_object_id(GraphObject::make_string(str.c_str()));
-    }
-    else if (value.type() == typeid(int64_t)) {
-        return model.get_object_id(GraphObject::make_int( boost::get<int64_t>(value) ));
-    }
-    else if (value.type() == typeid(float)) {
-        return model.get_object_id(GraphObject::make_float( boost::get<float>(value) ));
-    }
-    else if (value.type() == typeid(bool)) {
-        return model.get_object_id(GraphObject::make_bool( boost::get<bool>(value) ));
-    }
-    else {
-        throw logic_error("Unknown value type.");
-    }
 }

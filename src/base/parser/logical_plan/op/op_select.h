@@ -13,7 +13,7 @@
 
 class OpSelect : public Op {
 public:
-    const uint_fast32_t limit;
+    const uint64_t limit;
     const std::unique_ptr<Op> op;
 
     // pair <var_name, key_name>
@@ -21,7 +21,7 @@ public:
     // empty vector means SELECT *
     const std::vector<query::ast::SelectItem> select_items;
 
-    OpSelect(std::unique_ptr<Op> op, std::vector<query::ast::SelectItem> select_items, uint_fast32_t limit) :
+    OpSelect(std::unique_ptr<Op> op, std::vector<query::ast::SelectItem> select_items, uint64_t limit) :
         limit        (limit),
         op           (std::move(op)),
         select_items (std::move(select_items)) { }
@@ -59,13 +59,14 @@ public:
         return op->print_to_ostream(os, indent + 2);
     };
 
-    void get_vars(std::set<Var>& set) const override {
-        op->get_vars(set);
+    std::set<Var> get_vars() const override {
+        auto res = op->get_vars();
         for (const auto& select_item : select_items) {
             if (select_item.key) {
-                set.emplace(select_item.var + '.' + select_item.key.get());
+                res.emplace(select_item.var + '.' + select_item.key.get());
             }
         }
+        return res;
     }
 };
 

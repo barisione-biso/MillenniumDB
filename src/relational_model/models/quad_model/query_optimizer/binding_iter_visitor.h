@@ -24,11 +24,18 @@ public:
     const QuadModel& model;
     const std::map<Var, VarId> var2var_id;
     std::unique_ptr<BindingIter> tmp;
-    std::vector<query::ast::SelectItem> select_items;
+
+    // properties used in SELECT and ORDER BY. We need to remember them to add optional children in the OpMatch
+    std::set<std::pair<Var, std::string>> var_properties;
+
+    std::vector<std::pair<Var, VarId>> projection_vars;
+
     ThreadInfo* thread_info;
 
     bool distinct_into_id = false;
     bool need_materialize_paths = false;
+
+    bool distinct_ordered_possible = false;
 
     BindingIterVisitor(const QuadModel& model, std::set<Var> var_names, ThreadInfo* thread_info);
     ~BindingIterVisitor() = default;
@@ -40,8 +47,8 @@ public:
     static std::map<Var, VarId> construct_var2var_id(std::set<Var>& var_names);
 
     void visit(OpDistinct&)         override;
-    void visit(OpFilter&)           override;
-    void visit(OpGraphPatternRoot&) override;
+    void visit(OpWhere&)           override;
+    void visit(OpMatch&) override;
     void visit(OpGroupBy&)          override;
     void visit(OpOrderBy&)          override;
     void visit(OpSelect&)           override;

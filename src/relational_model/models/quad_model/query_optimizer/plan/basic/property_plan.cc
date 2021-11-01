@@ -16,62 +16,45 @@ PropertyPlan::PropertyPlan(const QuadModel& model, Id object, Id key, Id value) 
     value_assigned  (std::holds_alternative<ObjectId>(value)) { }
 
 
-PropertyPlan::PropertyPlan(const PropertyPlan& other) :
-    model           (other.model),
-    object          (other.object),
-    key             (other.key),
-    value           (other.value),
-    object_assigned (other.object_assigned),
-    key_assigned    (other.key_assigned),
-    value_assigned  (other.value_assigned) { }
-
-
-std::unique_ptr<JoinPlan> PropertyPlan::duplicate() {
-    return make_unique<PropertyPlan>(*this);
-}
-
-
-void PropertyPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
+void PropertyPlan::print(std::ostream& os, int indent, const std::vector<std::string>& var_names) const {
     for (int i = 0; i < indent; ++i) {
-        cout << ' ';
+        os << ' ';
     }
-    cout << "Property(";
+    os << "Property(";
     if (std::holds_alternative<ObjectId>(object)) {
-        cout << "object: " << model.get_graph_object(std::get<ObjectId>(object));
+        os << "object: " << model.get_graph_object(std::get<ObjectId>(object));
     } else {
-        cout << "object: " <<  var_names[std::get<VarId>(object).id];
+        os << "object: " <<  var_names[std::get<VarId>(object).id];
     }
 
     if (std::holds_alternative<ObjectId>(key)) {
-        cout << ", key: " << model.get_graph_object(std::get<ObjectId>(key));
+        os << ", key: " << model.get_graph_object(std::get<ObjectId>(key));
     } else {
-        cout << ", key: " <<  var_names[std::get<VarId>(key).id];
+        os << ", key: " <<  var_names[std::get<VarId>(key).id];
     }
 
     if (std::holds_alternative<ObjectId>(value)) {
-        cout << ", value: " << model.get_graph_object(std::get<ObjectId>(value));
+        os << ", value: " << model.get_graph_object(std::get<ObjectId>(value));
     } else {
-        cout << ", value: " <<  var_names[std::get<VarId>(value).id];
+        os << ", value: " <<  var_names[std::get<VarId>(value).id];
     }
 
-    cout << ")";
+    os << ")";
 
-    if (estimated_cost) {
-        cout << ",\n";
-        for (int i = 0; i < indent; ++i) {
-            cout << ' ';
-        }
-        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    os << ",\n";
+    for (int i = 0; i < indent; ++i) {
+        os << ' ';
     }
+    os << "  ↳ Estimated factor: " << estimate_output_size();
 }
 
 
-double PropertyPlan::estimate_cost() {
+double PropertyPlan::estimate_cost() const {
     return /*100.0 +*/ estimate_output_size();
 }
 
 
-double PropertyPlan::estimate_output_size() {
+double PropertyPlan::estimate_output_size() const {
     const auto total_objects    = static_cast<double>(model.catalog().identifiable_nodes_count
                                                     + model.catalog().anonymous_nodes_count
                                                     + model.catalog().connections_count);
@@ -91,7 +74,7 @@ double PropertyPlan::estimate_output_size() {
             distict_values = static_cast<double>(model.catalog().key2distinct[std::get<ObjectId>(key).id]);
             key_count      = static_cast<double>(model.catalog().key2total_count[std::get<ObjectId>(key).id]);
         } else {
-            // TODO: this case is not possible yet, but we need to cover it for the future
+            // TODO: this case (key is an assigned variable) is not possible yet, but we may need to cover it in the future
             return 0;
         }
 
@@ -121,40 +104,25 @@ double PropertyPlan::estimate_output_size() {
 }
 
 
-void PropertyPlan::set_input_vars(const uint64_t input_vars) {
-    if (std::holds_alternative<VarId>(object)) {
-        auto object_var_id = std::get<VarId>(object);
-        if ((input_vars & (1UL << object_var_id.id)) != 0) {
-            object_assigned = true;
-        }
-    }
-    if (std::holds_alternative<VarId>(key)) {
-        auto key_var_id = std::get<VarId>(key);
-        if ((input_vars & (1UL << key_var_id.id)) != 0) {
-            key_assigned = true;
-        }
-    }
-
-    if (std::holds_alternative<VarId>(value)) {
-        auto value_var_id = std::get<VarId>(value);
-        if ((input_vars & (1UL << value_var_id.id)) != 0) {
-            value_assigned = true;
-        }
-    }
+void PropertyPlan::set_input_vars(const std::set<VarId>& input_vars) {
+    set_input_var(input_vars, object, &object_assigned);
+    set_input_var(input_vars, key,    &key_assigned);
+    set_input_var(input_vars, value,  &value_assigned);
 }
 
-uint64_t PropertyPlan::get_vars() {
-    uint64_t result = 0;
 
-    if ( std::holds_alternative<VarId>(object) ) {
-        result |= 1UL << std::get<VarId>(object).id;
+std::set<VarId> PropertyPlan::get_vars() const {
+    std::set<VarId> result;
+    if ( std::holds_alternative<VarId>(object) && !object_assigned) {
+        result.insert( std::get<VarId>(object) );
     }
-    if ( std::holds_alternative<VarId>(key) ) {
-        result |= 1UL << std::get<VarId>(key).id;
+    if ( std::holds_alternative<VarId>(key) && !key_assigned) {
+        result.insert( std::get<VarId>(key) );
     }
-    if ( std::holds_alternative<VarId>(value) ) {
-        result |= 1UL << std::get<VarId>(value).id;
+    if ( std::holds_alternative<VarId>(value) && !value_assigned) {
+        result.insert( std::get<VarId>(value) );
     }
+
     return result;
 }
 
@@ -173,7 +141,7 @@ uint64_t PropertyPlan::get_vars() {
  * ║8║      no      ║      no       ║        no        ║   KVO   ║
  * ╚═╩══════════════╩═══════════════╩══════════════════╩═════════╝
  */
-unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter(ThreadInfo* thread_info) {
+unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter(ThreadInfo* thread_info) const {
     array<unique_ptr<ScanRange>, 3> ranges;
 
     assert((key_assigned || !value_assigned) && "fixed values with open key is not supported");
@@ -193,9 +161,8 @@ unique_ptr<BindingIdIter> PropertyPlan::get_binding_id_iter(ThreadInfo* thread_i
 
 
 unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(ThreadInfo*            thread_info,
-                                                         const std::set<VarId>& assigned_vars,
                                                          const vector<VarId>&   var_order,
-                                                         uint_fast32_t          enumeration_level)
+                                                         uint_fast32_t          enumeration_level) const
 {
     vector<unique_ptr<ScanRange>> initial_ranges;
     vector<VarId> intersection_vars;
@@ -205,39 +172,24 @@ unique_ptr<LeapfrogIter> PropertyPlan::get_leapfrog_iter(ThreadInfo*            
     int_fast32_t obj_index, key_index, value_index;
 
     // Assign obj_index
-    if (std::holds_alternative<ObjectId>(object)) {
+    if (std::holds_alternative<ObjectId>(object) || object_assigned) {
         obj_index = -1;
     } else {
-        auto search = assigned_vars.find(std::get<VarId>(object));
-        if (search == assigned_vars.end()) {
-            obj_index = INT32_MAX;
-        } else {
-            obj_index = -1;
-        }
+        obj_index = INT32_MAX;
     }
 
     // Assign key_index
-    if (std::holds_alternative<ObjectId>(key)) {
+    if (std::holds_alternative<ObjectId>(key) || key_assigned) {
         key_index = -1;
     } else {
-        auto search = assigned_vars.find(std::get<VarId>(key));
-        if (search == assigned_vars.end()) {
-            key_index = INT32_MAX;
-        } else {
-            key_index = -1;
-        }
+        key_index = INT32_MAX;
     }
 
     // Assign value_index
-    if (std::holds_alternative<ObjectId>(value)) {
+    if (std::holds_alternative<ObjectId>(value) || value_assigned) {
         value_index = -1;
     } else {
-        auto search = assigned_vars.find(std::get<VarId>(value));
-        if (search == assigned_vars.end()) {
-            value_index = INT32_MAX;
-        } else {
-            value_index = -1;
-        }
+        value_index = INT32_MAX;
     }
 
     // search for vars marked as enumeraion (INT32_MAX) that are intersection

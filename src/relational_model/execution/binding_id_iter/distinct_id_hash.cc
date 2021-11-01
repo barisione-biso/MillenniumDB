@@ -2,11 +2,10 @@
 
 using namespace std;
 
-DistinctIdHash::DistinctIdHash(unique_ptr<BindingIdIter> _child_iter, std::vector<VarId> projected_vars) :
+DistinctIdHash::DistinctIdHash(unique_ptr<BindingIdIter> _child_iter, std::vector<VarId> _projected_vars) :
     child_iter       (move(_child_iter)),
-    projected_vars   (projected_vars),
-    extendable_table (DistinctBindingHash<ObjectId>(projected_vars.size()))
-    { }
+    projected_vars   (move(_projected_vars)),
+    extendable_table (DistinctBindingHash<ObjectId>( projected_vars.size() )) { }
 
 
 void DistinctIdHash::begin(BindingId& parent_binding) {
@@ -17,8 +16,9 @@ void DistinctIdHash::begin(BindingId& parent_binding) {
 
 
 void DistinctIdHash::reset() {
-    // TODO: now this method is never called, maybe in the future we may need to clear hash table
     child_iter->reset();
+    // TODO: now this method is never called, maybe in the future we may need to clear hash table
+    // extendable_table.reset();
 }
 
 

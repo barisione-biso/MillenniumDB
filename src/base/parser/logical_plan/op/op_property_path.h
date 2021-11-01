@@ -37,15 +37,16 @@ public:
         return false;
     }
 
-    void get_vars(std::set<Var>& set) const override {
-        std::set<std::string> res;
+    std::set<Var> get_vars() const override {
+        std::set<Var> res;
         if (from.is_var()) {
-            set.insert(from.to_var());
+            res.insert(from.to_var());
         }
         if (to.is_var()) {
-            set.insert(to.to_var());
+            res.insert(to.to_var());
         }
-        set.insert(var);
+        res.insert(var);
+        return res;
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {

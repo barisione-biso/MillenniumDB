@@ -3,7 +3,7 @@
 
 class OpSelect;
 class OpBasicGraphPattern;
-class OpFilter;
+class OpWhere;
 class OpConnection;
 class OpLabel;
 class OpOptional;
@@ -12,7 +12,7 @@ class OpOrderBy;
 class OpGroupBy;
 class OpIsolatedVar;
 class OpIsolatedTerm;
-class OpGraphPatternRoot;
+class OpMatch;
 class OpDistinct;
 class OpPropertyPath;
 class OpPath;
@@ -28,8 +28,8 @@ public:
     virtual void visit(OpBasicGraphPattern&) = 0;
     virtual void visit(OpConnection&) = 0;
     virtual void visit(OpDistinct&) = 0;
-    virtual void visit(OpFilter&) = 0;
-    virtual void visit(OpGraphPatternRoot&) = 0;
+    virtual void visit(OpWhere&) = 0;
+    virtual void visit(OpMatch&) = 0;
     virtual void visit(OpGroupBy&) = 0;
     virtual void visit(OpIsolatedVar&) = 0;
     virtual void visit(OpIsolatedTerm&) = 0;

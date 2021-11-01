@@ -38,7 +38,7 @@ void FileManager::init(const std::string& db_folder) {
 
 
 uint_fast32_t FileManager::count_pages(const FileId file_id) const {
-    // TODO: need mutex?
+    // We don't need mutex here as long as db is readonly
     const auto file_path = get_file_path(filenames[file_id.id]);
     return experimental::filesystem::file_size(file_path)/Page::MDB_PAGE_SIZE;
 }
@@ -57,7 +57,6 @@ void FileManager::read_page(const PageId page_id, char* bytes) const {
     uint_fast32_t file_pos = file.tellg();
     if (file_pos/Page::MDB_PAGE_SIZE <= page_id.page_number) {
         // new file page
-        // TODO: need mutex?
         memset(bytes, 0, Page::MDB_PAGE_SIZE);
         file.write(bytes, Page::MDB_PAGE_SIZE);
     } else {

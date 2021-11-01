@@ -19,8 +19,6 @@ public:
     bool next() override;
     void analyze(std::ostream&, int indent = 0) const override;
 
-    bool current_tuple_distinct();
-
 private:
     std::unique_ptr<BindingIter> child_iter;
     Binding& child_binding;

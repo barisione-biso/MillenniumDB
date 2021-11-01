@@ -16,11 +16,10 @@
 
 class OrderBy : public BindingIter {
 public:
-    OrderBy(const GraphModel& model,
-            ThreadInfo* thread_info,
+    OrderBy(ThreadInfo* thread_info,
             std::unique_ptr<BindingIter> child,
-            std::size_t binding_size,
-            std::vector<std::pair<Var, VarId>> order_vars,
+            std::set<VarId> saved_vars,
+            std::vector<VarId> order_vars,
             std::vector<bool> ascending);
     ~OrderBy();
 
@@ -33,10 +32,12 @@ public:
 private:
     ThreadInfo* thread_info;
     std::unique_ptr<BindingIter> child;
-    std::vector<std::pair<Var, VarId>> order_vars;
+
+    std::map<VarId, uint_fast32_t> saved_vars;
+
+    std::vector<VarId> order_vars;
     std::vector<bool> ascending;
 
-    std::size_t binding_size;
     BindingOrderBy my_binding;
 
     TmpFileId first_file_id;
@@ -48,6 +49,7 @@ private:
     uint_fast32_t current_page = 0;
     uint64_t page_position = 0;
 
+    std::unique_ptr<TupleCollection> get_run(Page& run_page);
     void merge_sort(const std::vector<VarId>& order_var_ids);
 };
 

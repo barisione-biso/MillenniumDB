@@ -18,8 +18,8 @@ private:
 public:
     void visit(OpBasicGraphPattern&) override;
     void visit(OpDistinct&)          override;
-    void visit(OpFilter&)            override;
-    void visit(OpGraphPatternRoot&)  override;
+    void visit(OpWhere&)            override;
+    void visit(OpMatch&)  override;
     void visit(OpGroupBy&)           override;
     void visit(OpOptional&)          override;
     void visit(OpOrderBy&)           override;

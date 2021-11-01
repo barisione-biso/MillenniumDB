@@ -8,8 +8,7 @@
 #ifndef STORAGE__TUPLE_COLLECTION_H_
 #define STORAGE__TUPLE_COLLECTION_H_
 
-#include <iostream>
-#include <string>
+#include <map>
 #include <vector>
 
 #include "base/graph/graph_object.h"
@@ -23,36 +22,39 @@ class MergeOrderedTupleCollection;
 class TupleCollection {
 friend class MergeOrderedTupleCollection;
 public:
-    TupleCollection(Page& page, const size_t tuple_size);
+    TupleCollection(Page& page,
+                    const std::map<VarId, uint_fast32_t>& saved_vars,
+                    const std::vector<VarId>& order_vars,
+                    const std::vector<bool>& ascending);
     ~TupleCollection();
 
     bool is_full() const {
-        return sizeof(tuple_count) + (sizeof(GraphObject)*tuple_size*(1 + *tuple_count)) > Page::MDB_PAGE_SIZE;
+        return sizeof(tuple_count) + (sizeof(GraphObject)*saved_vars.size()*(1 + *tuple_count)) > Page::MDB_PAGE_SIZE;
     }
 
     inline uint64_t get_tuple_count() const noexcept { return *tuple_count; }
 
     std::vector<GraphObject> get(uint64_t n) const;
 
-    static bool has_priority(const std::vector<GraphObject>&  lhs,
-                             const std::vector<GraphObject>&  rhs,
-                             const std::vector<VarId>&        order_vars,
-                             const std::vector<bool>&         ascending);
+    bool has_priority(const std::vector<GraphObject>& lhs,
+                      const std::vector<GraphObject>& rhs);
 
     void add(std::vector<GraphObject> new_tuple);
-    void sort(std::vector<VarId>& order_vars, std::vector<bool>& ascending);
+    void sort();
     void reset();
 
 private:
     Page& page;
-    const size_t tuple_size;
+    const std::map<VarId, uint_fast32_t>& saved_vars;
+    const std::vector<VarId>& order_vars;
+    const std::vector<bool>& ascending;
     GraphObject* const tuples;
     uint64_t* const tuple_count;
 
     void swap(int x, int y);
     void override_tuple(const std::vector<GraphObject>& tuple, int position);
-    int partition(int i, int f, std::vector<VarId>& order_vars, std::vector<bool>& ascending);
-    void quicksort(int i, int f, std::vector<VarId>& order_vars, std::vector<bool>& ascending);
+    int partition(int i, int f);
+    void quicksort(int i, int f);
 };
 
 
@@ -60,10 +62,10 @@ private:
 // sorted runs (arrays of tuple collections)
 class MergeOrderedTupleCollection {
 public:
-    MergeOrderedTupleCollection(size_t tuple_size,
-                                const std::vector<VarId>& order_vars,
-                                const std::vector<bool>& ascending,
-                                bool* interruption_requested);
+    MergeOrderedTupleCollection(const std::map<VarId, uint_fast32_t>& saved_vars,
+                                const std::vector<VarId>&             order_vars,
+                                const std::vector<bool>&              ascending,
+                                bool*                                 interruption_requested);
 
     void merge(uint64_t  left_start,
                uint64_t  left_end,
@@ -77,10 +79,12 @@ public:
                    TmpFileId output_file_id);
 
 private:
-    const size_t              tuple_size;
-    const std::vector<VarId>& order_vars;
-    const std::vector<bool>&  ascending;
-    bool const *              interruption_requested;
+    const std::map<VarId, uint_fast32_t>& saved_vars;
+    const std::vector<VarId>&             order_vars;
+    const std::vector<bool>&              ascending;
+    bool const *                          interruption_requested;
+
+    std::unique_ptr<TupleCollection> get_run(Page& run_page);
 };
 
 #endif // STORAGE__TUPLE_COLLECTION_H_

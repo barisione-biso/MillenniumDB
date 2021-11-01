@@ -1,8 +1,7 @@
 #ifndef BASE__OP_DISTINCT_H_
 #define BASE__OP_DISTINCT_H_
 
-#include <string>
-#include <vector>
+#include <memory>
 
 #include "base/parser/logical_plan/op/op.h"
 
@@ -19,8 +18,8 @@ public:
         visitor.visit(*this);
     }
 
-    void get_vars(std::set<Var>& set) const override {
-        return op->get_vars(set);
+    std::set<Var> get_vars() const override {
+        return op->get_vars();
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent=0) const override {

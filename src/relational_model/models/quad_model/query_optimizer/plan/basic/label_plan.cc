@@ -14,58 +14,42 @@ LabelPlan::LabelPlan(const QuadModel& model, Id node, Id label) :
     label_assigned (std::holds_alternative<ObjectId>(label)) { }
 
 
-LabelPlan::LabelPlan(const LabelPlan& other) :
-    model          (other.model),
-    node           (other.node),
-    label          (other.label),
-    node_assigned  (other.node_assigned),
-    label_assigned (other.label_assigned) { }
-
-
-std::unique_ptr<JoinPlan> LabelPlan::duplicate() {
-    return make_unique<LabelPlan>(*this);
-}
-
-
-void LabelPlan::print(int indent, bool estimated_cost, std::vector<std::string>& var_names) {
+void LabelPlan::print(std::ostream& os, int indent, const std::vector<std::string>& var_names) const {
     for (int i = 0; i < indent; ++i) {
-        cout << ' ';
+        os << ' ';
     }
-    cout << "Label(";
+    os << "Label(";
     if (std::holds_alternative<ObjectId>(node)) {
-        cout << "node: " << model.get_graph_object(std::get<ObjectId>(node));
+        os << "node: " << model.get_graph_object(std::get<ObjectId>(node));
     } else {
-        cout << "node: " <<  var_names[std::get<VarId>(node).id];
+        os << "node: " <<  var_names[std::get<VarId>(node).id];
     }
 
     if (std::holds_alternative<ObjectId>(label)) {
-        cout << ", label: " << model.get_graph_object(std::get<ObjectId>(label));
+        os << ", label: " << model.get_graph_object(std::get<ObjectId>(label));
     } else {
-        cout << ", label: " << var_names[std::get<VarId>(label).id];
+        os << ", label: " << var_names[std::get<VarId>(label).id];
     }
-    cout << ")";
+    os << ")";
 
-    if (estimated_cost) {
-        cout << ",\n";
-        for (int i = 0; i < indent; ++i) {
-            cout << ' ';
-        }
-        cout << "  ↳ Estimated factor: " << estimate_output_size();
+    os << ",\n";
+    for (int i = 0; i < indent; ++i) {
+        os << ' ';
     }
+    os << "  ↳ Estimated factor: " << estimate_output_size();
 }
 
 
-double LabelPlan::estimate_cost() {
+double LabelPlan::estimate_cost() const {
     return /*100.0 +*/ estimate_output_size();
 }
 
 
-double LabelPlan::estimate_output_size() {
+double LabelPlan::estimate_output_size() const {
     const auto total_nodes = static_cast<double>(model.catalog().identifiable_nodes_count
                                                + model.catalog().anonymous_nodes_count);
 
     auto total_labels      = static_cast<double>(model.catalog().label_count);
-
 
     if (total_nodes == 0) { // to avoid division by 0
         return 0;
@@ -77,7 +61,7 @@ double LabelPlan::estimate_output_size() {
         if (std::holds_alternative<ObjectId>(label)) {
             label_count = static_cast<double>(model.catalog().label2total_count[std::get<ObjectId>(label).id]);
         } else {
-            // TODO: this case is not possible yet, but we need to cover it for the future
+            // TODO: this case (label is an assigned variable) is not possible yet, but we may need to cover it in the future
             return 0;
         }
 
@@ -96,31 +80,22 @@ double LabelPlan::estimate_output_size() {
 }
 
 
-void LabelPlan::set_input_vars(const uint64_t input_vars) {
-    if (std::holds_alternative<VarId>(node)) {
-        auto node_var_id = std::get<VarId>(node);
-        if ((input_vars & (1UL << node_var_id.id)) != 0) {
-            node_assigned = true;
-        }
-    }
-    if (std::holds_alternative<VarId>(label)) {
-        auto label_var_id = std::get<VarId>(label);
-        if ((input_vars & (1UL << label_var_id.id)) != 0) {
-            label_assigned = true;
-        }
-    }
+void LabelPlan::set_input_vars(const std::set<VarId>& input_vars) {
+    set_input_var(input_vars, node, &node_assigned);
+    set_input_var(input_vars, label, &label_assigned);
 }
 
-// Must be consistent with the index scan returned in get_binding_id_iter()
-uint64_t LabelPlan::get_vars() {
-    uint64_t result = 0;
 
-    if ( std::holds_alternative<VarId>(node) ) {
-        result |= 1UL << std::get<VarId>(node).id;
+// Must be consistent with the index scan returned in get_binding_id_iter()
+std::set<VarId> LabelPlan::get_vars() const {
+    std::set<VarId> result;
+    if ( std::holds_alternative<VarId>(node) && !node_assigned) {
+        result.insert( std::get<VarId>(node) );
     }
-    if ( std::holds_alternative<VarId>(label) ) {
-        result |= 1UL << std::get<VarId>(label).id;
+    if ( std::holds_alternative<VarId>(label) && !label_assigned) {
+        result.insert( std::get<VarId>(label) );
     }
+
     return result;
 }
 
@@ -135,7 +110,7 @@ uint64_t LabelPlan::get_vars() {
  * ║4║       no      ║       no        ║    LN   ║
  * ╚═╩═══════════════╩═════════════════╩═════════╝
  */
-unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter(ThreadInfo* thread_info) {
+unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter(ThreadInfo* thread_info) const {
     array<unique_ptr<ScanRange>, 2> ranges;
     if (node_assigned) {
         ranges[0] = ScanRange::get(node, node_assigned);
@@ -150,9 +125,8 @@ unique_ptr<BindingIdIter> LabelPlan::get_binding_id_iter(ThreadInfo* thread_info
 
 
 unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(ThreadInfo*            thread_info,
-                                                      const std::set<VarId>& assigned_vars,
                                                       const vector<VarId>&   var_order,
-                                                      uint_fast32_t          enumeration_level)
+                                                      uint_fast32_t          enumeration_level) const
 {
     vector<unique_ptr<ScanRange>> initial_ranges;
     vector<VarId> intersection_vars;
@@ -162,27 +136,17 @@ unique_ptr<LeapfrogIter> LabelPlan::get_leapfrog_iter(ThreadInfo*            thr
     int_fast32_t node_index, label_index;
 
     // Assign node_index
-    if (std::holds_alternative<ObjectId>(node)) {
+    if (std::holds_alternative<ObjectId>(node) || node_assigned) {
         node_index = -1;
     } else {
-        auto search = assigned_vars.find(std::get<VarId>(node));
-        if (search == assigned_vars.end()) {
-            node_index = INT32_MAX;
-        } else {
-            node_index = -1;
-        }
+        node_index = INT32_MAX;
     }
 
     // Assign label_index
-    if (std::holds_alternative<ObjectId>(label)) {
+    if (std::holds_alternative<ObjectId>(label) || label_assigned) {
         label_index = -1;
     } else {
-        auto search = assigned_vars.find(std::get<VarId>(label));
-        if (search == assigned_vars.end()) {
-            label_index = INT32_MAX;
-        } else {
-            label_index = -1;
-        }
+        label_index = INT32_MAX;
     }
 
     // search for vars marked as enumeraion (INT32_MAX) that are intersection

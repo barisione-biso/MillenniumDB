@@ -1,14 +1,14 @@
 #include "optimize_tree.h"
 
 #include "base/exceptions.h"
-#include "base/parser/logical_plan/op/op_distinct.h"
-#include "base/parser/logical_plan/op/op_filter.h"
-#include "base/parser/logical_plan/op/op_graph_pattern_root.h"
-#include "base/parser/logical_plan/op/op_group_by.h"
 #include "base/parser/logical_plan/op/op_basic_graph_pattern.h"
+#include "base/parser/logical_plan/op/op_distinct.h"
+#include "base/parser/logical_plan/op/op_group_by.h"
+#include "base/parser/logical_plan/op/op_match.h"
 #include "base/parser/logical_plan/op/op_optional.h"
 #include "base/parser/logical_plan/op/op_order_by.h"
 #include "base/parser/logical_plan/op/op_select.h"
+#include "base/parser/logical_plan/op/op_where.h"
 
 using namespace std;
 
@@ -115,19 +115,18 @@ void OptimizeTree::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
         delete_current = true;
     }
 
-    std::set<Var> match_vars;
-    op_basic_graph_pattern.get_vars(match_vars);
+    auto match_vars = op_basic_graph_pattern.get_vars();
     for (auto& var_name : match_vars) {
         global_vars.insert(var_name);
     }
 }
 
 
-void OptimizeTree::visit(OpGraphPatternRoot& op_graph_pattern_root) {
+void OptimizeTree::visit(OpMatch& op_match) {
     optional_to_match = false;
-    op_graph_pattern_root.op->accept_visitor(*this);
+    op_match.op->accept_visitor(*this);
     if (optional_to_match) {
-        op_graph_pattern_root.op = move(optionals[0]);
+        op_match.op = move(optionals[0]);
     }
 }
 
@@ -137,8 +136,8 @@ void OptimizeTree::visit(OpSelect& op_select) {
 }
 
 
-void OptimizeTree::visit(OpFilter& op_filter) {
-    op_filter.op->accept_visitor(*this);
+void OptimizeTree::visit(OpWhere& op_where) {
+    op_where.op->accept_visitor(*this);
 }
 
 

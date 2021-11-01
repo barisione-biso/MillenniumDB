@@ -36,23 +36,24 @@ std::unique_ptr<BPlusTreeDir<N>> BPlusTree<N>::get_root() const noexcept {
 template <std::size_t N>
 void BPlusTree<N>::bulk_import(OrderedFile<N>& leaf_provider) {
     leaf_provider.begin_read();
+    const auto last_page_number = leaf_provider.get_last_page();
 
     BPlusTreeLeaf<N> first_leaf(buffer_manager.get_page(leaf_file_id, 0));
     leaf_provider.copy_to_bpt_leaf(first_leaf, 0);
-    if (leaf_provider.get_last_page() > 0) {
+    if (last_page_number > 0) {
         *first_leaf.next_leaf = 1;
     }
     first_leaf.page.make_dirty();
 
     uint_fast32_t current_page = 1;
-    while (current_page <= leaf_provider.get_last_page()) {
+    while (current_page <= last_page_number) {
         BPlusTreeLeaf<N> new_leaf(buffer_manager.get_page(leaf_file_id, current_page));
         leaf_provider.copy_to_bpt_leaf(new_leaf, current_page);
 
         assert(*new_leaf.value_count > 0);
 
         auto next_page = current_page + 1;
-        if (next_page <= leaf_provider.get_last_page()) {
+        if (next_page <= last_page_number) {
             *new_leaf.next_leaf = next_page;
         }
 

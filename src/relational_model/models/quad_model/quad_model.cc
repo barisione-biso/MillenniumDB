@@ -95,18 +95,10 @@ QuadModel::~QuadModel() {
 
 
 std::unique_ptr<BindingIter> QuadModel::exec(OpSelect& op_select, ThreadInfo* thread_info) const {
-    set<Var> vars;
-    op_select.get_vars(vars);
+    auto vars = op_select.get_vars();
     auto query_optimizer = BindingIterVisitor(*this, std::move(vars), thread_info);
     return query_optimizer.exec(op_select);
 }
-
-
-// std::unique_ptr<BindingIter> QuadModel::exec(manual_plan::ast::ManualRoot& manual_plan) const {
-//     std::set<Var> var_names; // TODO: fill the set
-//     auto query_optimizer = BindingIterVisitor(*this, var_names);
-//     return query_optimizer.exec(manual_plan);
-// }
 
 
 GraphObject QuadModel::get_graph_object(ObjectId object_id) const {
@@ -195,11 +187,8 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) const {
             return GraphObject::make_path(unmasked_id);
         }
 
-        default : { // TODO: should throw an exception
-            cout << "wrong value prefix:\n";
-            printf("  obj_id: %lX\n", object_id.id);
-            printf("  mask:   %lX\n", mask);
-            return GraphObject::make_null();
+        default : {
+            throw std::logic_error("Unhandled Object Type.");
         }
     }
 }
@@ -230,4 +219,26 @@ ObjectId QuadModel::get_object_id(const GraphObject& graph_object) const {
 
 uint64_t QuadModel::get_or_create_object_id(const GraphObject& graph_object) {
     return std::visit(GraphObjectVisitor(*this, true), graph_object.value).id;
+}
+
+
+ObjectId QuadModel::get_value_id(const common::ast::Value& value) const {
+    GraphObject graph_object;
+    if (value.type() == typeid(string)) {
+        auto str = boost::get<string>(value);
+        graph_object = GraphObject::make_string(str.c_str());
+    }
+    else if (value.type() == typeid(int64_t)) {
+        graph_object = GraphObject::make_int( boost::get<int64_t>(value) );
+    }
+    else if (value.type() == typeid(float)) {
+        graph_object = GraphObject::make_float( boost::get<float>(value) );
+    }
+    else if (value.type() == typeid(bool)) {
+        graph_object = GraphObject::make_bool( boost::get<bool>(value) );
+    }
+    else {
+        throw logic_error("Unknown value type.");
+    }
+    return get_object_id(graph_object);
 }

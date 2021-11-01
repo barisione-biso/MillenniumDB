@@ -61,7 +61,7 @@ public:
                     if (linear_pattern_step.path.type() == typeid(query::ast::Edge)) {
                         // EDGE
                         auto edge = boost::get<query::ast::Edge>(linear_pattern_step.path);
-                        std::vector<std::string> types;
+                        std::vector<NodeId> types;
                         auto edge_id = process_edge(edge, types);
 
                         connections.insert(
@@ -167,7 +167,7 @@ public:
     }
 
 
-    NodeId process_edge(const query::ast::Edge& edge, std::vector<std::string>& types) {
+    NodeId process_edge(const query::ast::Edge& edge, std::vector<NodeId>& types) {
         NodeId edge_id = NodeId(Edge(1)); // This value doesn't matter, it will be setted after
 
         if (edge.id.empty()) {
@@ -219,16 +219,16 @@ public:
         os << std::string(indent, ' ');
         os << "OpBasicGraphPattern()\n";
 
-        for (auto &label : labels) {
+        for (auto& label : labels) {
             label.print_to_ostream(os, indent + 2);
         }
-        for (auto &property : properties) {
+        for (auto& property : properties) {
             property.print_to_ostream(os, indent + 2);
         }
-        for (auto &connection : connections) {
+        for (auto& connection : connections) {
             connection.print_to_ostream(os, indent + 2);
         }
-        for (auto &property_path : property_paths) {
+        for (auto& property_path : property_paths) {
             property_path.print_to_ostream(os, indent + 2);
         }
         for (auto& isolated_var : isolated_vars) {
@@ -246,10 +246,8 @@ public:
     }
 
 
-    void get_vars(std::set<Var>& set) const override {
-        for (auto& v : vars) {
-            set.insert(v);
-        }
+    std::set<Var> get_vars() const override {
+        return vars;
     }
 };
 
