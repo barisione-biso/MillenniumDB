@@ -184,8 +184,10 @@ public:
         for (const auto &type : edge.types) {
             if (type[0] == '?') {
                 vars.insert(Var(type));
+                types.push_back(NodeId(Var(type)));
+            } else {
+                types.push_back(NodeId(NodeName(type)));
             }
-            types.push_back(NodeId(NodeName(type)));
         }
 
         if (edge.types.size() == 0) {

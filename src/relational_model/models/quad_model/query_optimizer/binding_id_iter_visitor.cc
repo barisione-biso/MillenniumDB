@@ -157,7 +157,7 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
         else if (op_connection.types.size() == 1) {
             if (op_connection.types[0].is_var()) {
                 // Type is an explicit variable
-                auto type_var_id = get_var_id(Var(op_connection.types[0].to_var()));
+                auto type_var_id = get_var_id(op_connection.types[0].to_var());
                 base_plans.push_back(
                     make_unique<ConnectionPlan>(model, from_id, to_id, type_var_id, edge_id));
             } else {
