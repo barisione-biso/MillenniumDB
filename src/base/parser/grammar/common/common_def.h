@@ -7,6 +7,22 @@
 #include "base/parser/grammar/common/common_ast.h"
 #include "base/parser/grammar/common/common_ast_adapted.h"
 
+// To prevent the parser from parsing "Nan" or "Inf" as floats
+template <typename T>
+struct my_real_policies : boost::spirit::x3::real_policies<T> {
+    static bool const expect_dot = true;
+
+    template <typename Iterator, typename Attribute>
+    static bool parse_nan(Iterator& /*first*/, Iterator const& /*last*/, Attribute& /*attr_*/) {
+        return false;
+    }
+
+    template <typename Iterator, typename Attribute>
+    static bool parse_inf(Iterator& /*first*/, Iterator const& /*last*/, Attribute& /*attr_*/) {
+        return false;
+    }
+};
+
 namespace common {
     namespace parser {
         namespace x3 = boost::spirit::x3;
@@ -21,7 +37,7 @@ namespace common {
         using x3::no_case;
         using x3::space;
 
-        x3::real_parser<float, x3::strict_real_policies<float>> const float_ = { };
+        x3::real_parser<float, my_real_policies<float>> const float_ = { };
 
         auto const line_skipper = "//" >> *(char_ - eol) >> (eol | eoi);
         auto const skipper = space | line_skipper;
