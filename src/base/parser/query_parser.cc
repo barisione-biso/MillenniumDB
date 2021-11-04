@@ -43,7 +43,8 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
     }
 
     if (ast.order_by) {
-        op = make_unique<OpOrderBy>(move(op), ast.order_by.get());
+        // op = make_unique<OpOrderBy>(move(op), ast.order_by.get());
+        throw NotSupportedException("Order By is not supported on the endpoint.");
     }
 
     if (ast.select.distinct) {
@@ -51,8 +52,8 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
     }
 
     // TODO: we might be able to configure a hard limit for query results
-    uint64_t limit = UINT64_MAX;
-    if (ast.limit) {
+    uint64_t limit = 10000;
+    if (ast.limit && ast.limit.get() < 10000) {
         limit = ast.limit.get();
     }
     return make_unique<OpSelect>(move(op), ast.select.selection, limit);
