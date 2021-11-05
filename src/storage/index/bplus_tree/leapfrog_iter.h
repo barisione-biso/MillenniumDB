@@ -29,7 +29,11 @@ public:
     inline const std::vector<VarId>& get_enumeration_vars()  { return enumeration_vars; }
 
     // will consume all tuples and write them into the buffer. Invalidates the current_leaf
-    virtual void enum_no_intersection(TupleBuffer& buffer) = 0;
+    // virtual void enum_no_intersection(TupleBuffer& buffer) = 0;
+
+    virtual void begin_enumeration(BindingId&) = 0;
+    virtual void reset_enumeration(BindingId&) = 0;
+    virtual bool next_enumeration(BindingId&) = 0;
 
 protected:
     const std::vector<std::unique_ptr<ScanRange>> initial_ranges;
@@ -74,7 +78,10 @@ public:
     // returns false if there is no such record
     bool seek(uint64_t key) override;
 
-    void enum_no_intersection(TupleBuffer& buffer) override;
+    // void enum_no_intersection(TupleBuffer& buffer) override;
+    void begin_enumeration(BindingId&) override;
+    void reset_enumeration(BindingId&) override;
+    bool next_enumeration(BindingId&) override;
 
     // returns true if the terms and parent_binding were found
     bool open_terms(BindingId& input_binding) override;
@@ -83,6 +90,8 @@ private:
     std::unique_ptr<Record<N>> current_tuple;
 
     std::unique_ptr<BPlusTreeLeaf<N>> current_leaf;
+
+    std::unique_ptr<BptIter<N>> enum_bpt_iter;
 
     uint32_t current_pos_in_leaf;
 
@@ -126,14 +135,19 @@ public:
         return current_tuple[level] >= key;
     }
 
-    void enum_no_intersection(TupleBuffer& buffer) override {
-        buffer.reset();
-        std::vector<ObjectId> tuple;
-        for (size_t i = 0; i < enumeration_vars.size(); i++) {
-            tuple.push_back( ObjectId(current_tuple[initial_ranges.size() + intersection_vars.size() + i]) );
-        }
-        buffer.append_tuple(tuple);
-    }
+    // void enum_no_intersection(TupleBuffer& buffer) override {
+    //     buffer.reset();
+    //     std::vector<ObjectId> tuple;
+    //     for (size_t i = 0; i < enumeration_vars.size(); i++) {
+    //         tuple.push_back( ObjectId(current_tuple[initial_ranges.size() + intersection_vars.size() + i]) );
+    //     }
+    //     buffer.append_tuple(tuple);
+    // }
+
+    // TODO: implement this
+    void begin_enumeration(BindingId&) override { }
+    void reset_enumeration(BindingId&) override { }
+    bool next_enumeration(BindingId&) override { return false; }
 
     // returns true if the terms and parent_binding were found
     bool open_terms(BindingId& input_binding) override {

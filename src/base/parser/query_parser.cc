@@ -52,8 +52,8 @@ unique_ptr<OpSelect> QueryParser::get_query_plan(query::ast::Root& ast) {
     }
 
     // TODO: we might be able to configure a hard limit for query results
-    uint64_t limit = 10000;
-    if (ast.limit && ast.limit.get() < 10000) {
+    uint64_t limit = 1000000;
+    if (ast.limit && ast.limit.get() < limit) {
         limit = ast.limit.get();
     }
     return make_unique<OpSelect>(move(op), ast.select.selection, limit);
