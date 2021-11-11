@@ -26,6 +26,7 @@ void Select::begin() {
 
 
 bool Select::next() {
+    // TODO: use builtin expect true?
     if (count < limit && child_iter->next()) {
         count++;
         return true;

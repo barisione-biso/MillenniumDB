@@ -123,7 +123,7 @@ public:
                 } else if (str[1] == 'c') {
                     return NodeId(Edge( std::stoi(tmp) ));
                 } else {
-                    throw QuerySemanticException("Invalid Id");
+                    throw LogicException(str + " is an invalid Id and should not be parsed");
                 }
             } else { // identifier
                 return NodeId(NodeName(str));

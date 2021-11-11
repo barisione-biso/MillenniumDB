@@ -7,6 +7,7 @@
 
 #include <boost/program_options.hpp>
 
+#include "base/exceptions.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
@@ -74,7 +75,8 @@ int main(int argc, char **argv) {
             current_id += str.size() + 1;
         }
     }
-    catch (ObjectFileOutOfBounds&) {
+    catch (LogicException&) {
+        // This exceptions is expected when we want to retrieve something out of bounds
         cout << "Reached end of ObjectFile.\n";
     }
     catch (exception& e) {

@@ -4,14 +4,14 @@
 #include <string>
 #include <boost/asio.hpp>
 
-#include "server/server.h"
+#include "network/communication_protocol.h"
 
 class TcpBuffer : public std::stringbuf {
 public:
     TcpBuffer(boost::asio::ip::tcp::socket& sock);
     ~TcpBuffer();
 
-    void set_error(db_server::ErrorCode error_code);
+    void set_status(CommunicationProtocol::StatusCodes error);
 
 protected:
     int overflow(int c) override;
@@ -19,8 +19,7 @@ protected:
 
 private:
     int current_pos;
-    bool error = false;
-    unsigned char buffer[db_server::BUFFER_SIZE];
+    unsigned char buffer[CommunicationProtocol::BUFFER_SIZE];
     boost::asio::ip::tcp::socket& sock;
     void send();
 };

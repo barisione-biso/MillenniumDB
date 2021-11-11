@@ -4,6 +4,7 @@
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
 
+#include "base/exceptions.h"
 #include "storage/file_manager.h"
 
 using namespace std;
@@ -81,7 +82,7 @@ uint_fast32_t BufferManager::get_buffer_available() {
     while (buffer_pool[clock_pos].pins != 0) {
         clock_pos = (clock_pos+1) % shared_buffer_pool_size;
         if (clock_pos == first_lookup) {
-            throw std::runtime_error("No buffer available in buffer pool.");
+            throw QueryExecutionException("No buffer available in buffer pool");
         }
     }
     auto res = clock_pos;
@@ -97,7 +98,7 @@ uint_fast32_t BufferManager::get_private_buffer_available(uint_fast32_t thread_p
     while (get_private_page(thread_pos, private_clock_pos[thread_pos]).pins != 0) {
         private_clock_pos[thread_pos] = (private_clock_pos[thread_pos]+1)%private_buffer_pool_size;
         if (private_clock_pos[thread_pos] == first_lookup) {
-            throw std::runtime_error("No buffer available in private buffer pool.");
+            throw QueryExecutionException("No buffer available in private buffer pool.");
         }
     }
     auto ret = private_clock_pos[thread_pos];
@@ -197,7 +198,7 @@ uint_fast32_t BufferManager::get_private_buffer_index() {
     if (thread_pos_it == thread2index.end()) {
         // new thread
         if (available_private_positions.empty()) {
-            throw std::runtime_error("To many threads, not enough private buffer space");
+            throw QueryExecutionException("Too many threads using private buffer at the moment");
         }
         uint_fast32_t new_thread_pos = available_private_positions.front();
         available_private_positions.pop();

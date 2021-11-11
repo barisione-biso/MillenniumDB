@@ -43,7 +43,7 @@ VarId BindingIterVisitor::get_var_id(const Var& var) const {
     if (search != var2var_id.end()) {
         return (*search).second;
     } else {
-        throw std::logic_error("var " + var.name + " not present in var2var_id");
+        throw LogicException("var " + var.name + " not present in var2var_id");
     }
 }
 

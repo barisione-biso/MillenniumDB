@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "base/exceptions.h"
+
 using namespace std;
 
 BindingOrderBy::BindingOrderBy(const std::map<VarId, uint_fast32_t>& saved_vars) :
@@ -18,7 +20,7 @@ GraphObject BindingOrderBy::operator[](const VarId var) {
     if (search != saved_vars.end()) {
         return saved_objects[search->second];
     } else {
-        throw std::logic_error("saved_vars must contain VarId(" + std::to_string(var.id) + ")");
+        throw LogicException("saved_vars must contain VarId(" + std::to_string(var.id) + ")");
     }
 }
 

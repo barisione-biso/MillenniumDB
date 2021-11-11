@@ -341,9 +341,9 @@ unique_ptr<BindingIdIter> ConnectionPlan::get_binding_id_iter(ThreadInfo* thread
 }
 
 
-unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*            thread_info,
-                                                           const vector<VarId>&   var_order,
-                                                           uint_fast32_t          enumeration_level) const
+unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          thread_info,
+                                                           const vector<VarId>& var_order,
+                                                           uint_fast32_t        enumeration_level) const
 {
     // TODO: support special cases
     if (std::holds_alternative<ObjectId>(edge) // TODO: this case may be easy
@@ -407,21 +407,11 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
         }
     };
 
-    auto get_leapfrog_iter = [&thread_info, &initial_ranges, &enumeration_vars, &intersection_vars]
-                             (BPlusTree<4>& bpt)
-                             -> unique_ptr<LeapfrogIter>
-    {
-        return make_unique<LeapfrogBptIter<4>>(
-            &thread_info->interruption_requested,
-            bpt,
-            move(initial_ranges),
-            move(intersection_vars),
-            move(enumeration_vars)
-        );
-    };
+
 
     // if edge_index == -1 we can use the table
-    if (edge_index == -1) {
+    // if (edge_index == -1) {
+    if (edge_index <= from_index && edge_index <= to_index && edge_index <= type_index) {
         assign(edge_index, edge);
         std::array<uint_fast32_t, 3> permutation;
 
@@ -432,6 +422,7 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
 
         // from to type
         if (from_index <= to_index && to_index <= type_index) {
+            // TODO: testear que pasa si aca se le asigna una constante (initial_range)
             assign(from_index, from);
             assign(to_index,   to);
             assign(type_index, type);
@@ -486,6 +477,19 @@ unique_ptr<LeapfrogIter> ConnectionPlan::get_leapfrog_iter(ThreadInfo*          
             move(permutation)
         );
     }
+
+    auto get_leapfrog_iter = [&thread_info, &initial_ranges, &enumeration_vars, &intersection_vars]
+                             (BPlusTree<4>& bpt)
+                             -> unique_ptr<LeapfrogIter>
+    {
+        return make_unique<LeapfrogBptIter<4>>(
+            &thread_info->interruption_requested,
+            bpt,
+            move(initial_ranges),
+            move(intersection_vars),
+            move(enumeration_vars)
+        );
+    };
 
     // from_to_type_edge
     if (from_index <= to_index && to_index <= type_index && type_index <= edge_index) {

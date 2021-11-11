@@ -23,8 +23,8 @@ FileManager::FileManager(const std::string& db_folder) :
 {
     if (experimental::filesystem::exists(db_folder)) {
         if (!experimental::filesystem::is_directory(db_folder)) {
-            throw std::runtime_error("Cannot create database directory: \"" + db_folder +
-                                     "\", a file with that name already exists.");
+            throw std::invalid_argument("Cannot create database directory: \"" + db_folder +
+                                        "\", a file with that name already exists.");
         }
     } else {
         experimental::filesystem::create_directories(db_folder);
@@ -135,30 +135,6 @@ FileId FileManager::get_file_id(const string& filename) {
 TmpFileId FileManager::get_tmp_file_id() {
     std::lock_guard<std::mutex> lck(files_mutex);
 
-    // get thread id
-    //thread::id this_id = std::this_thread::get_id();
-    // get private thread pos
-    //auto thread_pos_it = thread2index.find(this_id);
-    // if (thread_pos_it == thread2index.end()) {
-    //     // new thread
-    //     std::cout << "thread: " << this_id << "\n";
-    //     if (available_private_positions.empty()) {
-    //         throw std::runtime_error("To many threads, not enough private buffer space");
-    //     }
-    //     uint_fast32_t new_thread_pos = available_private_positions.front();
-    //     available_private_positions.pop();
-    //     thread2index.insert(pair<thread::id, uint_fast32_t>(this_id, new_thread_pos));
-    //     private_tmp_pages[new_thread_pos].clear();
-    //     private_clock_pos[new_thread_pos] = 0;
-    //     auto& page = get_private_page(new_thread_pos, 0);
-    //     page = Page(
-    //         page_id,
-    //         &private_bytes[Page::MDB_PAGE_SIZE * (new_thread_pos * private_buffer_pool_size)]
-    //     );
-    //     return page;
-    // }
-    // old thread
-    
     string filename = "tmp" + std::to_string(tmp_filename_counter++);
 
     if (!available_file_ids.empty()) {

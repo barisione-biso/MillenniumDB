@@ -9,19 +9,17 @@ using boost::asio::ip::tcp;
 TcpBuffer::TcpBuffer(tcp::socket& sock) :
     sock (sock)
 {
-    buffer[0] = static_cast<unsigned char>(db_server::MessageType::not_end);
-    // skip first byte for type and 2 bytes for length
-    current_pos = 3;
+    // default status is unexpected_error because in that case is hard to handle and set the status
+    // If the query is executed without exceptions or if we catch an expected exception this will change
+    buffer[0] = static_cast<unsigned char>(CommunicationProtocol::StatusCodes::unexpected_error);
+    // skip first byte for status code and 2 bytes for length
+    current_pos = 1;
 }
 
 
 TcpBuffer::~TcpBuffer() {
     if (sock.is_open()) {
-        if (error) {
-            buffer[0] = static_cast<unsigned char>(db_server::MessageType::end_fail);
-        } else {
-            buffer[0] = static_cast<unsigned char>(db_server::MessageType::end_success);
-        }
+        buffer[0] |= CommunicationProtocol::end_mask;
         send();
     }
 }
@@ -29,19 +27,18 @@ TcpBuffer::~TcpBuffer() {
 
 int TcpBuffer::overflow(int i) {
     char c = static_cast<char>(i);
-    assert(current_pos < db_server::BUFFER_SIZE);
+    assert(current_pos < CommunicationProtocol::BUFFER_SIZE);
     buffer[current_pos] = c;
     ++current_pos;
-    if (current_pos == db_server::BUFFER_SIZE) {
+    if (current_pos == CommunicationProtocol::BUFFER_SIZE) {
         send(); // send() will reset current_pos
     }
     return i;
 }
 
 
-void TcpBuffer::set_error(db_server::ErrorCode error_code) {
-    buffer[1] = static_cast<unsigned char>(error_code);
-    error = true;
+void TcpBuffer::set_status(CommunicationProtocol::StatusCodes error) {
+    buffer[0] = static_cast<unsigned char>(error);
 }
 
 
@@ -59,7 +56,7 @@ void TcpBuffer::send() {
     buffer[2] = b2;
 
     boost::system::error_code ec;
-    boost::asio::write(sock, boost::asio::buffer(buffer, db_server::BUFFER_SIZE), ec);
+    boost::asio::write(sock, boost::asio::buffer(buffer, CommunicationProtocol::BUFFER_SIZE), ec);
     current_pos = 3;
     if (ec) {
         sock.close();

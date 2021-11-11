@@ -188,10 +188,7 @@ bool LeapfrogBptIter<N>::internal_search(const Record<N>& min, const Record<N>& 
 
 
 template <size_t N>
-void LeapfrogBptIter<N>::enum_no_intersection(TupleBuffer& buffer) {
-    assert(current_leaf != nullptr);
-    assert(current_tuple != nullptr);
-    buffer.reset();
+void LeapfrogBptIter<N>::begin_enumeration() {
     array<uint64_t, N> max;
 
     for (int_fast32_t i = 0; i <= level; i++) {
@@ -201,19 +198,31 @@ void LeapfrogBptIter<N>::enum_no_intersection(TupleBuffer& buffer) {
         max[i] = UINT64_MAX;
     }
 
-    BptIter it(interruption_requested,
-               SearchLeafResult<N>(current_leaf->duplicate(), current_pos_in_leaf),
-               Record<N>(max));
+    enum_bpt_iter = make_unique<BptIter<N>>(interruption_requested,
+                                            SearchLeafResult<N>(current_leaf->duplicate(), current_pos_in_leaf),
+                                            Record<N>(max));
+}
 
-    auto record = it.next();
-    while (record != nullptr) {
-        vector<ObjectId> tuple;
-        for (size_t i = 0; i < enumeration_vars.size(); i++) {
-            tuple.push_back( ObjectId(record->ids[initial_ranges.size() + intersection_vars.size() + i]) );
+
+template <size_t N>
+void LeapfrogBptIter<N>::reset_enumeration() {
+    // TODO: por ahora no hace nada especial. eliminar?
+    begin_enumeration();
+}
+
+
+template <size_t N>
+bool LeapfrogBptIter<N>::next_enumeration(BindingId& binding) {
+    auto record = enum_bpt_iter->next();
+    if (record != nullptr) {
+        // assign to binding
+        for (uint_fast32_t i = 0; i < enumeration_vars.size(); i++) {
+            binding.add(enumeration_vars[i],
+                        ObjectId(record->ids[initial_ranges.size() + intersection_vars.size() + i]));
         }
-        buffer.append_tuple(tuple);
-        record = it.next();
+        return true;
     }
+    return false;
 }
 
 

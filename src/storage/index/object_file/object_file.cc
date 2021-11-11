@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstring>
 
+#include "base/exceptions.h"
 #include "storage/file_manager.h"
 
 using namespace std;
@@ -41,7 +42,7 @@ const char* ObjectFile::read(uint64_t id) {
     assert(id > 0);
     assert(objects[id-1] == '\0');
     if (id >= current_end) {
-        throw ObjectFileOutOfBounds("OBJECT FILE ERROR: tried to read inexistent object (id: " + std::to_string(id)+ ")");
+        throw LogicException("tried to read inexistent object in ObjectFile (id: " + std::to_string(id)+ ")");
     }
     return &objects[id];
 }

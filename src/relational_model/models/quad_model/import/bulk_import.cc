@@ -6,6 +6,7 @@
 #include <thread>
 #include <boost/spirit/include/support_istream_iterator.hpp>
 
+#include "base/exceptions.h"
 #include "base/parser/grammar/common/value_visitor.h"
 #include "base/parser/grammar/import/import_ast_adapted.h"
 #include "base/parser/grammar/import/import_ast.h"
@@ -67,8 +68,8 @@ void BulkImport::start_import() {
                 const auto nesting_lvl = implicit_edge.nesting_level();
 
                 if (ids_stack.size() == 0) {
-                    throw logic_error("ERROR on line " + std::to_string(line_number)
-                        + ": can't use implicit edge on undefined object");
+                    throw ImportException("[line " + std::to_string(line_number)
+                        + "] can't use implicit edge on undefined object");
                 }
                 else if (nesting_lvl < ids_stack.size()) {
                     auto edge_id = process_implicit_edge(implicit_edge, ids_stack[nesting_lvl-1] );
@@ -80,8 +81,8 @@ void BulkImport::start_import() {
                     ids_stack.push_back(edge_id);
                 }
                 else {
-                    throw logic_error("ERROR on line " + std::to_string(line_number)
-                        + ": undefined level of implicit edge");
+                    throw ImportException("[line " + std::to_string(line_number)
+                        + "] undefined level of implicit edge");
                 }
             }
 
@@ -368,7 +369,7 @@ uint64_t BulkImport::process_node(const import::ast::Node& node) {
 
 uint64_t BulkImport::process_edge(const import::ast::Edge& edge) {
     if (edge.labels.size() != 1) {
-        throw logic_error("In this quad bulk import all edges must have 1 type");
+        throw ImportException("In this quad bulk import all edges must have 1 type");
     }
 
     uint64_t left_id  = get_node_id(edge.lhs_id);
@@ -401,7 +402,7 @@ uint64_t BulkImport::process_implicit_edge(const import::ast::ImplicitEdge& edge
                                            const uint64_t implicit_object_id)
 {
     if (edge.labels.size() != 1) {
-        throw logic_error("In this quad bulk import all edges must have 1 type");
+        throw ImportException("In this quad bulk import all edges must have 1 type");
     }
     uint64_t right_id = get_node_id(edge.rhs_id);
     uint64_t type_id  = get_node_id(edge.labels[0]);
@@ -460,7 +461,7 @@ uint64_t BulkImport::create_connection(const uint64_t from_id, const uint64_t to
 uint64_t BulkImport::operator()(const std::string& str) {
     if (str[0] == '_') { // Anonymous Node
         if (str[1] != 'a') {
-            throw logic_error("Invalid anonymous node declaration");
+            throw ImportException("Invalid anonymous node declaration");
         }
         // delete first 2 characters: '_a'
         std::string tmp = str.substr(2, str.size() - 2);

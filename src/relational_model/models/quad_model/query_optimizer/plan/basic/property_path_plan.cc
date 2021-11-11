@@ -1,5 +1,6 @@
 #include "property_path_plan.h"
 
+#include "base/exceptions.h"
 #include "base/parser/logical_plan/op/op_path.h"
 #include "relational_model/execution/binding_id_iter/property_paths/path_manager.h"
 
@@ -125,7 +126,7 @@ unique_ptr<BindingIdIter> PropertyPathPlan::get_binding_id_iter(ThreadInfo* thre
                                                  std::get<VarId>(from),
                                                  automaton);
         } else {
-            throw runtime_error("property path must have at least 1 node fixed");
+            throw QuerySemanticException("property paths must have at least 1 node fixed.");
         }
     }
     return nullptr;

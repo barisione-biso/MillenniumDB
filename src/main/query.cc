@@ -7,9 +7,9 @@
  * - connect to server via TCP socket
  * - send query length
  * - send query
- * - listen to results and print them. Results may come in many packages of a fixed size: `db_server::BUFFER_SIZE`
+ * - listen to results and print them. Results may come in many packages of a fixed size: `CommunicationProtocol::BUFFER_SIZE`
  *     - first byte indicates the state (not finished, finished successfully or finished with errors.
- *     - next 2 bytes indicates the length of the message (needed because `db_server::BUFFER_SIZE`
+ *     - next 2 bytes indicates the length of the message (needed because `CommunicationProtocol::BUFFER_SIZE`
  *       bytes must be sent even if the message is shorter).
  */
 #include <fstream>
@@ -19,7 +19,7 @@
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 
-#include "server/tcp_buffer.h"
+#include "network/tcp_buffer.h"
 
 using namespace std;
 using boost::asio::ip::tcp;
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
         desc.add_options()
             ("help", "show this help message")
             ("host,h", po::value<string>(&host)->default_value("127.0.0.1"), "database server host")
-            ("port,p", po::value<int>(&port)->default_value(db_server::DEFAULT_PORT), "database server port")
+            ("port,p", po::value<int>(&port)->default_value(CommunicationProtocol::DEFAULT_PORT), "database server port")
             // ("query-file,q", po::value<string>(&query_file)->required(), "query file")
         ;
 
@@ -65,40 +65,37 @@ int main(int argc, char **argv) {
         // Send Query
         auto query_length = query.size();
 
-        unsigned char query_size_b[db_server::BYTES_FOR_QUERY_LENGTH];
-        for (int i = 0, offset = 0; i < db_server::BYTES_FOR_QUERY_LENGTH; i++, offset += 8) {
+        unsigned char query_size_b[CommunicationProtocol::BYTES_FOR_QUERY_LENGTH];
+        for (int i = 0, offset = 0; i < CommunicationProtocol::BYTES_FOR_QUERY_LENGTH; i++, offset += 8) {
             unsigned char c = (query_length >> offset) & 0xFF;
             query_size_b[i] = c;
         }
-        boost::asio::write(s, boost::asio::buffer(query_size_b, db_server::BYTES_FOR_QUERY_LENGTH));
+        boost::asio::write(s, boost::asio::buffer(query_size_b, CommunicationProtocol::BYTES_FOR_QUERY_LENGTH));
         boost::asio::write(s, boost::asio::buffer(query.data(), query_length));
 
         // Read results
-        unsigned char result_buffer[db_server::BUFFER_SIZE];
+        unsigned char result_buffer[CommunicationProtocol::BUFFER_SIZE];
         do {
-            boost::asio::read(s, boost::asio::buffer(result_buffer, db_server::BUFFER_SIZE));
-            unsigned int reply_length = 0;
-            reply_length += result_buffer[1];
-            reply_length += result_buffer[2] << 8;
-            std::cout.write(reinterpret_cast<char*>(result_buffer+3), reply_length-3);
-        } while ( result_buffer[0] == static_cast<unsigned char>(db_server::MessageType::not_end) );
+            boost::asio::read(s, boost::asio::buffer(result_buffer, CommunicationProtocol::BUFFER_SIZE));
+            // We print skipping first 3 bytes, which are used to indicate the status and the length of the message
+            auto reply_length = static_cast<unsigned int>(result_buffer[1]) +
+                               (static_cast<unsigned int>(result_buffer[2]) << 8);
 
-        if (result_buffer[0] == static_cast<unsigned char>(db_server::MessageType::end_success)) {
-            return 0;
-        } else {
-            return result_buffer[1];
-        }
+            std::cout.write(reinterpret_cast<char*>(result_buffer+3), reply_length-3);
+        } while ( !CommunicationProtocol::last_message(result_buffer[0]) );
+
+        return CommunicationProtocol::decode_status(result_buffer[0]);
     }
     catch (boost::system::system_error const& e) {
         std::cout << "Error connecting to server: " << e.what() << "\n";
-        return static_cast<int>(db_server::ErrorCode::connection_error);
+        return static_cast<int>(CommunicationProtocol::StatusCodes::connection_error);
     }
     catch(const std::exception& e) {
         cerr << e.what() << "\n";
-        return static_cast<int>(db_server::ErrorCode::unexpected_error);
+        return static_cast<int>(CommunicationProtocol::StatusCodes::unexpected_error);
     }
     catch(...) {
         cerr << "Exception of unexpected type!\n";
-        return static_cast<int>(db_server::ErrorCode::unexpected_error);
+        return static_cast<int>(CommunicationProtocol::StatusCodes::unexpected_error);
     }
 }

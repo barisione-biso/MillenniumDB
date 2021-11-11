@@ -29,7 +29,11 @@ public:
     inline const std::vector<VarId>& get_enumeration_vars()  { return enumeration_vars; }
 
     // will consume all tuples and write them into the buffer. Invalidates the current_leaf
-    virtual void enum_no_intersection(TupleBuffer& buffer) = 0;
+    // virtual void enum_no_intersection(TupleBuffer& buffer) = 0;
+
+    virtual void begin_enumeration() = 0;
+    virtual void reset_enumeration() = 0;
+    virtual bool next_enumeration(BindingId&) = 0;
 
 protected:
     const std::vector<std::unique_ptr<ScanRange>> initial_ranges;
@@ -74,7 +78,10 @@ public:
     // returns false if there is no such record
     bool seek(uint64_t key) override;
 
-    void enum_no_intersection(TupleBuffer& buffer) override;
+    // void enum_no_intersection(TupleBuffer& buffer) override;
+    void begin_enumeration() override;
+    void reset_enumeration() override;
+    bool next_enumeration(BindingId&) override;
 
     // returns true if the terms and parent_binding were found
     bool open_terms(BindingId& input_binding) override;
@@ -85,6 +92,8 @@ private:
     std::unique_ptr<BPlusTreeLeaf<N>> current_leaf;
 
     uint32_t current_pos_in_leaf;
+
+    std::unique_ptr<BptIter<N>> enum_bpt_iter;
 
     std::stack<std::unique_ptr<BPlusTreeDir<N>>> directory_stack;
 
@@ -123,20 +132,69 @@ public:
     // Sets the current tuple with a record that has a greater or equal key at the current level
     // returns false if there is no such record
     bool seek(uint64_t key) override {
+        // TODO: antes suponia que en open terms quedaba seteado
+        if (initial_ranges.empty() && level == 0) {
+            // check if key is an edge
+            if ((key & GraphModel::TYPE_MASK) != GraphModel::CONNECTION_MASK) {
+                return false;
+            }
+            auto edge_value = key & GraphModel::VALUE_MASK;
+            auto record = edge_table[edge_value];
+            if (record == nullptr) {
+                return false;
+            } else {
+                current_tuple[0] = edge_value;
+                current_tuple[1] = (*record)[permutation[0]];
+                current_tuple[2] = (*record)[permutation[1]];
+                current_tuple[3] = (*record)[permutation[2]];
+
+                // check assigned_vars TODO: es necesario?
+                // for (std::size_t i = 1; i < initial_ranges.size(); i++) { // we skip 0, because we already searched the edge
+                //     if (current_tuple[i] != initial_ranges[i]->get_min(input_binding)) {
+                //         return false;
+                //     }
+                // }
+                // level = initial_ranges.size() - 1;
+                return true;
+            }
+            // const auto edge_var_id = intersection_vars[0];
+        }
         return current_tuple[level] >= key;
     }
 
-    void enum_no_intersection(TupleBuffer& buffer) override {
-        buffer.reset();
-        std::vector<ObjectId> tuple;
-        for (size_t i = 0; i < enumeration_vars.size(); i++) {
-            tuple.push_back( ObjectId(current_tuple[initial_ranges.size() + intersection_vars.size() + i]) );
+    void begin_enumeration() override {
+        already_returned = false;
+    }
+
+    void reset_enumeration() override {
+        already_returned = false;
+    }
+
+    bool next_enumeration(BindingId& binding) override {
+        if (already_returned) {
+            return false;
+        } else {
+            for (size_t i = 0; i < enumeration_vars.size(); i++) {
+                binding.add(enumeration_vars[i],
+                            ObjectId(current_tuple[initial_ranges.size() + intersection_vars.size() + i]));
+            }
+            already_returned = true;
+            return true;
         }
-        buffer.append_tuple(tuple);
     }
 
     // returns true if the terms and parent_binding were found
     bool open_terms(BindingId& input_binding) override {
+        // input_binding = &_input_binding;
+        // TODO: se esta suponiendo que initial_ranges[0] existe
+        if (initial_ranges.empty()) {
+            current_tuple[0] = 0;
+            current_tuple[1] = 0;
+            current_tuple[2] = 0;
+            current_tuple[3] = 0;
+            return true;
+        }
+
         // initial_ranges[0] is the edge
         auto obj = initial_ranges[0]->get_min(input_binding);
 
@@ -169,6 +227,9 @@ private:
     std::array<uint64_t, 4> current_tuple;
     RandomAccessTable<3>& edge_table;
     std::array<uint_fast32_t, 3> permutation;
+
+    bool already_returned;
+    // BindingId* input_binding;
 };
 
 #endif // STORAGE__LEAPFROG_ITER_H_

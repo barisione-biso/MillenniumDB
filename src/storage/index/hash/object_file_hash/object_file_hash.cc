@@ -4,8 +4,8 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <iostream>
 
+#include "base/exceptions.h"
 #include "storage/file_manager.h"
 #include "storage/index/hash/object_file_hash/object_file_hash_bucket.h"
 #include "storage/index/hash/hash_functions/hash_function_wrapper.h"
@@ -34,9 +34,9 @@ ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filen
             dir_file.read(reinterpret_cast<char*>(&tmp), sizeof(tmp));
             dir[i] = tmp;
         }
-        // check eofbit/failbit/badbit to ensure  values were read correctly
+        // check eofbit/failbit/badbit to ensure the values were read correctly
         if (!dir_file.good()) {
-            throw std::runtime_error("Error reading hash file.");
+            throw LogicException("Error reading ObjectFile hash directory. File may be corrupted.");
         }
     } else {
         global_depth = DEFAULT_GLOBAL_DEPTH;

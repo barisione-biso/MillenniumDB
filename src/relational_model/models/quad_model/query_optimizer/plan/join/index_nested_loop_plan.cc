@@ -1,5 +1,6 @@
 #include "index_nested_loop_plan.h"
 
+#include "base/exceptions.h"
 #include "relational_model/execution/binding_id_iter/index_nested_loop_join.h"
 
 using namespace std;
@@ -45,7 +46,7 @@ std::set<VarId> IndexNestedLoopPlan::get_vars() const {
 
 
 void IndexNestedLoopPlan::set_input_vars(const std::set<VarId>& /*input_vars*/) {
-    throw std::logic_error("NestedLoop only works for left deep plans.");
+    throw LogicException("NestedLoop only works for left deep plans.");
 }
 
 

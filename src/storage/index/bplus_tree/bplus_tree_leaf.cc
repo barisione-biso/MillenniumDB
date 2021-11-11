@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 
+#include "base/exceptions.h"
 #include "storage/buffer_manager.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
@@ -65,7 +66,7 @@ unique_ptr<BPlusTreeSplit<N>> BPlusTreeLeaf<N>::insert(const Record<N>& record) 
         }
         cout << "\n";
 
-        throw std::logic_error("Inserting duplicated record into BPlusTree.");
+        throw LogicException("Inserting duplicated record into BPlusTree.");
     }
 
     if ((*value_count) < BPlusTree<N>::leaf_max_records) {

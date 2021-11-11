@@ -50,7 +50,7 @@ struct NodeIdToGraphObjectVisitor {
     NodeIdToGraphObjectVisitor() { }
 
     GraphObject operator()(const Var&) {
-        throw std::logic_error("Var cannot be converted into graph_object");
+        throw LogicException("Var cannot be converted into graph_object");
     }
 
     GraphObject operator()(const NodeName& s) {

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <new>
 
+#include "base/exceptions.h"
 #include "base/graph/anonymous_node.h"
 #include "base/graph/edge.h"
 #include "base/graph/path.h"
@@ -188,7 +189,7 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) const {
         }
 
         default : {
-            throw std::logic_error("Unhandled Object Type.");
+            throw LogicException("Unhandled Object Type.");
         }
     }
 }
@@ -238,7 +239,7 @@ ObjectId QuadModel::get_value_id(const common::ast::Value& value) const {
         graph_object = GraphObject::make_bool( boost::get<bool>(value) );
     }
     else {
-        throw logic_error("Unknown value type.");
+        throw LogicException("Unknown value type.");
     }
     return get_object_id(graph_object);
 }

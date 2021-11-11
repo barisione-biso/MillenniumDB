@@ -1,5 +1,6 @@
 #include "hash_join_plan.h"
 
+#include "base/exceptions.h"
 #include "relational_model/execution/binding_id_iter/hash_join/hash_join_grace.h"
 #include "relational_model/execution/binding_id_iter/hash_join/hash_join_in_buffer.h"
 #include "relational_model/execution/binding_id_iter/hash_join/hash_join_in_memory.h"
@@ -44,7 +45,7 @@ std::set<VarId> HashJoinPlan::get_vars() const {
 
 
 void HashJoinPlan::set_input_vars(const std::set<VarId>& /*input_vars*/) {
-    throw std::logic_error("HashJoin only works for left deep plans.");
+    throw LogicException("HashJoin only works for left deep plans.");
 }
 
 

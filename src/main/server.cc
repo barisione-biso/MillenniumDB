@@ -47,10 +47,10 @@
 #include "base/parser/logical_plan/op/op_select.h"
 #include "base/parser/query_parser.h"
 #include "base/thread/thread_key.h"
+#include "network/tcp_buffer.h"
 #include "relational_model/models/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
-#include "server/tcp_buffer.h"
 
 using namespace std;
 using boost::asio::ip::tcp;
@@ -76,11 +76,11 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
     };
 
     try {
-        unsigned char query_size_b[db_server::BYTES_FOR_QUERY_LENGTH];
-        boost::asio::read(sock, boost::asio::buffer(query_size_b, db_server::BYTES_FOR_QUERY_LENGTH));
+        unsigned char query_size_b[CommunicationProtocol::BYTES_FOR_QUERY_LENGTH];
+        boost::asio::read(sock, boost::asio::buffer(query_size_b, CommunicationProtocol::BYTES_FOR_QUERY_LENGTH));
 
         int query_size = 0;
-        for (int i = 0, offset = 0; i < db_server::BYTES_FOR_QUERY_LENGTH; i++, offset += 8) {
+        for (int i = 0, offset = 0; i < CommunicationProtocol::BYTES_FOR_QUERY_LENGTH; i++, offset += 8) {
             query_size += query_size_b[i] << offset;
         }
         std::string query;
@@ -114,7 +114,7 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
         //     }
         //     catch (QueryException& e) {
         //         os << "(Manual Plan) Query Parsing Exception: " << e.what() << "\n";
-        //         tcp_buffer.set_error();
+        //         tcp_buffer.set_status();
         //         remove_thread_from_running_threads();
         //         return;
         //     }
@@ -123,19 +123,25 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
             os << "---------------------------------------\n";
             os << "Query Exception: " << e.what() << "\n";
             os << "---------------------------------------\n";
-            tcp_buffer.set_error(db_server::ErrorCode::query_error);
+            tcp_buffer.set_status(CommunicationProtocol::StatusCodes::query_error);
+            remove_thread_from_running_threads();
+            return;
+        }
+        catch (const LogicException& e) {
+            os << "---------------------------------------\n";
+            os << "Logic Exception: " << e.what() << "\n";
+            os << "---------------------------------------\n";
+            tcp_buffer.set_status(CommunicationProtocol::StatusCodes::logic_error);
             remove_thread_from_running_threads();
             return;
         }
         chrono::duration<float, std::milli> parser_duration = chrono::system_clock::now() - start;
         uint64_t result_count = 0;
+        auto execution_start = chrono::system_clock::now();
+        auto& binding = physical_plan->get_binding();
+        binding.print_header(os);
+        os << "---------------------------------------\n";
         try {
-            auto execution_start = chrono::system_clock::now();
-
-            auto& binding = physical_plan->get_binding();
-            binding.print_header(os);
-            os << "---------------------------------------\n";
-
             physical_plan->begin();
 
             // get all results
@@ -156,6 +162,13 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
             os << "Found " << result_count << " results.\n";
             os << "Execution time: " << execution_duration.count() << " ms.\n";
             os << "Query Parser/Optimizer time: " << parser_duration.count() << " ms.\n";
+
+            tcp_buffer.set_status(CommunicationProtocol::StatusCodes::success);
+        }
+        catch (const LogicException& e) {
+            os << "---------------------------------------\n";
+            os << "LogicException:" << e.what() << endl;
+            tcp_buffer.set_status(CommunicationProtocol::StatusCodes::logic_error);
         }
         catch (const InterruptedException& e) {
             std::cerr << "QueryInterrupted" << endl;
@@ -166,15 +179,18 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock, Gr
                << " milliseconds.\n";
             os << "Found " << result_count << " results before timeout.\n";
             os << "Query Parser/Optimizer time: " << parser_duration.count() << " ms.\n";
-            tcp_buffer.set_error(db_server::ErrorCode::timeout);
+            tcp_buffer.set_status(CommunicationProtocol::StatusCodes::timeout);
         }
     }
     catch (const ConnectionException& e) {
         std::cerr << "Lost connection with client: " << e.what() << endl;
     }
-    // catch (...) {
-    //     std::cerr << "Unknown exception." << endl;
-    // }
+    catch (const LogicException& e) {
+        std::cerr << "LogicException:" << e.what() << endl;
+    }
+    catch (...) {
+        std::cerr << "Unknown exception." << endl;
+    }
 
     remove_thread_from_running_threads();
 }
@@ -256,7 +272,7 @@ int main(int argc, char **argv) {
         desc.add_options()
             ("help,h", "show this help message")
             ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
-            ("port,p", po::value<int>(&port)->default_value(db_server::DEFAULT_PORT), "database server port")
+            ("port,p", po::value<int>(&port)->default_value(CommunicationProtocol::DEFAULT_PORT), "database server port")
             ("timeout", po::value<int>(&seconds_timeout)->default_value(60), "timeout (in seconds)")
             (
                 "buffer-size,b",

@@ -22,11 +22,6 @@
 
 #include "base/ids/object_id.h"
 
-struct ObjectFileOutOfBounds : public std::runtime_error {
-	ObjectFileOutOfBounds(std::string msg)
-		: std::runtime_error(msg) { }
-};
-
 class ObjectFile {
 public:
     static constexpr auto INITIAL_SIZE = 4096*1024;

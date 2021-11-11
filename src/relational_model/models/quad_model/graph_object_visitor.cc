@@ -1,5 +1,7 @@
 #include "graph_object_visitor.h"
 
+#include "base/exceptions.h"
+
 GraphObjectVisitor::GraphObjectVisitor(const QuadModel& model, bool create_if_not_exists) :
     model                (model),
     create_if_not_exists (create_if_not_exists) { }
@@ -102,7 +104,7 @@ ObjectId GraphObjectVisitor::operator()(const int64_t n) const {
             return ObjectId(GraphModel::VALUE_NEGATIVE_INT_MASK | int_value);
         } else {
             // VALUE_EXTERNAL_INT_MASK
-            throw std::logic_error("BIG INTEGERS NOT SUPPORTED YET");
+            throw NotSupportedException("BIG INTEGERS NOT SUPPORTED YET");
         }
     }
     else {
@@ -111,7 +113,7 @@ ObjectId GraphObjectVisitor::operator()(const int64_t n) const {
             return ObjectId(GraphModel::VALUE_POSITIVE_INT_MASK | int_value);
         } else {
             // VALUE_EXTERNAL_INT_MASK
-            throw std::logic_error("BIG INTEGERS NOT SUPPORTED YET");
+            throw NotSupportedException("BIG INTEGERS NOT SUPPORTED YET");
         }
     }
 }
