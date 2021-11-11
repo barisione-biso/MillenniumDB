@@ -216,7 +216,7 @@ bool LeapfrogBptIter<N>::internal_search(const Record<N>& min, const Record<N>& 
 //     }
 // }
 template <size_t N>
-void LeapfrogBptIter<N>::begin_enumeration(BindingId& binding) {
+void LeapfrogBptIter<N>::begin_enumeration() {
     array<uint64_t, N> max;
 
     for (int_fast32_t i = 0; i <= level; i++) {
@@ -229,20 +229,12 @@ void LeapfrogBptIter<N>::begin_enumeration(BindingId& binding) {
     enum_bpt_iter = make_unique<BptIter<N>>(interruption_requested,
                                             SearchLeafResult<N>(current_leaf->duplicate(), current_pos_in_leaf),
                                             Record<N>(max));
-
-    auto record = enum_bpt_iter->next(); // can't be nullptr on the first next, we know the record exists
-    // assign to binding
-    for (uint_fast32_t i = 0; i < enumeration_vars.size(); i++) {
-        binding.add(enumeration_vars[i],
-                    ObjectId(record->ids[initial_ranges.size() + intersection_vars.size() + i]));
-    }
 }
 
 
 template <size_t N>
-void LeapfrogBptIter<N>::reset_enumeration(BindingId& binding) {
-    // TODO: por ahora no hace nada especial. eliminar?
-    begin_enumeration(binding);
+void LeapfrogBptIter<N>::reset_enumeration() {
+    begin_enumeration();
 }
 
 

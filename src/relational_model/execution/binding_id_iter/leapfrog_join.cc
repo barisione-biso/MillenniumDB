@@ -39,12 +39,6 @@ void LeapfrogJoin::begin(BindingId& _parent_binding) {
         }
     }
 
-    // Initialize 1 buffer per iterator
-    // for (uint_fast32_t i = 0; i < leapfrog_iters.size(); i++) {
-    //     buffers.push_back(make_unique<TupleBuffer>(leapfrog_iters[i]->get_enumeration_vars()));
-    // }
-    // buffer_pos.resize(leapfrog_iters.size());
-
     // open terms
     bool open_terms = true;
     for (auto& lf_iter : leapfrog_iters) {
@@ -96,31 +90,12 @@ bool LeapfrogJoin::next() {
         }
         assert(level == enumeration_level);
 
-        // check if enumeration is not over
-        // for (size_t i = 0; i < buffers.size(); i++) {
-        //     if (buffer_pos[i]+1 < (int_fast32_t) buffers[i]->get_tuple_count()) {
-        //         buffer_pos[i]++;
-        //         // set binding for enumerating vars
-        //         buffers[i]->assign_to_binding(*parent_binding, buffer_pos[i]);
-
-        //         while (i > 0) {
-        //             i--;
-        //             buffer_pos[i] = 0;
-        //             buffers[i]->assign_to_binding(*parent_binding, buffer_pos[i]);
-        //         }
-        //         results_found++;
-        //         return true;
-        //     }
-        // }
-        // TODO:
-        if (first_enum) {
-            first_enum = false;
-            return true;
-        }
         for (size_t i = 0; i < leapfrog_iters.size(); i++) {
             if (leapfrog_iters[i]->next_enumeration(*parent_binding)) {
                 while (i > 0) {
-                    leapfrog_iters[--i]->reset_enumeration(*parent_binding);
+                    i--;
+                    leapfrog_iters[i]->reset_enumeration();
+                    leapfrog_iters[i]->next_enumeration(*parent_binding);
                 }
                 return true;
             }
@@ -188,10 +163,11 @@ void LeapfrogJoin::down() {
         }
     } else { // level == enumeration_level
         // prepare for enumeration phase
-        for (uint_fast32_t i = 0; i < leapfrog_iters.size(); i++) {
-            leapfrog_iters[i]->begin_enumeration(*parent_binding);
+        leapfrog_iters[0]->begin_enumeration();
+        for (uint_fast32_t i = 1; i < leapfrog_iters.size(); i++) {
+            leapfrog_iters[i]->begin_enumeration();
+            leapfrog_iters[i]->next_enumeration(*parent_binding);
         }
-        first_enum = true;
     }
 }
 

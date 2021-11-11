@@ -8,7 +8,7 @@
             "program": "${workspaceFolder}/build/Debug/bin/server",
             "args": [
                 "-d",
-                "${workspaceFolder}/tests/dbs/debug"
+                "${workspaceFolder}/tests/dbs/example"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
