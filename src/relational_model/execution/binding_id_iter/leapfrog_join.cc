@@ -39,12 +39,6 @@ void LeapfrogJoin::begin(BindingId& _parent_binding) {
         }
     }
 
-    // Initialize 1 buffer per iterator
-    for (uint_fast32_t i = 0; i < leapfrog_iters.size(); i++) {
-        buffers.push_back(make_unique<TupleBuffer>(leapfrog_iters[i]->get_enumeration_vars()));
-    }
-    buffer_pos.resize(leapfrog_iters.size());
-
     // open terms
     bool open_terms = true;
     for (auto& lf_iter : leapfrog_iters) {
@@ -96,19 +90,13 @@ bool LeapfrogJoin::next() {
         }
         assert(level == enumeration_level);
 
-        // check if enumeration is not over
-        for (size_t i = 0; i < buffers.size(); i++) {
-            if (buffer_pos[i]+1 < (int_fast32_t) buffers[i]->get_tuple_count()) {
-                buffer_pos[i]++;
-                // set binding for enumerating vars
-                buffers[i]->assign_to_binding(*parent_binding, buffer_pos[i]);
-
+        for (size_t i = 0; i < leapfrog_iters.size(); i++) {
+            if (leapfrog_iters[i]->next_enumeration(*parent_binding)) {
                 while (i > 0) {
                     i--;
-                    buffer_pos[i] = 0;
-                    buffers[i]->assign_to_binding(*parent_binding, buffer_pos[i]);
+                    leapfrog_iters[i]->reset_enumeration();
+                    leapfrog_iters[i]->next_enumeration(*parent_binding);
                 }
-                results_found++;
                 return true;
             }
         }
@@ -175,16 +163,11 @@ void LeapfrogJoin::down() {
         }
     } else { // level == enumeration_level
         // prepare for enumeration phase
-        for (uint_fast32_t i = 0; i < leapfrog_iters.size(); i++) {
-            // consume all results and save them in a buffer
-            leapfrog_iters[i]->enum_no_intersection(*buffers[i]);
-            buffer_pos[i] = 0;
-        }
+        leapfrog_iters[0]->begin_enumeration();
         for (uint_fast32_t i = 1; i < leapfrog_iters.size(); i++) {
-            buffers[i]->assign_to_binding(*parent_binding, 0);
+            leapfrog_iters[i]->begin_enumeration();
+            leapfrog_iters[i]->next_enumeration(*parent_binding);
         }
-        buffer_pos[0] = -1; // so when calling buffer_pos[0]++ it will be at 0
-        // TODO: maybe sorting by buffer size can improve performance
     }
 }
 

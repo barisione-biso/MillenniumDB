@@ -43,9 +43,6 @@ private:
     // iters_for_var[i] is a list of (not-null) pointers of iterators for the variable at var_order[base_level+i].
     std::vector<std::vector<LeapfrogIter*>> iters_for_var;
 
-    std::vector<std::unique_ptr<TupleBuffer>> buffers;
-    std::vector<int_fast32_t> buffer_pos;
-
     uint_fast32_t results_found = 0;
 
     void up();

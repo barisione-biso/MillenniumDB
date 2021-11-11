@@ -91,9 +91,9 @@ private:
 
     std::unique_ptr<BPlusTreeLeaf<N>> current_leaf;
 
-    uint32_t current_pos_in_leaf;
-
     std::unique_ptr<BptIter<N>> enum_bpt_iter;
+
+    uint32_t current_pos_in_leaf;
 
     std::stack<std::unique_ptr<BPlusTreeDir<N>>> directory_stack;
 
