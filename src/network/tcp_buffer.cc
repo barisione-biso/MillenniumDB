@@ -13,7 +13,7 @@ TcpBuffer::TcpBuffer(tcp::socket& sock) :
     // If the query is executed without exceptions or if we catch an expected exception this will change
     buffer[0] = static_cast<unsigned char>(CommunicationProtocol::StatusCodes::unexpected_error);
     // skip first byte for status code and 2 bytes for length
-    current_pos = 1;
+    current_pos = 3;
 }
 
 
