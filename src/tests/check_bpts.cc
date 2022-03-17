@@ -4,7 +4,7 @@
 
 #include <boost/program_options.hpp>
 
-#include "relational_model/models/quad_model/quad_model.h"
+#include "query_optimizer/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
@@ -57,24 +57,24 @@ int main(int argc, char **argv) {
         }
     }
 
-    auto model = QuadModel(db_folder, buffer_size, 0, 0);
+    auto model_destroyer = QuadModel::init(db_folder, buffer_size, 0, 0);
 
-    check("node_label", *model.node_label);
-    check("label_node", *model.label_node);
+    check("node_label", *quad_model.node_label);
+    check("label_node", *quad_model.label_node);
 
-    check("object_key_value", *model.object_key_value);
-    check("key_value_object", *model.key_value_object);
+    check("object_key_value", *quad_model.object_key_value);
+    check("key_value_object", *quad_model.key_value_object);
 
-    check("from_to_type_edge", *model.from_to_type_edge);
-    check("to_type_from_edge", *model.to_type_from_edge);
-    check("type_from_to_edge", *model.type_from_to_edge);
+    check("from_to_type_edge", *quad_model.from_to_type_edge);
+    check("to_type_from_edge", *quad_model.to_type_from_edge);
+    check("type_from_to_edge", *quad_model.type_from_to_edge);
 
-    check("equal_from_to",      *model.equal_from_to);
-    check("equal_from_type",    *model.equal_from_type);
-    check("equal_to_type",      *model.equal_to_type);
-    check("equal_from_to_type", *model.equal_from_to_type);
+    check("equal_from_to",      *quad_model.equal_from_to);
+    check("equal_from_type",    *quad_model.equal_from_type);
+    check("equal_to_type",      *quad_model.equal_to_type);
+    check("equal_from_to_type", *quad_model.equal_from_to_type);
 
-    check("equal_from_to_inverted",   *model.equal_from_to_inverted);
-    check("equal_from_type_inverted", *model.equal_from_type_inverted);
-    check("equal_to_type_inverted",   *model.equal_to_type_inverted);
+    check("equal_from_to_inverted",   *quad_model.equal_from_to_inverted);
+    check("equal_from_type_inverted", *quad_model.equal_from_type_inverted);
+    check("equal_to_type_inverted",   *quad_model.equal_to_type_inverted);
 }

@@ -1,5 +1,4 @@
-#ifndef STORAGE__INDEX__B_PLUS_TREE_DIR_H_
-#define STORAGE__INDEX__B_PLUS_TREE_DIR_H_
+#pragma once
 
 #include <stack>
 #include <memory>
@@ -55,5 +54,3 @@ private:
     void update_child(int index, int dir);
     void split(const Record<N>& record);
 };
-
-#endif // STORAGE__INDEX__B_PLUS_TREE_DIR_H_

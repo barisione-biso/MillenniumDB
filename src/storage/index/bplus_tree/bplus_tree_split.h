@@ -1,5 +1,4 @@
-#ifndef STORAGE__B_PLUS_TREE_SPLIT_H_
-#define STORAGE__B_PLUS_TREE_SPLIT_H_
+#pragma once
 
 #include "storage/index/record.h"
 
@@ -13,5 +12,3 @@ struct BPlusTreeSplit {
     // positive number: pointer to leaf, negative number: pointer to dir
     int encoded_page_number;
 };
-
-#endif // STORAGE__B_PLUS_TREE_SPLIT_H_

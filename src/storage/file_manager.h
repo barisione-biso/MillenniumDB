@@ -19,8 +19,7 @@
  * because BufferManager needs to access the file paths from FileManager.
  */
 
-#ifndef STORAGE__FILE_MANAGER_H_
-#define STORAGE__FILE_MANAGER_H_
+#pragma once
 
 #include <fstream>
 #include <queue>
@@ -97,5 +96,3 @@ private:
 };
 
 extern FileManager& file_manager; // global object
-
-#endif // STORAGE__FILE_MANAGER_H_

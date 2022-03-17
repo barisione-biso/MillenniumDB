@@ -75,3 +75,5 @@ db/*
 
 # python cache
 *__pycache__/
+
+.antlr

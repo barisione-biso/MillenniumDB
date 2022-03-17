@@ -1,5 +1,4 @@
-#ifndef NETWORK__COMMUNICATION_PROTOCOL_H_
-#define NETWORK__COMMUNICATION_PROTOCOL_H_
+#pragma once
 
 /*
 * There are 2 types of communication:
@@ -54,5 +53,3 @@ namespace CommunicationProtocol {
     constexpr auto BUFFER_SIZE = 4096; // MUST BE LESS THAN 65536 (2^16)
     constexpr auto BYTES_FOR_QUERY_LENGTH = 4;
 }
-
-#endif // NETWORK__COMMUNICATION_PROTOCOL_H_

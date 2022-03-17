@@ -2,7 +2,6 @@
 
 #include <bitset>
 #include <cstring>
-#include <iostream>
 #include <memory>
 
 #include "storage/buffer_manager.h"
@@ -15,8 +14,7 @@ ObjectFileHashBucket::ObjectFileHashBucket(FileId file_id, uint_fast32_t bucket_
     hashes      (reinterpret_cast<uint64_t*>(page.get_bytes())),
     key_count   (reinterpret_cast<uint8_t*>(page.get_bytes() + 2*sizeof(uint64_t)*MAX_KEYS)),
     local_depth (reinterpret_cast<uint8_t*>(page.get_bytes() + 2*sizeof(uint64_t)*MAX_KEYS + sizeof(uint8_t))),
-    ids         (reinterpret_cast<uint8_t*>(page.get_bytes() + 2*sizeof(uint64_t)*MAX_KEYS + 2*sizeof(uint8_t)))
-{ }
+    ids         (reinterpret_cast<uint8_t*>(page.get_bytes() + 2*sizeof(uint64_t)*MAX_KEYS + 2*sizeof(uint8_t))) { }
 
 
 ObjectFileHashBucket::~ObjectFileHashBucket() {
@@ -29,8 +27,8 @@ uint64_t ObjectFileHashBucket::get_id(const string& str, const uint64_t hash1, c
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             // check if object is
             auto id = read_id(i);
-            auto c_str = object_file.read(id);
-            if (str == c_str) {
+            auto str2 = object_file.get_string(id);
+            if (str == str2) {
                 return id;
             }
         }
@@ -49,8 +47,8 @@ uint64_t ObjectFileHashBucket::get_or_create_id(const string& str,
         if (hashes[2*i] == hash1 && hashes[2*i + 1] == hash2) {
             // check if object is
             auto id = read_id(i);
-            auto c_str = object_file.read(id);
-            if (str == c_str) {
+            auto str2 = object_file.get_string(id);
+            if (str == str2) {
                 *created = false;
                 *need_split = false;
                 return id;
@@ -62,9 +60,7 @@ uint64_t ObjectFileHashBucket::get_or_create_id(const string& str,
         return 0; // doesn't matter this returned value, ExtendibleHash needs to try to insert again
     }
 
-    auto bytes = make_unique<vector<unsigned char>>(str.length());
-    copy(str.begin(), str.end(), bytes->begin());
-    auto new_id = object_file.write(*bytes);
+    auto new_id = object_file.write(str);
 
     hashes[2 * (*key_count)]     = hash1;
     hashes[2 * (*key_count) + 1] = hash2;
@@ -88,11 +84,11 @@ void ObjectFileHashBucket::write_id(const uint64_t id, const uint_fast32_t i) {
 
 
 uint64_t ObjectFileHashBucket::read_id(const uint_fast32_t i) const {
-    const auto offset = BYTES_FOR_ID*i;
+    const auto offset = BYTES_FOR_ID * i;
 
     uint64_t res = 0;
     for (uint_fast8_t b = 0; b < BYTES_FOR_ID; b++) {
-        res += static_cast<uint64_t>(ids[offset + b]) <<  8UL*b;
+        res += static_cast<uint64_t>(ids[offset + b]) << 8UL*b;
     }
     return res;
 }
@@ -110,15 +106,14 @@ void ObjectFileHashBucket::redistribute(ObjectFileHashBucket& other, const uint6
             std::memcpy(
                 &other.hashes[2*other_pos],
                 &hashes[2*i],
-                2 * sizeof(uint64_t)
-            );
+                2 * sizeof(uint64_t));
 
             // copy id to ohter bucket
             std::memcpy(
                 &other.ids[BYTES_FOR_ID*other_pos],
                 &ids[BYTES_FOR_ID*i],
-                BYTES_FOR_ID * sizeof(uint8_t)
-            );
+                BYTES_FOR_ID * sizeof(uint8_t));
+
             ++other_pos;
         } else {
             if (i != this_pos) { // avoid redundant copy
@@ -126,15 +121,13 @@ void ObjectFileHashBucket::redistribute(ObjectFileHashBucket& other, const uint6
                 std::memcpy(
                     &hashes[2*this_pos],
                     &hashes[2*i],
-                    2 * sizeof(uint64_t)
-                );
+                    2 * sizeof(uint64_t));
 
                 // copy id in this bucket
                 std::memcpy(
                     &ids[BYTES_FOR_ID*this_pos],
                     &ids[BYTES_FOR_ID*i],
-                    BYTES_FOR_ID * sizeof(uint8_t)
-                );
+                    BYTES_FOR_ID * sizeof(uint8_t));
             }
             ++this_pos;
         }

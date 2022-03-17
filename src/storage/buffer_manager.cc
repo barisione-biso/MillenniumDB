@@ -122,7 +122,7 @@ Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcep
         buffer_pool[buffer_available] = Page(page_id, &bytes[buffer_available*Page::MDB_PAGE_SIZE]);
 
         file_manager.read_page(page_id, buffer_pool[buffer_available].get_bytes());
-        pages.insert(pair<PageId, int>(page_id, buffer_available));
+        pages.insert({page_id, buffer_available});
         return buffer_pool[buffer_available];
     } else { // page is the buffer
         buffer_pool[it->second].pins++;
@@ -150,7 +150,7 @@ Page& BufferManager::get_tmp_page(TmpFileId tmp_file_id, uint_fast32_t page_numb
                     &private_bytes[Page::MDB_PAGE_SIZE * ((thread_pos * private_buffer_pool_size) + buffer_available)]
         );
         file_manager.read_page(page_id, page.get_bytes());
-        private_tmp_pages[thread_pos].insert(pair<PageId, int>(page_id, buffer_available));
+        private_tmp_pages[thread_pos].insert({page_id, buffer_available});
         return page;
     }
     else {
@@ -202,7 +202,7 @@ uint_fast32_t BufferManager::get_private_buffer_index() {
         }
         uint_fast32_t new_thread_pos = available_private_positions.front();
         available_private_positions.pop();
-        thread2index.insert(pair<thread::id, uint_fast32_t>(this_id, new_thread_pos));
+        thread2index.insert({this_id, new_thread_pos});
         private_tmp_pages[new_thread_pos].clear();
         private_clock_pos[new_thread_pos] = 0;
         return new_thread_pos;

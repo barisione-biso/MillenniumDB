@@ -54,10 +54,10 @@ If you work on windows, you can use Windows Subsystem for Linux (WSL).
 2. Clone this repository and enter to the 'MillenniumDB' folder:
 
 3. Build the project:
-    - `cmake -H. -Bbuild/Release -DCMAKE_BUILD_TYPE=Release && cmake --build build/Release/`
+    - `cmake -Bbuild/Release -DCMAKE_BUILD_TYPE=Release && cmake --build build/Release/`
 
 # Data model
-Our data model is similar to the known *labeled property graph* model. In simplified terms we could say that connections were extended such that the source or destination may be another connection. To be more precise, below is the full specification.
+Our data model is similar to the known *labeled property graph* model. In simplified terms we could say that edges were extended such that the source or destination may be another edge. To be more precise, below is the full specification.
 
 Everything in the graph model is an **Object**, and there are 4 different types of objects:
 
@@ -83,10 +83,10 @@ Everything in the graph model is an **Object**, and there are 4 different types 
 
     - **AnonymousNodes**: they don't have a name as identifier when you add them into the database. They will have an auto-generated identifier to direcly refeer to them later.
 
-3. **Connections**: a connection is an object that relates other objects, having the following attributes:
-    - `ID` (always auto-generated in connections).
-    - `from`: an **Object** (including other connection object but not itself).
-    - `to`: an **Object** (including other connection object but not itself).
+3. **Edges**: an edge is an object that relates other objects, having the following attributes:
+    - `ID` (always auto-generated in edges).
+    - `from`: an **Object** (including other edge object but not itself).
+    - `to`: an **Object** (including other edge object but not itself).
     - `types`: a (possibly empty) set of **NamedNodes**.
     - `properties`: a (possibly empty) set of pairs **<Key, Literal>**. The set cannot have 2 properties with the same key.
 
@@ -96,10 +96,10 @@ The abstract model presented before is very flexible, but being that flexible ma
 For that reason, we allow having multiple concrete models, where each model meets the requirents of the generic data model with some additional restrictions.
 
 ### Quad Model
-Currently **QuadModel** is the only one implemented. The only restriction to the generic model presented before is that **every connection must have one type**. Thus connections can be saved as a tuple of 4 elements: <ConnectionID, FromID, ToID, TypeID>.
+Currently **QuadModel** is the only one implemented. The only restriction to the generic model presented before is that **every edge must have one type**. Thus edges can be saved as a tuple of 4 elements: <EdgeID, FromID, ToID, TypeID>.
 
 ### Future Models
-We are planning to implement more data models in the future, for example a **TripleModel** where **every connection must have one type and we don't use the ConnectionID**, as consequence, a Connection can't have properties nor being connected. Thus connections can be saved as a tuple of 3 elements: <FromID, ToID, TypeID>. This model would allow to represent RDF-like data (subject=from, object=to, predicate=type) without wasting additional bytes for the ConnectionID.
+We are planning to implement more data models in the future, for example a **TripleModel** where **every edge must have one type and we don't use the EdgeID**, as consequence, an edge can't have properties and nested edges can't exist. Thus edges can be saved as a tuple of 3 elements: <FromID, ToID, TypeID>. This model would allow to represent RDF-like data (subject=from, object=to, predicate=type) without using additional bytes for the EdgeID.
 
 
 # Query language
@@ -109,10 +109,10 @@ A query would look like:
 // This query is asking for the age and name of people
 // that knows John having between 60 and 70 years old,
 // ordered by their age (ascending) and name (descending).
-SELECT ?x.age, ?x.name
 MATCH (?x :Person)-[Knows]->(John)
 WHERE ?x.age >= 60 AND ?x.age <= 70
 ORDER BY ?x.name DESC, ?x.age ASC
+RETURN ?x.age, ?x.name
 LIMIT 1000
 ```
 
@@ -120,13 +120,7 @@ Let's analyze line by line
 
 - The first 3 lines are comments. A comment starts with a `//` and finish at the end of the line.
 
-- The next line is a SELECT clause. Every query must have a SELECT clause. This clause specify which objects or object properties will be returned. Select clauses look like this:
-    - `SELECT *`
-    - `SELECT ?x`
-    - `SELECT ?x.key`
-    - `SELECT ?x, ?y.key, ?z`
-
-- The next line is a MATCH clause. Every query must have a MATCH clause after the SELECT clause. The MATCH clause is followed by a **graph pattern**. To define a graph pattern we need to define some other smaller concepts. First we define the **node pattern**. The most basic **node pattern** looks like this:
+- The next line is a MATCH clause. Every query must have a MATCH clause at the beginning. The MATCH clause is followed by a **graph pattern**. To define a graph pattern we need to define some other smaller concepts. First we define the **node pattern**. The most basic **node pattern** looks like this:
     - `()`
 
     And there are some things you can add to a **node pattern**:
@@ -155,36 +149,36 @@ Let's analyze line by line
         - `(?x :Label {key:"value"})`
 
 
-    Two **node patterns** can be connected to each other, and **connections** have a **direction**:
+    Two **node patterns** can be connected to each other vie **edges**, **edges** always have a **direction**:
     - `(?x)->(?y)`
     - `(?y)<-(?z)`
 
-    And similar as in **node patterns**, **connections** may contain other some things:
-    - A **connection variable** to bind the connection object:
-        - `(?x)-[?c]->(?y)`
-    - Or instead of a **connection variable**, a **fixed connection**:
-        - `(?x)-[_c123]->(?y)`
-    - A **type variable** (after the connection variable or fixed connection if they are present):
-        - `(?x)-[:TYPE(?t)]->(?y)`
-        - `(?x)-[?c :TYPE(?t)]->(?y)`
-    - Or instad of a **type variable**, a **fixed type** (after the connection variable or fixed connection if they are present):
-        - `(?x)-[Type1]->(?y)`
-        - `(?x)-[?c Type2]->(?y)`
+    And similar as in **node patterns**, **edges** may contain other some things:
+    - An **edge variable** to bind the edge object:
+        - `(?x)-[?e]->(?y)`
+    - Or instead of a **edge variable**, a **fixed edge**:
+        - `(?x)-[_e123]->(?y)`
+    - A **type variable** (after the edge variable or fixed edge if they are present):
+        - `(?x)-[:?t]->(?y)`
+        - `(?x)-[?e :?t]->(?y)`
+    - Or instad of a **type variable**, a **fixed type** (after the edge variable or fixed edge if they are present):
+        - `(?x)-[:Type1]->(?y)`
+        - `(?x)-[?c :Type2]->(?y)`
     - A set of properties (at the end)
         - `(?x)-[{key:"value"}]->(?y)`
-        - `(?x)-[?c Type {key:"value"}]->(?y)`
+        - `(?x)-[?c :Type {key:"value"}]->(?y)`
 
-    Then a **linear pattern** is a set of one or more **node patterns** linked by connections (TODO: or property paths):
-    - `(?x :Person)-[Knows]->(?y)<-[Knows]-(John)`
+    Then a **linear pattern** is a set of one or more **node patterns** linked by edges (TODO: or property paths):
+    - `(?x :Person)-[:Knows]->(?y)<-[Knows]-(John)`
 
     A set of one or more **linear patterns** (separeted by comma) forms a **simple graph pattern**
-    - `(?x :Person)-[Knows]->(?y)<-[Knows]-(John), (?y)-[LivesIn]->(Chile)`
+    - `(?x :Person)-[:Knows]->(?y)<-[:Knows]-(John), (?y)-[:LivesIn]->(Chile)`
 
     Finally, a **graph pattern** is defined as follows:
     - A **simple graph pattern** is a **graph pattern**.
     - If `GP1` and `GP2` are **graph patterns**, `GP1 OPTIONAL { GP2 }` is a **graph pattern**
 
-- The next line is a WHERE clause. A query may not have a WHERE clause. The WHERE clause filters the results obtained by the MATCH clause according to certain **condition**. An **atomic condition** looks like:
+- TODO: WHERE specification is incomplete. The next line is a WHERE clause. A query may not have a WHERE clause. The WHERE clause filters the results obtained by the MATCH clause according to certain **condition**. An **atomic condition** looks like:
     - `?x == ?y`
     - `?x == ?y.key`
     - `?x == "literal"`
@@ -200,6 +194,12 @@ Let's analyze line by line
     The operator precedence is as usual: `()` > `NOT` > `AND` > `OR`.
 
 - The next line is an ORDER BY clause. A query may not have a ORDER BY clause. You can specify how the order works with the keywords `ASC`/`ASCENDING` and `DESC`/`DESCENDING` after each element. If the order is not specified the default is `ASCENNDING`
+
+- The next line is a RETURN clause. Every query must have a RETURN clause. This clause specify which objects or object properties will be returned. Return clauses look like this:
+    - `RETURN *`
+    - `RETURN ?x`
+    - `RETURN ?x.key`
+    - `RETURN ?x, ?y.key, ?z`
 
 - The last line is a LIMIT clause. A query may not have a LIMIT clause. A LIMIT clause gives an upper bound on the number of results returned.
 

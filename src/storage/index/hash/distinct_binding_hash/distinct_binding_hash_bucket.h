@@ -1,5 +1,4 @@
-#ifndef STORAGE__DISTINCT_BINDING_HASH_BUCKET_H_
-#define STORAGE__DISTINCT_BINDING_HASH_BUCKET_H_
+#pragma once
 
 #include <cstdint>
 #include <map>
@@ -39,5 +38,3 @@ private:
 
     void redistribute(DistinctBindingHashBucket<T>& other, uint64_t mask, uint64_t other_suffix);
 };
-
-#endif // STORAGE__DISTINCT_BINDING_HASH_BUCKET_H_

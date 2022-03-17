@@ -1,9 +1,6 @@
-#ifndef STORAGE__DISTINCT_BINDING_HASH_H_
-#define STORAGE__DISTINCT_BINDING_HASH_H_
+#pragma once
 
 #include <cstdint>
-#include <map>
-#include <string>
 #include <vector>
 
 #include "base/ids/var_id.h"
@@ -33,5 +30,3 @@ private:
 
     void duplicate_dirs();
 };
-
-#endif // STORAGE__DISTINCT_BINDING_HASH_H_

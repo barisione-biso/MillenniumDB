@@ -1,5 +1,4 @@
-#ifndef STORAGE__OBJECT_FILE_HASH_H_
-#define STORAGE__OBJECT_FILE_HASH_H_
+#pragma once
 
 #include <cstdint>
 #include <map>
@@ -30,5 +29,3 @@ private:
 
     void duplicate_dirs();
 };
-
-#endif // STORAGE__OBJECT_FILE_HASH_H_

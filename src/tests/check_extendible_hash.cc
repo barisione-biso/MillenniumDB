@@ -8,7 +8,7 @@
 #include <boost/program_options.hpp>
 
 #include "base/exceptions.h"
-#include "relational_model/models/quad_model/quad_model.h"
+#include "query_optimizer/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 
@@ -41,10 +41,10 @@ int main(int argc, char **argv) {
     }
     po::notify(vm);
 
-    QuadModel model(db_folder, buffer_size, 0, 0);
+    auto model_destroyer = QuadModel::init(db_folder, buffer_size, 0, 0);
 
-    auto& object_file  = model.object_file();
-    auto& strings_hash = model.strings_hash();
+    auto& object_file  = quad_model.object_file();
+    auto& strings_hash = quad_model.strings_hash();
 
     uint64_t current_id = 1;
 
@@ -53,8 +53,7 @@ int main(int argc, char **argv) {
     uint64_t not_found = 0;
     try {
         while (true) {
-            auto c_str = object_file.read(current_id);
-            string str(c_str);
+            auto str = object_file.get_string(current_id);
 
             auto id_found = strings_hash.get_id(str);
             if (current_id != id_found) {

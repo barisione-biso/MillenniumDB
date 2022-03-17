@@ -1,5 +1,6 @@
-#ifndef STORAGE__PAGE_ID_H_
-#define STORAGE__PAGE_ID_H_
+#pragma once
+
+#include <cstring>
 
 #include "storage/file_id.h"
 
@@ -7,8 +8,9 @@ struct PageId {
     FileId file_id;
     uint_fast32_t page_number;
 
-    PageId(FileId file_id, uint_fast32_t page_number)
-        : file_id(file_id), page_number(page_number) { }
+    PageId(FileId file_id, uint_fast32_t page_number) :
+        file_id     (file_id),
+        page_number (page_number) { }
 
     // needed to allow std::map having PageId as key
     bool operator<(const PageId& other) const {
@@ -32,5 +34,3 @@ struct PageIdHasher {
         return k.file_id.id | (k.page_number << 5);
     }
 };
-
-#endif // STORAGE__PAGE_ID_H_

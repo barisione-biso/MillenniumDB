@@ -3,8 +3,7 @@
  * reference to a string can be problematic when destructors are called at the end of the execution.
  */
 
-#ifndef STORAGE__FILE_ID_H_
-#define STORAGE__FILE_ID_H_
+#pragma once
 
 #include <cstdint>
 
@@ -49,5 +48,3 @@ public:
         return this->file_id == other.file_id;
     }
 };
-
-#endif // STORAGE__FILE_ID_H_

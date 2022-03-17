@@ -4,8 +4,7 @@
  * BufferManager is the only class who can construct a Page object. Other classes must get a Page
  * through BufferManager.
  */
-#ifndef STORAGE__PAGE_H_
-#define STORAGE__PAGE_H_
+#pragma once
 
 #include "storage/page_id.h"
 
@@ -36,11 +35,8 @@ private:
 
     Page() noexcept;
     Page(PageId page_id, char* bytes) noexcept;
-    ~Page() = default;
     void operator=(const Page& other) noexcept;
 
     // write to disk if this page is dirty
     void flush();
 };
-
-#endif // STORAGE__PAGE_H_

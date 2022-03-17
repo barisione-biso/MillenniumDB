@@ -4,12 +4,9 @@
 
 #include "storage/buffer_manager.h"
 #include "base/ids/object_id.h"
-#include "base/graph/graph_object.h"
+#include "base/graph_object/graph_object.h"
 
 using namespace std;
-
-template class DistinctBindingHashBucket<GraphObject>;
-template class DistinctBindingHashBucket<ObjectId>;
 
 template <class T>
 DistinctBindingHashBucket<T>::DistinctBindingHashBucket(const TmpFileId file_id,
@@ -148,3 +145,6 @@ void DistinctBindingHashBucket<T>::redistribute(DistinctBindingHashBucket<T>& ot
     this->page.make_dirty();
     other.page.make_dirty();
 }
+
+template class DistinctBindingHashBucket<GraphObject>;
+template class DistinctBindingHashBucket<ObjectId>;

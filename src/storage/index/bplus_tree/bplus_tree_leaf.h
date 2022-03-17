@@ -1,5 +1,4 @@
-#ifndef STORAGE__B_PLUS_TREE_LEAF_H_
-#define STORAGE__B_PLUS_TREE_LEAF_H_
+#pragma once
 
 #include <memory>
 
@@ -69,5 +68,3 @@ private:
     bool equal_record(const Record<N>& record, uint_fast32_t index);
     void shift_right_records(int from, int to);
 };
-
-#endif // STORAGE__B_PLUS_TREE_LEAF_H_

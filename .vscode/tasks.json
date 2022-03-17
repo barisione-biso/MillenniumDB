@@ -4,7 +4,7 @@
         {
             "label": "Release Configure",
             "type": "shell",
-            "command": "cmake -H. -Bbuild/Release -DCMAKE_BUILD_TYPE=Release",
+            "command": "cmake -Bbuild/Release -DCMAKE_BUILD_TYPE=Release",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -35,7 +35,7 @@
         {
             "label": "Debug Configure",
             "type": "shell",
-            "command": "cmake -H. -Bbuild/Debug -DCMAKE_BUILD_TYPE=Debug",
+            "command": "cmake -Bbuild/Debug -DCMAKE_BUILD_TYPE=Debug",
             "presentation": {
                 "echo": true,
                 "reveal": "always",

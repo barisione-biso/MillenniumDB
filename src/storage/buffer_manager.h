@@ -15,18 +15,17 @@
  * have the same sistems for pages replacement.
  */
 
-#ifndef STORAGE__BUFFER_MANAGER_H_
-#define STORAGE__BUFFER_MANAGER_H_
+#pragma once
 
 #include <mutex>
 #include <queue>
 #include <string>
 #include <thread>
-#include <unordered_map>
 #include <vector>
 
 #include "storage/file_id.h"
 #include "storage/page.h"
+#include "third_party/robin_hood/robin_hood.h"
 
 class Page;
 
@@ -95,13 +94,13 @@ private:
     std::queue<uint_fast32_t> available_private_positions;
 
     // used to search the index in the `buffer_pool` of a certain page
-    std::unordered_map<PageId, uint_fast32_t, PageIdHasher> pages;
+    robin_hood::unordered_map<PageId, uint_fast32_t, PageIdHasher> pages;
 
     // map thread id -> private_thread_index
-    std::unordered_map<std::thread::id , uint_fast32_t> thread2index;
+    robin_hood::unordered_map<std::thread::id , uint_fast32_t> thread2index;
 
     // used to search the index in the `private_buffer_pool` of a certain page
-    std::vector<std::unordered_map<PageId, uint_fast32_t, PageIdHasher>> private_tmp_pages;
+    std::vector<robin_hood::unordered_map<PageId, uint_fast32_t, PageIdHasher>> private_tmp_pages;
 
     // array of `buffer_pool_size` pages
     Page* const buffer_pool;
@@ -137,5 +136,3 @@ private:
 };
 
 extern BufferManager& buffer_manager; // global object
-
-#endif // STORAGE__BUFFER_MANAGER_H_

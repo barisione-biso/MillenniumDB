@@ -7,13 +7,10 @@
 #include <iostream>
 
 #include "base/ids/object_id.h"
-#include "base/graph/graph_object.h"
+#include "base/graph_object/graph_object.h"
 #include "storage/file_manager.h"
 #include "storage/index/hash/distinct_binding_hash/distinct_binding_hash_bucket.h"
-#include "storage/index/hash/hash_functions/hash_function_wrapper.h"
-
-template class DistinctBindingHash<GraphObject>;
-template class DistinctBindingHash<ObjectId>;
+#include "third_party/murmur3/murmur3.h"
 
 template <class T>
 DistinctBindingHash<T>::DistinctBindingHash(std::size_t tuple_size) :
@@ -142,3 +139,6 @@ void DistinctBindingHash<T>::duplicate_dirs() {
     delete[](dir);
     dir = new_dir;
 }
+
+template class DistinctBindingHash<GraphObject>;
+template class DistinctBindingHash<ObjectId>;

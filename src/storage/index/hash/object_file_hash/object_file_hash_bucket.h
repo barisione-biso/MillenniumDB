@@ -1,5 +1,4 @@
-#ifndef STORAGE__OBJECT_FILE_HASH_BUCKET_H_
-#define STORAGE__OBJECT_FILE_HASH_BUCKET_H_
+#pragma once
 
 #include <cstdint>
 #include <map>
@@ -21,6 +20,7 @@ static_assert(MAX_KEYS <= UINT8_MAX, "ObjectFileHashBucket KEY_COUNT(UINT8) CAN'
 
 public:
     ObjectFileHashBucket(FileId file_id, uint_fast32_t bucket_number, ObjectFile& objecy_file);
+
     ~ObjectFileHashBucket();
 
     uint64_t get_id(const std::string& str, const uint64_t hash1, const uint64_t hash2) const;
@@ -42,5 +42,3 @@ private:
 
     void redistribute(ObjectFileHashBucket& other, const uint64_t mask, const uint64_t other_suffix);
 };
-
-#endif // STORAGE__OBJECT_FILE_HASH_BUCKET_H_
