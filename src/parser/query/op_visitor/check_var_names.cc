@@ -26,7 +26,14 @@ void CheckVarNames::visit(OpReturn& op_return) {
                 throw QuerySemanticException("Variable \"" + var.name + "\" used in RETURN is not declared in MATCH");
             }
         }
+        if (op_return.distinct) {
+            if (declared_path_vars.find(var) != declared_path_vars.end()) {
+                throw QuerySemanticException("DISTINCT of path variable \"" + var.name
+                                             + "\" is not supported yet");
+            }
+        }
     }
+
 }
 
 
