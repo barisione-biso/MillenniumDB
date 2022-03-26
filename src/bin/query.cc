@@ -17,40 +17,30 @@
 #include <iterator>
 
 #include <boost/asio.hpp>
-#include <boost/program_options.hpp>
 
 #include "network/tcp_buffer.h"
+#include "third_party/cxxopts/cxxopts.h"
 
 using namespace std;
 using boost::asio::ip::tcp;
-namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
-    // string query_file;
     string host;
     int port;
     try {
-        // Parse arguments
-        po::options_description desc("Allowed options");
-        desc.add_options()
-            ("help", "show this help message")
-            ("host,h", po::value<string>(&host)->default_value("127.0.0.1"), "database server host")
-            ("port,p", po::value<int>(&port)->default_value(CommunicationProtocol::DEFAULT_PORT), "database server port")
-            // ("query-file,q", po::value<string>(&query_file)->required(), "query file")
+        cxxopts::Options options("query", "Sends queries to the MillenniumDB server. Query is received by standard input");
+        options.add_options()
+            ("h,help", "Print usage")
+            ("d,destination", "destination host", cxxopts::value<string>(host)->default_value("127.0.0.1"))
+            ("p,port", "port", cxxopts::value<int>(port)->default_value(
+                std::to_string(CommunicationProtocol::DEFAULT_PORT)))
         ;
+        auto result = options.parse(argc, argv);
 
-        po::positional_options_description p;
-        // p.add("query-file", -1);
-
-        po::variables_map vm;
-        po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
-
-        if (vm.count("help")) {
-            cout << "Usage: query [OPTIONS]... ./path/to/query/file\n";
-            cout << desc << "\n";
-            return 0;
+        if (result.count("help")) {
+            std::cout << options.help() << std::endl;
+            exit(0);
         }
-        po::notify(vm);
 
         stringstream str_stream;
         str_stream << std::cin.rdbuf();
@@ -81,13 +71,13 @@ int main(int argc, char **argv) {
             auto reply_length = static_cast<unsigned int>(result_buffer[1]) +
                                (static_cast<unsigned int>(result_buffer[2]) << 8);
 
-            std::cout.write(reinterpret_cast<char*>(result_buffer+3), reply_length-3);
+            cout.write(reinterpret_cast<char*>(result_buffer+3), reply_length-3);
         } while ( !CommunicationProtocol::last_message(result_buffer[0]) );
 
         return CommunicationProtocol::decode_status(result_buffer[0]);
     }
     catch (boost::system::system_error const& e) {
-        std::cout << "Error connecting to server: " << e.what() << "\n";
+        cout << "Error connecting to server: " << e.what() << "\n";
         return static_cast<int>(CommunicationProtocol::StatusCodes::connection_error);
     }
     catch(const std::exception& e) {

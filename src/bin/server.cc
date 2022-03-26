@@ -37,7 +37,6 @@
 #include <unordered_map>
 
 #include <boost/asio.hpp>
-#include <boost/program_options.hpp>
 
 #include "base/binding/binding_iter.h"
 #include "base/exceptions.h"
@@ -49,10 +48,10 @@
 #include "query_optimizer/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
+#include "third_party/cxxopts/cxxopts.h"
 
 using namespace std;
 using boost::asio::ip::tcp;
-namespace po = boost::program_options;
 
 // For random generation
 std::uniform_int_distribution<uint64_t> random_uint64;
@@ -228,6 +227,7 @@ void server(unsigned short port, std::chrono::seconds timeout_duration) {
 
     tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
     cout << "Server running on port " << port << endl;
+    cout << "To terminate press CTRL-C" << endl;
     while (true) {
         tcp::socket sock(io_context);
         acceptor.accept(sock);
@@ -255,42 +255,37 @@ int main(int argc, char **argv) {
     int private_buffer_size;
     int max_threads;
     string db_folder;
-
     try {
         // Parse arguments
-        po::options_description desc("Allowed options");
-        desc.add_options()
-            ("help,h", "show this help message")
-            ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
-            ("port,p", po::value<int>(&port)->default_value(CommunicationProtocol::DEFAULT_PORT), "database server port")
-            ("timeout", po::value<int>(&seconds_timeout)->default_value(60), "timeout (in seconds)")
-            (
-                "buffer-size,b",
-                po::value<int>(&shared_buffer_size)->default_value(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE),
-                "set shared buffer pool size"
-            )
-            (
-                "private-buffer-size,",
-                po::value<int>(&private_buffer_size)->default_value(BufferManager::DEFAULT_PRIVATE_BUFFER_POOL_SIZE),
-                "set private buffer pool size for each thread"
-            )
-            ("max-threads,", po::value<int>(&max_threads)->default_value(8), "set max threads")
+        cxxopts::Options options("server", "MillenniumDB server");
+        options.add_options()
+            ("h,help", "Print usage")
+            ("d,db-folder", "set database folder path", cxxopts::value<string>(db_folder))
+            ("p,port", "database server port",
+                cxxopts::value<int>(port)->default_value(std::to_string(CommunicationProtocol::DEFAULT_PORT)))
+            ("t,timeout", "timeout (in seconds)", cxxopts::value<int>(seconds_timeout)->default_value("60"))
+            ("b,buffer-size", "set shared buffer pool size",
+                cxxopts::value<int>(shared_buffer_size)->default_value(std::to_string(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE)))
+            ("private-buffer-size", "set private buffer pool size for each thread",
+                cxxopts::value<int>(private_buffer_size)->default_value(std::to_string(BufferManager::DEFAULT_PRIVATE_BUFFER_POOL_SIZE)))
+            ("max-threads", "set max threads", cxxopts::value<int>(max_threads)->default_value("8"))
         ;
+        options.positional_help("db-folder");
+        options.parse_positional({"db-folder"});
 
-        po::positional_options_description p;
-        p.add("db-folder", -1);
+        auto result = options.parse(argc, argv);
 
-        po::variables_map vm;
-        po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
-
-        if (vm.count("help")) {
-            cout << "Usage: server [options] DB_FOLDER\n";
-            cout << desc << "\n";
-            return 0;
+        if (result.count("help")) {
+            std::cout << options.help() << std::endl;
+            exit(0);
         }
-        po::notify(vm);
 
         // Validate params
+        if (db_folder.empty()) {
+            cerr << "Must specify a db-folder.\n";
+            return 1;
+        }
+
         if (port < 0) {
             cerr << "Port cannot be a negative number.\n";
             return 1;

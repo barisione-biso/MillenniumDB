@@ -5,41 +5,35 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/program_options.hpp>
-
 #include "base/exceptions.h"
 #include "query_optimizer/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
+#include "third_party/cxxopts/cxxopts.h"
 
 using namespace std;
-namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
     string db_folder;
     int buffer_size;
 
-    // Parse arguments
-    po::options_description desc("Allowed options");
-    desc.add_options()
-        ("help,h", "show this help message")
-        ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE),
-                "set shared buffer pool size")
-        ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
+    cxxopts::Options options("create_db", "Import a database from a text file");
+    options.add_options()
+        ("h,help", "Print usage")
+        ("d,db-folder", "path to the database folder to be created", cxxopts::value<string>(db_folder))
+        ("b,buffer-size", "set buffer pool size", cxxopts::value<int>(buffer_size)->default_value(
+            std::to_string(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE)))
     ;
 
-    po::positional_options_description p;
-    p.add("db-folder", 1);
+    options.positional_help("db-folder");
+    options.parse_positional({"db-folder"});
 
-    po::variables_map vm;
-    po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+    auto result = options.parse(argc, argv);
 
-    if (vm.count("help")) {
-        cout << "Usage: check_extendible_hash DB_FOLDER [OPTIONS]\n";
-        cout << desc << "\n";
-        return 0;
+    if (result.count("help")) {
+        std::cout << options.help() << std::endl;
+        exit(0);
     }
-    po::notify(vm);
 
     auto model_destroyer = QuadModel::init(db_folder, buffer_size, 0, 0);
 

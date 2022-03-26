@@ -2,11 +2,11 @@
 
 #include <cassert>
 #include <cstring>
-#include <experimental/filesystem>
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
 
 #include "storage/buffer_manager.h"
+#include "storage/filesystem.h"
 #include "storage/file_id.h"
 #include "storage/page.h"
 
@@ -21,13 +21,13 @@ FileManager& file_manager = reinterpret_cast<FileManager&>(file_manager_buf);
 FileManager::FileManager(const std::string& db_folder) :
     db_folder(db_folder)
 {
-    if (experimental::filesystem::exists(db_folder)) {
-        if (!experimental::filesystem::is_directory(db_folder)) {
+    if (Filesystem::exists(db_folder)) {
+        if (!Filesystem::is_directory(db_folder)) {
             throw std::invalid_argument("Cannot create database directory: \"" + db_folder +
                                         "\", a file with that name already exists.");
         }
     } else {
-        experimental::filesystem::create_directories(db_folder);
+        Filesystem::create_directories(db_folder);
     }
 }
 
@@ -40,7 +40,7 @@ void FileManager::init(const std::string& db_folder) {
 uint_fast32_t FileManager::count_pages(const FileId file_id) const {
     // We don't need mutex here as long as db is readonly
     const auto file_path = get_file_path(filenames[file_id.id]);
-    return experimental::filesystem::file_size(file_path)/Page::MDB_PAGE_SIZE;
+    return Filesystem::file_size(file_path)/Page::MDB_PAGE_SIZE;
 }
 
 
@@ -94,7 +94,7 @@ FileId FileManager::get_file_id(const string& filename) {
         filenames[res.id] = filename;
         filename2file_id.insert({ filename, res });
         auto file = make_unique<fstream>();
-        if (!experimental::filesystem::exists(file_path)) {
+        if (!Filesystem::exists(file_path)) {
             // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
             // so we close it and open it again without append mode
             file->open(file_path, ios::out|ios::app);
@@ -116,7 +116,7 @@ FileId FileManager::get_file_id(const string& filename) {
         filenames.push_back(filename);
         filename2file_id.insert({ filename, res });
         auto file = make_unique<fstream>();
-        if (!experimental::filesystem::exists(file_path)) {
+        if (!Filesystem::exists(file_path)) {
             // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
             // so we close it and open it again without append mode
             file->open(file_path, ios::out|ios::app);
@@ -145,7 +145,7 @@ TmpFileId FileManager::get_tmp_file_id() {
         filenames[file_id.id] = filename;
         filename2file_id.insert({ filename, file_id });
         auto file = make_unique<fstream>();
-        if (!experimental::filesystem::exists(file_path)) {
+        if (!Filesystem::exists(file_path)) {
             // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
             // so we close it and open it again without append mode
             file->open(file_path, ios::out|ios::app);
@@ -165,7 +165,7 @@ TmpFileId FileManager::get_tmp_file_id() {
         filenames.push_back(filename);
         filename2file_id.insert({ filename, file_id });
         auto file = make_unique<fstream>();
-        if (!experimental::filesystem::exists(file_path)) {
+        if (!Filesystem::exists(file_path)) {
             // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
             // so we close it and open it again without append mode
             file->open(file_path, ios::out|ios::app);

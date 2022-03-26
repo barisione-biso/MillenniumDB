@@ -1,15 +1,13 @@
-#include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
 
-#include <boost/program_options.hpp>
-
 #include "query_optimizer/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
+#include "storage/filesystem.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
+#include "third_party/cxxopts/cxxopts.h"
 
 using namespace std;
-namespace po = boost::program_options;
 
 template <std::size_t N>
 void check(const string& name, BPlusTree<N>& bpt) {
@@ -25,33 +23,29 @@ int main(int argc, char **argv) {
     int buffer_size;
 
     // Parse arguments
-    po::options_description desc("Allowed options");
-    desc.add_options()
-        ("help,h", "show this help message")
-        ("buffer-size,b", po::value<int>(&buffer_size)->default_value(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE),
-                "set shared buffer pool size")
-        ("db-folder,d", po::value<string>(&db_folder)->required(), "set database folder path")
+    cxxopts::Options options("create_db", "Import a database from a text file");
+    options.add_options()
+        ("h,help", "Print usage")
+        ("d,db-folder", "path to the database folder to be created", cxxopts::value<string>(db_folder))
+        ("b,buffer-size", "set buffer pool size", cxxopts::value<int>(buffer_size)->default_value(
+            std::to_string(BufferManager::DEFAULT_SHARED_BUFFER_POOL_SIZE)))
     ;
 
-    po::positional_options_description p;
-    p.add("db-folder", 1);
+    options.positional_help("db-folder");
+    options.parse_positional({"db-folder"});
 
-    po::variables_map vm;
-    po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+    auto result = options.parse(argc, argv);
 
-    if (vm.count("help")) {
-        cout << "Usage: check_btps ./path/to/db-folder [OPTIONS]\n";
-        cout << desc << "\n";
-        return 0;
+    if (result.count("help")) {
+        std::cout << options.help() << std::endl;
+        exit(0);
     }
-    po::notify(vm);
 
     { // check if db_folder is empty or does not exists
-        namespace fs = std::experimental::filesystem;
-        if (!fs::exists(db_folder) ) {
+        if (!Filesystem::exists(db_folder) ) {
             cerr << "Database folder doesn't exists.\n";
             return 1;
-        } else if (fs::is_empty(db_folder)) {
+        } else if (Filesystem::is_empty(db_folder)) {
             cerr << "Database folder is empty.\n";
             return 1;
         }
