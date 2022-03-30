@@ -37,7 +37,6 @@ set(BUILD_TARGETS
     create_db
     query
     server
-    antlr4_test
 )
 
 set(TEST_TARGETS
@@ -53,8 +52,6 @@ foreach(target ${BUILD_TARGETS})
         millenniumdb
         antlr4_cpp_runtime
         stdc++fs
-        boost_program_options
-        boost_system
     )
 endforeach(target)
 
@@ -64,8 +61,6 @@ foreach(target ${TEST_TARGETS})
         millenniumdb
         antlr4_cpp_runtime
         stdc++fs
-        boost_program_options
-        boost_system
     )
     # add_test(NAME ${target} COMMAND ${target})
 endforeach(target)
