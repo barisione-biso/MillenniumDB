@@ -16,6 +16,11 @@ public:
         key   (key),
         value (QueryElement::deduce(value)) { }
 
+    OpProperty(const Var& node, const std::string& key, const QueryElement& value) :
+        node  (node),
+        key   (key),
+        value (value) { }
+
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }

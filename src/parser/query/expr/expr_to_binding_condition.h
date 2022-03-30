@@ -25,11 +25,15 @@ public:
 
     std::vector<std::tuple<Var, std::string, QueryElement>> properties;
 
-    // TODO: make push of properties and negation
+    // This is a variable that may change when visiting an Expr, but the visit method
+    // must restore the original value before returning
+    bool can_push_outside = true;
 
     Expr2BindingExpr(const std::map<Var, VarId>& var2var_ids);
 
-    void visit(ExprAtom&) override;
+    void visit(ExprVar&) override;
+    void visit(ExprVarProperty&) override;
+    void visit(ExprConstant&) override;
     void visit(ExprAddition&) override;
     void visit(ExprDivision&) override;
     void visit(ExprModulo&) override;

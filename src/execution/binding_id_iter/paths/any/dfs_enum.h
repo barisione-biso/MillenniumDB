@@ -14,7 +14,7 @@
 #include "third_party/robin_hood/robin_hood.h"
 
 /*
-PathDFSEnum enumerates paths from/to a specifc node using DFS algorithm.
+DFSEnum enumerates paths from/to a specifc node using DFS algorithm.
 
 Open memory usage is linear, but shortest path is not guaranteed.
 This can ralentize the search due to long paths that must be constructed
@@ -33,7 +33,7 @@ struct DFSSearchState {
 };
 
 
-class DFSIterEnum : public BindingIdIter {
+class DFSEnum : public BindingIdIter {
 private:
     // Attributes determined in the constuctor
     ThreadInfo*   thread_info;
@@ -68,14 +68,14 @@ private:
     void set_iter(DFSSearchState& current_state);
 
 public:
-    DFSIterEnum(ThreadInfo*   thread_info,
-                BPlusTree<1>& nodes,
-                BPlusTree<4>& type_from_to_edge,
-                BPlusTree<4>& to_type_from_edge,
-                VarId         path_var,
-                Id            start,
-                VarId         end,
-                PathAutomaton automaton);
+    DFSEnum(ThreadInfo*   thread_info,
+            BPlusTree<1>& nodes,
+            BPlusTree<4>& type_from_to_edge,
+            BPlusTree<4>& to_type_from_edge,
+            VarId         path_var,
+            Id            start,
+            VarId         end,
+            PathAutomaton automaton);
 
     void analyze(std::ostream& os, int indent = 0) const override;
     void begin(BindingId& parent_binding) override;

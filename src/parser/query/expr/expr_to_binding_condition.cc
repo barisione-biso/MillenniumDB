@@ -1,5 +1,7 @@
 #include "expr_to_binding_condition.h"
 
+#include <iostream>
+
 #include "parser/query/expr/exprs.h"
 #include "execution/binding_iter/binding_expr/binding_exprs.h"
 
@@ -9,18 +11,27 @@ Expr2BindingExpr::Expr2BindingExpr(const std::map<Var, VarId>& var2var_ids) :
     var2var_ids (var2var_ids) { }
 
 
-void Expr2BindingExpr::visit(ExprAtom& expr_atom) {
-    if (expr_atom.atom[0] == '?') {
-        Var var(expr_atom.atom);
-        auto find_var_id = var2var_ids.find(var);
-        assert(find_var_id != var2var_ids.end()
-               && "Variable names inside WHERE need to be checked before processing conditions");
+void Expr2BindingExpr::visit(ExprConstant& expr_constant) {
+    auto graph_object = QueryElement::deduce(expr_constant.value).to_graph_object();
+    current_binding_expr = make_unique<BindingExprAtomConstant>(graph_object);
+}
 
-        current_binding_expr = make_unique<BindingExprAtomVar>(find_var_id->second);
-    } else {
-        auto graph_object = QueryElement::deduce(expr_atom.atom).to_graph_object();
-        current_binding_expr = make_unique<BindingExprAtomConstant>(graph_object);
-    }
+
+void Expr2BindingExpr::visit(ExprVar& expr_var) {
+    auto find_var_id = var2var_ids.find(expr_var.var);
+    assert(find_var_id != var2var_ids.end()
+            && "Variable names inside WHERE need to be checked before processing conditions");
+
+    current_binding_expr = make_unique<BindingExprAtomVar>(find_var_id->second);
+}
+
+
+void Expr2BindingExpr::visit(ExprVarProperty& expr_var_property) {
+    auto find_var_id = var2var_ids.find(expr_var_property.property_var);
+    assert(find_var_id != var2var_ids.end()
+            && "Variable names inside WHERE need to be checked before processing conditions");
+
+    current_binding_expr = make_unique<BindingExprAtomVar>(find_var_id->second);
 }
 
 
@@ -87,6 +98,22 @@ void Expr2BindingExpr::visit(ExprUnaryPlus& expr) {
 
 
 void Expr2BindingExpr::visit(ExprEquals& expr) {
+    if (can_push_outside) {
+        auto var_prop_ptr = dynamic_cast<ExprVarProperty*>(expr.lhs.get());
+        auto constant_ptr = dynamic_cast<ExprConstant*>(expr.rhs.get());
+
+        if (var_prop_ptr == nullptr || constant_ptr == nullptr) {
+            constant_ptr = dynamic_cast<ExprConstant*>(expr.lhs.get());
+            var_prop_ptr = dynamic_cast<ExprVarProperty*>(expr.rhs.get());
+        }
+        if (var_prop_ptr != nullptr && constant_ptr != nullptr) {
+            properties.push_back({var_prop_ptr->object_var,
+                                  var_prop_ptr->property_key,
+                                  QueryElement::deduce(constant_ptr->value)});
+            return;
+        }
+    }
+
     expr.lhs->accept_visitor(*this);
     auto lhs_binding_expr = std::move(current_binding_expr);
     expr.rhs->accept_visitor(*this);
@@ -156,23 +183,35 @@ void Expr2BindingExpr::visit(ExprAnd& expr) {
     std::vector<std::unique_ptr<BindingExpr>> and_list;
     for (auto& e : expr.and_list) {
         e->accept_visitor(*this);
-        and_list.push_back(std::move(current_binding_expr));
+        if (current_binding_expr != nullptr) {
+            and_list.push_back(std::move(current_binding_expr));
+        }
     }
-    current_binding_expr = make_unique<BindingExprAnd>(std::move(and_list));
+    if (and_list.size() > 1) {
+        current_binding_expr = make_unique<BindingExprAnd>(std::move(and_list));
+    } else if (and_list.size() == 1) {
+        current_binding_expr = std::move(and_list[0]);
+    }
 }
 
 
 void Expr2BindingExpr::visit(ExprNot& expr) {
+    auto original_can_push_outside = can_push_outside;
+    can_push_outside = false;
     expr.expr->accept_visitor(*this);
     current_binding_expr = make_unique<BindingExprNot>(std::move(current_binding_expr));
+    can_push_outside = original_can_push_outside;
 }
 
 
 void Expr2BindingExpr::visit(ExprOr& expr) {
+    auto original_can_push_outside = can_push_outside;
+    can_push_outside = false;
     std::vector<std::unique_ptr<BindingExpr>> or_list;
     for (auto& e : expr.or_list) {
         e->accept_visitor(*this);
         or_list.push_back(std::move(current_binding_expr));
     }
     current_binding_expr = make_unique<BindingExprOr>(std::move(or_list));
+    can_push_outside = original_can_push_outside;
 }

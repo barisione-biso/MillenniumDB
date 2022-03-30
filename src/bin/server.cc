@@ -145,6 +145,7 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock) {
             cout << "\nPlan Executed:\n";
             physical_plan->analyze(cout);
             cout << "\nResults: " << result_count << "\n";
+            cout.flush();
 
             // write execution stats in output stream
             os << "---------------------------------------\n";

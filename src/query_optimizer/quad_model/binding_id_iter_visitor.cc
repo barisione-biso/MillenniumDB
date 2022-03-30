@@ -6,7 +6,6 @@
 #include "execution/binding_id_iter/optional_node.h"
 #include "execution/binding_id_iter/empty_binding_id_iter.h"
 #include "execution/binding_id_iter/single_result_binding_id_iter.h"
-
 #include "query_optimizer/quad_model/quad_model.h"
 #include "query_optimizer/quad_model/plan/basic/edge_plan.h"
 #include "query_optimizer/quad_model/plan/basic/label_plan.h"
@@ -24,12 +23,11 @@ constexpr auto MAX_SELINGER_PLANS = 0;
 
 BindingIdIterVisitor::BindingIdIterVisitor(ThreadInfo* thread_info,
                                            const map<Var, VarId>& var2var_id,
-                                           map<VarId, ObjectId>& fixed_vars
-                                        //    const std::vector<std::tuple<Var, std::string, common::ast::Value>>& where_properties
-                                           ) :
+                                           map<VarId, ObjectId>& fixed_vars,
+                                           const vector<tuple<Var, string, QueryElement>>& where_properties) :
     var2var_id       (var2var_id),
     fixed_vars       (fixed_vars),
-    // where_properties (where_properties),
+    where_properties (where_properties),
     thread_info      (thread_info) { }
 
 
@@ -53,17 +51,16 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
         }
     }
 
-    std::set<Var> where_vars;
-    // TODO:
     // Push equalities from where into the basic graph pattern
-    // for (auto& where_property : where_properties) {
-    //     auto var    = std::get<0>(where_property);
-    //     auto key    = std::get<1>(where_property);
-    //     auto value  = std::get<2>(where_property);
+    std::set<Var> where_vars;
+    for (auto& where_property : where_properties) {
+        auto var    = std::get<0>(where_property);
+        auto key    = std::get<1>(where_property);
+        auto value  = std::get<2>(where_property);
 
-    //     where_vars.insert(var);
-    //     op_basic_graph_pattern.add_property(NodeId(var), key, value);
-    // }
+        where_vars.insert(var);
+        op_basic_graph_pattern.add_property(OpProperty(var, key, value));
+    }
 
     vector<unique_ptr<Plan>> base_plans;
 

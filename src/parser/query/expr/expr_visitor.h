@@ -1,6 +1,8 @@
 #pragma once
 
-class ExprAtom;
+class ExprVar;
+class ExprVarProperty;
+class ExprConstant;
 class ExprAddition;
 class ExprDivision;
 class ExprModulo;
@@ -23,7 +25,9 @@ class ExprVisitor {
 public:
     virtual ~ExprVisitor() = default;
 
-    virtual void visit(ExprAtom&) = 0;
+    virtual void visit(ExprVar&) = 0;
+    virtual void visit(ExprVarProperty&) = 0;
+    virtual void visit(ExprConstant&) = 0;
     virtual void visit(ExprAddition&) = 0;
     virtual void visit(ExprDivision&) = 0;
     virtual void visit(ExprModulo&) = 0;

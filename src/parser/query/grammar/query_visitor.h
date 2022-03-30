@@ -562,24 +562,28 @@ public:
     virtual antlrcpp::Any visitExprVar(MDBParser::ExprVarContext* ctx) override {
         auto var = ctx->VARIABLE()->getText();
         if (ctx->KEY() != nullptr) {
-            var += ctx->KEY()->getText();
+            auto key = ctx->KEY()->getText();
+            auto property_var = var + key;
+            key.erase(0, 1); // ".key" to "key"
+            current_expr = std::make_unique<ExprVarProperty>(var, property_var, key);
+        } else {
+            current_expr = std::make_unique<ExprVar>(var);
         }
-        current_expr = std::make_unique<ExprAtom>(var);
         return 0;
     }
 
     virtual antlrcpp::Any visitExprValueExpr(MDBParser::ExprValueExprContext* ctx) override {
-        current_expr = std::make_unique<ExprAtom>(ctx->getText());
+        current_expr = std::make_unique<ExprConstant>(ctx->getText());
         return 0;
     }
 
     virtual antlrcpp::Any visitExprTrueParenthesis(MDBParser::ExprTrueParenthesisContext*) override {
-        current_expr = std::make_unique<ExprAtom>("true");
+        current_expr = std::make_unique<ExprConstant>("true");
         return 0;
     }
 
     virtual antlrcpp::Any visitExprFalseParenthesis(MDBParser::ExprFalseParenthesisContext*) override {
-        current_expr = std::make_unique<ExprAtom>("false");
+        current_expr = std::make_unique<ExprConstant>("false");
         return 0;
     }
 

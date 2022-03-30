@@ -144,28 +144,20 @@ void CheckVarNames::visit(OpMatch& op_match) {
 
 
 /*************************** ExprVisitor ***************************/
-void CheckVarNamesExpr::visit(ExprAtom& expr) {
-    if (expr.atom[0] == '?') {
-        auto pos = expr.atom.find('.');
-        if (pos != std::string::npos) {
-            // var is like "?x.key1" transform into "?x"
-            auto var_without_property = expr.atom.substr(0, pos);
-            // auto var_key              = expr.atom.substr(pos + 1);
-            Var var(var_without_property);
-            if (declared_vars.find(var) == declared_vars.end()) {
-                throw QuerySemanticException("Variable \"" + var_without_property
-                                             + "\" used in WHERE is not declared in MATCH");
-            } else if (declared_path_vars.find(var) != declared_path_vars.end()) {
-                throw QuerySemanticException("Variable \"" + var_without_property
-                                             + "\" is a path and cannot have properties");
-            }
-        } else {
-            // var is like "?x"
-            Var var(expr.atom);
-            if (declared_vars.find(var) == declared_vars.end()) {
-                throw QuerySemanticException("Variable \"" + expr.atom + "\" used in WHERE is not declared in MATCH");
-            }
-        }
+void CheckVarNamesExpr::visit(ExprVar& expr) {
+    if (declared_vars.find(expr.var) == declared_vars.end()) {
+        throw QuerySemanticException("Variable \"" + expr.var.name + "\" used in WHERE is not declared in MATCH");
+    }
+}
+
+
+void CheckVarNamesExpr::visit(ExprVarProperty& expr) {
+    if (declared_vars.find(expr.object_var) == declared_vars.end()) {
+        throw QuerySemanticException("Variable \"" + expr.object_var.name
+                                        + "\" used in WHERE is not declared in MATCH");
+    } else if (declared_path_vars.find(expr.object_var) != declared_path_vars.end()) {
+        throw QuerySemanticException("Variable \"" + expr.object_var.name
+                                        + "\" is a path and cannot have properties");
     }
 }
 

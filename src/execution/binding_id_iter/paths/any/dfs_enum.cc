@@ -9,14 +9,14 @@
 using namespace std;
 using namespace Paths::Any;
 
-DFSIterEnum::DFSIterEnum(ThreadInfo*   thread_info,
-                                 BPlusTree<1>& nodes,
-                                 BPlusTree<4>& type_from_to_edge,
-                                 BPlusTree<4>& to_type_from_edge,
-                                 VarId         path_var,
-                                 Id            start,
-                                 VarId         end,
-                                 PathAutomaton automaton) :
+DFSEnum::DFSEnum(ThreadInfo*   thread_info,
+                 BPlusTree<1>& nodes,
+                 BPlusTree<4>& type_from_to_edge,
+                 BPlusTree<4>& to_type_from_edge,
+                 VarId         path_var,
+                 Id            start,
+                 VarId         end,
+                 PathAutomaton automaton) :
     thread_info       (thread_info),
     nodes             (nodes),
     type_from_to_edge (type_from_to_edge),
@@ -27,7 +27,7 @@ DFSIterEnum::DFSIterEnum(ThreadInfo*   thread_info,
     automaton         (automaton) { }
 
 
-void DFSIterEnum::begin(BindingId& _parent_binding) {
+void DFSEnum::begin(BindingId& _parent_binding) {
     parent_binding = &_parent_binding;
     first_next     = true;
 
@@ -46,7 +46,7 @@ void DFSIterEnum::begin(BindingId& _parent_binding) {
 }
 
 
-bool DFSIterEnum::next() {
+bool DFSEnum::next() {
     // Check if first node is final
     if (first_next) {
         first_next            = false;
@@ -93,7 +93,7 @@ bool DFSIterEnum::next() {
 
 
 robin_hood::unordered_set<Paths::AnyShortest::SearchState, Paths::AnyShortest::SearchStateHasher>::iterator
-  DFSIterEnum::current_state_has_next(DFSSearchState& state) {
+  DFSEnum::current_state_has_next(DFSSearchState& state) {
     if (state.iter == nullptr) { // if is first time that State is explore
         state.current_transition = 0;
         // Check automaton has transitions
@@ -136,7 +136,7 @@ robin_hood::unordered_set<Paths::AnyShortest::SearchState, Paths::AnyShortest::S
 }
 
 
-void DFSIterEnum::set_iter(DFSSearchState& state) {
+void DFSEnum::set_iter(DFSSearchState& state) {
     // Gets current transition object from automaton
     const auto& transition = automaton.transitions[state.state][state.current_transition];
     // Gets iter from correct bpt with transition.inverse
@@ -159,7 +159,7 @@ void DFSIterEnum::set_iter(DFSSearchState& state) {
 }
 
 
-void DFSIterEnum::reset() {
+void DFSEnum::reset() {
     // Empty open and visited
     stack<DFSSearchState> empty;
     open.swap(empty);
@@ -176,12 +176,12 @@ void DFSIterEnum::reset() {
 }
 
 
-void DFSIterEnum::assign_nulls() {
+void DFSEnum::assign_nulls() {
     parent_binding->add(end, ObjectId::get_null());
 }
 
 
-void DFSIterEnum::analyze(std::ostream& os, int indent) const {
+void DFSEnum::analyze(std::ostream& os, int indent) const {
     os << std::string(indent, ' ');
-    os << "Paths::Any::DFSIterEnum(bpt_searches: " << bpt_searches << ", found: " << results_found << ")";
+    os << "Paths::Any::DFSEnum(bpt_searches: " << bpt_searches << ", found: " << results_found << ")";
 }

@@ -19,9 +19,8 @@ class BindingIdIterVisitor : public OpVisitor {
 public:
     BindingIdIterVisitor(ThreadInfo* thread_info,
                          const std::map<Var, VarId>& var2var_id,
-                         std::map<VarId, ObjectId>& fixed_vars
-                        //  const std::vector<std::tuple<Var, std::string, common::ast::Value>>& where_properties
-                         );
+                         std::map<VarId, ObjectId>& fixed_vars,
+                         const std::vector<std::tuple<Var, std::string, QueryElement>>& where_properties);
 
     // const std::vector<query::ast::SelectItem> select_items;
     const std::map<Var, VarId>& var2var_id;
@@ -31,7 +30,7 @@ public:
     std::map<VarId, ObjectId>& fixed_vars;
 
     // Properties from a where clause that are mandatory (so they are pushed into the basic graph pattern)
-    // const std::vector<std::tuple<Var, std::string, common::ast::Value>>& where_properties;
+    const std::vector<std::tuple<Var, std::string, QueryElement>>& where_properties;
 
     // Variables that are assigned when evaluating the basic graph pattern, but the optimizer don't know
     // the value (e.g. OPTIONALS)

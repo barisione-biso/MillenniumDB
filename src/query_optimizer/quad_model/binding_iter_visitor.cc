@@ -169,7 +169,7 @@ void BindingIterVisitor::visit(OpWhere& op_where) {
         }
     }
 
-    // TODO: push negation inside
+    // TODO: push negation inside, simplify constant expressions
 
     // This visitor separates what comes in the Where and what goes into the join
     Expr2BindingExpr expr2binding_expr(var2var_id);
@@ -188,7 +188,7 @@ void BindingIterVisitor::visit(OpWhere& op_where) {
 
 
 void BindingIterVisitor::visit(OpMatch& op_match) {
-    BindingIdIterVisitor id_visitor(thread_info, var2var_id, fixed_vars);
+    BindingIdIterVisitor id_visitor(thread_info, var2var_id, fixed_vars, where_properties);
     op_match.op->accept_visitor(id_visitor);
 
     unique_ptr<BindingIdIter> binding_id_iter_current_root = move(id_visitor.tmp);

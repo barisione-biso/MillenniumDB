@@ -43,7 +43,9 @@ public:
         declared_vars (declared_vars),
         declared_path_vars (declared_path_vars) { }
 
-    void visit(ExprAtom&)            override;
+    void visit(ExprConstant&)        override { }
+    void visit(ExprVar&)             override;
+    void visit(ExprVarProperty&)     override;
     void visit(ExprAddition&)        override;
     void visit(ExprDivision&)        override;
     void visit(ExprModulo&)          override;

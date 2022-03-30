@@ -15,6 +15,7 @@ struct IterTransition {
     bool inverse_direction;
     ObjectId type_id;
     std::unique_ptr<IterTransition> next;
+    // TODO: add edge_id
 
     IterTransition(const SearchState* const previous, bool inverse_direction, ObjectId type_id) :
         previous           (previous),
