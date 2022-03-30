@@ -95,7 +95,7 @@ unique_ptr<BindingIdIter> LeapfrogOptimizer::try_get_iter(ThreadInfo* thread_inf
         var_order.push_back(choosen_var);
     }
 
-    auto enumeration_level = var_order.size();
+    uint_fast32_t enumeration_level = var_order.size();
 
     for (auto enumeration_var : enumeration_vars) {
         var_order.push_back(enumeration_var);
