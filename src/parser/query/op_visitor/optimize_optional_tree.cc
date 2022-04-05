@@ -124,6 +124,11 @@ void OptimizeOptionalTree::visit(OpMatch& op_match) {
 }
 
 
+void OptimizeOptionalTree::visit(OpSet& op_set) {
+    op_set.op->accept_visitor(*this);
+}
+
+
 void OptimizeOptionalTree::visit(OpReturn& op_return) {
     op_return.op->accept_visitor(*this);
 }

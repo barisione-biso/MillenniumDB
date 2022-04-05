@@ -49,20 +49,6 @@ public:
             std::string tmp = str.substr(1, str.size() - 2); // delete first and last characters: ("")
             return QueryElement(std::move(tmp));
         }
-        case '(': {
-            if (str[1] == '_') {
-                std::string tmp = str.substr(3, str.size() - 4); // delete first 3 characters and last character "(_a"...")"
-                if (str[2] == 'a') {
-                    return QueryElement(AnonymousNode(std::stoi(tmp)));
-                } else { // if (str[2] == 'e') {
-                    return QueryElement(Edge(std::stoi(tmp)));
-                }
-            } else {
-                assert(str.size() >= 2);
-                std::string tmp = str.substr(1, str.size() - 2); // delete first and last characters: "("...")"
-                return QueryElement(NamedNode(std::move(tmp)));
-            }
-        }
         case '_': {
             assert(str.size() >= 3);
             std::string tmp = str.substr(2, str.size() - 2); // delete first 2 characters "_a" or "_e"
@@ -74,10 +60,18 @@ public:
             }
         }
         case 't': {
-            return QueryElement(true);
+            if (str == "true") {
+                return QueryElement(true);
+            } else {
+                return QueryElement(NamedNode(str));
+            }
         }
         case 'f': {
-            return QueryElement(false);
+            if (str == "false") {
+                return QueryElement(false);
+            } else {
+                return QueryElement(NamedNode(str));
+            }
         }
         case '0':
         case '1':

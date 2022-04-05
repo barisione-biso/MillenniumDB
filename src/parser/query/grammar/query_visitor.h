@@ -22,6 +22,8 @@ class QueryVisitor : public MDBParserBaseVisitor {
 private:
     int anon_var_counter = 0;
 
+    std::vector<std::pair<Var, QueryElement>> set_items;
+
     std::vector<std::unique_ptr<ReturnItem>> return_items;
 
     std::vector<std::unique_ptr<ReturnItem>> order_by_items;
@@ -56,6 +58,9 @@ public:
 
     virtual antlrcpp::Any visitRoot(MDBParser::RootContext* ctx) override {
         visitChildren(ctx);
+        if (set_items.size() > 0) {
+            current_op = std::make_unique<OpSet>(std::move(current_op), std::move(set_items));
+        }
         return 0;
     }
 
@@ -71,6 +76,12 @@ public:
         return 0;
     }
 
+    virtual antlrcpp::Any visitSetItem(MDBParser::SetItemContext* ctx) override {
+        set_items.push_back({ Var(ctx->VARIABLE()->getText()),
+                              QueryElement::deduce(ctx->fixedNodeInside()->getText())});
+        return 0;
+    }
+
     /* Return */
     virtual antlrcpp::Any visitReturnList(MDBParser::ReturnListContext* ctx) override {
         for (auto& return_expr : ctx->returnItem()) {
@@ -83,9 +94,9 @@ public:
         }
 
         current_op = std::make_unique<OpReturn>(std::move(current_op),
-                                                 std::move(return_items),
-                                                 ctx->K_DISTINCT() != nullptr,
-                                                 limit);
+                                                std::move(return_items),
+                                                ctx->K_DISTINCT() != nullptr,
+                                                limit);
         return 0;
     }
 
@@ -118,9 +129,9 @@ public:
         }
 
         current_op = std::make_unique<OpReturn>(std::move(current_op),
-                                                 std::move(return_items),
-                                                 ctx->K_DISTINCT() != nullptr,
-                                                 limit);
+                                                std::move(return_items),
+                                                ctx->K_DISTINCT() != nullptr,
+                                                limit);
         return visitChildren(ctx);
     }
     /* End Return */
@@ -228,33 +239,7 @@ public:
         return 0;
     }
 
-    virtual antlrcpp::Any visitNodeNamedNode(MDBParser::NodeNamedNodeContext* ctx) override {
-        last_node_id = ctx->named_node()->getText();
-        if (first_element_isolated) {
-            // we assume all posible isolated terms are isolated terms
-            // this won't affect the result of the query, only an extra checking in planning
-            current_basic_graph_pattern->add_isolated_term(last_node_id);
-        }
-        return 0;
-    }
-
-    virtual antlrcpp::Any visitNodeAnonNode(MDBParser::NodeAnonNodeContext* ctx) override {
-        last_node_id = ctx->ANON_NODE()->getText();
-        if (first_element_isolated) {
-            current_basic_graph_pattern->add_isolated_term(last_node_id);
-        }
-        return 0;
-    }
-
-    virtual antlrcpp::Any visitNodeEdgeNode(MDBParser::NodeEdgeNodeContext* ctx) override {
-        last_node_id = ctx->EDGE_NODE()->getText();
-        if (first_element_isolated) {
-            current_basic_graph_pattern->add_isolated_term(last_node_id);
-        }
-        return 0;
-    }
-
-    virtual antlrcpp::Any visitNodeValue(MDBParser::NodeValueContext* ctx) override {
+    virtual antlrcpp::Any visitFixedNodeInside(MDBParser::FixedNodeInsideContext* ctx) override {
         last_node_id = ctx->value()->getText();
         if (first_element_isolated) {
             current_basic_graph_pattern->add_isolated_term(last_node_id);
@@ -310,24 +295,19 @@ public:
         return 0;
     }
 
-    virtual antlrcpp::Any visitLeftEdge(MDBParser::LeftEdgeContext* ctx) override {
+    virtual antlrcpp::Any visitEdge(MDBParser::EdgeContext* ctx) override {
         if (ctx->edgeInside() == nullptr) {
             saved_edge_id = "?_" + std::to_string(anon_var_counter++);
             saved_type_id = "?_" + std::to_string(anon_var_counter++);
         }
         visitChildren(ctx);
-        current_basic_graph_pattern->add_edge(OpEdge(last_node_id, saved_node_id, saved_type_id, saved_edge_id));
-        return 0;
-    }
-
-    virtual antlrcpp::Any visitRightEdge(MDBParser::RightEdgeContext* ctx) override {
-        if (ctx->edgeInside() == nullptr) {
-            saved_edge_id = "?_" + std::to_string(anon_var_counter++);
-            saved_type_id = "?_" + std::to_string(anon_var_counter++);
+        if (ctx->GT() != nullptr) {
+            // right direction
+            current_basic_graph_pattern->add_edge(OpEdge(last_node_id, saved_node_id, saved_type_id, saved_edge_id));
         } else {
-            visitChildren(ctx);
+            // left direction
+            current_basic_graph_pattern->add_edge(OpEdge(saved_node_id, last_node_id, saved_type_id, saved_edge_id));
         }
-        current_basic_graph_pattern->add_edge(OpEdge(saved_node_id, last_node_id, saved_type_id, saved_edge_id));
         return 0;
     }
 
@@ -373,8 +353,7 @@ public:
     }
     /* End Graph Pattern */
 
-    /* Paths */
-    virtual antlrcpp::Any visitLeftPath(MDBParser::LeftPathContext* ctx) override {
+    virtual antlrcpp::Any visitPath(MDBParser::PathContext* ctx) override {
         std::string path_var;
         if (ctx->VARIABLE() == nullptr) {
             path_var = "?_" + std::to_string(anon_var_counter++);
@@ -395,34 +374,15 @@ public:
 
         current_path_inverse = false;
         ctx->pathAlternatives()->accept(this);
-        current_basic_graph_pattern->add_path(
-          OpPath(path_var, last_node_id, saved_node_id, semantic, move(current_path)));
-        return 0;
-    }
-
-    virtual antlrcpp::Any visitRightPath(MDBParser::RightPathContext* ctx) override {
-        std::string path_var;
-        if (ctx->VARIABLE() == nullptr) {
-            path_var = "?_" + std::to_string(anon_var_counter++);
+        if (ctx->GT() != nullptr) {
+            // right direction
+            current_basic_graph_pattern->add_path(
+                OpPath(path_var, saved_node_id, last_node_id, semantic, move(current_path)));
         } else {
-            path_var = ctx->VARIABLE()->getText();
+            // left direction
+            current_basic_graph_pattern->add_path(
+                OpPath(path_var, last_node_id, saved_node_id, semantic, move(current_path)));
         }
-
-        PathSemantic semantic = PathSemantic::ALL;
-        if (ctx->pathType() == nullptr) {
-            semantic = PathSemantic::ANY;
-        } else {
-            auto semantic_str = ctx->pathType()->getText();
-            std::transform(semantic_str.begin(), semantic_str.end(), semantic_str.begin(), asciitolower);
-            if (semantic_str == "any") {
-                semantic = PathSemantic::ANY;
-            }
-        }
-
-        current_path_inverse = false;
-        ctx->pathAlternatives()->accept(this);
-        current_basic_graph_pattern->add_path(
-          OpPath(path_var, saved_node_id, last_node_id, semantic, move(current_path)));
         return 0;
     }
 
@@ -554,7 +514,7 @@ public:
 
     /* Expressions */
     virtual antlrcpp::Any visitWhereStatement(MDBParser::WhereStatementContext* ctx) override {
-        ctx->expr()->accept(this);
+        ctx->conditionalOrExpr()->accept(this);
         current_op = std::make_unique<OpWhere>(std::move(current_op), std::move(current_expr));
         return 0;
     }
@@ -574,16 +534,6 @@ public:
 
     virtual antlrcpp::Any visitExprValueExpr(MDBParser::ExprValueExprContext* ctx) override {
         current_expr = std::make_unique<ExprConstant>(ctx->getText());
-        return 0;
-    }
-
-    virtual antlrcpp::Any visitExprTrueParenthesis(MDBParser::ExprTrueParenthesisContext*) override {
-        current_expr = std::make_unique<ExprConstant>("true");
-        return 0;
-    }
-
-    virtual antlrcpp::Any visitExprFalseParenthesis(MDBParser::ExprFalseParenthesisContext*) override {
-        current_expr = std::make_unique<ExprConstant>("false");
         return 0;
     }
 

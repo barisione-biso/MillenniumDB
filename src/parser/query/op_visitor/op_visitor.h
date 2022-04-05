@@ -13,6 +13,7 @@ class OpOrderBy;
 class OpPath;
 class OpProperty;
 class OpReturn;
+class OpSet;
 class OpWhere;
 
 class OpVisitor {
@@ -32,5 +33,6 @@ public:
     virtual void visit(OpPath&)              = 0;
     virtual void visit(OpProperty&)          = 0;
     virtual void visit(OpReturn&)            = 0;
+    virtual void visit(OpSet&)               = 0;
     virtual void visit(OpWhere&)             = 0;
 };

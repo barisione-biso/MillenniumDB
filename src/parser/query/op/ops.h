@@ -13,4 +13,5 @@
 #include "parser/query/op/op_match.h"
 #include "parser/query/op/op_order_by.h"
 #include "parser/query/op/op_return.h"
+#include "parser/query/op/op_set.h"
 #include "parser/query/op/op_where.h"

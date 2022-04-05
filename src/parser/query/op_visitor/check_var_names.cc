@@ -107,6 +107,11 @@ void CheckVarNames::visit(OpWhere& op_where) {
 }
 
 
+void CheckVarNames::visit(OpSet& op_set) {
+    op_set.op->accept_visitor(*this);
+}
+
+
 void CheckVarNames::visit(OpGroupBy& op_group_by) {
     // TODO: implement when GroupBy is ready
     op_group_by.op->accept_visitor(*this);

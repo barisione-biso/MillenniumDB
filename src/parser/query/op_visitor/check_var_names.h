@@ -22,6 +22,7 @@ public:
     void visit(OpOptional&)          override;
     void visit(OpOrderBy&)           override;
     void visit(OpReturn&)            override;
+    void visit(OpSet&)               override;
     void visit(OpWhere&)             override;
 
     void visit(OpEdge&)              override { }

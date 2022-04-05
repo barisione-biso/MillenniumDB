@@ -43,6 +43,6 @@ public:
             os << *items[i] << (ascending_order[i] ? " ASC" : " DESC");
         }
         os << ")\n";
-        return op->print_to_ostream(os, indent + 2);
+        return op->print_to_ostream(os, indent);
     }
 };

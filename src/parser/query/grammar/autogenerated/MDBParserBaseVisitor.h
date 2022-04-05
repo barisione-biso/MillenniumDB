@@ -23,6 +23,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual antlrcpp::Any visitSetStatement(MDBParser::SetStatementContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual antlrcpp::Any visitMatchStatement(MDBParser::MatchStatementContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -44,6 +48,10 @@ public:
   }
 
   virtual antlrcpp::Any visitReturnAll(MDBParser::ReturnAllContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitSetItem(MDBParser::SetItemContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -95,11 +103,7 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitLeftPath(MDBParser::LeftPathContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitRightPath(MDBParser::RightPathContext *ctx) override {
+  virtual antlrcpp::Any visitPath(MDBParser::PathContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -131,27 +135,15 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitNodeNamedNode(MDBParser::NodeNamedNodeContext *ctx) override {
+  virtual antlrcpp::Any visitFixedNode(MDBParser::FixedNodeContext *ctx) override {
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitNodeAnonNode(MDBParser::NodeAnonNodeContext *ctx) override {
+  virtual antlrcpp::Any visitFixedNodeInside(MDBParser::FixedNodeInsideContext *ctx) override {
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitNodeEdgeNode(MDBParser::NodeEdgeNodeContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitNodeValue(MDBParser::NodeValueContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitLeftEdge(MDBParser::LeftEdgeContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitRightEdge(MDBParser::RightEdgeContext *ctx) override {
+  virtual antlrcpp::Any visitEdge(MDBParser::EdgeContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -171,10 +163,6 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitNamed_node(MDBParser::Named_nodeContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
   virtual antlrcpp::Any visitIdentifier(MDBParser::IdentifierContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -188,10 +176,6 @@ public:
   }
 
   virtual antlrcpp::Any visitValue(MDBParser::ValueContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitExpr(MDBParser::ExprContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -232,14 +216,6 @@ public:
   }
 
   virtual antlrcpp::Any visitExprParenthesis(MDBParser::ExprParenthesisContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitExprTrueParenthesis(MDBParser::ExprTrueParenthesisContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitExprFalseParenthesis(MDBParser::ExprFalseParenthesisContext *ctx) override {
     return visitChildren(ctx);
   }
 

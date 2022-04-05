@@ -52,8 +52,9 @@ public:
     void visit(OpGroupBy&)  override { }
     void visit(OpMatch&)    override { }
     void visit(OpOrderBy&)  override { }
-    void visit(OpWhere&)    override { }
     void visit(OpReturn&)   override { }
+    void visit(OpSet&)      override { }
+    void visit(OpWhere&)    override { }
 
     /* These are processed inside OpBasicGraphPattern */
     void visit(OpEdge&)         override { }

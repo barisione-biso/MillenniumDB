@@ -32,6 +32,11 @@ void CheckWellDesigned::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
 }
 
 
+void CheckWellDesigned::visit(OpSet& op_set) {
+    op_set.op->accept_visitor(*this);
+}
+
+
 void CheckWellDesigned::visit(OpMatch& op_match) {
     op_match.op->accept_visitor(*this);
 }

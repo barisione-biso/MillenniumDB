@@ -4,15 +4,17 @@ options {
 	tokenVocab = MDBLexer;
 }
 
-root: matchStatement whereStatement? groupByStatement? orderByStatement? returnStatement EOF
+root: setStatement? matchStatement whereStatement? groupByStatement? orderByStatement? returnStatement EOF
 |     describeStatement EOF
 ;
 
-describeStatement: K_DESCRIBE fixedNode;
+describeStatement: K_DESCRIBE fixedNodeInside;
+
+setStatement: K_SET setItem (',' setItem)*;
 
 matchStatement: K_MATCH graphPattern;
 
-whereStatement: K_WHERE expr;
+whereStatement: K_WHERE conditionalOrExpr;
 
 groupByStatement: K_GROUP K_BY groupByItem (',' groupByItem)*;
 
@@ -21,6 +23,8 @@ orderByStatement: K_ORDER K_BY orderByItem (',' orderByItem)*;
 returnStatement: K_RETURN K_DISTINCT? returnItem (',' returnItem)* (K_LIMIT UNSIGNED_INTEGER)? # returnList
 |                K_RETURN K_DISTINCT? '*' (K_LIMIT UNSIGNED_INTEGER)? # returnAll
 ;
+
+setItem: VARIABLE '=' fixedNodeInside;
 
 returnItem: VARIABLE KEY? # returnItemVar
 |           aggregateFunc '(' VARIABLE KEY? ')' # returnItemAgg
@@ -48,8 +52,8 @@ basicPattern: linearPattern (',' linearPattern)*;
 
 linearPattern: node ((edge | path) node)*;
 
-path:'<=' '[' pathType? VARIABLE? pathAlternatives']' '=' # leftPath
-|    '=' '[' pathType? VARIABLE? pathAlternatives']' '=' '>' # rightPath
+path:'<=' '[' pathType? VARIABLE? pathAlternatives']' '='
+|    '=' '[' pathType? VARIABLE? pathAlternatives']' '=' '>'
 ;
 
 pathAlternatives: pathSequence ('|' pathSequence)*;
@@ -72,14 +76,12 @@ node: fixedNode
 |     varNode
 ;
 
-fixedNode: named_node # nodeNamedNode
-|          ANON_NODE  # nodeAnonNode
-|          EDGE_NODE  # nodeEdgeNode
-|          value      # nodeValue
-;
+fixedNode: '(' fixedNodeInside ')';
 
-edge: '<' ('-' edgeInside)? '-' # leftEdge
-|     '-' (edgeInside '-')? '>' # rightEdge
+fixedNodeInside: identifier | ANON_ID | EDGE_ID | value;
+
+edge: '<' ('-' edgeInside)? '-'
+|     '-' (edgeInside '-')? '>'
 ;
 
 edgeInside: '[' (VARIABLE | EDGE_ID)? (TYPE | TYPE_VAR)? properties? ']';
@@ -90,8 +92,6 @@ properties: '{' property (',' property)* '}';
 
 property: identifier (':' value | TRUE_PROP | FALSE_PROP);
 
-named_node: '(' identifier ')';
-
 identifier: NAME | keyword;
 
 boolValue: K_TRUE | K_FALSE;
@@ -100,24 +100,17 @@ numericValue: ('+' | '-')? (UNSIGNED_INTEGER | UNSIGNED_FLOAT);
 
 value: numericValue | STRING | boolValue;
 
-expr: conditionalOrExpr
-;
+conditionalOrExpr: conditionalAndExpr (K_OR conditionalAndExpr)*;
 
-conditionalOrExpr: conditionalAndExpr (K_OR conditionalAndExpr)*
-;
-
-conditionalAndExpr: comparisonExpr (K_AND comparisonExpr)*
-;
+conditionalAndExpr: comparisonExpr (K_AND comparisonExpr)*;
 
 comparisonExpr: aditiveExpr (op=('=='|'!='|'<'|'>'|'<='|'>=') aditiveExpr)? # comparisonExprOp
 |               aditiveExpr K_IS K_NOT? exprTypename # comparisonExprIs
 ;
 
-aditiveExpr: multiplicativeExpr (op+=('+'|'-') multiplicativeExpr)*
-;
+aditiveExpr: multiplicativeExpr (op+=('+'|'-') multiplicativeExpr)*;
 
-multiplicativeExpr: unaryExpr (op+=('*'|'/'|'%') unaryExpr)*
-;
+multiplicativeExpr: unaryExpr (op+=('*'|'/'|'%') unaryExpr)*;
 
 unaryExpr: K_NOT unaryExpr
 |          '+' unaryExpr
@@ -127,9 +120,7 @@ unaryExpr: K_NOT unaryExpr
 
 atomicExpr:  VARIABLE KEY? # exprVar
 |            valueExpr # exprValueExpr
-|            '(' expr ')' # exprParenthesis
-|            TRUE_PARENTHESIS # exprTrueParenthesis
-|            FALSE_PARENTHESIS # exprFalseParenthesis
+|            '(' conditionalOrExpr ')' # exprParenthesis
 ;
 
 valueExpr: UNSIGNED_INTEGER | UNSIGNED_FLOAT | STRING | boolValue;
@@ -166,6 +157,7 @@ keyword: K_ALL
 | 	     K_OR
 | 	     K_NOT
 | 	     K_NULL
+| 	     K_SET
 | 	     K_SUM
 | 	     K_STRING
 | 	     K_RETURN

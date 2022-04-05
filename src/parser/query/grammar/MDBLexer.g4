@@ -28,6 +28,7 @@ K_ORDER: O R D E R;
 K_OR: O R;
 K_NOT: N O T;
 K_NULL: N U L L;
+K_SET: S E T;
 K_SUM: S U M;
 K_STRING: S T R I N G;
 K_RETURN: R E T U R N;
@@ -37,12 +38,8 @@ K_WHERE: W H E R E;
 // Special cases: true and false are not a valid identifier
 TRUE_PROP: ':' 'true';
 FALSE_PROP: ':' 'false';
-TRUE_PARENTHESIS: '(' 'true' ')';
-FALSE_PARENTHESIS: '(' 'false' ')';
 
-ANON_NODE: '(' '_a' [1-9][0-9]* ')';
-EDGE_NODE: '(' '_e' [1-9][0-9]* ')';
-
+ANON_ID: '_a' [1-9][0-9]*;
 EDGE_ID: '_e' [1-9][0-9]*;
 
 KEY: '.' [A-Za-z] [A-Za-z0-9_]*;

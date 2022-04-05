@@ -12,7 +12,7 @@
 #include "base/ids/object_id.h"
 #include "base/query/var.h"
 #include "parser/query/expr/expr_visitor.h"
-#include "execution/binding_iter/binding_expr/binding_expr.h" // TODO: esto tal vez me indica que deberia mover esta clase
+#include "execution/binding_iter/binding_expr/binding_expr.h"
 
 // This visitor returns nullptr if condition is pushed outside
 class Expr2BindingExpr : public ExprVisitor {
@@ -20,8 +20,6 @@ public:
     const std::map<Var, VarId>& var2var_ids;
 
     std::unique_ptr<BindingExpr> current_binding_expr;
-
-    std::map<VarId, ObjectId> equalities;
 
     std::vector<std::tuple<Var, std::string, QueryElement>> properties;
 

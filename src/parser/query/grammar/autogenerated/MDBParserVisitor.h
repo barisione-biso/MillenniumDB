@@ -23,6 +23,8 @@ public:
 
     virtual antlrcpp::Any visitDescribeStatement(MDBParser::DescribeStatementContext *context) = 0;
 
+    virtual antlrcpp::Any visitSetStatement(MDBParser::SetStatementContext *context) = 0;
+
     virtual antlrcpp::Any visitMatchStatement(MDBParser::MatchStatementContext *context) = 0;
 
     virtual antlrcpp::Any visitWhereStatement(MDBParser::WhereStatementContext *context) = 0;
@@ -34,6 +36,8 @@ public:
     virtual antlrcpp::Any visitReturnList(MDBParser::ReturnListContext *context) = 0;
 
     virtual antlrcpp::Any visitReturnAll(MDBParser::ReturnAllContext *context) = 0;
+
+    virtual antlrcpp::Any visitSetItem(MDBParser::SetItemContext *context) = 0;
 
     virtual antlrcpp::Any visitReturnItemVar(MDBParser::ReturnItemVarContext *context) = 0;
 
@@ -59,9 +63,7 @@ public:
 
     virtual antlrcpp::Any visitLinearPattern(MDBParser::LinearPatternContext *context) = 0;
 
-    virtual antlrcpp::Any visitLeftPath(MDBParser::LeftPathContext *context) = 0;
-
-    virtual antlrcpp::Any visitRightPath(MDBParser::RightPathContext *context) = 0;
+    virtual antlrcpp::Any visitPath(MDBParser::PathContext *context) = 0;
 
     virtual antlrcpp::Any visitPathAlternatives(MDBParser::PathAlternativesContext *context) = 0;
 
@@ -77,17 +79,11 @@ public:
 
     virtual antlrcpp::Any visitNode(MDBParser::NodeContext *context) = 0;
 
-    virtual antlrcpp::Any visitNodeNamedNode(MDBParser::NodeNamedNodeContext *context) = 0;
+    virtual antlrcpp::Any visitFixedNode(MDBParser::FixedNodeContext *context) = 0;
 
-    virtual antlrcpp::Any visitNodeAnonNode(MDBParser::NodeAnonNodeContext *context) = 0;
+    virtual antlrcpp::Any visitFixedNodeInside(MDBParser::FixedNodeInsideContext *context) = 0;
 
-    virtual antlrcpp::Any visitNodeEdgeNode(MDBParser::NodeEdgeNodeContext *context) = 0;
-
-    virtual antlrcpp::Any visitNodeValue(MDBParser::NodeValueContext *context) = 0;
-
-    virtual antlrcpp::Any visitLeftEdge(MDBParser::LeftEdgeContext *context) = 0;
-
-    virtual antlrcpp::Any visitRightEdge(MDBParser::RightEdgeContext *context) = 0;
+    virtual antlrcpp::Any visitEdge(MDBParser::EdgeContext *context) = 0;
 
     virtual antlrcpp::Any visitEdgeInside(MDBParser::EdgeInsideContext *context) = 0;
 
@@ -97,8 +93,6 @@ public:
 
     virtual antlrcpp::Any visitProperty(MDBParser::PropertyContext *context) = 0;
 
-    virtual antlrcpp::Any visitNamed_node(MDBParser::Named_nodeContext *context) = 0;
-
     virtual antlrcpp::Any visitIdentifier(MDBParser::IdentifierContext *context) = 0;
 
     virtual antlrcpp::Any visitBoolValue(MDBParser::BoolValueContext *context) = 0;
@@ -106,8 +100,6 @@ public:
     virtual antlrcpp::Any visitNumericValue(MDBParser::NumericValueContext *context) = 0;
 
     virtual antlrcpp::Any visitValue(MDBParser::ValueContext *context) = 0;
-
-    virtual antlrcpp::Any visitExpr(MDBParser::ExprContext *context) = 0;
 
     virtual antlrcpp::Any visitConditionalOrExpr(MDBParser::ConditionalOrExprContext *context) = 0;
 
@@ -128,10 +120,6 @@ public:
     virtual antlrcpp::Any visitExprValueExpr(MDBParser::ExprValueExprContext *context) = 0;
 
     virtual antlrcpp::Any visitExprParenthesis(MDBParser::ExprParenthesisContext *context) = 0;
-
-    virtual antlrcpp::Any visitExprTrueParenthesis(MDBParser::ExprTrueParenthesisContext *context) = 0;
-
-    virtual antlrcpp::Any visitExprFalseParenthesis(MDBParser::ExprFalseParenthesisContext *context) = 0;
 
     virtual antlrcpp::Any visitValueExpr(MDBParser::ValueExprContext *context) = 0;
 

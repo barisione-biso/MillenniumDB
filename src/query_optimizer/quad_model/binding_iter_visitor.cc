@@ -1,6 +1,5 @@
 #include "binding_iter_visitor.h"
 
-#include "parser/query/expr/expr_to_binding_condition.h"
 #include "execution/binding_id_iter/distinct_id_hash.h"
 #include "execution/binding_id_iter/index_scan.h"
 #include "execution/binding_id_iter/optional_node.h"
@@ -17,6 +16,7 @@
 #include "execution/binding_iter/distinct_ordered.h"
 #include "execution/binding_iter/distinct_hash.h"
 #include "query_optimizer/quad_model/binding_id_iter_visitor.h"
+#include "query_optimizer/quad_model/expr/expr_to_binding_condition.h"
 #include "query_optimizer/quad_model/quad_model.h"
 
 using namespace std;
@@ -176,7 +176,6 @@ void BindingIterVisitor::visit(OpWhere& op_where) {
     op_where.expr->accept_visitor(expr2binding_expr);
 
     auto binding_expr = std::move(expr2binding_expr.current_binding_expr);
-    fixed_vars        = std::move(expr2binding_expr.equalities);
     where_properties  = std::move(expr2binding_expr.properties);
 
     op_where.op->accept_visitor(*this);
@@ -269,3 +268,12 @@ void BindingIterVisitor::visit(OpGroupBy& op_group_by) {
     // TODO: implement this when GroupBy are supported
     op_group_by.op->accept_visitor(*this);
 }
+
+void BindingIterVisitor::visit(OpSet& op_set) {
+    for (auto& set_item : op_set.set_items) {
+        fixed_vars.insert({ get_var_id(set_item.first), 
+                            quad_model.get_object_id(set_item.second.to_graph_object())});
+    }
+    op_set.op->accept_visitor(*this);
+}
+
