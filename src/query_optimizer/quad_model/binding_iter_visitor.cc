@@ -8,6 +8,7 @@
 #include "execution/binding_id_iter/scan_ranges/scan_range.h"
 #include "execution/binding_id_iter/scan_ranges/term.h"
 #include "execution/binding_id_iter/scan_ranges/unassigned_var.h"
+#include "execution/binding_iter/aggregation.h"
 #include "execution/binding_iter/describe.h"
 #include "execution/binding_iter/match.h"
 #include "execution/binding_iter/order_by.h"
@@ -16,6 +17,7 @@
 #include "execution/binding_iter/distinct_ordered.h"
 #include "execution/binding_iter/distinct_hash.h"
 #include "query_optimizer/quad_model/binding_id_iter_visitor.h"
+#include "query_optimizer/quad_model/return_item_visitor_impl.h"
 #include "query_optimizer/quad_model/expr/expr_to_binding_condition.h"
 #include "query_optimizer/quad_model/quad_model.h"
 
@@ -115,26 +117,43 @@ void BindingIterVisitor::visit(OpDescribe& op_describe) {
 
 
 void BindingIterVisitor::visit(OpReturn& op_return) {
+    std::map<VarId, std::unique_ptr<Agg>> aggregates;
+
     // need to save the return items to be able to push optional properties from select to match in visit(OpMatch&)
+
+    ReturnItemVisitorImpl return_item_visitor(var_properties, projection_vars, aggregates, *this);
     for (const auto& return_item : op_return.return_items) {
-        string var_str = return_item->get_var().name;
-
-        auto pos = var_str.find('.');
-        if (pos != string::npos) {
-            // we split something like "?x1.key1" into "?x" and "key1"
-            auto var_without_property = var_str.substr(0, pos);
-            auto var_key              = var_str.substr(pos + 1);
-            var_properties.insert({ Var(var_without_property), var_key });
-        }
-
-        Var var(var_str);
-        auto var_id = get_var_id(var);
-        projection_vars.push_back(make_pair(var, var_id));
+        return_item->accept_visitor(return_item_visitor);
     }
 
     distinct_into_id = op_return.distinct; // OpWhere may change this value when accepting visitor
+    if (aggregates.size() > 0) {
+        distinct_into_id = false; // TODO: when we want to push distinct into Ids?
+    }
 
     op_return.op->accept_visitor(*this);
+
+    if (aggregates.size() > 0) {
+        std::vector<VarId> group_var;
+        if (true) { // TODO: contition meand to ask if group by is present
+            // No GROUP BY: RETURN can have only aggregates
+            for (const auto& return_item : op_return.return_items) {
+                auto varname = return_item->get_var().name; // TODO: should check in a more elegant way
+                if (varname[0] == '?') {
+                    throw QuerySemanticException("Return Item "
+                                                 + varname
+                                                 + " incompatible with aggregates");
+                }
+            }
+            tmp = make_unique<Aggregation>(move(tmp),
+                                           move(aggregates),
+                                           move(group_var));
+
+        } else {
+            // GROUP BY present: RETURN can have only grouped vars and aggregates over other vars
+
+        }
+    }
 
     if (op_return.distinct) {
         std::vector<VarId> projected_var_ids;
@@ -264,16 +283,16 @@ void BindingIterVisitor::visit(OpOrderBy& op_order_by) {
 }
 
 
-void BindingIterVisitor::visit(OpGroupBy& op_group_by) {
+void BindingIterVisitor::visit(OpGroupBy& /*op_group_by*/) {
+    throw NotSupportedException("GROUP BY");
     // TODO: implement this when GroupBy are supported
-    op_group_by.op->accept_visitor(*this);
+    // op_group_by.op->accept_visitor(*this);
 }
 
 void BindingIterVisitor::visit(OpSet& op_set) {
     for (auto& set_item : op_set.set_items) {
-        fixed_vars.insert({ get_var_id(set_item.first), 
+        fixed_vars.insert({ get_var_id(set_item.first),
                             quad_model.get_object_id(set_item.second.to_graph_object())});
     }
     op_set.op->accept_visitor(*this);
 }
-

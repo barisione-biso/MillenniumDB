@@ -161,10 +161,10 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
     if (tmp == nullptr) {
         unique_ptr<Plan> root_plan = nullptr;
         if (base_plans.size() <= MAX_SELINGER_PLANS) {
-            SelingerOptimizer selinger_optimizer(move(base_plans), var_names);
+            SelingerOptimizer selinger_optimizer(base_plans, var_names);
             root_plan = selinger_optimizer.get_plan();
         } else {
-            root_plan = GreedyOptimizer::get_plan(move(base_plans), var_names);
+            root_plan = GreedyOptimizer::get_plan(base_plans, var_names);
         }
 
         std::cout << "\nPlan Generated:\n";

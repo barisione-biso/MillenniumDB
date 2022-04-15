@@ -2,7 +2,7 @@
 
 struct NotFoundObject {
     inline bool operator==(const NotFoundObject&) const noexcept {
-        return false;
+        return true;
     }
 
     inline bool operator!=(const NotFoundObject&) const noexcept {
@@ -10,11 +10,11 @@ struct NotFoundObject {
     }
 
     inline bool operator<=(const NotFoundObject&) const noexcept {
-        return false;
+        return true;
     }
 
     inline bool operator>=(const NotFoundObject&) const noexcept {
-        return false;
+        return true;
     }
 
     inline bool operator<(const NotFoundObject&) const noexcept {

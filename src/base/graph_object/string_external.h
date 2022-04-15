@@ -21,18 +21,18 @@ public:
     }
 
     inline bool operator<=(const StringExternal& rhs) const noexcept {
-        return this->to_string() != rhs.to_string();
+        return this->to_string() <= rhs.to_string();
     }
 
     inline bool operator>=(const StringExternal& rhs) const noexcept {
-        return this->to_string() != rhs.to_string();
+        return this->to_string() >= rhs.to_string();
     }
 
     inline bool operator<(const StringExternal& rhs) const noexcept {
-        return this->to_string() != rhs.to_string();
+        return this->to_string() < rhs.to_string();
     }
 
     inline bool operator>(const StringExternal& rhs) const noexcept {
-        return this->to_string() != rhs.to_string();
+        return this->to_string() > rhs.to_string();
     }
 };

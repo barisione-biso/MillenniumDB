@@ -53,7 +53,7 @@ struct CombinationEnumerator {
 };
 
 
-SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<Plan>> base_plans,
+SelingerOptimizer::SelingerOptimizer(const vector<unique_ptr<Plan>>& base_plans,
                                      const std::vector<std::string>& var_names) :
     plans_size (base_plans.size())
 {
@@ -65,7 +65,7 @@ SelingerOptimizer::SelingerOptimizer(vector<unique_ptr<Plan>> base_plans,
         auto arr_size = nCr(plans_size, i+1);
 
         optimal_plans[i] = new unique_ptr<Plan>[arr_size];
-        optimal_plans[0][i] = move(base_plans[i]);
+        optimal_plans[0][i] = base_plans[i]->duplicate();
         optimal_plans[0][i]->print(std::cout, 0, var_names);
         cout << "\n";
     }

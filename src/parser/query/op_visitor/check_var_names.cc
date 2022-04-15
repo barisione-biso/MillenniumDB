@@ -3,37 +3,15 @@
 #include "base/exceptions.h"
 #include "parser/query/op/ops.h"
 #include "parser/query/expr/exprs.h"
+#include "parser/query/op_visitor/return_item_check_var_name.h"
 
 void CheckVarNames::visit(OpReturn& op_return) {
     op_return.op->accept_visitor(*this);
 
+    ReturnItemCheckVarName return_item_visitor(declared_vars, declared_path_vars, op_return.distinct);
     for (auto& return_item : op_return.return_items) {
-        Var var = return_item->get_var();
-        auto pos = var.name.find('.');
-        if (pos != std::string::npos) {
-            // var is like "?x.key1" transform into "?x"
-            Var var_without_property(var.name.substr(0, pos));
-            if (declared_vars.find(var_without_property) == declared_vars.end()) {
-                throw QuerySemanticException("Variable \"" + var_without_property.name
-                                             + "\" used in RETURN (property) is not declared in MATCH");
-            } else if (declared_path_vars.find(var_without_property) != declared_path_vars.end()) {
-                throw QuerySemanticException("Variable \"" + var_without_property.name
-                                             + "\" is a path and cannot have properties");
-            }
-        } else {
-            // var is like "?x"
-            if (declared_vars.find(var) == declared_vars.end()) {
-                throw QuerySemanticException("Variable \"" + var.name + "\" used in RETURN is not declared in MATCH");
-            }
-        }
-        if (op_return.distinct) {
-            if (declared_path_vars.find(var) != declared_path_vars.end()) {
-                throw QuerySemanticException("DISTINCT of path variable \"" + var.name
-                                             + "\" is not supported yet");
-            }
-        }
+        return_item->accept_visitor(return_item_visitor);
     }
-
 }
 
 

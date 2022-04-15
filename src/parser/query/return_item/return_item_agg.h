@@ -16,6 +16,15 @@ public:
         return var;
     }
 
+    std::set<Var> get_vars() const override {
+        std::set<Var> res { var, Var(aggregate_func + '(' + var.name + ')') };
+        return res;
+    }
+
+    void accept_visitor(ReturnItemVisitor& visitor) override {
+        visitor.visit(*this);
+    }
+
     std::ostream& print_to_ostream(std::ostream& os, int indent = 0) const override {
         return os << std::string(' ', indent) << aggregate_func << '(' << var << ')';
     }

@@ -7,10 +7,16 @@
 
 using namespace std;
 
-unique_ptr<Plan> GreedyOptimizer::get_plan(vector<unique_ptr<Plan>> base_plans,
+unique_ptr<Plan> GreedyOptimizer::get_plan(const vector<unique_ptr<Plan>>& real_base_plans,
                                            const vector<string>& var_names)
 {
-    const auto base_plans_size = base_plans.size();
+    const auto base_plans_size = real_base_plans.size();
+
+    // We have to duplicate the base plans to not affect them outside this function
+    vector<unique_ptr<Plan>> base_plans;
+    for (auto& plan : real_base_plans) {
+        base_plans.push_back(plan->duplicate());
+    }
     assert(base_plans_size > 0);
 
     // choose the first scan

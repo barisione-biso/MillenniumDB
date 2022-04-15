@@ -107,12 +107,23 @@ public:
 
     virtual antlrcpp::Any visitReturnItemAgg(MDBParser::ReturnItemAggContext* ctx) override {
         return visitChildren(ctx);
+        // TODO:
         // return 0;
     }
 
     virtual antlrcpp::Any visitReturnItemCount(MDBParser::ReturnItemCountContext* ctx) override {
-        return visitChildren(ctx);
-        // return 0;
+        std::string inside_var;
+        if (ctx->VARIABLE() != nullptr) {
+            inside_var = ctx->VARIABLE()->getText();
+            if (ctx->KEY() != nullptr) {
+                inside_var += ctx->KEY()->getText();
+            }
+        } else {
+            inside_var = "*";
+        }
+        return_items.push_back(std::make_unique<ReturnItemCount>(ctx->K_DISTINCT() != nullptr,
+                                                                 std::move(inside_var)));
+        return 0;
     }
 
     virtual antlrcpp::Any visitReturnAll(MDBParser::ReturnAllContext* ctx) override {
@@ -173,7 +184,7 @@ public:
         if (ctx->KEY() != nullptr) {
             var += ctx->KEY()->getText();
         }
-        order_by_items.push_back(std::make_unique<ReturnItemCount>(ctx->K_DISTINCT() != nullptr, Var(var)));
+        order_by_items.push_back(std::make_unique<ReturnItemCount>(ctx->K_DISTINCT() != nullptr, std::move(var)));
         order_by_ascending_order.push_back(ctx->K_DESC() == nullptr);
         return 0;
     }
@@ -240,7 +251,7 @@ public:
     }
 
     virtual antlrcpp::Any visitFixedNodeInside(MDBParser::FixedNodeInsideContext* ctx) override {
-        last_node_id = ctx->value()->getText();
+        last_node_id = ctx->getText();
         if (first_element_isolated) {
             current_basic_graph_pattern->add_isolated_term(last_node_id);
         }
@@ -303,10 +314,10 @@ public:
         visitChildren(ctx);
         if (ctx->GT() != nullptr) {
             // right direction
-            current_basic_graph_pattern->add_edge(OpEdge(last_node_id, saved_node_id, saved_type_id, saved_edge_id));
+            current_basic_graph_pattern->add_edge(OpEdge(saved_node_id, last_node_id, saved_type_id, saved_edge_id));
         } else {
             // left direction
-            current_basic_graph_pattern->add_edge(OpEdge(saved_node_id, last_node_id, saved_type_id, saved_edge_id));
+            current_basic_graph_pattern->add_edge(OpEdge(last_node_id, saved_node_id, saved_type_id, saved_edge_id));
         }
         return 0;
     }

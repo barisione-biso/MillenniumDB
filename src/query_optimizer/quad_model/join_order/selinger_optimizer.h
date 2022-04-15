@@ -8,7 +8,7 @@
 
 class SelingerOptimizer {
 public:
-    SelingerOptimizer(std::vector<std::unique_ptr<Plan>> base_plans,
+    SelingerOptimizer(const std::vector<std::unique_ptr<Plan>>& base_plans,
                       const std::vector<std::string>& var_names);
     ~SelingerOptimizer();
 

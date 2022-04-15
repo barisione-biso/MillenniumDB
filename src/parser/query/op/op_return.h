@@ -34,7 +34,9 @@ public:
     std::set<Var> get_vars() const override {
         auto res = op->get_vars();
         for (auto& return_item : return_items) {
-            res.insert(return_item->get_var());
+            for (auto& var : return_item->get_vars()) {
+                res.insert(var);
+            }
         }
         return res;
     }
