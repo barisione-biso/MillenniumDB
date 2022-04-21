@@ -3,8 +3,32 @@
 #include "execution/binding_iter/aggregation/aggs.h"
 #include "parser/query/return_item/return_items.h"
 
-void ReturnItemVisitorImpl::visit(ReturnItemAgg& /*return_item*/) {
-    // TODO: implement when supporting aggregate functions
+void ReturnItemVisitorImpl::visit(ReturnItemAgg& return_item) {
+    // TODO: should be switch of enum
+    auto pos = return_item.inside_var.find('.');
+    if (pos != std::string::npos) {
+        // we split something like "?x1.key1" into "?x" and "key1"
+        auto var_without_property = return_item.inside_var.substr(0, pos);
+        auto var_key              = return_item.inside_var.substr(pos + 1);
+        var_properties.insert({ Var(var_without_property), var_key });
+    }
+
+    Var var = return_item.get_var();
+    auto var_id = binding_iter_visitor.get_var_id(var);
+
+    Var inside_var(return_item.inside_var);
+    auto inside_var_id = binding_iter_visitor.get_var_id(inside_var);
+
+    if (return_item.aggregate_func == "avg") {
+        aggregates.insert({var_id , std::make_unique<AggAvg>(inside_var_id)});
+    } else if (return_item.aggregate_func == "max") {
+        aggregates.insert({var_id , std::make_unique<AggMax>(inside_var_id)});
+    } else if (return_item.aggregate_func == "min") {
+        aggregates.insert({var_id , std::make_unique<AggMin>(inside_var_id)});
+    } else if (return_item.aggregate_func == "sum") {
+        aggregates.insert({var_id , std::make_unique<AggSum>(inside_var_id)});
+    }
+    projection_vars.push_back({ var , var_id });
 }
 
 

@@ -229,10 +229,14 @@ GraphObject QuadModel::get_graph_object(ObjectId object_id) const {
 
 
 ObjectId QuadModel::get_object_id(const GraphObject& graph_object) const {
-    return std::visit(GraphObjectVisitor(false), graph_object.value);
+    // return std::visit(GraphObjectVisitor(false), graph_object.value);
+    GraphObjectVisitor visitor(false);
+    return visitor(graph_object);
 }
 
 
 uint64_t QuadModel::get_or_create_object_id(const GraphObject& graph_object) {
-    return std::visit(GraphObjectVisitor(true), graph_object.value).id;
+    // return std::visit(GraphObjectVisitor(true), graph_object.value).id;
+    GraphObjectVisitor visitor(true);
+    return visitor(graph_object).id;
 }

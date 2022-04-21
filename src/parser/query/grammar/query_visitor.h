@@ -106,9 +106,14 @@ public:
     }
 
     virtual antlrcpp::Any visitReturnItemAgg(MDBParser::ReturnItemAggContext* ctx) override {
-        return visitChildren(ctx);
-        // TODO:
-        // return 0;
+        auto var = ctx->VARIABLE()->getText();
+        if (ctx->KEY() != nullptr) {
+            var += ctx->KEY()->getText();
+        }
+        return_items.push_back(
+            std::make_unique<ReturnItemAgg>(asciistrtolower(ctx->aggregateFunc()->getText()), std::move(var))
+        );
+        return 0;
     }
 
     virtual antlrcpp::Any visitReturnItemCount(MDBParser::ReturnItemCountContext* ctx) override {
@@ -174,7 +179,7 @@ public:
         if (ctx->KEY() != nullptr) {
             var += ctx->KEY()->getText();
         }
-        order_by_items.push_back(std::make_unique<ReturnItemAgg>(ctx->aggregateFunc()->getText(), Var(var)));
+        order_by_items.push_back(std::make_unique<ReturnItemAgg>(asciistrtolower(ctx->aggregateFunc()->getText()), std::move(var)));
         order_by_ascending_order.push_back(ctx->K_DESC() == nullptr);
         return 0;
     }

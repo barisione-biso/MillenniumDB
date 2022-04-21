@@ -6,18 +6,18 @@ class ReturnItemAgg : public ReturnItem {
 public:
     std::string aggregate_func;
 
-    Var var;
+    std::string inside_var;
 
-    ReturnItemAgg(const std::string& aggregate_func, Var&& var) :
+    ReturnItemAgg(const std::string& aggregate_func, std::string&& inside_var) :
         aggregate_func (aggregate_func),
-        var            (std::move(var)) { }
+        inside_var     (std::move(inside_var)) { }
 
     Var get_var() const override {
-        return var;
+        return Var(aggregate_func + '(' + inside_var + ')');
     }
 
     std::set<Var> get_vars() const override {
-        std::set<Var> res { var, Var(aggregate_func + '(' + var.name + ')') };
+        std::set<Var> res { Var(inside_var), Var(aggregate_func + '(' + inside_var + ')') };
         return res;
     }
 
@@ -26,6 +26,6 @@ public:
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent = 0) const override {
-        return os << std::string(' ', indent) << aggregate_func << '(' << var << ')';
+        return os << std::string(' ', indent) << aggregate_func << '(' << inside_var << ')';
     }
 };

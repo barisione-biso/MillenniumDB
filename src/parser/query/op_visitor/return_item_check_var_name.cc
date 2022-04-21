@@ -3,8 +3,9 @@
 #include "base/exceptions.h"
 #include "parser/query/return_item/return_items.h"
 
-void ReturnItemCheckVarName::visit(ReturnItemAgg& /*return_item*/) {
+void ReturnItemCheckVarName::visit(ReturnItemAgg& return_item) {
     // TODO: implement when supporting aggregate functions
+
 }
 
 

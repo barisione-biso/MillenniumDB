@@ -4,7 +4,6 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <iostream>
 
 #include "base/ids/object_id.h"
 #include "base/graph_object/graph_object.h"
@@ -32,12 +31,13 @@ DistinctBindingHash<T>::DistinctBindingHash(std::size_t tuple_size) :
 
 template <class T>
 DistinctBindingHash<T>::~DistinctBindingHash() {
+    delete[] dir;
     file_manager.remove_tmp(buckets_file_id);
 }
 
 
 template <class T>
-bool DistinctBindingHash<T>::is_in(std::vector<T> tuple) {
+bool DistinctBindingHash<T>::is_in(const std::vector<T>& tuple) {
     assert(tuple.size() == tuple_size);
 
     uint64_t hash[2];
@@ -54,7 +54,7 @@ bool DistinctBindingHash<T>::is_in(std::vector<T> tuple) {
 
 
 template <class T>
-bool DistinctBindingHash<T>::is_in_or_insert(std::vector<T> tuple) {
+bool DistinctBindingHash<T>::is_in_or_insert(const std::vector<T>& tuple) {
     assert(tuple.size() == tuple_size);
 
     uint64_t hash[2];
