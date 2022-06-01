@@ -61,6 +61,7 @@ int main(int argc, char **argv) {
                     cerr << "Wrong ID for string \"" << str << "\", real id: " << current_id
                         << ", found: " << id_found << ", diff: " << diff << "\n";
                 }
+                exit(1);
             } else {
                 ++correct;
             }
