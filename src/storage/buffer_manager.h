@@ -67,13 +67,11 @@ public:
     // increases the count of objects using the page. When you get a page using the methods get_page or get_tmp_page
     // the page is already pinned, so you shouldn't call this method unless you want to pin the page more than once
     void pin(Page& page) {
-        std::lock_guard<std::mutex> lck(pin_mutex);
         page.pins++;
     }
 
     // reduces the count of objects using the page. Should be called when a object using the page is destroyed.
     void unpin(Page& page) {
-        std::lock_guard<std::mutex> lck(pin_mutex);
         assert(page.pins != 0 && "Must not unpin if pin count is equal to 0. There is a logic error.");
         page.pins--;
     }
@@ -132,8 +130,7 @@ private:
     // simple clock used to page replacement in the private buffer
     std::vector<uint_fast32_t> private_clock_pos;
 
-    // to avoid pin/unpin synchronization problems in the shared buffer
-    std::mutex pin_mutex;
+    std::mutex shared_buffer_mutex;
 
     // returns the index of an unpined page from shared buffer (`buffer_pool`)
     uint_fast32_t get_buffer_available();

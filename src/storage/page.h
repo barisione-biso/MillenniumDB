@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <atomic>
 #include <cassert>
 
 #include "storage/page_id.h"
@@ -29,7 +30,7 @@ public:
 
 private:
     // count of objects using this page, modified only by buffer_manager
-    uint32_t pins;
+    std::atomic_uint32_t pins;
 
     // start memory address of the page, of size `MDB_PAGE_SIZE`
     char* bytes;
@@ -59,10 +60,9 @@ private:
     }
 
     void operator=(const Page& other) noexcept {
+        assert(!dirty && "Cannot reassign page if it is dirty");
         assert(pins == 0 && "Cannot reassign page if it is pinned");
         this->page_id = other.page_id;
-        this->pins    = other.pins;
-        this->dirty   = other.dirty;
         this->bytes   = other.bytes;
     }
 };
