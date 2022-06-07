@@ -1,14 +1,15 @@
 #pragma once
 
 #include <cstring>
+#include <functional>
 
 #include "storage/file_id.h"
 
 struct PageId {
     FileId file_id;
-    uint_fast32_t page_number;
+    uint32_t page_number;
 
-    PageId(FileId file_id, uint_fast32_t page_number) :
+    PageId(FileId file_id, uint32_t page_number) :
         file_id     (file_id),
         page_number (page_number) { }
 
@@ -31,6 +32,6 @@ struct PageId {
 
 struct PageIdHasher {
     std::size_t operator()(const PageId& k) const {
-        return k.file_id.id | (k.page_number << 5);
+        return std::hash<uint64_t>{}(static_cast<uint64_t>(k.file_id.id) | (static_cast<uint64_t>(k.page_number) << 32));
     }
 };

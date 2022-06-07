@@ -6,10 +6,12 @@
  */
 #pragma once
 
+#include <cassert>
+
 #include "storage/page_id.h"
 
 class Page {
-friend class BufferManager; // needed to access private constructor
+friend class BufferManager;
 public:
     static constexpr auto MDB_PAGE_SIZE = 4096;
 
@@ -19,24 +21,48 @@ public:
     // mark as dirty so when page is replaced it is written back to disk.
     inline void make_dirty() noexcept { dirty = true; }
 
-    // only meant for buffer_manager.remove()
-    void reset();
-
     // get the start memory position of `MDB_PAGE_SIZE` allocated bytes
     inline char* get_bytes() const noexcept { return bytes; }
 
     // get page number
-    inline uint_fast32_t get_page_number() const noexcept { return page_id.page_number; };
+    inline uint32_t get_page_number() const noexcept { return page_id.page_number; };
 
 private:
-    uint_fast32_t pins;             // count of objects using this page, modified only by buffer_manager
-    char* bytes;                    // start memory address of the page, of size `MDB_PAGE_SIZE`
-    bool dirty;                     // true if data in memory is different from disk
+    // count of objects using this page, modified only by buffer_manager
+    uint32_t pins;
 
-    Page() noexcept;
-    Page(PageId page_id, char* bytes) noexcept;
-    void operator=(const Page& other) noexcept;
+    // start memory address of the page, of size `MDB_PAGE_SIZE`
+    char* bytes;
 
-    // write to disk if this page is dirty
-    void flush();
+    // true if data in memory is different from disk
+    bool dirty;
+
+    Page() noexcept :
+        page_id(FileId(FileId::UNASSIGNED), 0),
+        pins(0),
+        bytes(nullptr),
+        dirty(false) { }
+
+    Page(PageId page_id, char* bytes) noexcept:
+        page_id(page_id),
+        pins(1),
+        bytes(bytes),
+        dirty(false) { }
+
+    // only meant for buffer_manager.remove()
+    void reset() noexcept {
+        assert(pins == 0 && "Cannot reset page if it is pinned");
+        this->page_id = PageId(FileId(FileId::UNASSIGNED), 0);
+        this->pins    = 0;
+        this->dirty   = false;
+        this->bytes   = nullptr;
+    }
+
+    void operator=(const Page& other) noexcept {
+        assert(pins == 0 && "Cannot reassign page if it is pinned");
+        this->page_id = other.page_id;
+        this->pins    = other.pins;
+        this->dirty   = other.dirty;
+        this->bytes   = other.bytes;
+    }
 };

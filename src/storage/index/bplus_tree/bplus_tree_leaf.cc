@@ -4,25 +4,24 @@
 #include <cstring>
 
 #include "base/exceptions.h"
-#include "storage/buffer_manager.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 
 using namespace std;
 
-template <std::size_t N>
-BPlusTreeLeaf<N>::BPlusTreeLeaf(Page& page) :
-    page         (page),
-    leaf_file_id (page.page_id.file_id),
-    value_count  ( reinterpret_cast<uint32_t*>(page.get_bytes()) ),
-    next_leaf    ( reinterpret_cast<uint32_t*>(page.get_bytes() + sizeof(uint32_t)) ),
-    records      ( reinterpret_cast<uint64_t*>(page.get_bytes() + (2*sizeof(uint32_t)) ) )
-{ }
+// template <std::size_t N>
+// BPlusTreeLeaf<N>::BPlusTreeLeaf(Page& page) :
+//     page         (page),
+//     leaf_file_id (page.page_id.file_id),
+//     value_count  ( reinterpret_cast<uint32_t*>(page.get_bytes()) ),
+//     next_leaf    ( reinterpret_cast<uint32_t*>(page.get_bytes() + sizeof(uint32_t)) ),
+//     records      ( reinterpret_cast<uint64_t*>(page.get_bytes() + (2*sizeof(uint32_t)) ) )
+// { }
 
 
-template <std::size_t N>
-BPlusTreeLeaf<N>::~BPlusTreeLeaf() {
-    buffer_manager.unpin(page);
-}
+// template <std::size_t N>
+// BPlusTreeLeaf<N>::~BPlusTreeLeaf() {
+//     buffer_manager.unpin(page);
+// }
 
 
 template <std::size_t N>
@@ -35,17 +34,18 @@ unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(uint_fast32_t pos) const {
 }
 
 
-template <std::size_t N>
-std::unique_ptr<BPlusTreeLeaf<N>>  BPlusTreeLeaf<N>::duplicate() const {
-    return make_unique<BPlusTreeLeaf<N>>(buffer_manager.get_page(leaf_file_id, page.get_page_number()));
-}
+// template <std::size_t N>
+// std::unique_ptr<BPlusTreeLeaf<N>>  BPlusTreeLeaf<N>::duplicate() const {
+//     page.pins++;
+//     return make_unique<BPlusTreeLeaf<N>>(page);
+// }
 
 
-template <std::size_t N>
-unique_ptr<BPlusTreeLeaf<N>> BPlusTreeLeaf<N>::get_next_leaf() const {
-    Page& new_page = buffer_manager.get_page(leaf_file_id, *next_leaf);
-    return make_unique<BPlusTreeLeaf<N>>(new_page);
-}
+// template <std::size_t N>
+// unique_ptr<BPlusTreeLeaf<N>> BPlusTreeLeaf<N>::get_next_leaf() const {
+//     Page& new_page = buffer_manager.get_page(leaf_file_id, *next_leaf);
+//     return make_unique<BPlusTreeLeaf<N>>(new_page);
+// }
 
 
 template <std::size_t N>
@@ -142,14 +142,10 @@ unique_ptr<BPlusTreeSplit<N>> BPlusTreeLeaf<N>::insert(const Record<N>& record) 
 //     ++(*value_count);
 //     this->page.make_dirty();
 // }
-
-
-// returns the position of the minimum key greater or equal than the record given.
-// if there is no such key, returns (to + 1)
 template <std::size_t N>
-uint_fast32_t BPlusTreeLeaf<N>::search_index(const Record<N>& record) const {
-    int from = 0;
-    int to = (*value_count)-1;
+uint_fast32_t BPlusTreeLeaf<N>::search_index(const Record<N>& record) const noexcept {
+    int_fast32_t from = 0;
+    int_fast32_t to = (*value_count)-1;
 search_index_begin:
     if (from < to) {
         auto middle = (from + to) / 2;
@@ -180,9 +176,50 @@ search_index_begin:
     return from;
 }
 
+// returns the position of the minimum key greater or equal than the record given.
+// if there is no such key, returns (to + 1)
+// LeapfrogJoin(found: 24760, seeks: 9447)
+
+// template <std::size_t N>
+// uint_fast32_t BPlusTreeLeaf<N>::search_index(const Record<N>& record) const {
+//     auto from = records;
+//     auto to = &records[N*((*value_count) - 1)];
+// search_index_begin:
+//     if (from < to) {
+//         auto middle = from + (((to-from)/(2*N))*N);
+
+//         auto id = middle;
+//         for (uint_fast32_t i = 0; i < N; ++i) {
+//             if (record.ids[i] < *id) { // record is smaller
+//                 to = middle - N;
+//                 goto search_index_begin;
+//             } else if (record.ids[i] > *id) { // record is greater
+//                 from = middle + N;
+//                 goto search_index_begin;
+//             }
+//             ++id;
+//         }
+//         // record is equal
+//         return (middle-records)/N;
+//     }
+//     // from >= to
+//     auto id = from;
+//     for (uint_fast32_t i = 0; i < N; ++i) {
+//         // auto id = records[from*N + i];
+//         if (record.ids[i] < *id) {
+//             return (from-records)/N;
+//         } else if (record.ids[i] > *id) {
+//             return (from-records)/N + 1;
+//         }
+//         // continue if they were equal
+//         ++id;
+//     }
+//     return (from-records)/N;
+// }
+
 
 template <std::size_t N>
-void BPlusTreeLeaf<N>::shift_right_records(int from, int to) {
+void BPlusTreeLeaf<N>::shift_right_records(int_fast32_t from, int_fast32_t to) {
     for (auto i = to; i >= from; i--) {
         for (uint_fast32_t j = 0; j < N; j++) {
             records[(i+1)*N + j] = records[i*N + j];

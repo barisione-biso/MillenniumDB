@@ -31,7 +31,6 @@ public:
     SearchLeafResult<N> search_leaf(std::stack< std::unique_ptr<BPlusTreeDir<N>> >&,
                                     const Record<N>& min) const noexcept;
 
-
     // returns true if min_key <= r <= max_key. If key_count==0, will return false.
     // used in leapfrog to know if the search can be done from here or from a upper directory in the branch
     bool check_range(const Record<N>& r) const;
@@ -47,10 +46,10 @@ private:
     uint32_t* const key_count;
     int32_t* const children;
 
-    int search_child_index(int from, int to, const Record<N>& record) const;
-    void shift_right_keys(int from, int to);
-    void shift_right_children(int from, int to);
-    void update_key(int index, const Record<N>& record);
-    void update_child(int index, int dir);
+    size_t search_child_index(int_fast32_t from, int_fast32_t to, const Record<N>& record) const;
+    void shift_right_keys(int_fast32_t from, int_fast32_t to);
+    void shift_right_children(int_fast32_t from, int_fast32_t to);
+    void update_key(int_fast32_t index, const Record<N>& record);
+    void update_child(int_fast32_t index, int_fast32_t dir);
     void split(const Record<N>& record);
 };

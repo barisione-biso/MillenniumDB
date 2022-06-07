@@ -25,10 +25,11 @@ public:
 
     uint64_t write(const std::string& bytes);
     std::string get_string(uint64_t id) const;
+    void print_string(std::ostream& os, uint64_t string_id) const;
 
 private:
     uint64_t current_end;
     uint64_t capacity;
-    std::fstream& file;
+    std::fstream file;
     char* objects; // All objects separated by '\0'
 };

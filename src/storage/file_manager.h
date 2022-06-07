@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include <fstream>
 #include <queue>
 #include <map>
 #include <memory>
@@ -30,6 +29,8 @@
 #include <vector>
 
 #include "storage/file_id.h"
+#include "storage/filesystem.h"
+#include "storage/page.h"
 #include "storage/page_id.h"
 
 class FileManager {
@@ -48,23 +49,31 @@ public:
     TmpFileId get_tmp_file_id();
 
     // get the file stream assignated to `file_id` as a reference. Only use this when not accessing via BufferManager
-    std::fstream& get_file(const FileId file_id) const;
+    // std::fstream& get_file(const FileId file_id) const;
 
     // count how many pages a file have
-    uint_fast32_t count_pages(const FileId file_id) const;
+    uint_fast32_t count_pages(FileId file_id) const {
+        // We don't need mutex here as long as db is readonly
+        const auto file_path = get_file_path(filenames[file_id.id]);
+        return Filesystem::file_size(file_path)/Page::MDB_PAGE_SIZE;
+    }
 
     // delete the file represented by `file_id`, pages in buffer using that file_id are cleared
-    void remove(const FileId file_id);
+    void remove(FileId file_id);
 
     // delete the file represented by `tmp_file_id`, pages in private buffer using that tmp_file_id are cleared
-    void remove_tmp(const TmpFileId tmp_file_id);
+    void remove_tmp(TmpFileId tmp_file_id);
+
+    inline const std::string get_file_path(const std::string& filename) const noexcept {
+        return db_folder + "/" + filename;
+    }
 
 private:
     // folder where all the used files will be
     const std::string db_folder;
 
-    // contains all file streams that have been opened, except for these that were removed
-    std::vector< std::unique_ptr<std::fstream> > opened_files;
+    // contains all file descriptors of files that have been opened, except for these that were removed
+    std::vector<int_fast32_t> opened_files;
 
     std::queue<FileId> available_file_ids;
 
@@ -89,10 +98,6 @@ private:
     // read a page from disk into memory pointed by `bytes`.
     // `bytes` must point to the start memory position of `Page::MDB_PAGE_SIZE` allocated bytes
     void read_page(PageId page_id, char* bytes) const;
-
-    inline const std::string get_file_path(const std::string& filename) const noexcept {
-        return db_folder + "/" + filename;
-    }
 };
 
 extern FileManager& file_manager; // global object

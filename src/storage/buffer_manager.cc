@@ -1,6 +1,6 @@
 #include "buffer_manager.h"
 
-#include <cassert>
+#include <cstdlib>
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
 
@@ -23,8 +23,12 @@ BufferManager::BufferManager(uint_fast32_t shared_buffer_pool_size,
     max_private_buffers       (max_threads),
     buffer_pool               (new Page[shared_buffer_pool_size]),
     private_buffer_pool       (new Page[private_buffer_pool_size * max_private_buffers]),
-    bytes                     (new char[shared_buffer_pool_size * Page::MDB_PAGE_SIZE]),
-    private_bytes             (new char[private_buffer_pool_size * max_private_buffers * Page::MDB_PAGE_SIZE]),
+    bytes                     (reinterpret_cast<char*>(std::aligned_alloc(
+                                   Page::MDB_PAGE_SIZE,
+                                   shared_buffer_pool_size * Page::MDB_PAGE_SIZE))),
+    private_bytes             (reinterpret_cast<char*>(std::aligned_alloc(
+                                   Page::MDB_PAGE_SIZE,
+                                   private_buffer_pool_size * max_private_buffers * Page::MDB_PAGE_SIZE))),
     clock_pos                 (0)
 {
     for (uint_fast32_t i=0; i < max_private_buffers; i++) {
@@ -56,7 +60,10 @@ void BufferManager::flush() {
     // this is important to check to avoid segfault when program terminates before calling init()
     assert(buffer_pool != nullptr);
     for (uint_fast32_t i = 0; i < shared_buffer_pool_size; i++) {
-        buffer_pool[i].flush();
+        if (buffer_pool[i].dirty) {
+            file_manager.flush(buffer_pool[i].page_id, bytes);
+            buffer_pool[i].dirty = false;
+        }
     }
 }
 
@@ -81,7 +88,7 @@ uint_fast32_t BufferManager::get_buffer_available() {
 
     while (buffer_pool[clock_pos].pins != 0) {
         clock_pos = (clock_pos+1) % shared_buffer_pool_size;
-        if (clock_pos == first_lookup) {
+        if (__builtin_expect(!!(clock_pos == first_lookup), 0)) {
             throw QueryExecutionException("No buffer available in buffer pool");
         }
     }
@@ -97,7 +104,7 @@ uint_fast32_t BufferManager::get_private_buffer_available(uint_fast32_t thread_p
 
     while (get_private_page(thread_pos, private_clock_pos[thread_pos]).pins != 0) {
         private_clock_pos[thread_pos] = (private_clock_pos[thread_pos]+1)%private_buffer_pool_size;
-        if (private_clock_pos[thread_pos] == first_lookup) {
+        if (__builtin_expect(!!(private_clock_pos[thread_pos] == first_lookup), 0)) {
             throw QueryExecutionException("No buffer available in private buffer pool.");
         }
     }
@@ -115,18 +122,23 @@ Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcep
 
     if (it == pages.end()) {
         const auto buffer_available = get_buffer_available();
-        if (buffer_pool[buffer_available].page_id.file_id.id != FileId::UNASSIGNED) {
-            auto old_page_id = buffer_pool[buffer_available].page_id;
-            pages.erase(old_page_id);
+        auto& page = buffer_pool[buffer_available];
+        if (page.page_id.file_id.id != FileId::UNASSIGNED) {
+            pages.erase(page.page_id);
         }
-        buffer_pool[buffer_available] = Page(page_id, &bytes[buffer_available*Page::MDB_PAGE_SIZE]);
 
-        file_manager.read_page(page_id, buffer_pool[buffer_available].get_bytes());
-        pages.insert({page_id, buffer_available});
-        return buffer_pool[buffer_available];
+        if (page.dirty) {
+            file_manager.flush(page.page_id, bytes);
+            page.dirty = false;
+        }
+        page = Page(page_id, &bytes[buffer_available*Page::MDB_PAGE_SIZE]);
+
+        file_manager.read_page(page_id, page.get_bytes());
+        pages.insert({page_id, &page});
+        return page;
     } else { // page is the buffer
-        buffer_pool[it->second].pins++;
-        return buffer_pool[it->second];
+        it->second->pins++;
+        return *it->second;
     }
     // lock is released
 }
@@ -139,32 +151,29 @@ Page& BufferManager::get_tmp_page(TmpFileId tmp_file_id, uint_fast32_t page_numb
     // We don't need a mutex here because tmp pages are assigned to one specific thread
     // TODO: If we change this in the future we might need a mutex lock
 
-    auto pages_it = private_tmp_pages[thread_pos].find(page_id);
-    if (pages_it == private_tmp_pages[thread_pos].end()) {
+    auto it = private_tmp_pages[thread_pos].find(page_id);
+    if (it == private_tmp_pages[thread_pos].end()) {
         const auto buffer_available = get_private_buffer_available(thread_pos);
         auto& page = get_private_page(thread_pos, buffer_available);
         if (page.page_id.file_id.id != TmpFileId::UNASSIGNED) {
             private_tmp_pages[thread_pos].erase(page.page_id);
         }
+
+        if (page.dirty) {
+            file_manager.flush(page.page_id, bytes);
+            page.dirty = false;
+        }
         page = Page(page_id,
-                    &private_bytes[Page::MDB_PAGE_SIZE * ((thread_pos * private_buffer_pool_size) + buffer_available)]
-        );
+                    &private_bytes[Page::MDB_PAGE_SIZE * (thread_pos * private_buffer_pool_size + buffer_available)]);
+
         file_manager.read_page(page_id, page.get_bytes());
-        private_tmp_pages[thread_pos].insert({page_id, buffer_available});
+        private_tmp_pages[thread_pos].insert({page_id, &page});
         return page;
     }
     else {
-        auto& page = get_private_page(thread_pos, pages_it->second);
-        page.pins++;
-        return page;
+        it->second->pins++;
+        return *it->second;
     }
-}
-
-
-void BufferManager::unpin(Page& page) {
-    std::lock_guard<std::mutex> lck(pin_mutex);
-    assert(page.pins != 0 && "Must not unpin if pin count is equal to 0. There is a logic error.");
-    page.pins--;
 }
 
 

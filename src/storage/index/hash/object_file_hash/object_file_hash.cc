@@ -13,10 +13,16 @@
 
 ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filename) :
     object_file     (object_file),
-    dir_file_id     (file_manager.get_file_id(filename + ".dir")),
     buckets_file_id (file_manager.get_file_id(filename + ".dat"))
 {
-    auto& dir_file = file_manager.get_file(dir_file_id);
+    auto file_path = file_manager.get_file_path(filename+ ".dir");
+    dir_file.open(file_path, std::ios::out|std::ios::app);
+    if (dir_file.fail()) {
+        throw std::runtime_error("Could not open file " + filename);
+    }
+    dir_file.close();
+    dir_file.open(file_path, std::ios::in|std::ios::out|std::ios::binary);
+
     dir_file.seekg(0, dir_file.end);
 
     // If the file is not empty, read the values
@@ -54,7 +60,6 @@ ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filen
 
 
 ObjectFileHash::~ObjectFileHash() {
-    auto& dir_file = file_manager.get_file(dir_file_id);
     dir_file.seekg(0, dir_file.beg);
 
     dir_file.write(reinterpret_cast<const char*>(&global_depth), sizeof(uint8_t));

@@ -19,10 +19,11 @@ public:
 
 private:
     ObjectFile& object_file;
-    const FileId dir_file_id;
     const FileId buckets_file_id;
 
     uint_fast8_t global_depth;
+
+    std::fstream dir_file;
 
     // array of size 2^global_depth
     uint_fast32_t* dir;

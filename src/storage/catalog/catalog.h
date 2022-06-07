@@ -6,6 +6,7 @@
 class Catalog {
 protected:
     Catalog(const std::string& filename);
+    ~Catalog();
 
     bool is_empty();
 
@@ -23,5 +24,5 @@ protected:
     void write_uint32(const uint_fast32_t);
 
 private:
-    std::fstream& file;
+    std::fstream file;
 };

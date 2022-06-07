@@ -12,6 +12,10 @@ public:
         return StringManager::instance->get_string(external_id);
     }
 
+    void print(std::ostream& os) const {
+        return StringManager::instance->print_string(os, external_id);
+    }
+
     inline bool operator==(const NamedNodeExternal& rhs) const noexcept {
         return this->to_string() == rhs.to_string();
     }

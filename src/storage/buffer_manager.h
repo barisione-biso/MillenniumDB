@@ -17,8 +17,9 @@
 
 #pragma once
 
-#include <mutex>
+#include <cassert>
 #include <queue>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -63,8 +64,19 @@ public:
     // write all dirty pages to disk
     void flush();
 
+    // increases the count of objects using the page. When you get a page using the methods get_page or get_tmp_page
+    // the page is already pinned, so you shouldn't call this method unless you want to pin the page more than once
+    void pin(Page& page) {
+        std::lock_guard<std::mutex> lck(pin_mutex);
+        page.pins++;
+    }
+
     // reduces the count of objects using the page. Should be called when a object using the page is destroyed.
-    void unpin(Page& page);
+    void unpin(Page& page) {
+        std::lock_guard<std::mutex> lck(pin_mutex);
+        assert(page.pins != 0 && "Must not unpin if pin count is equal to 0. There is a logic error.");
+        page.pins--;
+    }
 
     // invalidates all pages using `file_id`in shared buffer
     void remove(FileId file_id);
@@ -94,13 +106,13 @@ private:
     std::queue<uint_fast32_t> available_private_positions;
 
     // used to search the index in the `buffer_pool` of a certain page
-    robin_hood::unordered_map<PageId, uint_fast32_t, PageIdHasher> pages;
+    robin_hood::unordered_map<PageId, Page*, PageIdHasher> pages;
 
     // map thread id -> private_thread_index
-    robin_hood::unordered_map<std::thread::id , uint_fast32_t> thread2index;
+    robin_hood::unordered_map<std::thread::id, uint_fast32_t> thread2index;
 
     // used to search the index in the `private_buffer_pool` of a certain page
-    std::vector<robin_hood::unordered_map<PageId, uint_fast32_t, PageIdHasher>> private_tmp_pages;
+    std::vector<robin_hood::unordered_map<PageId, Page*, PageIdHasher>> private_tmp_pages;
 
     // array of `buffer_pool_size` pages
     Page* const buffer_pool;

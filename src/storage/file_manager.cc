@@ -1,12 +1,15 @@
 #include "file_manager.h"
 
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <cassert>
 #include <cstring>
 #include <new>         // placement new
 #include <type_traits> // aligned_storage
 
 #include "storage/buffer_manager.h"
-#include "storage/filesystem.h"
 #include "storage/file_id.h"
 #include "storage/page.h"
 
@@ -37,42 +40,39 @@ void FileManager::init(const std::string& db_folder) {
 }
 
 
-uint_fast32_t FileManager::count_pages(const FileId file_id) const {
-    // We don't need mutex here as long as db is readonly
-    const auto file_path = get_file_path(filenames[file_id.id]);
-    return Filesystem::file_size(file_path)/Page::MDB_PAGE_SIZE;
-}
-
-
-void FileManager::flush(const PageId page_id, char* bytes) const {
-    fstream& file = get_file(page_id.file_id);
-    file.seekg(page_id.page_number*Page::MDB_PAGE_SIZE);
-    file.write(bytes, Page::MDB_PAGE_SIZE);
-}
-
-
-void FileManager::read_page(const PageId page_id, char* bytes) const {
-    fstream& file = get_file(page_id.file_id);
-    file.seekg(0, file.end);
-    uint_fast32_t file_pos = file.tellg();
-    if (file_pos/Page::MDB_PAGE_SIZE <= page_id.page_number) {
-        // new file page
-        memset(bytes, 0, Page::MDB_PAGE_SIZE);
-        file.write(bytes, Page::MDB_PAGE_SIZE);
-    } else {
-        // reading existing file page
-        file.seekg(page_id.page_number*Page::MDB_PAGE_SIZE);
-        file.read(bytes, Page::MDB_PAGE_SIZE);
+void FileManager::flush(PageId page_id, char* bytes) const {
+    auto fd = opened_files[page_id.file_id.id];
+    lseek(fd, page_id.page_number*Page::MDB_PAGE_SIZE, SEEK_SET);
+    auto write_res = write(fd, bytes, Page::MDB_PAGE_SIZE);
+    if (write_res == -1) {
+        throw std::runtime_error("Could not write into file when flushing page");
     }
 }
 
 
-fstream& FileManager::get_file(const FileId file_id) const {
-    assert(file_id.id < opened_files.size());
-    assert(opened_files[file_id.id] != nullptr);
-    assert(opened_files[file_id.id]->is_open());
+void FileManager::read_page(PageId page_id, char* bytes) const {
+    auto fd = opened_files[page_id.file_id.id];
+    lseek(fd, 0, SEEK_END);
 
-    return *opened_files[file_id.id];
+    struct stat buf;
+    fstat(fd, &buf);
+    uint64_t file_size = buf.st_size;
+
+    lseek(fd, page_id.page_number*Page::MDB_PAGE_SIZE, SEEK_SET);
+    if (file_size/Page::MDB_PAGE_SIZE <= page_id.page_number) {
+        // new file page, write zeros
+        memset(bytes, 0, Page::MDB_PAGE_SIZE);
+        auto write_res = write(fd, bytes, Page::MDB_PAGE_SIZE);
+        if (write_res == -1) {
+            throw std::runtime_error("Could not write into file");
+        }
+    } else {
+        // reading existing file page
+        auto read_res = read(fd, bytes, Page::MDB_PAGE_SIZE);
+        if (read_res == -1) {
+            throw std::runtime_error("Could not read file page");
+        }
+    }
 }
 
 
@@ -93,18 +93,12 @@ FileId FileManager::get_file_id(const string& filename) {
 
         filenames[res.id] = filename;
         filename2file_id.insert({ filename, res });
-        auto file = make_unique<fstream>();
-        if (!Filesystem::exists(file_path)) {
-            // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
-            // so we close it and open it again without append mode
-            file->open(file_path, ios::out|ios::app);
-            if (file->fail()) {
-                throw std::runtime_error("Could not open file " + file_path);
-            }
-            file->close();
+
+        auto fd = open(file_path.c_str(), O_RDWR/*|O_DIRECT*/|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
+        if (fd == -1) {
+            throw std::runtime_error("Could not open file " + file_path);
         }
-        file->open(file_path, ios::in|ios::out|ios::binary);
-        opened_files[res.id] = move(file);
+        opened_files[res.id] = fd;
         return res;
     }
 
@@ -115,18 +109,13 @@ FileId FileManager::get_file_id(const string& filename) {
 
         filenames.push_back(filename);
         filename2file_id.insert({ filename, res });
-        auto file = make_unique<fstream>();
-        if (!Filesystem::exists(file_path)) {
-            // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
-            // so we close it and open it again without append mode
-            file->open(file_path, ios::out|ios::app);
-            if (file->fail()) {
-                throw std::runtime_error("Could not open file " + file_path);
-            }
-            file->close();
+
+        auto fd = open(file_path.c_str(), O_RDWR/*|O_DIRECT*/|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
+        if (fd == -1) {
+            throw std::runtime_error("Could not open file " + file_path);
         }
-        file->open(file_path, ios::in|ios::out|ios::binary);
-        opened_files.push_back(move(file));
+
+        opened_files.push_back(fd);
         return res;
     }
 }
@@ -144,18 +133,11 @@ TmpFileId FileManager::get_tmp_file_id() {
 
         filenames[file_id.id] = filename;
         filename2file_id.insert({ filename, file_id });
-        auto file = make_unique<fstream>();
-        if (!Filesystem::exists(file_path)) {
-            // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
-            // so we close it and open it again without append mode
-            file->open(file_path, ios::out|ios::app);
-            if (file->fail()) {
-                throw std::runtime_error("Could not open file " + file_path);
-            }
-            file->close();
+        auto fd = open(file_path.c_str(), O_RDWR/*|O_DIRECT*/|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
+        if (fd == -1) {
+            throw std::runtime_error("Could not open file " + file_path);
         }
-        file->open(file_path, ios::in|ios::out|ios::binary);
-        opened_files[file_id.id] = move(file);
+        opened_files[file_id.id] = fd;
         return TmpFileId(buffer_manager.get_private_buffer_index(), file_id);
     }
     else {
@@ -164,18 +146,11 @@ TmpFileId FileManager::get_tmp_file_id() {
 
         filenames.push_back(filename);
         filename2file_id.insert({ filename, file_id });
-        auto file = make_unique<fstream>();
-        if (!Filesystem::exists(file_path)) {
-            // `ios::app` creates the file if it doesn't exists but we don't want it open in append mode,
-            // so we close it and open it again without append mode
-            file->open(file_path, ios::out|ios::app);
-            if (file->fail()) {
-                throw std::runtime_error("Could not open file " + file_path);
-            }
-            file->close();
+        auto fd = open(file_path.c_str(), O_RDWR/*|O_DIRECT*/|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
+        if (fd == -1) {
+            throw std::runtime_error("Could not open file " + file_path);
         }
-        file->open(file_path, ios::in|ios::out|ios::binary);
-        opened_files.push_back(move(file));
+        opened_files.push_back(fd);
         return TmpFileId(buffer_manager.get_private_buffer_index(), file_id);
     }
 }
@@ -186,11 +161,11 @@ void FileManager::remove(const FileId file_id) {
     const auto file_path = get_file_path(filenames[file_id.id]);
 
     buffer_manager.remove(file_id);                 // clear pages from buffer_manager
-    opened_files[file_id.id]->close();              // close the file stream
+    close(opened_files[file_id.id]);                // close the file stream
     std::remove(file_path.c_str());                 // delete file from disk
 
     filename2file_id.erase(filenames[file_id.id]);  // update map
-    opened_files[file_id.id].reset();               // destroy the fstream
+    opened_files[file_id.id] = -1;                  // clean file description
     available_file_ids.push(file_id);               // add removed file_id as available for reuse
 }
 
@@ -200,10 +175,10 @@ void FileManager::remove_tmp(const TmpFileId tmp_file_id) {
     const auto file_path = get_file_path(filenames[tmp_file_id.file_id.id]);
 
     buffer_manager.remove_tmp(tmp_file_id);                     // clear pages from buffer_manager
-    opened_files[tmp_file_id.file_id.id]->close();              // close the file stream
+    close(opened_files[tmp_file_id.file_id.id]);                // close the file stream
     std::remove(file_path.c_str());                             // delete file from disk
 
     filename2file_id.erase(filenames[tmp_file_id.file_id.id]);  // update map
-    opened_files[tmp_file_id.file_id.id].reset();               // destroy the fstream
+    opened_files[tmp_file_id.file_id.id] = -1;                  // clean file description
     available_file_ids.push(tmp_file_id.file_id);               // add removed file_id as available for reuse
 }

@@ -166,7 +166,7 @@ public:
                 os << graph_obj.value.named_inlined.id;
                 break;
             case GraphObjectType::NAMED_EXTERNAL:
-                os << graph_obj.value.named_external.to_string();
+                graph_obj.value.named_external.print(os);
                 break;
             case GraphObjectType::NAMED_TMP:
                 os << *graph_obj.value.named_tmp.name;
@@ -175,7 +175,7 @@ public:
                 os << graph_obj.value.str_inlined.id;
                 break;
             case GraphObjectType::STR_EXTERNAL:
-                os << graph_obj.value.str_external.to_string();
+                graph_obj.value.str_external.print(os);
                 break;
             case GraphObjectType::STR_TMP:
                 os << *graph_obj.value.str_tmp.str;

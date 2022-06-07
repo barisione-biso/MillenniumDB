@@ -8,9 +8,16 @@
 
 using namespace std;
 
-ObjectFile::ObjectFile(const string& filename) :
-    file (file_manager.get_file(file_manager.get_file_id(filename)))
+ObjectFile::ObjectFile(const string& filename)
 {
+    auto file_path = file_manager.get_file_path(filename);
+    file.open(file_path, ios::out|ios::app);
+    if (file.fail()) {
+        throw std::runtime_error("Could not open file " + filename);
+    }
+    file.close();
+    file.open(file_path, ios::in|ios::out|ios::binary);
+
     file.seekg (0, file.end);
     auto end_pos = file.tellg();
 
@@ -34,12 +41,18 @@ ObjectFile::ObjectFile(const string& filename) :
 ObjectFile::~ObjectFile() {
     file.seekg(0, file.beg);
     file.write(objects, current_end);
+    file.close();
     delete[] objects;
 }
 
 
 std::string ObjectFile::get_string(uint64_t id) const {
     return std::string(&objects[id]);
+}
+
+
+void ObjectFile::print_string(std::ostream& os, uint64_t id) const {
+    os << &objects[id];
 }
 
 
