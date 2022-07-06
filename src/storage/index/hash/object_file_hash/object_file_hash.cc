@@ -16,12 +16,15 @@ ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filen
     buckets_file_id (file_manager.get_file_id(filename + ".dat"))
 {
     auto file_path = file_manager.get_file_path(filename+ ".dir");
-    dir_file.open(file_path, std::ios::out|std::ios::app);
-    if (dir_file.fail()) {
+    // dir_file.open(file_path, std::ios::out|std::ios::app);
+    // if (dir_file.fail()) {
+    //     throw std::runtime_error("Could not open file " + filename);
+    // }
+    // dir_file.close();
+    dir_file.open(file_path, std::ios::in|std::ios::out|std::ios::binary);
+     if (dir_file.fail()) {
         throw std::runtime_error("Could not open file " + filename);
     }
-    dir_file.close();
-    dir_file.open(file_path, std::ios::in|std::ios::out|std::ios::binary);
 
     dir_file.seekg(0, dir_file.end);
 
@@ -107,7 +110,7 @@ uint64_t ObjectFileHash::get_or_create_id(const std::string& str, bool* const cr
         auto bucket = ObjectFileHashBucket(buckets_file_id, bucket_number, object_file);
 
         bool need_split;
-        auto id = bucket.get_or_create_id(str, hash[0], hash[1], &need_split, created);
+        auto id = bucket.get_or_create_id(str, hash[0], &need_split, created);
 
         if (need_split) {
             if (*bucket.local_depth < global_depth) {
@@ -171,6 +174,6 @@ uint64_t ObjectFileHash::get_id(const std::string& str) const {
         auto bucket_number = dir[suffix];
         auto bucket = ObjectFileHashBucket(buckets_file_id, bucket_number, object_file);
 
-        return bucket.get_id(str, hash[0], hash[1]);
+        return bucket.get_id(str, hash[0]);
     }
 }

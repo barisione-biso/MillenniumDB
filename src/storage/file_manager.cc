@@ -2,7 +2,6 @@
 
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 
 #include <cassert>
 #include <cstring>
@@ -11,6 +10,7 @@
 
 #include "storage/buffer_manager.h"
 #include "storage/file_id.h"
+#include "storage/filesystem.h"
 #include "storage/page.h"
 
 using namespace std;
@@ -40,18 +40,19 @@ void FileManager::init(const std::string& db_folder) {
 }
 
 
-void FileManager::flush(PageId page_id, char* bytes) const {
-    auto fd = opened_files[page_id.file_id.id];
-    lseek(fd, page_id.page_number*Page::MDB_PAGE_SIZE, SEEK_SET);
-    auto write_res = write(fd, bytes, Page::MDB_PAGE_SIZE);
+void FileManager::flush(Page& page) const {
+    auto fd = page.page_id.file_id.id;
+    lseek(fd, page.page_id.page_number*Page::MDB_PAGE_SIZE, SEEK_SET);
+    auto write_res = write(fd, page.get_bytes(), Page::MDB_PAGE_SIZE);
     if (write_res == -1) {
         throw std::runtime_error("Could not write into file when flushing page");
     }
+    page.dirty = false;
 }
 
 
 void FileManager::read_page(PageId page_id, char* bytes) const {
-    auto fd = opened_files[page_id.file_id.id];
+    auto fd = page_id.file_id.id;
     lseek(fd, 0, SEEK_END);
 
     struct stat buf;
@@ -62,7 +63,9 @@ void FileManager::read_page(PageId page_id, char* bytes) const {
     if (file_size/Page::MDB_PAGE_SIZE <= page_id.page_number) {
         // new file page, write zeros
         memset(bytes, 0, Page::MDB_PAGE_SIZE);
-        auto write_res = write(fd, bytes, Page::MDB_PAGE_SIZE);
+        // auto write_res = write(fd, bytes, Page::MDB_PAGE_SIZE); // TODO: use ftruncate?
+        auto write_res = ftruncate(fd, Page::MDB_PAGE_SIZE*page_id.page_number);
+
         if (write_res == -1) {
             throw std::runtime_error("Could not write into file");
         }
@@ -77,108 +80,34 @@ void FileManager::read_page(PageId page_id, char* bytes) const {
 
 
 FileId FileManager::get_file_id(const string& filename) {
-    std::lock_guard<std::mutex> lck(files_mutex);
-
-    // case 1: file is in the map
     auto search = filename2file_id.find(filename);
     if (search != filename2file_id.end()) {
         return search->second;
-    }
-
-    // case 2: file is not in the map and available_file_ids is not empty
-    else if (!available_file_ids.empty()) {
+    } else {
         const auto file_path = get_file_path(filename);
-        const auto res = available_file_ids.front();
-        available_file_ids.pop();
-
-        filenames[res.id] = filename;
-        filename2file_id.insert({ filename, res });
 
         auto fd = open(file_path.c_str(), O_RDWR/*|O_DIRECT*/|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
         if (fd == -1) {
             throw std::runtime_error("Could not open file " + file_path);
         }
-        opened_files[res.id] = fd;
-        return res;
-    }
-
-    // case 3: file is not in the map and available_file_ids is empty
-    else {
-        const auto file_path = get_file_path(filename);
-        const auto res = FileId(filenames.size());
-
-        filenames.push_back(filename);
+        const auto res = FileId(fd);
         filename2file_id.insert({ filename, res });
-
-        auto fd = open(file_path.c_str(), O_RDWR/*|O_DIRECT*/|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
-        if (fd == -1) {
-            throw std::runtime_error("Could not open file " + file_path);
-        }
-
-        opened_files.push_back(fd);
         return res;
     }
 }
 
 
 TmpFileId FileManager::get_tmp_file_id() {
-    std::lock_guard<std::mutex> lck(files_mutex);
-
-    string filename = "tmp" + std::to_string(tmp_filename_counter++);
-
-    if (!available_file_ids.empty()) {
-        const auto file_path = get_file_path(filename);
-        const auto file_id = available_file_ids.front();
-        available_file_ids.pop();
-
-        filenames[file_id.id] = filename;
-        filename2file_id.insert({ filename, file_id });
-        auto fd = open(file_path.c_str(), O_RDWR/*|O_DIRECT*/|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
-        if (fd == -1) {
-            throw std::runtime_error("Could not open file " + file_path);
-        }
-        opened_files[file_id.id] = fd;
-        return TmpFileId(buffer_manager.get_private_buffer_index(), file_id);
+    auto fd = open(db_folder.c_str(), O_TMPFILE|O_RDWR/*|O_DIRECT*/, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
+    if (fd == -1) {
+        throw std::runtime_error("Could not open temp file");
     }
-    else {
-        const auto file_path = get_file_path(filename);
-        const auto file_id = FileId(filenames.size());
-
-        filenames.push_back(filename);
-        filename2file_id.insert({ filename, file_id });
-        auto fd = open(file_path.c_str(), O_RDWR/*|O_DIRECT*/|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
-        if (fd == -1) {
-            throw std::runtime_error("Could not open file " + file_path);
-        }
-        opened_files.push_back(fd);
-        return TmpFileId(buffer_manager.get_private_buffer_index(), file_id);
-    }
-}
-
-
-void FileManager::remove(const FileId file_id) {
-    std::lock_guard<std::mutex> lck(files_mutex);
-    const auto file_path = get_file_path(filenames[file_id.id]);
-
-    buffer_manager.remove(file_id);                 // clear pages from buffer_manager
-    close(opened_files[file_id.id]);                // close the file stream
-    std::remove(file_path.c_str());                 // delete file from disk
-
-    filename2file_id.erase(filenames[file_id.id]);  // update map
-    opened_files[file_id.id] = -1;                  // clean file description
-    available_file_ids.push(file_id);               // add removed file_id as available for reuse
+    const auto file_id = FileId(fd);
+    return TmpFileId(buffer_manager.get_private_buffer_index(), file_id);
 }
 
 
 void FileManager::remove_tmp(const TmpFileId tmp_file_id) {
-    std::lock_guard<std::mutex> lck(files_mutex);
-    const auto file_path = get_file_path(filenames[tmp_file_id.file_id.id]);
-
-    buffer_manager.remove_tmp(tmp_file_id);                     // clear pages from buffer_manager
-    close(opened_files[tmp_file_id.file_id.id]);                // close the file stream
-    std::remove(file_path.c_str());                             // delete file from disk
-
-    filename2file_id.erase(filenames[tmp_file_id.file_id.id]);  // update map
-    opened_files[tmp_file_id.file_id.id] = -1;                  // clean file description
-    available_file_ids.push(tmp_file_id.file_id);               // add removed file_id as available for reuse
+    buffer_manager.remove_tmp(tmp_file_id); // clear pages from buffer_manager
+    close(tmp_file_id.file_id.id);          // close the file stream, file will be removed
 }

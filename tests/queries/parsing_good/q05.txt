@@ -1,2 +1,0 @@
-SELECT ?n.name, ?n.age
-MATCH (?n {age: 27})

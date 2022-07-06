@@ -1,5 +1,0 @@
-// Countries without an end-date
-SELECT ?country, ?countryName
-MATCH (?country)-[?e P31]->(Q3624078),
-      (?e)-[P582]->(?endDate),
-      (?country)-[Label {language:"en"}]->(?countryName)

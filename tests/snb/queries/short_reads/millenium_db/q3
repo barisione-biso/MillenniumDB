@@ -1,6 +1,0 @@
-SELECT
-  ?friend.id,
-  ?friend.firstName,
-  ?friend.lastName,
-  ?r.creationDate
-MATCH (:Person {id:17592186055119})-[?r:KNOWS]->(?friend)

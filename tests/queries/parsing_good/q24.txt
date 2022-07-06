@@ -1,3 +1,0 @@
-SELECT ?n.name
-MATCH (?n)
-WHERE ?n.name == "John"

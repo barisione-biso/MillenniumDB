@@ -1,5 +1,7 @@
 #include "binding_iter_visitor.h"
 
+#include <iostream>
+
 #include "execution/binding_id_iter/distinct_id_hash.h"
 #include "execution/binding_id_iter/index_scan.h"
 #include "execution/binding_id_iter/optional_node.h"
@@ -10,28 +12,30 @@
 #include "execution/binding_id_iter/scan_ranges/unassigned_var.h"
 #include "execution/binding_iter/aggregation.h"
 #include "execution/binding_iter/describe.h"
+#include "execution/binding_iter/distinct_ordered.h"
+#include "execution/binding_iter/distinct_hash.h"
 #include "execution/binding_iter/match.h"
+#include "execution/binding_iter/group_by.h"
 #include "execution/binding_iter/order_by.h"
 #include "execution/binding_iter/return.h"
 #include "execution/binding_iter/where.h"
-#include "execution/binding_iter/distinct_ordered.h"
-#include "execution/binding_iter/distinct_hash.h"
 #include "query_optimizer/quad_model/binding_id_iter_visitor.h"
-#include "query_optimizer/quad_model/return_item_visitor_impl.h"
 #include "query_optimizer/quad_model/expr/expr_to_binding_condition.h"
+#include "query_optimizer/quad_model/return_item_visitor_impl.h"
 #include "query_optimizer/quad_model/quad_model.h"
 
 using namespace std;
 
 BindingIterVisitor::BindingIterVisitor(std::set<Var> vars, ThreadInfo* thread_info) :
-    var2var_id  (construct_var2var_id(vars)),
-    thread_info (thread_info) { }
+    thread_info (thread_info),
+    var2var_id  (construct_var2var_id(vars)) { }
 
 
 map<Var, VarId> BindingIterVisitor::construct_var2var_id(std::set<Var>& vars) {
     map<Var, VarId> res;
     uint_fast32_t i = 0;
     for (auto& var : vars) {
+        cout << var.name << ": " << i << "\n"; // TODO: delete
         res.insert({ var, VarId(i++) });
     }
     return res;
@@ -115,44 +119,24 @@ void BindingIterVisitor::visit(OpDescribe& op_describe) {
 }
 
 
-
 void BindingIterVisitor::visit(OpReturn& op_return) {
-    std::map<VarId, std::unique_ptr<Agg>> aggregates;
 
-    // need to save the return items to be able to push optional properties from select to match in visit(OpMatch&)
-
-    ReturnItemVisitorImpl return_item_visitor(var_properties, projection_vars, aggregates, *this);
+    // save the return items to be able to push optional properties from RETURN to MATCH
+    ReturnItemVisitorImpl return_item_visitor(*this);
     for (const auto& return_item : op_return.return_items) {
         return_item->accept_visitor(return_item_visitor);
+        auto var = return_item->get_var();
+        auto var_id = get_var_id(var);
+        projection_vars.push_back({ var, var_id });
     }
 
     distinct_into_id = op_return.distinct; // OpWhere may change this value when accepting visitor
-    if (aggregates.size() > 0) {
-        distinct_into_id = false; // TODO: when we want to push distinct into Ids?
-    }
 
     op_return.op->accept_visitor(*this);
 
-    if (aggregates.size() > 0) {
-        std::vector<VarId> group_var;
-        if (true) { // TODO: contition meand to ask if group by is present
-            // No GROUP BY: RETURN can have only aggregates
-            for (const auto& return_item : op_return.return_items) {
-                auto varname = return_item->get_var().name; // TODO: should check in a more elegant way
-                if (varname[0] == '?') {
-                    throw QuerySemanticException("Return Item "
-                                                 + varname
-                                                 + " incompatible with aggregates");
-                }
-            }
-            tmp = make_unique<Aggregation>(move(tmp),
-                                           move(aggregates),
-                                           move(group_var));
-
-        } else {
-            // GROUP BY present: RETURN can have only grouped vars and aggregates over other vars
-
-        }
+    // aggs.size will be 0 if GroupBy moved it
+    if (aggs.size()) {
+        tmp = make_unique<Aggregation>(move(tmp), move(aggs), group_saved_vars, move(group_vars));
     }
 
     if (op_return.distinct) {
@@ -213,7 +197,7 @@ void BindingIterVisitor::visit(OpMatch& op_match) {
 
     const auto binding_size = var2var_id.size();
 
-    // TODO: set need_materialize_paths where needed
+    // TODO: set need_materialize_paths if needed, for now it is always false
     path_manager.begin(binding_size, need_materialize_paths);
 
     vector<unique_ptr<BindingIdIter>> optional_children;
@@ -239,7 +223,7 @@ void BindingIterVisitor::visit(OpMatch& op_match) {
         binding_id_iter_current_root = make_unique<OptionalNode>(move(binding_id_iter_current_root),
                                                                  move(optional_children));
     }
-    if (distinct_into_id) {
+    if (distinct_into_id && aggs.size() == 0) {
         std::vector<VarId> projected_var_ids;
         for (const auto& [var, var_id] : projection_vars) {
             projected_var_ids.push_back(var_id);
@@ -256,7 +240,10 @@ void BindingIterVisitor::visit(OpOrderBy& op_order_by) {
     std::vector<VarId> order_vars;
     std::set<VarId> saved_vars;
 
+    ReturnItemVisitorImpl return_item_visitor(*this);
+
     for (auto& order_item : op_order_by.items) {
+        order_item->accept_visitor(return_item_visitor);
         auto var = order_item->get_var();
 
         auto pos = var.name.find('.');
@@ -283,11 +270,27 @@ void BindingIterVisitor::visit(OpOrderBy& op_order_by) {
 }
 
 
-void BindingIterVisitor::visit(OpGroupBy& /*op_group_by*/) {
-    throw NotSupportedException("GROUP BY");
-    // TODO: implement this when GroupBy are supported
-    // op_group_by.op->accept_visitor(*this);
+void BindingIterVisitor::visit(OpGroupBy& op_group_by) {
+    group = true;
+
+    std::vector<VarId> group_order_vars;
+    std::vector<bool> ascending_order;
+
+    for (auto& var : op_group_by.items) {
+        auto var_id = get_var_id(var);
+
+        group_vars.push_back(var_id);
+        group_order_vars.push_back(var_id);
+        ascending_order.push_back(true);
+        group_saved_vars.insert(var_id);
+    }
+
+    op_group_by.op->accept_visitor(*this);
+
+    tmp = make_unique<OrderBy>(thread_info, move(tmp), group_saved_vars, move(group_order_vars), move(ascending_order));
+    tmp = make_unique<Aggregation>(move(tmp), move(aggs), group_saved_vars, move(group_vars));
 }
+
 
 void BindingIterVisitor::visit(OpSet& op_set) {
     for (auto& set_item : op_set.set_items) {

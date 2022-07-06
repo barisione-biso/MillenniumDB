@@ -46,7 +46,7 @@ private:
     std::array<uint64_t, 4> max_ids;
 
     // Structs for BFS
-    robin_hood::unordered_set<SearchState, SearchStateHasher> visited;
+    robin_hood::unordered_set<SearchState> visited;
 
     std::queue<SearchState> open;
 

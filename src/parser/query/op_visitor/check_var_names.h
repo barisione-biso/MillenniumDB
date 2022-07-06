@@ -13,6 +13,8 @@ class CheckVarNames : public OpVisitor {
 private:
     std::set<Var> declared_vars;
 
+    std::set<std::string> group_var_names;
+
     std::set<Var> declared_path_vars;
 
 public:

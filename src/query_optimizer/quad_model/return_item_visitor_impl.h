@@ -11,15 +11,15 @@
 #include "parser/query/return_item/return_item_visitor.h"
 #include "query_optimizer/quad_model/binding_iter_visitor.h"
 
+/*
+used to visit elements of RETURN and ORDER BY, populating:
+- binding_iter_visitor.group_saved_vars
+- binding_iter_visitor.aggs
+- binding_iter_visitor.var_properties
+*/
 class ReturnItemVisitorImpl : public ReturnItemVisitor {
 public:
-    ReturnItemVisitorImpl(std::set<std::pair<Var, std::string>>& var_properties,
-                          std::vector<std::pair<Var, VarId>>& projection_vars,
-                          std::map<VarId, std::unique_ptr<Agg>>& aggregates,
-                          const BindingIterVisitor& binding_iter_visitor) :
-        var_properties       (var_properties),
-        projection_vars      (projection_vars),
-        aggregates           (aggregates),
+    ReturnItemVisitorImpl(BindingIterVisitor& binding_iter_visitor) :
         binding_iter_visitor (binding_iter_visitor) { }
 
     void visit(ReturnItemAgg&)   override;
@@ -27,11 +27,5 @@ public:
     void visit(ReturnItemVar&)   override;
 
 private:
-    std::set<std::pair<Var, std::string>>& var_properties;
-
-    std::vector<std::pair<Var, VarId>>& projection_vars;
-
-    std::map<VarId, std::unique_ptr<Agg>>& aggregates;
-
-    const BindingIterVisitor& binding_iter_visitor;
+    BindingIterVisitor& binding_iter_visitor;
 };

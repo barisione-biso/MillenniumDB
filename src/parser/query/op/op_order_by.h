@@ -15,8 +15,8 @@ public:
     std::vector<bool> ascending_order;
 
     OpOrderBy(std::unique_ptr<Op> op,
-               std::vector<std::unique_ptr<ReturnItem>>&& items,
-               std::vector<bool>&& ascending_order) :
+              std::vector<std::unique_ptr<ReturnItem>>&& items,
+              std::vector<bool>&& ascending_order) :
         op              (std::move(op)),
         items           (std::move(items)),
         ascending_order (std::move(ascending_order)) { }

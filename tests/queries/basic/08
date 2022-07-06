@@ -1,3 +1,0 @@
-SELECT ?x, ?y
-MATCH (?x)->(?y)->(?x)
-LIMIT 100

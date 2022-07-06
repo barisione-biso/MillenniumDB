@@ -1,2 +1,0 @@
-SELECT *
-MATCH (?x)-[?e {Iran:false}]->(?y)

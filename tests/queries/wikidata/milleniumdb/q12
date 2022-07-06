@@ -1,4 +1,0 @@
-// All qualifier properties used with "head of government" property
-SELECT DISTINCT ?q_p
-MATCH (?s)-[?e P6]->(?o),
-      (?e)-[:TYPE(?q_p)]->(?q_v)

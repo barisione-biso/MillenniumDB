@@ -1,3 +1,0 @@
-SELECT ?x, ?y, ?z
-MATCH (?x)-[ta]->(?y)-[t10b]->(?z)
-LIMIT 10000000

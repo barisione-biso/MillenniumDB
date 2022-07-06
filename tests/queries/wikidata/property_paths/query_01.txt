@@ -1,3 +1,0 @@
-// All science professions
-SELECT ?creature, ?label
-MATCH (?creature)=[P31 / P279*]=>(Q901)

@@ -53,9 +53,9 @@ QuadModel::QuadModel(const std::string& db_folder,
     BufferManager::init(shared_buffer_pool_size, private_buffer_pool_size, max_threads);
     PathManager::init(max_threads);
 
-    new (&catalog())       QuadCatalog("catalog.dat");                    // placement new
-    new (&object_file())   ObjectFile("object_file.dat");                 // placement new
-    new (&strings_hash())  ObjectFileHash(object_file(), "str_hash.dat"); // placement new
+    new (&catalog())       QuadCatalog("catalog.dat");                // placement new
+    new (&object_file())   ObjectFile("object_file.dat");             // placement new
+    new (&strings_hash())  ObjectFileHash(object_file(), "str_hash"); // placement new
 
     Path::path_printer = &path_manager;
     StringManager::instance = &object_file();
@@ -70,9 +70,9 @@ QuadModel::QuadModel(const std::string& db_folder,
     object_key_value = make_unique<BPlusTree<3>>("object_key_value");
     key_value_object = make_unique<BPlusTree<3>>("key_value_object");
 
-    from_edge = make_unique<BPlusTree<2>>("from_edge");
-    to_edge   = make_unique<BPlusTree<2>>("to_edge");
-    type_edge = make_unique<BPlusTree<2>>("type_edge");
+    // from_edge = make_unique<BPlusTree<2>>("from_edge");
+    // to_edge   = make_unique<BPlusTree<2>>("to_edge");
+    // type_edge = make_unique<BPlusTree<2>>("type_edge");
 
     from_to_type_edge = make_unique<BPlusTree<4>>("from_to_type_edge");
     to_type_from_edge = make_unique<BPlusTree<4>>("to_type_from_edge");
@@ -102,9 +102,9 @@ QuadModel::~QuadModel() {
     label_node.reset();
     node_label.reset();
 
-    from_edge.reset();
-    to_edge.reset();
-    type_edge.reset();
+    // from_edge.reset();
+    // to_edge.reset();
+    // type_edge.reset();
 
     object_key_value.reset();
     key_value_object.reset();

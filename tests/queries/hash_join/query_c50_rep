@@ -1,3 +1,0 @@
-SELECT ?x, ?y, ?z
-MATCH (?x)-[tra]->(?y)-[tr50b]->(?z)
-LIMIT 10000000

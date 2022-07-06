@@ -1,7 +1,0 @@
-// US presidents and their wives
-SELECT ?president, ?wife, ?p_label, ?w_label
-MATCH (Q30)-[P6]->(?president)-[P26]->(?wife)
-OPTIONAL {
-    (?president)-[Label {language:"en"}]->(?p_label),
-    (?wife)-[Label {language:"en"}]->(?w_label)
-}

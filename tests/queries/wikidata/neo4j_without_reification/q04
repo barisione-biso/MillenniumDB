@@ -1,5 +1,0 @@
-MATCH (city)-[:CLAIM {property:"P31"}]->(:Item {id:"Q515"}),
-      (city)-[:CLAIM {property:"P6"}]->(mayor),
-      (city)-[:CLAIM {property:"P1082"}]->(pop)
-RETURN city.id, city.label, mayor.label, pop.value
-LIMIT 100

@@ -8,11 +8,11 @@
 
 class FileId {
 public:
-    static constexpr uint32_t UNASSIGNED = UINT32_MAX;
+    static constexpr int UNASSIGNED = INT32_MAX;
 
-    uint32_t id;
+    int id;
 
-    FileId(uint32_t id) : id(id) { }
+    FileId(int id) : id(id) { }
 
     bool operator<(const FileId other) const {
         return this->id < other.id;
@@ -26,8 +26,6 @@ public:
 
 class TmpFileId {
 public:
-    static constexpr uint32_t UNASSIGNED = UINT32_MAX;
-
     uint32_t private_buffer_pos;
     FileId file_id;
 

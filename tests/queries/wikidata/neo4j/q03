@@ -1,9 +1,0 @@
-MATCH (h)-[:CLAIM]->(c1)-[:CV]->(:Item {id:"Q5"}),
-      (h)-[:CLAIM]->(c2)-[:CV]->(dateD),
-      (h)-[:CLAIM]->(c3)-[:CV]->(dateB),
-      (c1)-[:CPROP]->(:Property {id:"P31"}),
-      (c2)-[:CPROP]->(:Property {id:"P570"}),
-      (c3)-[:CPROP]->(:Property {id:"P569"})
-WHERE dateB.value < "+1880-01-01T00:00:00Z"
-RETURN h.id, dateB.value, dateD.value
-LIMIT 100

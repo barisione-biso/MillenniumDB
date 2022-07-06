@@ -89,4 +89,5 @@
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
     "cmake.configureOnOpen": true,
+    "C_Cpp.dimInactiveRegions": true,
 }

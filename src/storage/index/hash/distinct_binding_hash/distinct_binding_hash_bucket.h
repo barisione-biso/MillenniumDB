@@ -28,7 +28,7 @@ public:
 private:
     Page& page;
 
-    const uint8_t MAX_TUPLES;
+    const uint_fast32_t max_tuples;
 
     T*        const tuples;
     uint64_t* const hashes; // each tuple is (hash1, hash2)

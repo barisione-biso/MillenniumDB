@@ -3,6 +3,7 @@
 #include <ostream>
 
 #include "base/ids/object_id.h"
+#include <functional>
 
 namespace Paths { namespace AnyShortest {
 /*
@@ -70,10 +71,12 @@ struct SearchState {
     void get_path(std::ostream& os) const;
 };
 
+}} // namespace Paths::AnyShortest
+
 // For unordered set
-struct SearchStateHasher {
-    std::size_t operator() (const SearchState& lhs) const {
-      return lhs.automaton_state ^ lhs.node_id.id;
+template<>
+struct std::hash<Paths::AnyShortest::SearchState> {
+    std::size_t operator() (const Paths::AnyShortest::SearchState& lhs) const {
+        return lhs.automaton_state ^ lhs.node_id.id;
     }
 };
-}} // namespace Paths::AnyShortest

@@ -1,4 +1,0 @@
-MATCH (:Item {id:"Q64"})-[e1 :CLAIM {property:"P1082"}]->(pop),
-      (c1 {id:e1.claim})-[:QUALIFIER {property:"P585"}]->(time)
-RETURN pop, time
-LIMIT 100

@@ -1,4 +1,0 @@
-// join de una relación vacía con una no vacía
-SELECT *
-MATCH (?x :label1 :estalabeltampocoexiste)
-LIMIT 10000

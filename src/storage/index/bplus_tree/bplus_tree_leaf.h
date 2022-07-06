@@ -31,11 +31,11 @@ friend class BPlusTree<N>;
 
 public:
     BPlusTreeLeaf(Page& page) :
-        page         (page),
-        leaf_file_id (page.page_id.file_id),
+        records      ( reinterpret_cast<uint64_t*>(page.get_bytes() + (2*sizeof(uint32_t)) ) ),
         value_count  ( reinterpret_cast<uint32_t*>(page.get_bytes()) ),
         next_leaf    ( reinterpret_cast<uint32_t*>(page.get_bytes() + sizeof(uint32_t)) ),
-        records      ( reinterpret_cast<uint64_t*>(page.get_bytes() + (2*sizeof(uint32_t)) ) ) { }
+        page         (page),
+        leaf_file_id (page.page_id.file_id) { }
 
     ~BPlusTreeLeaf() {
         buffer_manager.unpin(page);
@@ -76,11 +76,12 @@ public:
     bool check_range(const Record<N>& r) const;
 
 private:
-    Page& page;
-    const FileId leaf_file_id;
+    uint64_t* const records;
     uint32_t* const value_count;
     uint32_t* const next_leaf;
-    uint64_t* const records;
+
+    Page& page;
+    const FileId leaf_file_id;
 
     bool equal_record(const Record<N>& record, uint_fast32_t index);
     void shift_right_records(int_fast32_t from, int_fast32_t to);

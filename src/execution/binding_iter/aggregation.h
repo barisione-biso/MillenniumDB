@@ -2,6 +2,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <vector>
 
 #include "base/binding/binding_iter.h"
@@ -12,7 +13,10 @@ class Aggregation : public BindingIter {
 public:
     Aggregation(std::unique_ptr<BindingIter>          child_iter,
                 std::map<VarId, std::unique_ptr<Agg>> aggregates,
+                const std::set<VarId>&                saved_vars,
                 std::vector<VarId>                    group_vars);
+
+    ~Aggregation();
 
     void begin(std::ostream&) override;
 
@@ -27,10 +31,14 @@ private:
 
     std::map<VarId, std::unique_ptr<Agg>> aggregates;
 
+    // variables that will be saved into saved_result, must include all group_vars
+    std::vector<VarId> saved_vars;
+
     // may be empty if when the query uses aggregates without any group
     std::vector<VarId> group_vars;
 
-    std::vector<GraphObject> saved_result;
+    // array
+    GraphObject* saved_result;
 
     bool saved_next;
 };

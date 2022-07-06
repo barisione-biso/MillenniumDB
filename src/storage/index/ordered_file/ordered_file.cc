@@ -34,8 +34,8 @@ OrderedFile<N>::OrderedFile(const string& filename) :
 template <std::size_t N>
 OrderedFile<N>::~OrderedFile() {
     io_buffer.reset();
-    file_manager.remove(file_id_a);
-    file_manager.remove(file_id_b);
+    // file_manager.remove(file_id_a);
+    // file_manager.remove(file_id_b);
 }
 
 template <std::size_t N>

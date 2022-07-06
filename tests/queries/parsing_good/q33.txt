@@ -1,3 +1,0 @@
-SELECT ?n.name
-MATCH (?n :Person {age:27})
-WHERE ?n.age == 27

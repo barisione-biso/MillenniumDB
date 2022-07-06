@@ -19,9 +19,9 @@ public:
     const uint64_t limit;
 
     OpReturn(std::unique_ptr<Op> op,
-              std::vector<std::unique_ptr<ReturnItem>>&& return_items,
-              bool distinct,
-              uint64_t limit) :
+             std::vector<std::unique_ptr<ReturnItem>>&& return_items,
+             bool distinct,
+             uint64_t limit) :
         op           (std::move(op)),
         return_items (std::move(return_items)),
         distinct     (distinct),
@@ -61,5 +61,5 @@ public:
         os << ")";
         os << "\n";
         return op->print_to_ostream(os, indent);
-    };
+    }
 };

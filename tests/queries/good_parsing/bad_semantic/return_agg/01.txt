@@ -1,0 +1,2 @@
+MATCH (?x)->(?y)
+RETURN COUNT(DISTINCT ?x), ?y

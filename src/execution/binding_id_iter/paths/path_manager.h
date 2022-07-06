@@ -62,7 +62,7 @@ private:
 
     // Saves pointer when path must be materialized
     std::vector<
-      std::vector<robin_hood::unordered_set<Paths::AnyShortest::SearchState, Paths::AnyShortest::SearchStateHasher>>>
+      std::vector<robin_hood::unordered_set<Paths::AnyShortest::SearchState>>>
       states_materialized;
     // TODO: materialize Paths::AllShortest::SearchState
 

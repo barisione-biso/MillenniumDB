@@ -1,3 +1,0 @@
-// Esposas de personas que nacieron en un lugar de USA
-SELECT *
-MATCH (?person)=[P26 / P19 / P131*]=>(Q30)

@@ -11,7 +11,7 @@ PathManager& path_manager = reinterpret_cast<PathManager&>(path_manager_buf);
 
 PathManager::PathManager(uint_fast32_t max_threads) {
     for (uint64_t i = 0; i < max_threads; i++) {
-        std::vector<robin_hood::unordered_set<Paths::AnyShortest::SearchState, Paths::AnyShortest::SearchStateHasher>> materialized_path_states;
+        std::vector<robin_hood::unordered_set<Paths::AnyShortest::SearchState>> materialized_path_states;
         std::vector<const void*> path_vector;
 
         // Fill structures

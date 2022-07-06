@@ -172,13 +172,19 @@ public:
                 os << *graph_obj.value.named_tmp.name;
                 break;
             case GraphObjectType::STR_INLINED:
+                os << '"';
                 os << graph_obj.value.str_inlined.id;
+                os << '"';
                 break;
             case GraphObjectType::STR_EXTERNAL:
+                os << '"';
                 graph_obj.value.str_external.print(os);
+                os << '"';
                 break;
             case GraphObjectType::STR_TMP:
+                os << '"';
                 os << *graph_obj.value.str_tmp.str;
+                os << '"';
                 break;
             case GraphObjectType::EDGE:
                 os << "_e" << graph_obj.value.edge.id;
@@ -275,9 +281,9 @@ public:
                     }
                     break;
                 case GraphObjectType::STR_EXTERNAL:
-                    if (rhs.type == GraphObjectType::NAMED_INLINED) {
-                        return strcmp(this->value.named_external.to_string().c_str(),
-                                      rhs.value.named_inlined.id) // TODO: ineficient
+                    if (rhs.type == GraphObjectType::STR_INLINED) {
+                        return strcmp(this->value.str_external.to_string().c_str(),
+                                      rhs.value.str_inlined.id) // TODO: ineficient
                                <= 0;
                     }
                     break;
@@ -301,8 +307,9 @@ public:
                 case GraphObjectType::BOOL:
                 case GraphObjectType::PATH:
                 // default:
-                return this->type < rhs.type;
+                    break;
             }
+            return this->type < rhs.type;
         }
         switch (this->type) {
             case GraphObjectType::NAMED_INLINED:
@@ -363,9 +370,9 @@ public:
                     }
                     break;
                 case GraphObjectType::STR_EXTERNAL:
-                    if (rhs.type == GraphObjectType::NAMED_INLINED) {
-                        return strcmp(this->value.named_external.to_string().c_str(),
-                                      rhs.value.named_inlined.id) // TODO: ineficient
+                    if (rhs.type == GraphObjectType::STR_INLINED) {
+                        return strcmp(this->value.str_external.to_string().c_str(),
+                                      rhs.value.str_inlined.id) // TODO: ineficient
                                < 0;
                     }
                     break;
@@ -389,8 +396,9 @@ public:
                 case GraphObjectType::BOOL:
                 case GraphObjectType::PATH:
                 // default:
-                return this->type < rhs.type;
+                    break;
             }
+            return this->type < rhs.type;
         }
         switch (this->type) {
             case GraphObjectType::NAMED_INLINED:

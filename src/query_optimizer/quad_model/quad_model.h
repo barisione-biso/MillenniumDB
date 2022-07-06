@@ -3,14 +3,11 @@
 #include <type_traits>
 
 #include "execution/graph_model.h"
-#include "parser/import/grammar/common/common_ast.h"
 #include "query_optimizer/quad_model/quad_catalog.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/hash/object_file_hash/object_file_hash.h"
 #include "storage/index/object_file/object_file.h"
 #include "storage/index/random_access_table/random_access_table.h"
-
-
 
 class QuadModel : public GraphModel {
     class Destroyer {
@@ -21,7 +18,6 @@ class QuadModel : public GraphModel {
         ~Destroyer();
     };
 
-friend class QuadModelDestroyer;
 public:
     std::unique_ptr<RandomAccessTable<3>> edge_table;
 
@@ -33,9 +29,9 @@ public:
     std::unique_ptr<BPlusTree<3>> object_key_value;
     std::unique_ptr<BPlusTree<3>> key_value_object;
 
-    std::unique_ptr<BPlusTree<2>> from_edge;
-    std::unique_ptr<BPlusTree<2>> to_edge;
-    std::unique_ptr<BPlusTree<2>> type_edge;
+    // std::unique_ptr<BPlusTree<2>> from_edge;
+    // std::unique_ptr<BPlusTree<2>> to_edge;
+    // std::unique_ptr<BPlusTree<2>> type_edge;
 
     std::unique_ptr<BPlusTree<4>> from_to_type_edge;
     std::unique_ptr<BPlusTree<4>> to_type_from_edge;

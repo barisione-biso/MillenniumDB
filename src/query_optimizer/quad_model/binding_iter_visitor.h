@@ -13,32 +13,46 @@
 #include "base/query/var.h"
 #include "base/graph_object/graph_object.h"
 #include "base/thread/thread_info.h"
+#include "execution/binding_iter/aggregation/agg.h"
 #include "parser/query/op/ops.h"
 
 class BindingIterVisitor : public OpVisitor {
 public:
-    const std::map<Var, VarId> var2var_id;
-
+    // each visitor will set its corresponding BindingIter here
     std::unique_ptr<BindingIter> tmp;
 
-    // properties used in SELECT and ORDER BY. We need to remember them to add optional children in the OpMatch
+    ThreadInfo* thread_info;
+
+    const std::map<Var, VarId> var2var_id;
+
+    // properties used in RETURN and ORDER BY. We need to remember them to add optional children in the OpMatch
     std::set<std::pair<Var, std::string>> var_properties;
 
     std::vector<std::pair<Var, VarId>> projection_vars;
 
+    std::vector<VarId> group_vars;
+
+    std::set<VarId> group_saved_vars;
+
     // Contains mandatory equalities of variables with constants (to push them from WHERE into the BindingId phase).
     std::map<VarId, ObjectId> fixed_vars;
 
+    // Aggregates from RETURN and ORDER BY
+    std::map<VarId, std::unique_ptr<Agg>> aggs;
+
     // Contains mandatory equalities of properties with constants (to push them from WHERE into the BindingId phase).
+    // We use QueryElement instead of GraphObject because it is what OpProperty has as value
     std::vector<std::tuple<Var, std::string, QueryElement>> where_properties;
 
-    ThreadInfo* thread_info;
-
+    // When true, DistinctIdHash will be applied in visit(OpMatch&) to remove duplicates
     bool distinct_into_id = false;
 
     bool need_materialize_paths = false;
 
     bool distinct_ordered_possible = false;
+
+    // True if query contains a group by
+    bool group = false;
 
     BindingIterVisitor(std::set<Var> var_names, ThreadInfo* thread_info);
 

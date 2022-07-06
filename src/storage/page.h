@@ -13,8 +13,9 @@
 
 class Page {
 friend class BufferManager;
+friend class FileManager;
 public:
-    static constexpr auto MDB_PAGE_SIZE = 4096;
+    static constexpr size_t MDB_PAGE_SIZE = 4096;
 
     // contains file_id and page_number of this page
     PageId page_id;
@@ -26,43 +27,56 @@ public:
     inline char* get_bytes() const noexcept { return bytes; }
 
     // get page number
-    inline uint32_t get_page_number() const noexcept { return page_id.page_number; };
+    inline uint_fast32_t get_page_number() const noexcept { return page_id.page_number; };
 
 private:
-    // count of objects using this page, modified only by buffer_manager
-    std::atomic_uint32_t pins;
-
     // start memory address of the page, of size `MDB_PAGE_SIZE`
     char* bytes;
+
+    // count of objects using this page, modified only by buffer_manager
+    std::atomic<uint32_t> pins;
+
+    // used by the replacement policy
+    std::atomic<uint32_t> usage;
 
     // true if data in memory is different from disk
     bool dirty;
 
     Page() noexcept :
         page_id(FileId(FileId::UNASSIGNED), 0),
-        pins(0),
         bytes(nullptr),
+        pins(0),
+        usage(0),
         dirty(false) { }
 
-    Page(PageId page_id, char* bytes) noexcept:
-        page_id(page_id),
-        pins(1),
-        bytes(bytes),
-        dirty(false) { }
+    void pin() noexcept {
+        pins++;
+        usage++;
+    }
+
+    void unpin() noexcept {
+        assert(pins > 0 && "Cannot unpin if pin count is 0");
+        pins--;
+    }
 
     // only meant for buffer_manager.remove()
     void reset() noexcept {
         assert(pins == 0 && "Cannot reset page if it is pinned");
+        this->bytes   = nullptr;
         this->page_id = PageId(FileId(FileId::UNASSIGNED), 0);
         this->pins    = 0;
+        this->usage   = 0;
         this->dirty   = false;
-        this->bytes   = nullptr;
     }
 
-    void operator=(const Page& other) noexcept {
+    void reassign(PageId page_id, char* bytes) noexcept {
         assert(!dirty && "Cannot reassign page if it is dirty");
         assert(pins == 0 && "Cannot reassign page if it is pinned");
-        this->page_id = other.page_id;
-        this->bytes   = other.bytes;
+        assert(usage == 0 && "Should not reassign page if usage is not 0");
+
+        this->page_id = page_id;
+        this->bytes   = bytes;
+        this->pins    = 1;
+        this->usage   = 1;
     }
 };

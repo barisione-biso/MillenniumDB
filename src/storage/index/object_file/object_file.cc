@@ -47,11 +47,13 @@ ObjectFile::~ObjectFile() {
 
 
 std::string ObjectFile::get_string(uint64_t id) const {
+    assert(id < current_end);
     return std::string(&objects[id]);
 }
 
 
 void ObjectFile::print_string(std::ostream& os, uint64_t id) const {
+    assert(id < current_end);
     os << &objects[id];
 }
 

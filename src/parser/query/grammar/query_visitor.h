@@ -28,7 +28,7 @@ private:
 
     std::vector<std::unique_ptr<ReturnItem>> order_by_items;
 
-    std::vector<std::unique_ptr<ReturnItem>> group_by_items;
+    std::vector<Var> group_by_vars;
 
     std::vector<bool> order_by_ascending_order;
 
@@ -202,7 +202,7 @@ public:
         }
 
         current_op = std::make_unique<OpGroupBy>(std::move(current_op),
-                                                  std::move(group_by_items));
+                                                 std::move(group_by_vars));
         return 0;
     }
 
@@ -211,7 +211,7 @@ public:
         if (ctx->KEY() != nullptr) {
             var += ctx->KEY()->getText();
         }
-        group_by_items.push_back(std::make_unique<ReturnItemVar>(Var(var)));
+        group_by_vars.emplace_back(Var(var));
         return 0;
     }
     /* End Group By */

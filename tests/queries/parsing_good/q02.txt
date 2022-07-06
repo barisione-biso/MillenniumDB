@@ -1,2 +1,0 @@
-SELECT ?n.name
-MATCH (?n :Person :Accountant)

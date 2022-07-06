@@ -3,6 +3,7 @@
 #include <stack>
 #include <memory>
 
+#include "storage/buffer_manager.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 #include "storage/index/bplus_tree/bplus_tree_split.h"
 #include "storage/index/record.h"
@@ -15,8 +16,21 @@ class BPlusTreeDir {
 friend class BPlusTree<N>;
 
 public:
-    BPlusTreeDir(FileId const leaf_file_id, Page& page);
-    ~BPlusTreeDir();
+    BPlusTreeDir(FileId leaf_file_id, Page& page) :
+        keys         (reinterpret_cast<uint64_t*>(page.get_bytes())),
+        key_count    (reinterpret_cast<uint32_t*>(page.get_bytes()
+                        + (sizeof(uint64_t) * BPlusTree<N>::dir_max_records * N))),
+        children     (reinterpret_cast<int32_t*>(page.get_bytes()
+                        + (sizeof(uint64_t) * BPlusTree<N>::dir_max_records * N)
+                        + sizeof(uint32_t))),
+        page         (page),
+        dir_file_id  (page.page_id.file_id),
+        leaf_file_id (leaf_file_id) { }
+
+
+    ~BPlusTreeDir() {
+        buffer_manager.unpin(page);
+    }
 
     std::unique_ptr<BPlusTreeSplit<N>> bulk_insert(BPlusTreeLeaf<N>& leaf);
 
@@ -39,14 +53,15 @@ public:
     bool check() const;
 
 private:
-    FileId const dir_file_id;
-    FileId const leaf_file_id;
-    Page& page;
     uint64_t* const keys;
     uint32_t* const key_count;
     int32_t* const children;
 
-    size_t search_child_index(int_fast32_t from, int_fast32_t to, const Record<N>& record) const;
+    Page& page;
+    const FileId dir_file_id;
+    const FileId leaf_file_id;
+
+    size_t search_child_index(const Record<N>& record) const noexcept;
     void shift_right_keys(int_fast32_t from, int_fast32_t to);
     void shift_right_children(int_fast32_t from, int_fast32_t to);
     void update_key(int_fast32_t index, const Record<N>& record);

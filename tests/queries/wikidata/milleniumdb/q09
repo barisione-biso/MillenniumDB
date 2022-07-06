@@ -1,5 +1,0 @@
-// Populations of Berlin, ordered by least recent
-SELECT ?pop.amount, ?time.time
-MATCH (Q64)-[?e P1082]->(?pop),
-      (?e)-[P585]->(?time)
-ORDER BY ?time.time

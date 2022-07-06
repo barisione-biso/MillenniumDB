@@ -1,9 +1,0 @@
-// ORIGINAL: Current countries ordered by most neighbours
-// MODIFIED: GROUP BY and FILTER NOT EXISTS not supported
-// Countries and their neighbours
-SELECT ?countryName, ?neighborName
-MATCH (?country)-[P31]->(Q3624078),
-      (?country)-[P47]->(?neighbor),
-      (?neighbor)-[P31]->(Q3624078),
-      (?country)-[Label {language:"en"}]->(?countryName),
-      (?neighbor)-[Label {language:"en"}]->(?neighborName)

@@ -1,3 +1,0 @@
-// variables present in SELECT need to exists
-SELECT ?m.name
-MATCH (?n :Label1)

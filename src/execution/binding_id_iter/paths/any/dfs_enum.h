@@ -54,7 +54,7 @@ private:
     std::array<uint64_t, 4> max_ids;
 
     // Structs for BFS
-    robin_hood::unordered_set<Paths::AnyShortest::SearchState, Paths::AnyShortest::SearchStateHasher> visited;
+    robin_hood::unordered_set<Paths::AnyShortest::SearchState> visited;
 
     std::stack<DFSSearchState> open;
 
@@ -62,7 +62,7 @@ private:
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches  = 0;
 
-    robin_hood::unordered_set<Paths::AnyShortest::SearchState, Paths::AnyShortest::SearchStateHasher>::iterator
+    robin_hood::unordered_set<Paths::AnyShortest::SearchState>::iterator
       current_state_has_next(DFSSearchState& current_state);
 
     void set_iter(DFSSearchState& current_state);

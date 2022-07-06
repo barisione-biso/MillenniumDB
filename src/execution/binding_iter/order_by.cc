@@ -14,7 +14,7 @@ using namespace std;
 
 OrderBy::OrderBy(ThreadInfo*             _thread_info,
                  unique_ptr<BindingIter> _child,
-                 set<VarId>              _saved_vars,
+                 const set<VarId>&       _saved_vars,
                  vector<VarId>           _order_vars,
                  vector<bool>            _ascending) :
     thread_info    (_thread_info),
@@ -95,12 +95,12 @@ bool OrderBy::next() {
 
 void OrderBy::analyze(std::ostream& os, int indent) const {
     os << std::string(indent, ' ');
+    child->analyze(os, indent);
     os << "OrderBy(";
     for (auto& var_id : order_vars) {
         os << " VarId(" << var_id.id << ")";
     }
     os << " )\n";
-    child->analyze(os, indent);
 }
 
 

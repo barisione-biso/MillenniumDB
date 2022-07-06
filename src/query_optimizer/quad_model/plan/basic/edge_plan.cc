@@ -527,118 +527,118 @@ bool EdgePlan::get_leapfrog_iter(ThreadInfo*                                 thr
         assign(edge_index, edge);
         leapfrog_iters.push_back( get_iter_from_quad(*quad_model.type_to_from_edge) );
         return true;
-    }
+    // }
     // edge is intersection (and can't go as first)
-    else if (edge_index != INT32_MAX) {
-        cout << "from_index: " << from_index << "\n";
-        cout << "to_index: " << to_index << "\n";
-        cout << "type_index: " << type_index << "\n";
-        cout << "edge_index: " << edge_index << "\n";
-        if (from_index < edge_index) {
-            cout << "Usando nuevo indice from_edge\n";
-            // FROM/EDGE
-            assign(from_index, from);
-            assign(edge_index, edge);
-            leapfrog_iters.push_back(make_unique<LeapfrogBptIter<2>>(
-                &thread_info->interruption_requested,
-                *quad_model.from_edge,
-                move(initial_ranges),
-                move(intersection_vars),
-                move(enumeration_vars)
-            ));
-            initial_ranges.clear();
-            intersection_vars.clear();
-            enumeration_vars.clear();
-            if (!initial_ranges.empty() || !intersection_vars.empty() || !enumeration_vars.empty()) {
-                cout << "Suposicion erronea con move vector\n";
-            }
-        } else {
-            // EDGE/FROM
-            assign(edge_index, edge);
-            assign(from_index, from);
-            leapfrog_iters.push_back(make_unique<LeapfrogEdgeTableIter>(
-                &thread_info->interruption_requested,
-                *quad_model.edge_table,
-                move(initial_ranges),
-                move(intersection_vars),
-                move(enumeration_vars),
-                std::array<uint_fast32_t, 3> { FROM, FROM, FROM }
-            ));
-        }
-        if (to_index < edge_index) {
-            cout << "Usando nuevo indice to_edge\n";
-            // TO/EDGE
-            assign(to_index, to);
-            assign(edge_index, edge);
-            leapfrog_iters.push_back(make_unique<LeapfrogBptIter<2>>(
-                &thread_info->interruption_requested,
-                *quad_model.to_edge,
-                move(initial_ranges),
-                move(intersection_vars),
-                move(enumeration_vars)
-            ));
-            initial_ranges.clear();
-            intersection_vars.clear();
-            enumeration_vars.clear();
-            if (!initial_ranges.empty() || !intersection_vars.empty() || !enumeration_vars.empty()) {
-                cout << "Suposicion erronea con move vector\n";
-            }
-        } else {
-            // EDGE/TO
-            assign(edge_index, edge);
-            assign(to_index, to);
+    // else if (edge_index != INT32_MAX) {
+    //     cout << "from_index: " << from_index << "\n";
+    //     cout << "to_index: " << to_index << "\n";
+    //     cout << "type_index: " << type_index << "\n";
+    //     cout << "edge_index: " << edge_index << "\n";
+    //     if (from_index < edge_index) {
+    //         cout << "Usando nuevo indice from_edge\n";
+    //         // FROM/EDGE
+    //         assign(from_index, from);
+    //         assign(edge_index, edge);
+    //         leapfrog_iters.push_back(make_unique<LeapfrogBptIter<2>>(
+    //             &thread_info->interruption_requested,
+    //             *quad_model.from_edge,
+    //             move(initial_ranges),
+    //             move(intersection_vars),
+    //             move(enumeration_vars)
+    //         ));
+    //         initial_ranges.clear();
+    //         intersection_vars.clear();
+    //         enumeration_vars.clear();
+    //         if (!initial_ranges.empty() || !intersection_vars.empty() || !enumeration_vars.empty()) {
+    //             cout << "Suposicion erronea con move vector\n";
+    //         }
+    //     } else {
+    //         // EDGE/FROM
+    //         assign(edge_index, edge);
+    //         assign(from_index, from);
+    //         leapfrog_iters.push_back(make_unique<LeapfrogEdgeTableIter>(
+    //             &thread_info->interruption_requested,
+    //             *quad_model.edge_table,
+    //             move(initial_ranges),
+    //             move(intersection_vars),
+    //             move(enumeration_vars),
+    //             std::array<uint_fast32_t, 3> { FROM, FROM, FROM }
+    //         ));
+    //     }
+    //     if (to_index < edge_index) {
+    //         cout << "Usando nuevo indice to_edge\n";
+    //         // TO/EDGE
+    //         assign(to_index, to);
+    //         assign(edge_index, edge);
+    //         leapfrog_iters.push_back(make_unique<LeapfrogBptIter<2>>(
+    //             &thread_info->interruption_requested,
+    //             *quad_model.to_edge,
+    //             move(initial_ranges),
+    //             move(intersection_vars),
+    //             move(enumeration_vars)
+    //         ));
+    //         initial_ranges.clear();
+    //         intersection_vars.clear();
+    //         enumeration_vars.clear();
+    //         if (!initial_ranges.empty() || !intersection_vars.empty() || !enumeration_vars.empty()) {
+    //             cout << "Suposicion erronea con move vector\n";
+    //         }
+    //     } else {
+    //         // EDGE/TO
+    //         assign(edge_index, edge);
+    //         assign(to_index, to);
 
-            leapfrog_iters.push_back(make_unique<LeapfrogEdgeTableIter>(
-                &thread_info->interruption_requested,
-                *quad_model.edge_table,
-                move(initial_ranges),
-                move(intersection_vars),
-                move(enumeration_vars),
-                std::array<uint_fast32_t, 3> { TO, TO, TO }
-            ));
-        }
-        if (type_index < edge_index) {
-            // TYPE/EDGE
-            cout << "Usando nuevo indice type_edge\n";
-            assign(type_index, type);
-            assign(edge_index, edge);
-            leapfrog_iters.push_back(make_unique<LeapfrogBptIter<2>>(
-                &thread_info->interruption_requested,
-                *quad_model.type_edge,
-                move(initial_ranges),
-                move(intersection_vars),
-                move(enumeration_vars)
-            ));
-            initial_ranges.clear();
-            intersection_vars.clear();
-            enumeration_vars.clear();
-            if (!initial_ranges.empty() || !intersection_vars.empty() || !enumeration_vars.empty()) {
-                cout << "Suposicion erronea con move vector\n";
-            }
-        } else {
-            // EDGE/TYPE
-            assign(edge_index, edge);
-            assign(type_index, type);
+    //         leapfrog_iters.push_back(make_unique<LeapfrogEdgeTableIter>(
+    //             &thread_info->interruption_requested,
+    //             *quad_model.edge_table,
+    //             move(initial_ranges),
+    //             move(intersection_vars),
+    //             move(enumeration_vars),
+    //             std::array<uint_fast32_t, 3> { TO, TO, TO }
+    //         ));
+    //     }
+    //     if (type_index < edge_index) {
+    //         // TYPE/EDGE
+    //         cout << "Usando nuevo indice type_edge\n";
+    //         assign(type_index, type);
+    //         assign(edge_index, edge);
+    //         leapfrog_iters.push_back(make_unique<LeapfrogBptIter<2>>(
+    //             &thread_info->interruption_requested,
+    //             *quad_model.type_edge,
+    //             move(initial_ranges),
+    //             move(intersection_vars),
+    //             move(enumeration_vars)
+    //         ));
+    //         initial_ranges.clear();
+    //         intersection_vars.clear();
+    //         enumeration_vars.clear();
+    //         if (!initial_ranges.empty() || !intersection_vars.empty() || !enumeration_vars.empty()) {
+    //             cout << "Suposicion erronea con move vector\n";
+    //         }
+    //     } else {
+    //         // EDGE/TYPE
+    //         assign(edge_index, edge);
+    //         assign(type_index, type);
 
-            leapfrog_iters.push_back(make_unique<LeapfrogEdgeTableIter>(
-                &thread_info->interruption_requested,
-                *quad_model.edge_table,
-                move(initial_ranges),
-                move(intersection_vars),
-                move(enumeration_vars),
-                std::array<uint_fast32_t, 3> { TYPE, TYPE, TYPE }
-            ));
-        }
-        var_order.push_back(std::get<VarId>(edge));
-        return true;
+    //         leapfrog_iters.push_back(make_unique<LeapfrogEdgeTableIter>(
+    //             &thread_info->interruption_requested,
+    //             *quad_model.edge_table,
+    //             move(initial_ranges),
+    //             move(intersection_vars),
+    //             move(enumeration_vars),
+    //             std::array<uint_fast32_t, 3> { TYPE, TYPE, TYPE }
+    //         ));
+    //     }
+    //     var_order.push_back(std::get<VarId>(edge));
+    //     return true;
     } else {
         // TODO: This print should be disabled by default, but being able to print when we want to explain a query.
-        cout << "no order for leapfrog\n"
-             << "from: " << from_index
-             << ", to: " << to_index
-             << ", type: " << type_index
-             << ", edge: " << edge_index
-             << "\n";
+        // cout << "no order for leapfrog\n"
+        //      << "from: " << from_index
+        //      << ", to: " << to_index
+        //      << ", type: " << type_index
+        //      << ", edge: " << edge_index
+        //      << "\n";
         return false;
     }
 }

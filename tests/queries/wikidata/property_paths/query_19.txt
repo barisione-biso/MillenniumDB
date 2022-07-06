@@ -1,3 +1,0 @@
-// (All the people who died in France
-SELECT *
-MATCH (?p)=[P20 / P131+]=>(Q142)

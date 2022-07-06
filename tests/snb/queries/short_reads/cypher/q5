@@ -1,5 +1,0 @@
-MATCH (m:Message {id:"1924146729081"})-[:HAS_CREATOR]->(p:Person)
-RETURN
-  p.id AS personId,
-  p.firstName AS firstName,
-  p.lastName AS lastName;

@@ -1,7 +1,0 @@
-// People who have Wikidata accounts
-// Wrong because BUG at qualifiers imported
-SELECT ?person, ?name, ?uname
-MATCH (?person)-[?e P553]->(Q52),
-      (?e)-[P554]->(?uname),
-      (?person)-[Label]->(?name)
-LIMIT 100

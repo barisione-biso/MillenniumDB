@@ -1,3 +1,0 @@
-SELECT ?x, ?x.Agassi, ?x
-MATCH (?x)
-WHERE ?x.Agassi > 9000

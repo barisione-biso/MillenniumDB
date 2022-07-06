@@ -1,7 +1,0 @@
-MATCH (city)-[:CLAIM {property:"P31"}]->(:Item {id:"Q515"}),
-      (city)-[e1 :CLAIM {property:"P6"}]->(mayor),
-      (c1 {id:e1.claim})-[:QUALIFIER {property:"P582"}]->(x),
-      (mayor)-[:CLAIM {property:"P21"}]->(:Item {id:"Q6581072"}),
-      (city)-[:CLAIM {property:"P17"}]->(country)
-RETURN country, country.label
-LIMIT 1

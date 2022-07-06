@@ -15,7 +15,7 @@ class OrderBy : public BindingIter {
 public:
     OrderBy(ThreadInfo*                  thread_info,
             std::unique_ptr<BindingIter> child,
-            std::set<VarId>              saved_vars,
+            const std::set<VarId>&       saved_vars,
             std::vector<VarId>           order_vars,
             std::vector<bool>            ascending);
     ~OrderBy();

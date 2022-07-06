@@ -1,4 +1,0 @@
-// join con solo un resultado de dos relaciones con un solo resultado
-SELECT *
-MATCH (?x :label2 :label3)
-LIMIT 10000

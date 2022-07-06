@@ -18,31 +18,34 @@ BufferManager& buffer_manager = reinterpret_cast<BufferManager&>(buffer_manager_
 BufferManager::BufferManager(uint_fast32_t shared_buffer_pool_size,
                              uint_fast32_t private_buffer_pool_size,
                              uint_fast32_t max_threads) :
-    shared_buffer_pool_size   (shared_buffer_pool_size),
-    private_buffer_pool_size  (private_buffer_pool_size),
-    max_private_buffers       (max_threads),
+    clock_pos                 (0),
     buffer_pool               (new Page[shared_buffer_pool_size]),
-    private_buffer_pool       (new Page[private_buffer_pool_size * max_private_buffers]),
+    private_buffer_pool       (new Page[private_buffer_pool_size * max_threads]),
     bytes                     (reinterpret_cast<char*>(std::aligned_alloc(
                                    Page::MDB_PAGE_SIZE,
                                    shared_buffer_pool_size * Page::MDB_PAGE_SIZE))),
     private_bytes             (reinterpret_cast<char*>(std::aligned_alloc(
                                    Page::MDB_PAGE_SIZE,
-                                   private_buffer_pool_size * max_private_buffers * Page::MDB_PAGE_SIZE))),
-    clock_pos                 (0)
+                                   private_buffer_pool_size * max_threads * Page::MDB_PAGE_SIZE))),
+    shared_buffer_pool_size   (shared_buffer_pool_size),
+    private_buffer_pool_size  (private_buffer_pool_size)
 {
-    for (uint_fast32_t i=0; i < max_private_buffers; i++) {
+    for (uint_fast32_t i=0; i < max_threads; i++) {
         available_private_positions.push(i);
     }
-    private_tmp_pages.resize(max_private_buffers);
-    private_clock_pos.resize(max_private_buffers);
+    private_tmp_pages.resize(max_threads);
+    private_clock_pos.resize(max_threads);
+
+    pages.reserve(shared_buffer_pool_size);
 }
 
 
 BufferManager::~BufferManager() {
     flush();
-    delete[](bytes);
     delete[](buffer_pool);
+    delete[](private_buffer_pool);
+    free(bytes);
+    free(private_bytes);
 }
 
 
@@ -61,8 +64,7 @@ void BufferManager::flush() {
     assert(buffer_pool != nullptr);
     for (uint_fast32_t i = 0; i < shared_buffer_pool_size; i++) {
         if (buffer_pool[i].dirty) {
-            file_manager.flush(buffer_pool[i].page_id, bytes);
-            buffer_pool[i].dirty = false;
+            file_manager.flush(buffer_pool[i]);
         }
     }
 }
@@ -84,33 +86,37 @@ Page& BufferManager::append_page(FileId file_id) {
 
 
 uint_fast32_t BufferManager::get_buffer_available() {
-    auto first_lookup = clock_pos;
-
-    while (buffer_pool[clock_pos].pins != 0) {
-        clock_pos = (clock_pos+1) % shared_buffer_pool_size;
-        if (__builtin_expect(!!(clock_pos == first_lookup), 0)) {
-            throw QueryExecutionException("No buffer available in buffer pool");
+    while (true) {
+        // when pins == 0 the are no synchronization problems with pins and usage
+        if (buffer_pool[clock_pos].pins == 0) {
+            if (buffer_pool[clock_pos].usage == 0) {
+                break;
+            } else {
+                buffer_pool[clock_pos].usage--;
+            }
         }
+        clock_pos++;
+        clock_pos = clock_pos < shared_buffer_pool_size ? clock_pos : 0;
     }
-    auto res = clock_pos;
-    clock_pos = (clock_pos+1) % shared_buffer_pool_size;
-    return res;
+    return clock_pos;
 }
 
 
 uint_fast32_t BufferManager::get_private_buffer_available(uint_fast32_t thread_pos) {
-    // analogous to shared buffer
-    auto first_lookup = private_clock_pos[thread_pos];
-
-    while (get_private_page(thread_pos, private_clock_pos[thread_pos]).pins != 0) {
-        private_clock_pos[thread_pos] = (private_clock_pos[thread_pos]+1)%private_buffer_pool_size;
-        if (__builtin_expect(!!(private_clock_pos[thread_pos] == first_lookup), 0)) {
-            throw QueryExecutionException("No buffer available in private buffer pool.");
+    while (true) {
+        // when pins == 0 the are no synchronization problems with pins and usage
+        Page& page = get_private_page(thread_pos, private_clock_pos[thread_pos]);
+        if (page.pins == 0) {
+            if (page.usage == 0) {
+                break;
+            } else {
+                page.usage--;
+            }
         }
+        private_clock_pos[thread_pos]++;
+        private_clock_pos[thread_pos] = private_clock_pos[thread_pos] < private_buffer_pool_size ? private_clock_pos[thread_pos] : 0;
     }
-    auto ret = private_clock_pos[thread_pos];
-    private_clock_pos[thread_pos] = (private_clock_pos[thread_pos]+1)%private_buffer_pool_size;
-    return ret;
+    return private_clock_pos[thread_pos];
 }
 
 
@@ -128,10 +134,9 @@ Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcep
         }
 
         if (page.dirty) {
-            file_manager.flush(page.page_id, bytes);
-            page.dirty = false;
+            file_manager.flush(page);
         }
-        page = Page(page_id, &bytes[buffer_available*Page::MDB_PAGE_SIZE]);
+        page.reassign(page_id, &bytes[buffer_available*Page::MDB_PAGE_SIZE]);
 
         file_manager.read_page(page_id, page.get_bytes());
         pages.insert({page_id, &page});
@@ -144,7 +149,7 @@ Page& BufferManager::get_page(FileId file_id, uint_fast32_t page_number) noexcep
 }
 
 
-Page& BufferManager::get_tmp_page(TmpFileId tmp_file_id, uint_fast32_t page_number) {
+Page& BufferManager::get_tmp_page(TmpFileId tmp_file_id, uint_fast32_t page_number) noexcept {
     const PageId page_id(tmp_file_id.file_id, page_number);
     auto thread_pos = tmp_file_id.private_buffer_pos;
 
@@ -155,16 +160,15 @@ Page& BufferManager::get_tmp_page(TmpFileId tmp_file_id, uint_fast32_t page_numb
     if (it == private_tmp_pages[thread_pos].end()) {
         const auto buffer_available = get_private_buffer_available(thread_pos);
         auto& page = get_private_page(thread_pos, buffer_available);
-        if (page.page_id.file_id.id != TmpFileId::UNASSIGNED) {
+        if (page.page_id.file_id.id != FileId::UNASSIGNED) {
             private_tmp_pages[thread_pos].erase(page.page_id);
         }
 
         if (page.dirty) {
-            file_manager.flush(page.page_id, bytes);
-            page.dirty = false;
+            file_manager.flush(page);
         }
-        page = Page(page_id,
-                    &private_bytes[Page::MDB_PAGE_SIZE * (thread_pos * private_buffer_pool_size + buffer_available)]);
+        page.reassign(page_id,
+                      &private_bytes[Page::MDB_PAGE_SIZE * (thread_pos*private_buffer_pool_size + buffer_available)]);
 
         file_manager.read_page(page_id, page.get_bytes());
         private_tmp_pages[thread_pos].insert({page_id, &page});
@@ -177,15 +181,15 @@ Page& BufferManager::get_tmp_page(TmpFileId tmp_file_id, uint_fast32_t page_numb
 }
 
 
-void BufferManager::remove(FileId file_id) {
-    assert(buffer_pool != nullptr);
-    for (uint_fast32_t i = 0; i < shared_buffer_pool_size; i++) {
-        if (buffer_pool[i].page_id.file_id == file_id) {
-            pages.erase(buffer_pool[i].page_id);
-            buffer_pool[i].reset();
-        }
-    }
-}
+// void BufferManager::remove(FileId file_id) {
+//     assert(buffer_pool != nullptr);
+//     for (uint_fast32_t i = 0; i < shared_buffer_pool_size; i++) {
+//         if (buffer_pool[i].page_id.file_id == file_id) {
+//             pages.erase(buffer_pool[i].page_id);
+//             buffer_pool[i].reset();
+//         }
+//     }
+// }
 
 
 void BufferManager::remove_tmp(TmpFileId tmp_file_id) {

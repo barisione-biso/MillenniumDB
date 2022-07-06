@@ -23,9 +23,9 @@ public:
     }
 
 private:
-    std::vector<VarId> var_ids;
-
     int64_t count;
+
+    std::vector<VarId> var_ids;
 
     std::vector<GraphObject> tuple;
 

@@ -1,5 +1,0 @@
-MATCH (state)-[:CLAIM {property:"P31"}]->(:Item {id:"Q35657"}),
-      (neigh)-[:CLAIM {property:"P47"}]->(state),
-      (neigh)-[:CLAIM {property:"P31"}]->(:Item {id:"Q35657"})
-RETURN state.id, state.label
-LIMIT 100

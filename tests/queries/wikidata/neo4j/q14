@@ -1,4 +1,0 @@
-MATCH (person)-[e :CLAIM {property:"P553"}]->(:Item {id:"Q52"}),
-      (c {id:e.claim})-[:QUALIFIER {property:"P554"}]->(uname)
-RETURN person.id, person.label, uname.value
-LIMIT 1

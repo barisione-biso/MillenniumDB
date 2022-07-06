@@ -5,32 +5,11 @@
 #include <utility>
 #include <cstring>
 
-#include "storage/buffer_manager.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/record.h"
 
 using namespace std;
-
-template <std::size_t N>
-BPlusTreeDir<N>::BPlusTreeDir(FileId const leaf_file_id, Page& page) :
-    dir_file_id  (page.page_id.file_id),
-    leaf_file_id (leaf_file_id),
-    page         (page),
-    keys         (reinterpret_cast<uint64_t*>(page.get_bytes())),
-    key_count    (reinterpret_cast<uint32_t*>(page.get_bytes()
-                      + (sizeof(uint64_t) * BPlusTree<N>::dir_max_records * N))),
-    children     (reinterpret_cast<int32_t*>(page.get_bytes()
-                      + (sizeof(uint64_t) * BPlusTree<N>::dir_max_records * N)
-                      + sizeof(uint32_t)))
-    { }
-
-
-template <std::size_t N>
-BPlusTreeDir<N>::~BPlusTreeDir() {
-    buffer_manager.unpin(page);
-}
-
 
 // requieres first insert manually
 template <std::size_t N>
@@ -116,7 +95,7 @@ std::unique_ptr<BPlusTreeSplit<N>> BPlusTreeDir<N>::bulk_insert(BPlusTreeLeaf<N>
 
 template <std::size_t N>
 std::unique_ptr<BPlusTreeSplit<N>> BPlusTreeDir<N>::insert(const Record<N>& record) {
-    auto index = (*key_count > 0) ? search_child_index(0, *key_count, record)
+    auto index = (*key_count > 0) ? search_child_index(record)
                                   : 0;
 
     auto page_pointer = children[index];
@@ -134,7 +113,7 @@ std::unique_ptr<BPlusTreeSplit<N>> BPlusTreeDir<N>::insert(const Record<N>& reco
     }
 
     if (split != nullptr) {
-        uint_fast32_t splitted_index = search_child_index(0, *key_count, split->record);
+        uint_fast32_t splitted_index = search_child_index(split->record);
         // Case 1: no need to split this node
         if (*key_count < BPlusTree<N>::dir_max_records) {
             shift_right_keys(splitted_index, (*key_count)-1);
@@ -332,7 +311,7 @@ void BPlusTreeDir<N>::shift_right_children(int_fast32_t from, int_fast32_t to) {
 
 template <std::size_t N>
 SearchLeafResult<N> BPlusTreeDir<N>::search_leaf(const Record<N>& min) const noexcept {
-    auto dir_index = search_child_index(0, *key_count, min);
+    auto dir_index = search_child_index(min);
     auto page_pointer = children[dir_index];
 
     if (page_pointer < 0) { // negative number: pointer to dir
@@ -353,7 +332,7 @@ template <std::size_t N>
 SearchLeafResult<N> BPlusTreeDir<N>::search_leaf(stack< unique_ptr<BPlusTreeDir<N>> >& stack,
                                                  const Record<N>& min) const noexcept
 {
-    auto dir_index = search_child_index(0, *key_count, min);
+    auto dir_index = search_child_index(min);
     auto page_pointer = children[dir_index];
 
     if (page_pointer < 0) { // negative number: pointer to dir
@@ -372,7 +351,9 @@ SearchLeafResult<N> BPlusTreeDir<N>::search_leaf(stack< unique_ptr<BPlusTreeDir<
 
 
 template <std::size_t N>
-size_t BPlusTreeDir<N>::search_child_index(int_fast32_t dir_from, int_fast32_t dir_to, const Record<N>& record) const {
+size_t BPlusTreeDir<N>::search_child_index(const Record<N>& record) const noexcept {
+    int_fast32_t dir_from = 0;
+    int_fast32_t dir_to = *key_count;
 search_child_index_begin:
     if (dir_from == dir_to) {
         return dir_from;
@@ -520,13 +501,13 @@ bool BPlusTreeDir<N>::check() const {
 
         if (page_pointer < 0) { // negative number: pointer to dir
             auto& child_page = buffer_manager.get_page(dir_file_id, page_pointer*-1);
-            auto child =  BPlusTreeDir<N>(leaf_file_id, child_page);
+            auto child = BPlusTreeDir<N>(leaf_file_id, child_page);
             if (!child.check())
                 return false;
         }
         else { // positive number: pointer to leaf
             auto& child_page = buffer_manager.get_page(leaf_file_id, page_pointer);
-            auto child =  BPlusTreeLeaf<N>(child_page);
+            auto child = BPlusTreeLeaf<N>(child_page);
             if (!child.check())
                 return false;
         }

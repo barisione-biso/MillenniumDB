@@ -101,7 +101,7 @@ bool AStarIterEnum::next() {
 }
 
 
-robin_hood::unordered_set<SearchState, SearchStateHasher>::iterator
+robin_hood::unordered_set<SearchState>::iterator
 AStarIterEnum::current_state_has_next()
 {
     auto current_state = &open.top();

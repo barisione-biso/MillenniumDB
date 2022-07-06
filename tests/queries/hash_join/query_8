@@ -1,3 +1,0 @@
-// join triple de muchos con muchos
-SELECT ?x, ?y, ?z
-MATCH (?x :label4)-[t3]->(?y)-[t4]->(?z)

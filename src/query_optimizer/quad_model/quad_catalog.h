@@ -2,12 +2,12 @@
 
 #include <fstream>
 #include <memory>
-#include <map>
 #include <string>
 #include <vector>
 
 #include "base/ids/object_id.h"
 #include "storage/catalog/catalog.h"
+#include "third_party/robin_hood/robin_hood.h"
 
 class QuadCatalog : public Catalog {
 friend class QuadModel;
@@ -45,13 +45,13 @@ public:
     uint64_t equal_to_type_count;
     uint64_t equal_from_to_type_count;
 
-    std::map<uint64_t, uint64_t> label2total_count;
-    std::map<uint64_t, uint64_t> key2total_count;
-    std::map<uint64_t, uint64_t> key2distinct;
-    std::map<uint64_t, uint64_t> type2total_count;
+    robin_hood::unordered_map<uint64_t, uint64_t> label2total_count;
+    robin_hood::unordered_map<uint64_t, uint64_t> key2total_count;
+    robin_hood::unordered_map<uint64_t, uint64_t> key2distinct;
+    robin_hood::unordered_map<uint64_t, uint64_t> type2total_count;
 
-    std::map<uint64_t, uint64_t> type2equal_from_to_type_count;
-    std::map<uint64_t, uint64_t> type2equal_from_to_count;
-    std::map<uint64_t, uint64_t> type2equal_from_type_count;
-    std::map<uint64_t, uint64_t> type2equal_to_type_count;
+    robin_hood::unordered_map<uint64_t, uint64_t> type2equal_from_to_type_count;
+    robin_hood::unordered_map<uint64_t, uint64_t> type2equal_from_to_count;
+    robin_hood::unordered_map<uint64_t, uint64_t> type2equal_from_type_count;
+    robin_hood::unordered_map<uint64_t, uint64_t> type2equal_to_type_count;
 };

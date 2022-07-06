@@ -4,13 +4,12 @@
 #include "parser/query/return_item/return_items.h"
 
 void ReturnItemVisitorImpl::visit(ReturnItemAgg& return_item) {
-    // TODO: should be switch of enum
     auto pos = return_item.inside_var.find('.');
     if (pos != std::string::npos) {
         // we split something like "?x1.key1" into "?x" and "key1"
         auto var_without_property = return_item.inside_var.substr(0, pos);
         auto var_key              = return_item.inside_var.substr(pos + 1);
-        var_properties.insert({ Var(var_without_property), var_key });
+        binding_iter_visitor.var_properties.insert({ Var(var_without_property), var_key });
     }
 
     Var var = return_item.get_var();
@@ -20,15 +19,15 @@ void ReturnItemVisitorImpl::visit(ReturnItemAgg& return_item) {
     auto inside_var_id = binding_iter_visitor.get_var_id(inside_var);
 
     if (return_item.aggregate_func == "avg") {
-        aggregates.insert({var_id , std::make_unique<AggAvg>(inside_var_id)});
+        binding_iter_visitor.aggs.insert({var_id , std::make_unique<AggAvg>(inside_var_id)});
     } else if (return_item.aggregate_func == "max") {
-        aggregates.insert({var_id , std::make_unique<AggMax>(inside_var_id)});
+        binding_iter_visitor.aggs.insert({var_id , std::make_unique<AggMax>(inside_var_id)});
     } else if (return_item.aggregate_func == "min") {
-        aggregates.insert({var_id , std::make_unique<AggMin>(inside_var_id)});
+        binding_iter_visitor.aggs.insert({var_id , std::make_unique<AggMin>(inside_var_id)});
     } else if (return_item.aggregate_func == "sum") {
-        aggregates.insert({var_id , std::make_unique<AggSum>(inside_var_id)});
+        binding_iter_visitor.aggs.insert({var_id , std::make_unique<AggSum>(inside_var_id)});
     }
-    projection_vars.push_back({ var , var_id });
+    binding_iter_visitor.group_saved_vars.insert(inside_var_id);
 }
 
 
@@ -39,23 +38,22 @@ void ReturnItemVisitorImpl::visit(ReturnItemCount& return_item) {
         if (return_item.distinct) {
             std::vector<VarId> var_ids;
             for (auto&& [var, var_id] : binding_iter_visitor.var2var_id) {
-                if (var.name[0] == '?' && var.name[1] != '_') { // TODO: should be done more elegant
+                if (var.name[0] == '?' && var.name[1] != '_') {
                     var_ids.push_back(var_id);
+                    binding_iter_visitor.group_saved_vars.insert(var_id);
                 }
             }
-
-            aggregates.insert({var_id , std::make_unique<AggCountAllDistinct>(std::move(var_ids))});
+            binding_iter_visitor.aggs.insert({var_id , std::make_unique<AggCountAllDistinct>(std::move(var_ids))});
         } else {
-            aggregates.insert({var_id , std::make_unique<AggCountAll>()});
+            binding_iter_visitor.aggs.insert({var_id , std::make_unique<AggCountAll>()});
         }
-        projection_vars.push_back({ var , var_id });
     } else {
         auto pos = return_item.inside_var.find('.');
         if (pos != std::string::npos) {
             // we split something like "?x1.key1" into "?x" and "key1"
             auto var_without_property = return_item.inside_var.substr(0, pos);
             auto var_key              = return_item.inside_var.substr(pos + 1);
-            var_properties.insert({ Var(var_without_property), var_key });
+            binding_iter_visitor.var_properties.insert({ Var(var_without_property), var_key });
         }
         Var var = return_item.get_var();
         auto var_id = binding_iter_visitor.get_var_id(var);
@@ -63,11 +61,11 @@ void ReturnItemVisitorImpl::visit(ReturnItemCount& return_item) {
         Var inside_var(return_item.inside_var);
         auto inside_var_id = binding_iter_visitor.get_var_id(inside_var);
         if (return_item.distinct) {
-            aggregates.insert({var_id , std::make_unique<AggCountVarDistinct>(inside_var_id)});
+            binding_iter_visitor.aggs.insert({var_id , std::make_unique<AggCountVarDistinct>(inside_var_id)});
         } else {
-            aggregates.insert({var_id , std::make_unique<AggCountVar>(inside_var_id)});
+            binding_iter_visitor.aggs.insert({var_id , std::make_unique<AggCountVar>(inside_var_id)});
         }
-        projection_vars.push_back({ var , var_id });
+        binding_iter_visitor.group_saved_vars.insert(inside_var_id);
     }
 }
 
@@ -79,10 +77,9 @@ void ReturnItemVisitorImpl::visit(ReturnItemVar& return_item) {
         // we split something like "?x1.key1" into "?x" and "key1"
         auto var_without_property = var_str.substr(0, pos);
         auto var_key              = var_str.substr(pos + 1);
-        var_properties.insert({ Var(var_without_property), var_key });
+        binding_iter_visitor.var_properties.insert({ Var(var_without_property), var_key });
     }
 
-    Var var(var_str);
-    auto var_id = binding_iter_visitor.get_var_id(var);
-    projection_vars.push_back({ var, var_id });
+    auto var_id = binding_iter_visitor.get_var_id(return_item.var);
+    binding_iter_visitor.group_saved_vars.insert(var_id);
 }

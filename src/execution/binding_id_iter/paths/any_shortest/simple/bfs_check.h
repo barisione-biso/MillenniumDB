@@ -66,7 +66,7 @@ private:
     std::array<uint64_t, 4> max_ids;
 
     // Structs for BFS
-    robin_hood::unordered_set<SearchState, SearchStateHasher> visited;
+    robin_hood::unordered_set<SearchState> visited;
     // open stores a pointer to a SearchState stored in visited
     // that allows to avoid use visited.find to get a pointer and
     // use the state extracted of the open directly.

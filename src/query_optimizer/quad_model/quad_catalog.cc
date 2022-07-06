@@ -5,7 +5,7 @@
 using namespace std;
 
 QuadCatalog::QuadCatalog(const std::string& filename) :
-    Catalog(filename)
+    Catalog (filename)
 {
     if (is_empty()) {
         identifiable_nodes_count = 0;
@@ -194,7 +194,7 @@ void QuadCatalog::print() {
 
 
 uint64_t QuadCatalog::connections_with_type(uint64_t type_id) {
-    // NOT using type2total_count[type_id] because it would insert a 0 in the map qhe key is no found
+    // NOT using type2total_count[type_id] because it would insert a 0 in the map if the key is no found
     auto search = type2total_count.find(type_id);
     if (search == type2total_count.end()) {
         return 0;

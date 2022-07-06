@@ -1,5 +1,0 @@
-MATCH (country)-[e :CLAIM {property:"P31"}]->(:Item {id:"Q3624078"}),
-      (c {id:e.claim})-[:QUALIFIER {property:"P582"}]->(endDate)
-RETURN country.id, country.label
-LIMIT 1
-

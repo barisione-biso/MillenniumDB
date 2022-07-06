@@ -48,6 +48,7 @@
 #include "query_optimizer/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
+#include "storage/filesystem.h"
 #include "third_party/cxxopts/cxxopts.h"
 
 using namespace std;
@@ -304,6 +305,14 @@ int main(int argc, char **argv) {
 
         if (private_buffer_size < 0) {
             cerr << "Private buffer size cannot be a negative number.\n";
+            return 1;
+        }
+
+        if (!Filesystem::exists(db_folder)) {
+            cerr << "Database folder does not exists.\n";
+            return 1;
+        } else if (!Filesystem::is_directory(db_folder)) {
+            cerr << "Database folder is not a directory.\n";
             return 1;
         }
 

@@ -1,4 +1,0 @@
-// join de muchos con muchos con mismo key, debiese usar nested loop
-SELECT ?x, ?y, ?z
-MATCH (?x)-[t1]->(?y)-[t2]->(?z)
-LIMIT 10000000

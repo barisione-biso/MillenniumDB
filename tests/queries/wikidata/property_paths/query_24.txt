@@ -1,3 +1,0 @@
-// All sculptures on wikidata
-SELECT *
-MATCH (?item)=[P31 / P279*]=>(Q860861)

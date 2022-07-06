@@ -1,0 +1,3 @@
+MATCH (?x)->(?y)
+GROUP BY ?x.k1, ?x.k2
+RETURN ?x.k1, ?x.k2

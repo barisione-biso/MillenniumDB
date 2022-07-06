@@ -1,3 +1,0 @@
-// All the people who born in France
-SELECT *
-MATCH (?p)=[P19 / P131+]=>(Q142)

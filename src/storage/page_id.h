@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <functional>
+#include <type_traits>
 
 #include "storage/file_id.h"
 
@@ -14,15 +15,15 @@ struct PageId {
         page_number (page_number) { }
 
     // needed to allow std::map having PageId as key
-    bool operator<(const PageId& other) const {
-        if (this->file_id < other.file_id) {
-            return true;
-        } else if (other.file_id < this->file_id) {
-            return false;
-        } else {
-            return this->page_number < other.page_number;
-        }
-    }
+    // bool operator<(const PageId& other) const {
+    //     if (this->file_id < other.file_id) {
+    //         return true;
+    //     } else if (other.file_id < this->file_id) {
+    //         return false;
+    //     } else {
+    //         return this->page_number < other.page_number;
+    //     }
+    // }
 
     // needed to allow std::unordered_map having PageId as key
     bool operator==(const PageId& other) const {
@@ -30,8 +31,11 @@ struct PageId {
     }
 };
 
-struct PageIdHasher {
-    std::size_t operator()(const PageId& k) const {
-        return std::hash<uint64_t>{}(static_cast<uint64_t>(k.file_id.id) | (static_cast<uint64_t>(k.page_number) << 32));
+template<>
+struct std::hash<PageId> {
+    std::size_t operator()(PageId const& k) const noexcept {
+        return k.file_id.id | (k.page_number << 6);
     }
 };
+
+static_assert(std::is_trivially_copyable<PageId>::value);

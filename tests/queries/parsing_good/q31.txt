@@ -1,3 +1,0 @@
-SELECT ?n.name, ?n.age
-MATCH (?n :Person :accountant)
-WHERE ?n.age == 27

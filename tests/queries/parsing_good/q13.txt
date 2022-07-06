@@ -1,3 +1,0 @@
-SELECT ?n.name
-MATCH (?n :Person)
-WHERE NOT ?n.name == ?m.name
