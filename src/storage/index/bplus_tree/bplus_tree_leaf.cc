@@ -20,6 +20,14 @@ unique_ptr<Record<N>> BPlusTreeLeaf<N>::get_record(uint_fast32_t pos) const {
 
 template <std::size_t N>
 unique_ptr<BPlusTreeSplit<N>> BPlusTreeLeaf<N>::insert(const Record<N>& record) {
+    if (*value_count == 0) {
+        for (uint_fast32_t i = 0; i < N; i++) {
+            records[i] = record.ids[i];
+        }
+        ++(*value_count);
+        this->page.make_dirty();
+        return nullptr;
+    }
     uint_fast32_t index = search_index(record);
     if (equal_record(record, index)) {
         for (uint_fast32_t i = 0; i < N; i++) {
