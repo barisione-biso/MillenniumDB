@@ -32,7 +32,6 @@ double UnjointObjectPlan::estimate_output_size() const {
     return quad_model.catalog().connections_count
            + quad_model.catalog().identifiable_nodes_count
            + quad_model.catalog().anonymous_nodes_count;
-    // TODO: literals are not considered in the estimation
 }
 
 

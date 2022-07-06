@@ -10,7 +10,7 @@ This class is necessary because NamedNodeExternal cannot be propertly used
 when the query has a string that doesn't exist in the graph.
 TODO: this may change if operations with strings are allowed in the
       query language, as they may produce strings that doesn't exist in the
-      graph. Maybe NamedNode should be a GraphObject 
+      graph. Maybe NamedNode should be a GraphObject
 */
 class NamedNode {
 public:

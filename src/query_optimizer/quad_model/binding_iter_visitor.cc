@@ -35,7 +35,6 @@ map<Var, VarId> BindingIterVisitor::construct_var2var_id(std::set<Var>& vars) {
     map<Var, VarId> res;
     uint_fast32_t i = 0;
     for (auto& var : vars) {
-        cout << var.name << ": " << i << "\n"; // TODO: delete
         res.insert({ var, VarId(i++) });
     }
     return res;

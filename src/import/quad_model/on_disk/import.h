@@ -103,7 +103,7 @@ private:
 
     void save_first_id_iri() {
         ids_stack.clear();
-        //TODO:
+        //TODO: process IRI when supported
     }
 
     void save_first_id_int() {
@@ -222,7 +222,7 @@ private:
     }
 
     void save_second_id_iri() {
-        // TODO:
+        // TODO: process IRI when supported
     }
 
     void save_second_id_int() {

@@ -37,6 +37,7 @@ public:
         buffer_count (0),
         buffer (reinterpret_cast<char*>(std::aligned_alloc(Page::MDB_PAGE_SIZE, buffer_size)))
     {
+        // TODO: throw exception if we can't order with 1 merge
         file.open(filename, std::ios::out|std::ios::app);
         if (file.fail()) {
             throw std::runtime_error("Could not open file " + filename);
@@ -73,7 +74,6 @@ public:
         auto new_buffer_size = max_blocks_per_run * (Page::MDB_PAGE_SIZE*N*sizeof(uint64_t));
         this->buffer_size = new_buffer_size;
         buffer = new_buffer;
-        //reinterpret_cast<char*>(std::aligned_alloc(Page::MDB_PAGE_SIZE, new_buffer_size));
     }
 
     void finish_indexing() {
@@ -145,7 +145,6 @@ private:
 
         const size_t max_tuples_per_block = Page::MDB_PAGE_SIZE;
         const size_t max_blocks_per_run = buffer_size / block_size;
-        // size_t max_tuples_per_run = max_blocks_per_run * max_tuples_per_block;
 
 
         const size_t tuples_in_last_block = (total_tuples % max_tuples_per_block == 0)
@@ -155,11 +154,6 @@ private:
         const size_t blocks_in_last_run = (total_blocks % max_blocks_per_run == 0)
                                             ? max_blocks_per_run
                                             : (total_blocks % max_blocks_per_run);
-
-        // se asume que buffer_size es divisible por block_size
-        // para que no sobre en ningún bloque excepto el último
-        // TODO: tirar exepcion lo antes posible si no se puede hacer en 2 pasadas (1 merge)
-        // o sea que no caben `total_runs` en memoria (decontando bloque de output)
 
         assert(total_runs*block_size + (BPTLeafWriter<N>::max_records*N*sizeof(uint64_t)) <= buffer_size);
         file.seekg(0, file.beg);

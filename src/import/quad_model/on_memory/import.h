@@ -7,6 +7,7 @@
 #include <functional>
 #include <vector>
 
+#include "base/exceptions.h"
 #include "import/quad_model/external_string.h"
 #include "import/quad_model/inliner.h"
 #include "import/quad_model/lexer/lexer.h"
@@ -97,7 +98,7 @@ private:
 
     void save_first_id_iri() {
         ids_stack.clear();
-        //TODO:
+        // TODO: process IRI when supported
     }
 
     void save_first_id_int() {
@@ -121,10 +122,9 @@ private:
     }
 
     void save_first_id_implicit() {
-        // TODO:
         if (ids_stack.size() == 0) {
-            // throw ImportException("[line " + std::to_string(line_number)
-                // + "] can't use implicit edge on undefined object");
+            throw ImportException("[line " + std::to_string(current_line)
+                + "] can't use implicit edge on undefined object");
         }
         else if (lexer.str_len < ids_stack.size()) {
             id1 = ids_stack[lexer.str_len-1];
@@ -136,8 +136,8 @@ private:
             ids_stack.push_back(edge_id);
         }
         else {
-            // throw ImportException("[line " + std::to_string(line_number)
-            //     + "] undefined level of implicit edge");
+            throw ImportException("[line " + std::to_string(current_line)
+                + "] undefined level of implicit edge");
         }
     }
 
@@ -217,7 +217,7 @@ private:
     }
 
     void save_second_id_iri() {
-        // TODO:
+        // TODO: process IRI when supported
     }
 
     void save_second_id_int() {

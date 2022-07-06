@@ -36,7 +36,7 @@ private:
     std::unique_ptr<BindingIdIter> outgoing_connections;
     std::unique_ptr<BindingIdIter> incoming_connections;
 
-    // TODO: remove counts, they exists because the frontend breaks when handling too many results
+    // TODO: remove limits? they exist because the frontend breaks when handling too many results
     static constexpr uint_fast32_t LABEL_LIMIT = 100;
     static constexpr uint_fast32_t PROPERTY_LIMIT = 100;
     static constexpr uint_fast32_t EDGE_LIMIT = 1000;

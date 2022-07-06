@@ -15,13 +15,13 @@ struct IterTransition {
     bool inverse_direction;
     ObjectId type_id;
     std::unique_ptr<IterTransition> next;
-    // TODO: add edge_id
+    // TODO: add edge_id ?
 
     IterTransition(const SearchState* const previous, bool inverse_direction, ObjectId type_id) :
-        previous           (previous),
-        inverse_direction  (inverse_direction),
-        type_id            (type_id),
-        next               (nullptr) { }
+        previous          (previous),
+        inverse_direction (inverse_direction),
+        type_id           (type_id),
+        next              (nullptr) { }
 };
 
 
@@ -79,7 +79,7 @@ struct SearchState {
     }
 };
 
-struct SearchStateHasher {
+struct SearchStateHasher { // TODO: declare as template of std::hash
     std::size_t operator() (const SearchState& lhs) const {
       return lhs.automaton_state ^ lhs.node_id.id;
     }

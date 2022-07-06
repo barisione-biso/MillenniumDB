@@ -27,6 +27,6 @@ private:
 
     std::vector<GraphObject> tuple;
 
-    // TODO: debería usar una nueva clase DistinctValueHash para no tener que usar vector
+    // TODO: should use a new class to not may for vector overhead
     std::unique_ptr<DistinctBindingHash<GraphObject>> extendable_table;
 };

@@ -63,7 +63,6 @@ void FileManager::read_page(PageId page_id, char* bytes) const {
     if (file_size/Page::MDB_PAGE_SIZE <= page_id.page_number) {
         // new file page, write zeros
         memset(bytes, 0, Page::MDB_PAGE_SIZE);
-        // auto write_res = write(fd, bytes, Page::MDB_PAGE_SIZE); // TODO: use ftruncate?
         auto write_res = ftruncate(fd, Page::MDB_PAGE_SIZE*page_id.page_number);
 
         if (write_res == -1) {

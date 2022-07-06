@@ -258,7 +258,7 @@ public:
 
     inline bool operator<=(const GraphObject& rhs) const noexcept {
         if (this->type != rhs.type) {
-            switch (this->type) { // TODO: comparacion con string temporales?
+            switch (this->type) { // TODO: support comparison with temporal strings?
                 case GraphObjectType::NAMED_INLINED:
                     if (rhs.type == GraphObjectType::NAMED_EXTERNAL) {
                         return strcmp(this->value.named_inlined.id,
@@ -347,7 +347,7 @@ public:
 
     inline bool operator<(const GraphObject& rhs) const noexcept {
         if (this->type != rhs.type) {
-            switch (this->type) { // TODO: comparacion con string temporales?
+            switch (this->type) { // TODO: support comparison with temporal strings?
                 case GraphObjectType::NAMED_INLINED:
                     if (rhs.type == GraphObjectType::NAMED_EXTERNAL) {
                         return strcmp(this->value.named_inlined.id,
