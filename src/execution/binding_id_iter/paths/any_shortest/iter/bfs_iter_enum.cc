@@ -187,7 +187,7 @@ bool BFSIterEnum::next() {
 }
 
 
-robin_hood::unordered_set<SearchState>::iterator
+robin_hood::unordered_node_set<SearchState>::iterator
     BFSIterEnum::current_state_has_next(const SearchState* current_state)
 {
     if (iter == nullptr) { // if is first time that State is explore

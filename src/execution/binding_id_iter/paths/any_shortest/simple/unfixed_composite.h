@@ -53,7 +53,7 @@ private:
     std::unique_ptr<Record<4>> current_start_record = nullptr;
 
     // Only to remember the start nodes, in order to not repeat it
-    robin_hood::unordered_set<uint64_t> visited;
+    robin_hood::unordered_node_set<uint64_t> visited;
 
     // Statistics
     uint_fast32_t results_found = 0;

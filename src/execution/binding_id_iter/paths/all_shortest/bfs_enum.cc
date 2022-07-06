@@ -115,7 +115,7 @@ enumeration:
 }
 
 
-robin_hood::unordered_set<SearchState, SearchStateHasher>::iterator
+robin_hood::unordered_node_set<SearchState, SearchStateHasher>::iterator
   BFSEnum::current_state_has_next(const SearchState* current_state)
 {
     // check if this is the first time that current_state is explored

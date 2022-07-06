@@ -101,9 +101,7 @@ bool AStarIterEnum::next() {
 }
 
 
-robin_hood::unordered_set<SearchState>::iterator
-AStarIterEnum::current_state_has_next()
-{
+robin_hood::unordered_node_set<SearchState>::iterator AStarIterEnum::current_state_has_next() {
     auto current_state = &open.top();
     if (current_state->iter == nullptr) {
         if (current_state->transition < automaton.transitions[current_state->state].size()) {

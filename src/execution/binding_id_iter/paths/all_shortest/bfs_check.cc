@@ -123,8 +123,9 @@ bool BFSCheck::next() {
 }
 
 
-pair<robin_hood::unordered_set<SearchState, SearchStateHasher>::iterator, bool>
-  BFSCheck::current_state_has_next(const SearchState* current_state) {
+pair<robin_hood::unordered_node_set<SearchState, SearchStateHasher>::iterator, bool>
+  BFSCheck::current_state_has_next(const SearchState* current_state)
+{
     if (iter == nullptr) { // if is first time that SearchState is explore
         current_transition = 0;
         // Check automaton state has transitions

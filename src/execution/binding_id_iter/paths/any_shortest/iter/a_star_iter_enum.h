@@ -69,14 +69,14 @@ private:
     std::array<uint64_t, 4> max_ids;
 
     // Structs for BFS
-    robin_hood::unordered_set<SearchState> visited;
+    robin_hood::unordered_node_set<SearchState> visited;
     std::priority_queue<PriorityIterState> open;
 
     // Statistics
     uint_fast32_t results_found = 0;
     uint_fast32_t bpt_searches = 0;
 
-    robin_hood::unordered_set<SearchState>::iterator current_state_has_next();
+    robin_hood::unordered_node_set<SearchState>::iterator current_state_has_next();
 
     // Set iter attribute for state of the top of priority queue. The state
     // will be removed and replaced by another with the correct iter and the same

@@ -92,8 +92,9 @@ bool DFSEnum::next() {
 }
 
 
-robin_hood::unordered_set<Paths::AnyShortest::SearchState>::iterator
-  DFSEnum::current_state_has_next(DFSSearchState& state) {
+robin_hood::unordered_node_set<Paths::AnyShortest::SearchState>::iterator
+  DFSEnum::current_state_has_next(DFSSearchState& state)
+{
     if (state.iter == nullptr) { // if is first time that State is explore
         state.current_transition = 0;
         // Check automaton has transitions
