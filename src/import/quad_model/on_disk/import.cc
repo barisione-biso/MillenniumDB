@@ -23,9 +23,6 @@ void OnDiskImport::start_import(const std::string& input_filename) {
     external_strings_end = 1;
     catalog.anonymous_nodes_count = 0;
 
-    state_transitions = new int[Token::TOTAL_TOKENS*State::TOTAL_STATES];
-    create_automata();
-
     int current_state = State::LINE_BEGIN;
     current_line = 1;
     while (int token = lexer.next_token()) {
@@ -300,6 +297,8 @@ void OnDiskImport::start_import(const std::string& input_filename) {
     std::chrono::duration<float, std::milli> special_index_duration = end_special_index - end_quad_index;
     std::cout << "Write special cases index: " << special_index_duration.count() << " ms\n";
 
+    free(buffer);
+
     std::chrono::duration<float, std::milli> total_duration = end_special_index - start;
     std::cout << "Total duration: " << total_duration.count() << " ms\n";
 
@@ -309,8 +308,6 @@ void OnDiskImport::start_import(const std::string& input_filename) {
 }
 
 void OnDiskImport::create_automata() {
-    state_transitions = new int[Token::TOTAL_TOKENS*State::TOTAL_STATES];
-
     // llenar vacío
     for (int s = 0; s < State::TOTAL_STATES; s++) {
         for (int t = 1; t < Token::TOTAL_TOKENS; t++) {

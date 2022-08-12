@@ -26,7 +26,15 @@ public:
         equal_from_to       (db_folder + "/tmp_equal_from_to"),
         equal_from_type     (db_folder + "/tmp_equal_from_type"),
         equal_to_type       (db_folder + "/tmp_equal_to_type"),
-        equal_from_to_type  (db_folder + "/tmp_equal_from_to_type") { }
+        equal_from_to_type  (db_folder + "/tmp_equal_from_to_type")
+    {
+        state_transitions = new int[Token::TOTAL_TOKENS*State::TOTAL_STATES];
+        create_automata();
+    }
+
+    ~OnDiskImport() {
+        delete[](state_transitions);
+    }
 
     void start_import(const std::string& input_filename);
 
