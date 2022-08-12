@@ -10,7 +10,7 @@
 #include "storage/index/hash/object_file_hash/object_file_hash.h"
 #include "storage/index/hash/object_file_hash/object_file_hash_bucket.h"
 #include "storage/page.h"
-#include "third_party/murmur3/murmur3.h"
+#include "third_party/xxhash/xxhash.h"
 
 class ObjectFileHashMemImportBucket {
 friend class ObjectFileHashMemImport;
@@ -107,18 +107,17 @@ public:
     }
 
     void create_id(const char* str, uint64_t id) {
-        uint64_t hash[2];
-        MurmurHash3_x64_128(str, strlen(str), 0, hash);
+        uint64_t hash = XXH3_64bits(str, strlen(str));
 
         // After a bucket split, need to try insert again.
         while (true) {
             // global_depth must be <= 64
             auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
-            auto suffix = hash[0] & mask;
+            auto suffix = hash & mask;
             ObjectFileHashMemImportBucket bucket(pages[dir[suffix]]);
 
             bool need_split;
-            bucket.create_id(id, hash[0], &need_split);
+            bucket.create_id(id, hash, &need_split);
 
             if (need_split) {
                 auto new_page = new char[Page::MDB_PAGE_SIZE];

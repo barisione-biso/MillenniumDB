@@ -8,7 +8,7 @@
 #include "base/exceptions.h"
 #include "storage/file_manager.h"
 #include "storage/index/hash/object_file_hash/object_file_hash_bucket.h"
-#include "third_party/murmur3/murmur3.h"
+#include "third_party/xxhash/xxhash.h"
 
 
 ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filename) :
@@ -98,19 +98,18 @@ void ObjectFileHash::duplicate_dirs() {
 
 
 uint64_t ObjectFileHash::get_or_create_id(const std::string& str, bool* const created) {
-    uint64_t hash[2];
-    MurmurHash3_x64_128(str.data(), str.length(), 0, hash);
+    uint64_t hash = XXH3_64bits(str.data(), str.length());
 
     // After a bucket split, need to try insert again.
     while (true) {
         // global_depth must be <= 64
         auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
-        auto suffix = hash[0] & mask;
+        auto suffix = hash & mask;
         auto bucket_number = dir[suffix];
         auto bucket = ObjectFileHashBucket(buckets_file_id, bucket_number, object_file);
 
         bool need_split;
-        auto id = bucket.get_or_create_id(str, hash[0], &need_split, created);
+        auto id = bucket.get_or_create_id(str, hash, &need_split, created);
 
         if (need_split) {
             if (*bucket.local_depth < global_depth) {
@@ -163,17 +162,16 @@ uint64_t ObjectFileHash::get_or_create_id(const std::string& str, bool* const cr
 
 
 uint64_t ObjectFileHash::get_id(const std::string& str) const {
-    uint64_t hash[2];
-    MurmurHash3_x64_128(str.data(), str.length(), 0, hash);
+    uint64_t hash = XXH3_64bits(str.data(), str.length());
 
     // After a bucket split, need to try insert again.
     while (true) {
         // global_depth must be <= 64
         auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
-        auto suffix = hash[0] & mask;
+        auto suffix = hash & mask;
         auto bucket_number = dir[suffix];
         auto bucket = ObjectFileHashBucket(buckets_file_id, bucket_number, object_file);
 
-        return bucket.get_id(str, hash[0]);
+        return bucket.get_id(str, hash);
     }
 }
