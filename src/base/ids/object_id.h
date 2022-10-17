@@ -25,9 +25,21 @@ public:
     // static constexpr uint64_t VALUE_EXTERN_POS_INT_MASK  = 0x08'00000000000000UL;
     // static constexpr uint64_t VALUE_EXTERN_NEG_INT_MASK  = 0x09'00000000000000UL;
 
-    static constexpr uint64_t VALUE_FLOAT_MASK           = 0x0A'00000000000000UL;
-    static constexpr uint64_t VALUE_BOOL_MASK            = 0x0B'00000000000000UL;
-    static constexpr uint64_t VALUE_PATH_MASK            = 0x0C'00000000000000UL;
+    static constexpr uint64_t VALUE_FLOAT_MASK = 0x0A'00000000000000UL;
+    static constexpr uint64_t VALUE_BOOL_MASK  = 0x0B'00000000000000UL;
+    static constexpr uint64_t VALUE_PATH_MASK  = 0x0C'00000000000000UL;
+
+    static constexpr uint64_t INLINE_IRI_MASK   = 0x0D'00000000000000UL;
+    static constexpr uint64_t EXTERNAL_IRI_MASK = 0x0E'00000000000000UL;
+
+    static constexpr uint64_t VALUE_INLINE_STR_DATATYPE_MASK   = 0x0F'00000000000000UL;
+    static constexpr uint64_t VALUE_EXTERNAL_STR_DATATYPE_MASK = 0x10'00000000000000UL;
+    static constexpr uint64_t VALUE_INLINE_STR_LANGUAGE_MASK   = 0x11'00000000000000UL;
+    static constexpr uint64_t VALUE_EXTERNAL_STR_LANGUAGE_MASK = 0x12'00000000000000UL;
+
+    static constexpr uint64_t VALUE_DATETIME_MASK = 0x13'00000000000000UL;
+    static constexpr uint64_t VALUE_DECIMAL_MASK  = 0x14'00000000000000UL;
+    static constexpr uint64_t VALUE_BOOLEAN_MASK  = 0x15'00000000000000UL;
 
     static_assert(VALUE_NEGATIVE_INT_MASK < VALUE_POSITIVE_INT_MASK,
                   "INLINED INTEGERS WON'T BE ORDERED PROPERTLY IN THE BPT.");

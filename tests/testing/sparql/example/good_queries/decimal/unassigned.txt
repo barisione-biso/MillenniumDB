@@ -1,0 +1,12 @@
+o
+---------------------------------------
+"0.0"^^<http://www.w3.org/2001/XMLSchema#decimal>
+"0.42"^^<http://www.w3.org/2001/XMLSchema#decimal>
+"100.0"^^<http://www.w3.org/2001/XMLSchema#decimal>
+"123.123"^^<http://www.w3.org/2001/XMLSchema#decimal>
+"-0.1"^^<http://www.w3.org/2001/XMLSchema#decimal>
+"-123.123"^^<http://www.w3.org/2001/XMLSchema#decimal>
+---------------------------------------
+Found 6 results.
+Execution time: 0.1417 ms.
+Query Parser/Optimizer time: 7.9159 ms.

@@ -22,6 +22,7 @@
 #include "query_optimizer/quad_model/return_item_visitor_impl.h"
 #include "query_optimizer/quad_model/quad_model.h"
 
+using namespace MDB;
 using namespace std;
 
 BindingIterVisitor::BindingIterVisitor(std::set<Var> vars, ThreadInfo* thread_info) :

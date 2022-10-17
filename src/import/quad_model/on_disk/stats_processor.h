@@ -21,10 +21,10 @@ public:
 
 template<size_t N>
 class DistinctStat : public StatsProcessor<N> {
-// computes how many different elements are in the first column, assuming it is ordered
+    // computes how many different elements are in the first column, assuming it is ordered
 public:
     size_t distinct = 0;
-    size_t current = 0;
+    size_t current  = 0;
 
     void process_tuple(const std::array<uint64_t, N>& tuple) override {
         if (tuple[0] != current) {
@@ -36,9 +36,9 @@ public:
 
 template<size_t N>
 class DictCountStat : public StatsProcessor<N> {
-// computes how many elements have each one of the first column values, assuming it is ordered
+    // computes how many elements have each one of the first column values, assuming it is ordered
 public:
-    size_t count = 0;
+    size_t count   = 0;
     size_t current = 0;
 
     robin_hood::unordered_map<uint64_t, uint64_t> dict;
@@ -52,7 +52,7 @@ public:
                 dict.insert({ current, count });
             }
             current = tuple[0];
-            count = 1;
+            count   = 1;
         }
     }
 
@@ -106,8 +106,8 @@ public:
 
 class LabelStat : public StatsProcessor<2> {
 public:
-    uint64_t current_label = 0;
-    uint64_t label_count   = 0;
+    uint64_t                                      current_label = 0;
+    uint64_t                                      label_count   = 0;
     robin_hood::unordered_map<uint64_t, uint64_t> map_label_count;
 
     void process_tuple(const std::array<uint64_t, 2>& tuple) override {
@@ -119,14 +119,42 @@ public:
             if (current_label != 0) {
                 map_label_count.insert({ current_label, label_count });
             }
-            current_label   = tuple[0];
-            label_count = 1;
+            current_label = tuple[0];
+            label_count   = 1;
         }
     }
 
     void end() {
         if (current_label != 0) {
             map_label_count.insert({ current_label, label_count });
+        }
+    }
+};
+
+class PredicateStat : public StatsProcessor<3> {
+public:
+    uint64_t                                      current_predicate = 0;
+    uint64_t                                      predicate_count   = 0;
+    uint64_t                                      distinct_values   = 0;
+    robin_hood::unordered_map<uint64_t, uint64_t> map_predicate_count;
+
+    void process_tuple(const std::array<uint64_t, 3>& tuple) override {
+        if (tuple[0] == current_predicate) {
+            ++predicate_count;
+        } else {
+            // save stats from last predicate
+            if (current_predicate != 0) {
+                map_predicate_count.insert({ current_predicate, predicate_count });
+            }
+            current_predicate = tuple[0];
+            predicate_count   = 1;
+            ++distinct_values;
+        }
+    }
+
+    void end() {
+        if (current_predicate != 0) {
+            map_predicate_count.insert({ current_predicate, predicate_count });
         }
     }
 };

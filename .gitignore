@@ -48,13 +48,15 @@ tests/dbs/*
 tests/query_debug
 tests/manual_query_debug
 tests/outputs/*
+tests/testing_dbs/*
+Testing/Temporary/*
 
 ### CMake ###
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
-Testing
+# Testing
 Makefile
 cmake_install.cmake
 install_manifest.txt

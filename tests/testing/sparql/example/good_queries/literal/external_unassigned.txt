@@ -1,0 +1,9 @@
+o
+---------------------------------------
+"external1"
+"external2"
+"external3"
+---------------------------------------
+Found 3 results.
+Execution time: 0.0066 ms.
+Query Parser/Optimizer time: 3.4652 ms.

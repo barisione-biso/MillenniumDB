@@ -7,6 +7,7 @@
 #include "base/graph_object/graph_object.h"
 #include "base/thread/thread_info.h"
 #include "parser/query/op/op.h"
+#include "parser/query/op/op.h"
 
 // Abstract class
 class GraphModel {

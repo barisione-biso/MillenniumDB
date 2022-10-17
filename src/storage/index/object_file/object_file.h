@@ -3,6 +3,7 @@
 #include <fstream>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "base/ids/object_id.h"
 #include "base/string_manager.h"
@@ -26,6 +27,10 @@ public:
     uint64_t write(const std::string& bytes);
     std::string get_string(uint64_t id) const;
     void print_string(std::ostream& os, uint64_t string_id) const;
+
+    std::string& get_prefix(uint8_t prefix_id) const;
+    std::string& get_datatype(uint16_t datatype_id) const;
+    std::string& get_language(uint16_t language_id) const;
 
 private:
     uint64_t current_end;

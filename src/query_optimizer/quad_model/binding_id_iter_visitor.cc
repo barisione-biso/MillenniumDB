@@ -17,6 +17,7 @@
 #include "query_optimizer/quad_model/join_order/leapfrog_optimizer.h"
 #include "query_optimizer/quad_model/join_order/selinger_optimizer.h"
 
+using namespace MDB;
 using namespace std;
 
 constexpr auto MAX_SELINGER_PLANS = 0;

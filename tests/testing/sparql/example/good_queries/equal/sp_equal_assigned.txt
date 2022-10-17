@@ -1,0 +1,7 @@
+o
+---------------------------------------
+<http://www.equals.com/o1>
+---------------------------------------
+Found 1 results.
+Execution time: 0.0061 ms.
+Query Parser/Optimizer time: 7.3736 ms.

@@ -1,0 +1,4 @@
+SELECT ?var0
+WHERE {
+    ?var1 ?var2 ?var3 .
+}

@@ -137,6 +137,15 @@ ObjectId GraphObjectVisitor::operator()(const GraphObject& obj) const {
 
         case GraphObjectType::PATH:
             return ObjectId(ObjectId::VALUE_PATH_MASK | obj.value.path.path_id);
+
+        // TODO
+        case GraphObjectType::IRI_INLINED:
+        case GraphObjectType::IRI_EXTERNAL:
+        case GraphObjectType::LITERAL_DATATYPE_INLINED:
+        case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
+        case GraphObjectType::LITERAL_LANGUAGE_INLINED:
+        case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
+            return ObjectId::get_null();
     }
     // unreachable
     return ObjectId::get_null();

@@ -383,6 +383,19 @@ private:
                     (*key_ptr)[1] = aux;
                 }
             }
+            else if (new_permutation[0] == current_permutation[2]
+                  && new_permutation[1] == current_permutation[1]
+                  && new_permutation[2] == current_permutation[0])
+            {
+                for (auto key_ptr = reinterpret_cast<std::array<uint64_t, N>*>(buffer);
+                     key_ptr < end_ptr;
+                     ++key_ptr)
+                {
+                    auto aux      = (*key_ptr)[0];
+                    (*key_ptr)[0] = (*key_ptr)[2];
+                    (*key_ptr)[2] = aux;
+                }
+            }
             else {
                 throw std::invalid_argument("Unsuported permutation");
             }

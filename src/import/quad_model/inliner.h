@@ -47,6 +47,35 @@ public:
         return res;
     }
 
+    // Used 5 bytes on RDF literals with datatype or language (this attributes uses 2 additional bytes)
+    static uint64_t inline_string5(const char* str) {
+        uint64_t res = 0;
+        int shift_size = 8*4;
+        for (const char* i = str; *i != '\0'; i++) {
+            // MUST convert to uint8_t and then to uint64_t.
+            // Shift with shift_size >=32 is undefined behaviour.
+            uint8_t byte = *i;
+            uint64_t byte64 = static_cast<uint64_t>(byte);
+            res |= byte64 << shift_size;
+            shift_size -= 8;
+        }
+        return res;
+    }
+
+    static uint64_t inline_iri(const char* str) {
+        uint64_t res = 0;
+        int shift_size = 8*5;
+        for (const char* i = str; *i != '\0'; i++) {
+            // MUST convert to uint8_t and then to uint64_t.
+            // Shift with shift_size >=32 is undefined behaviour.
+            uint8_t byte = *i;
+            uint64_t byte64 = static_cast<uint64_t>(byte);
+            res |= byte64 << shift_size;
+            shift_size -= 8;
+        }
+        return res;
+    }
+
     static uint64_t inline_float(float f) {
         unsigned char bytes[sizeof(float)];
         std::memcpy(bytes, &f, sizeof(float));

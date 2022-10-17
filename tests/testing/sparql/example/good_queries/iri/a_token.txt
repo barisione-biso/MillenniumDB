@@ -1,0 +1,9 @@
+s,o
+---------------------------------------
+<http://www.type.com/sa1>,<http://www.type.com/oa1>
+<http://www.type.com/sa1>,<http://www.type.com/oa2>
+<http://www.type.com/sa1>,<http://www.type.com/oa3>
+---------------------------------------
+Found 3 results.
+Execution time: 0.0083 ms.
+Query Parser/Optimizer time: 4.9668 ms.

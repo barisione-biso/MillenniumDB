@@ -5,7 +5,7 @@
 #include "base/exceptions.h"
 #include "base/binding/binding_iter.h"
 #include "base/exceptions.h"
-#include "parser/query/query_parser.h"
+#include "parser/query/mdb_query_parser.h"
 #include "base/thread/thread_key.h"
 #include "query_optimizer/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
@@ -21,7 +21,7 @@ void execute_query(const std::string& query) {
     // start timer
     auto start = chrono::system_clock::now();
     try {
-        auto logical_plan = QueryParser::get_query_plan(query);
+        auto logical_plan = MDB::QueryParser::get_query_plan(query);
         physical_plan = quad_model.exec(*logical_plan, &thread_info);
     }
     catch (const QueryException& e) {

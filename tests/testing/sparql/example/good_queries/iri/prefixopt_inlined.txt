@@ -1,0 +1,7 @@
+s,p,o
+---------------------------------------
+<http://www.prefixedInlined.com/is1>,<http://www.prefixedInlined.com/ip2>,<http://www.prefixedInlined.com/io3>
+---------------------------------------
+Found 1 results.
+Execution time: 0.009 ms.
+Query Parser/Optimizer time: 8.3043 ms.

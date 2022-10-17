@@ -1,6 +1,6 @@
 #pragma once
 
-#include "parser/query/op/graph_pattern/op_path.h"
+#include "parser/query/op/mdb/graph_pattern/op_path.h"
 #include "parser/query/paths/path.h"
 #include "query_optimizer/quad_model/plan/plan.h"
 

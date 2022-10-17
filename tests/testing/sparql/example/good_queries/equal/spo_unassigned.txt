@@ -1,0 +1,9 @@
+spo
+---------------------------------------
+<http://www.equals.com/spo1>
+<http://www.equals.com/spo2>
+<http://www.equals.com/spo3>
+---------------------------------------
+Found 3 results.
+Execution time: 0.0086 ms.
+Query Parser/Optimizer time: 4.524 ms.

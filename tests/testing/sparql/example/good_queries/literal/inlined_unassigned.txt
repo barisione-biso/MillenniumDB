@@ -1,0 +1,9 @@
+o
+---------------------------------------
+"inl1"
+"inl2"
+"inl3"
+---------------------------------------
+Found 3 results.
+Execution time: 0.0064 ms.
+Query Parser/Optimizer time: 4.1842 ms.

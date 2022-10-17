@@ -1,0 +1,10 @@
+SELECT *
+WHERE {
+    ?x <http://www.example.com/predicate> ?y .
+    OPTIONAL {
+        ?x <http://www.example.com/predicate> ?z .
+        OPTIONAL {
+            ?y <http://www.example.com/predicate> ?z .
+        }
+    }
+}

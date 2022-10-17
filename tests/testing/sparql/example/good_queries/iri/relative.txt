@@ -1,0 +1,7 @@
+s,p,o
+---------------------------------------
+<http://www.relative1.com/relativeSubject>,<http://www.relative2.com/relativePredicate>,<http://www.relative3.com/relativeObject>
+---------------------------------------
+Found 1 results.
+Execution time: 0.0099 ms.
+Query Parser/Optimizer time: 8.9368 ms.

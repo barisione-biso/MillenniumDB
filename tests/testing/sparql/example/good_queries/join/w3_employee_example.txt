@@ -1,0 +1,7 @@
+empName,managName
+---------------------------------------
+"Smith"^^<http://www.w3.org/2001/XMLSchema#string>,"Johnson"^^<http://www.w3.org/2001/XMLSchema#string>
+---------------------------------------
+Found 1 results.
+Execution time: 0.6816 ms.
+Query Parser/Optimizer time: 8.5301 ms.

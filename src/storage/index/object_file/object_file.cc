@@ -5,6 +5,7 @@
 
 #include "base/exceptions.h"
 #include "storage/file_manager.h"
+#include "query_optimizer/rdf_model/rdf_model.h"
 
 using namespace std;
 
@@ -51,12 +52,23 @@ std::string ObjectFile::get_string(uint64_t id) const {
     return std::string(&objects[id]);
 }
 
+std::string& ObjectFile::get_prefix(uint8_t prefix_id) const {
+    assert(prefix_id < rdf_model.catalog().prefixes.size());
+    return rdf_model.catalog().prefixes[prefix_id];
+}
+
+std::string& ObjectFile::get_datatype(uint16_t datatype_id) const {
+    return rdf_model.catalog().datatypes[datatype_id];
+}
+
+std::string& ObjectFile::get_language(uint16_t language_id) const {
+    return rdf_model.catalog().languages[language_id];
+}
 
 void ObjectFile::print_string(std::ostream& os, uint64_t id) const {
     assert(id < current_end);
     os << &objects[id];
 }
-
 
 uint64_t ObjectFile::write(const std::string& str) {
     assert(str.size() >= 8); // 7 or less bytes can be inlined

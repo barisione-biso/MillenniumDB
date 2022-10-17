@@ -60,6 +60,24 @@ uint_fast32_t Catalog::read_uint32() {
     return res;
 }
 
+string Catalog::read_string() {
+    uint_fast32_t len = read_uint32();
+    char* buf = new char[len];
+    file.read(buf, len);
+    string res(buf, len);
+    delete[] buf;
+    return res;
+}
+
+vector<string> Catalog::read_strvec() {
+    vector<string> ret;
+    uint64_t size = read_uint32();
+    for (uint64_t i = 0; i < size; ++i) {
+        ret.push_back(read_string());
+    }
+    return ret;
+}
+
 
 void Catalog::write_uint64(const uint64_t n) {
     uint8_t buf[8];
@@ -76,4 +94,16 @@ void Catalog::write_uint32(const uint_fast32_t n) {
         buf[i] = (n >> shift) & 0xFF;
     }
     file.write(reinterpret_cast<const char*>(buf), sizeof(buf));
+}
+
+void Catalog::write_string(const string& s) {
+    write_uint32(s.size());
+    file.write(s.c_str(), s.size());
+}
+
+void Catalog::write_strvec(const vector<string>& strvec) {
+    write_uint32(strvec.size());
+    for (const auto& str : strvec) {
+        write_string(str);
+    }
 }

@@ -3,6 +3,7 @@
 #include <memory>
 #include <ostream>
 #include <type_traits>
+#include <iostream>
 
 #include "base/graph_object/anonymous_node.h"
 #include "base/graph_object/edge.h"
@@ -15,6 +16,18 @@
 #include "base/graph_object/string_external.h"
 #include "base/graph_object/string_inlined.h"
 #include "base/graph_object/string_tmp.h"
+#include "base/graph_object/iri_external.h"
+#include "base/graph_object/iri_inlined.h"
+#include "base/graph_object/iri_tmp.h"
+#include "base/graph_object/literal_datatype_inlined.h"
+#include "base/graph_object/literal_datatype_external.h"
+#include "base/graph_object/literal_datatype_tmp.h"
+#include "base/graph_object/literal_language_inlined.h"
+#include "base/graph_object/literal_language_external.h"
+#include "base/graph_object/literal_language_tmp.h"
+#include "base/graph_object/datetime.h"
+#include "base/graph_object/decimal.h"
+#include "base/graph_object/boolean.h"
 
 enum class GraphObjectType {
     NULL_OBJ,
@@ -31,6 +44,18 @@ enum class GraphObjectType {
     BOOL,
     INT,
     FLOAT,
+    IRI_INLINED,
+    IRI_EXTERNAL,
+    IRI_TMP,
+    LITERAL_DATATYPE_INLINED,
+    LITERAL_DATATYPE_EXTERNAL,
+    LITERAL_DATATYPE_TMP,
+    LITERAL_LANGUAGE_INLINED,
+    LITERAL_LANGUAGE_EXTERNAL,
+    LITERAL_LANGUAGE_TMP,
+    DATETIME,
+    DECIMAL,
+    BOOLEAN
 };
 
 union GraphObjectUnion {
@@ -48,19 +73,43 @@ union GraphObjectUnion {
     GraphObjectUnion(bool n) : b(n) { }
     GraphObjectUnion(int64_t n) : i(n) { }
     GraphObjectUnion(float n) : f(n) { }
+    GraphObjectUnion(IriInlined n) : iri_inlined(n) { }
+    GraphObjectUnion(IriExternal n) : iri_external(n) { }
+    GraphObjectUnion(IriTmp n) : iri_tmp(n) { }
+    GraphObjectUnion(LiteralDatatypeInlined n) : literal_datatype_inlined(n) { }
+    GraphObjectUnion(LiteralDatatypeExternal n) : literal_datatype_external(n) { }
+    GraphObjectUnion(LiteralDatatypeTmp n) : literal_datatype_tmp(n) { }
+    GraphObjectUnion(LiteralLanguageInlined n) : literal_language_inlined(n) { }
+    GraphObjectUnion(LiteralLanguageExternal n) : literal_language_external(n) { }
+    GraphObjectUnion(LiteralLanguageTmp n) : literal_language_tmp(n) { }
+    GraphObjectUnion(DateTime n) : datetime(n) { }
+    GraphObjectUnion(Decimal n) : decimal(n) { }
+    GraphObjectUnion(Boolean n) : boolean(n) { }
 
-    NamedNodeInlined  named_inlined;
-    NamedNodeExternal named_external;
-    NamedNodeTmp      named_tmp;
-    Edge              edge;
-    AnonymousNode     anon;
-    Path              path;
-    StringInlined     str_inlined;
-    StringExternal    str_external;
-    StringTmp         str_tmp;
-    bool              b;
-    int64_t           i;
-    float             f;
+    NamedNodeInlined        named_inlined;
+    NamedNodeExternal       named_external;
+    NamedNodeTmp            named_tmp;
+    Edge                    edge;
+    AnonymousNode           anon;
+    Path                    path;
+    StringInlined           str_inlined;
+    StringExternal          str_external;
+    StringTmp               str_tmp;
+    bool                    b;
+    int64_t                 i;
+    float                   f;
+    IriInlined              iri_inlined;
+    IriExternal             iri_external;
+    IriTmp                  iri_tmp;
+    LiteralDatatypeInlined  literal_datatype_inlined;
+    LiteralDatatypeExternal literal_datatype_external;
+    LiteralDatatypeTmp      literal_datatype_tmp;
+    LiteralLanguageInlined  literal_language_inlined;
+    LiteralLanguageExternal literal_language_external;
+    LiteralLanguageTmp      literal_language_tmp;
+    DateTime                datetime;
+    Decimal                 decimal;
+    Boolean                 boolean;
 };
 
 class GraphObject {
@@ -160,6 +209,55 @@ public:
         return GraphObject(GraphObjectUnion(Path(path_id)), GraphObjectType::PATH);
     }
 
+    static GraphObject make_iri_external(uint64_t external_id) {
+        return GraphObject(GraphObjectUnion(IriExternal(external_id)), GraphObjectType::IRI_EXTERNAL);
+    }
+
+    // must receive an array of size 7, terminating in '\0' and an 1 byte prefix_id
+    static GraphObject make_iri_inlined(const char* str, uint8_t prefix_id) {
+        return GraphObject(GraphObjectUnion(IriInlined(str, prefix_id)), GraphObjectType::IRI_INLINED);
+    }
+
+    static GraphObject make_iri_tmp(const std::string& str) {
+        return GraphObject(GraphObjectUnion(IriTmp(str)), GraphObjectType::IRI_TMP);
+    }
+
+    static GraphObject make_literal_datatype_external(uint64_t external_id) {
+        return GraphObject(GraphObjectUnion(LiteralDatatypeExternal(external_id)), GraphObjectType::LITERAL_DATATYPE_EXTERNAL);
+    }
+
+    static GraphObject make_literal_datatype_inlined(const char* str, uint16_t datatype_id) {
+        return GraphObject(GraphObjectUnion(LiteralDatatypeInlined(str, datatype_id)), GraphObjectType::LITERAL_DATATYPE_INLINED);
+    }
+
+    static GraphObject make_literal_datatype_tmp(const LiteralDatatype& ld) {
+        return GraphObject(GraphObjectUnion(LiteralDatatypeTmp(ld)), GraphObjectType::LITERAL_DATATYPE_TMP);
+    }
+
+    static GraphObject make_literal_language_external(uint64_t external_id) {
+        return GraphObject(GraphObjectUnion(LiteralLanguageExternal(external_id)), GraphObjectType::LITERAL_LANGUAGE_EXTERNAL);
+    }
+
+    static GraphObject make_literal_language_inlined(const char* str, uint16_t language_id) {
+        return GraphObject(GraphObjectUnion(LiteralLanguageInlined(str, language_id)), GraphObjectType::LITERAL_LANGUAGE_INLINED);
+    }
+
+    static GraphObject make_literal_language_tmp(const LiteralLanguage& ll) {
+        return GraphObject(GraphObjectUnion(LiteralLanguageTmp(ll)), GraphObjectType::LITERAL_LANGUAGE_TMP);
+    }
+
+    static GraphObject make_datetime(uint64_t datetime_id) {
+        return GraphObject(GraphObjectUnion(DateTime(datetime_id)), GraphObjectType::DATETIME);
+    }
+
+    static GraphObject make_decimal(uint64_t decimal_id) {
+        return GraphObject(GraphObjectUnion(Decimal(decimal_id)), GraphObjectType::DECIMAL);
+    }
+
+    static GraphObject make_boolean(uint64_t boolean_id) {
+        return GraphObject(GraphObjectUnion(Boolean(boolean_id)), GraphObjectType::BOOLEAN);
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const GraphObject& graph_obj) {
         switch (graph_obj.type) {
             case GraphObjectType::NAMED_INLINED:
@@ -210,6 +308,42 @@ public:
             case GraphObjectType::PATH:
                 graph_obj.value.path.path_printer->print(os, graph_obj.value.path.path_id);
                 break;
+            case GraphObjectType::IRI_INLINED:
+                os << graph_obj.value.iri_inlined;
+                break;
+            case GraphObjectType::IRI_EXTERNAL:
+                os << graph_obj.value.iri_external;
+                break;
+            case GraphObjectType::IRI_TMP:
+                os << graph_obj.value.iri_tmp;
+                break;
+            case GraphObjectType::LITERAL_DATATYPE_INLINED:
+                os << graph_obj.value.literal_datatype_inlined;
+                break;
+            case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
+                os << graph_obj.value.literal_datatype_external;
+                break;
+            case GraphObjectType::LITERAL_DATATYPE_TMP:
+                os << graph_obj.value.literal_datatype_tmp;
+                break;
+            case GraphObjectType::LITERAL_LANGUAGE_INLINED:
+                os << graph_obj.value.literal_language_inlined;
+                break;
+            case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
+                os << graph_obj.value.literal_language_external;
+                break;
+            case GraphObjectType::LITERAL_LANGUAGE_TMP:
+                os << graph_obj.value.literal_language_tmp;
+                break;
+            case GraphObjectType::DATETIME:
+                os << graph_obj.value.datetime;
+                break;
+            case GraphObjectType::DECIMAL:
+                os << graph_obj.value.decimal;
+                break;
+            case GraphObjectType::BOOLEAN:
+                os << graph_obj.value.boolean;
+                break;
         }
         return os;
     }
@@ -247,6 +381,30 @@ public:
                 return this->value.b == rhs.value.b;
             case GraphObjectType::PATH:
                 return this->value.path == rhs.value.path;
+            case GraphObjectType::IRI_INLINED:
+                return this->value.iri_inlined == rhs.value.iri_inlined;
+            case GraphObjectType::IRI_EXTERNAL:
+                return this->value.iri_external == rhs.value.iri_external;
+            case GraphObjectType::IRI_TMP:
+                return this->value.iri_tmp == rhs.value.iri_tmp;
+            case GraphObjectType::LITERAL_DATATYPE_INLINED:
+                return this->value.literal_datatype_inlined == rhs.value.literal_datatype_inlined;
+            case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
+                return this->value.literal_datatype_external == rhs.value.literal_datatype_external;
+            case GraphObjectType::LITERAL_DATATYPE_TMP:
+                return this->value.literal_datatype_tmp == rhs.value.literal_datatype_tmp;
+            case GraphObjectType::LITERAL_LANGUAGE_INLINED:
+                return this->value.literal_language_inlined == rhs.value.literal_language_inlined;
+            case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
+                return this->value.literal_language_external == rhs.value.literal_language_external;
+            case GraphObjectType::LITERAL_LANGUAGE_TMP:
+                return this->value.literal_language_tmp == rhs.value.literal_language_tmp;
+            case GraphObjectType::DATETIME:
+                return this->value.datetime == rhs.value.datetime;
+            case GraphObjectType::DECIMAL:
+                return this->value.decimal == rhs.value.decimal;
+            case GraphObjectType::BOOLEAN:
+                return this->value.boolean == rhs.value.boolean;
         }
         // unreachable
         return false;
@@ -306,6 +464,18 @@ public:
                 case GraphObjectType::NOT_FOUND:
                 case GraphObjectType::BOOL:
                 case GraphObjectType::PATH:
+                case GraphObjectType::IRI_INLINED:
+                case GraphObjectType::IRI_EXTERNAL:
+                case GraphObjectType::IRI_TMP:
+                case GraphObjectType::LITERAL_DATATYPE_INLINED:
+                case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
+                case GraphObjectType::LITERAL_DATATYPE_TMP:
+                case GraphObjectType::LITERAL_LANGUAGE_INLINED:
+                case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
+                case GraphObjectType::LITERAL_LANGUAGE_TMP:
+                case GraphObjectType::DATETIME:
+                case GraphObjectType::DECIMAL:
+                case GraphObjectType::BOOLEAN:
                 // default:
                     break;
             }
@@ -340,6 +510,20 @@ public:
                 return this->value.b <= rhs.value.b;
             case GraphObjectType::PATH:
                 return this->value.path <= rhs.value.path;
+
+            case GraphObjectType::IRI_INLINED:
+            case GraphObjectType::IRI_EXTERNAL:
+            case GraphObjectType::IRI_TMP:
+            case GraphObjectType::LITERAL_DATATYPE_INLINED:
+            case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
+            case GraphObjectType::LITERAL_DATATYPE_TMP:
+            case GraphObjectType::LITERAL_LANGUAGE_INLINED:
+            case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
+            case GraphObjectType::LITERAL_LANGUAGE_TMP:
+            case GraphObjectType::DATETIME:
+            case GraphObjectType::DECIMAL:
+            case GraphObjectType::BOOLEAN:
+                break;
         }
         // unreachable
         return false;
@@ -395,6 +579,18 @@ public:
                 case GraphObjectType::NOT_FOUND:
                 case GraphObjectType::BOOL:
                 case GraphObjectType::PATH:
+                case GraphObjectType::IRI_INLINED:
+                case GraphObjectType::IRI_EXTERNAL:
+                case GraphObjectType::IRI_TMP:
+                case GraphObjectType::LITERAL_DATATYPE_INLINED:
+                case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
+                case GraphObjectType::LITERAL_DATATYPE_TMP:
+                case GraphObjectType::LITERAL_LANGUAGE_INLINED:
+                case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
+                case GraphObjectType::LITERAL_LANGUAGE_TMP:
+                case GraphObjectType::DATETIME:
+                case GraphObjectType::DECIMAL:
+                case GraphObjectType::BOOLEAN:
                 // default:
                     break;
             }
@@ -429,6 +625,19 @@ public:
                 return this->value.b < rhs.value.b;
             case GraphObjectType::PATH:
                 return this->value.path < rhs.value.path;
+            case GraphObjectType::IRI_INLINED:
+            case GraphObjectType::IRI_EXTERNAL:
+            case GraphObjectType::IRI_TMP:
+            case GraphObjectType::LITERAL_DATATYPE_INLINED:
+            case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
+            case GraphObjectType::LITERAL_DATATYPE_TMP:
+            case GraphObjectType::LITERAL_LANGUAGE_INLINED:
+            case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
+            case GraphObjectType::LITERAL_LANGUAGE_TMP:
+            case GraphObjectType::DATETIME:
+            case GraphObjectType::DECIMAL:
+            case GraphObjectType::BOOLEAN:
+                break;
         }
         // unreachable
         return false;

@@ -1,0 +1,7 @@
+s,p,o
+---------------------------------------
+<http://www.absolute1.com/absoluteSubject>,<http://www.absolute2.com/absolutePredicate>,<http://www.absolute3.com/absoluteObject>
+---------------------------------------
+Found 1 results.
+Execution time: 0.0615 ms.
+Query Parser/Optimizer time: 9.0104 ms.

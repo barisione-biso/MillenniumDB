@@ -1,0 +1,12 @@
+sp,o
+---------------------------------------
+<http://www.equals.com/spo1>,<http://www.equals.com/spo1>
+<http://www.equals.com/spo2>,<http://www.equals.com/spo2>
+<http://www.equals.com/spo3>,<http://www.equals.com/spo3>
+<http://www.equals.com/sp1>,<http://www.equals.com/o1>
+<http://www.equals.com/sp2>,<http://www.equals.com/o2>
+<http://www.equals.com/sp3>,<http://www.equals.com/o3>
+---------------------------------------
+Found 6 results.
+Execution time: 0.0103 ms.
+Query Parser/Optimizer time: 4.8695 ms.

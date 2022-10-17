@@ -1,0 +1,12 @@
+o
+---------------------------------------
+"external1"@en-US
+"external2"@en-US
+"external3"@es-CL
+"external4"@es-CL
+"external5"@fr-CA
+"external6"@fr-CA
+---------------------------------------
+Found 6 results.
+Execution time: 0.0082 ms.
+Query Parser/Optimizer time: 4.589 ms.

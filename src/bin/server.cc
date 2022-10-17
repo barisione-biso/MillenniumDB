@@ -44,13 +44,14 @@
 #include "base/thread/thread_info.h"
 #include "network/tcp_buffer.h"
 #include "parser/query/grammar/error_listener.h"
-#include "parser/query/query_parser.h"
+#include "parser/query/mdb_query_parser.h"
 #include "query_optimizer/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
 #include "storage/filesystem.h"
 #include "third_party/cxxopts/cxxopts.h"
 
+using namespace MDB;
 using namespace std;
 using boost::asio::ip::tcp;
 
