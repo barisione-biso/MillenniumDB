@@ -33,14 +33,4 @@ public:
 
     // inline bool operator>(const LiteralLanguageInlined& rhs) const noexcept { }
 
-<<<<<<< HEAD
-    friend std::ostream& operator<<(std::ostream& os, const LiteralLanguageInlined& graph_obj) {
-        return os << '"' 
-                  << graph_obj.id
-                  << '"'
-                  << '@'
-                  << StringManager::instance->get_language(graph_obj.language_id);
-    }
-=======
->>>>>>> 491a772e18f10acae2c89218a4027d4050e0b098
 };

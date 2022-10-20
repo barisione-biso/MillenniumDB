@@ -219,7 +219,6 @@ float GraphObjectInterpreter::get<float>(const GraphObject graph_object) {
     return GraphObjectUnion(int64_t(graph_object.encoded_value)).f;
 }
 
-// TODO: implement: define missing types
 template<>
 IriInlined GraphObjectInterpreter::get<IriInlined>(const GraphObject graph_object) {
     return GraphObjectUnion(int64_t(graph_object.encoded_value)).iri_inlined;

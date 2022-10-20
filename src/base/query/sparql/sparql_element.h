@@ -11,8 +11,6 @@
 #include "base/query/sparql/literal.h"
 #include "base/query/sparql/literal_datatype.h"
 #include "base/query/sparql/literal_language.h"
-#include "base/query/sparql/sparql_element_to_graph_object.h"
-#include "base/query/sparql/sparql_element_to_string.h"
 #include "base/query/sparql/path.h"
 #include "base/query/var.h"
 
@@ -61,22 +59,13 @@ public:
         return std::holds_alternative<Var>(value) && to_var().name[0] == '_';
     }
 
-    inline std::string to_string() const {
-        return std::visit(SparqlElementToString(), value);
-    }
-
     inline Var to_var() const {
         assert(is_var());
         return std::get<Var>(value);
     }
 
-    // GraphObject to_graph_object() const {
-    //     // TODO: implement? erase?
-    //     // return std::visit(SparqlElementToGraphObject(), value);
-    //     return GraphObject();
-    // }
-
     friend std::ostream& operator<<(std::ostream& os, const SparqlElement& node_id) {
-        return os << node_id.to_string();
+        // TODO: implement
+        return os;
     }
 };

@@ -21,8 +21,6 @@ public:
     static GraphObject make_path(uint64_t);
     static GraphObject make_string_tmp(const std::string&);
     static GraphObject make_named_node_tmp(const std::string&);
-
-    // TODO: implement? separate?
     static GraphObject make_iri_external(uint64_t external_id);
     static GraphObject make_iri_inlined(const char* str, uint8_t prefix_id);
     static GraphObject make_iri_tmp(const std::string& str);

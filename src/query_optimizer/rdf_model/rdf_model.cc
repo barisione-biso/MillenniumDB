@@ -12,7 +12,6 @@
 #include "execution/binding_id_iter/paths/path_manager.h"
 #include "execution/graph_object/graph_object_manager.h"
 #include "query_optimizer/rdf_model/binding_iter_visitor.h"
-#include "query_optimizer/rdf_model/graph_object_visitor.h"
 #include "query_optimizer/rdf_model/sparql_element_to_object_id.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
@@ -268,12 +267,3 @@ ObjectId RdfModel::get_object_id(const SparqlElement& graph_object) const {
     SparqlElementToObjectId visitor(false);
     return visitor(graph_object);
 }
-
-
-// uint64_t RdfModel::get_or_create_object_id(const GraphObject& graph_object) {
-//     return std::visit(GraphObjectVisitor(true), graph_object.value).id;
-//     GraphObjectVisitor visitor(true);
-//     return visitor(graph_object).id;
-//     TODO: Connect graph object visitor
-//     return 0;
-// }
