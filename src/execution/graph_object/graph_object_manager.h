@@ -171,56 +171,9 @@ struct GraphObjectManager {
                       << (*ll_tmp.ll).language;
         }
         case GraphObjectType::DATETIME: {
-            uint64_t datetime_id = GraphObjectInterpreter::get<DateTime>(graph_obj).id;
-
-            os << '"';
-            // Check sign bit
-            if (datetime_id & (1ULL << 55)) {
-                os << '-';
-            }
-            // Check precision bit
-            if (datetime_id & (1ULL << 54)) {
-                // Remove sign and precision bits
-                datetime_id &= ~(3ULL << 54);
-                os << datetime_id
-                   << "00-01-01T00:00:00Z";
-            } else {
-                uint64_t tz_min  = datetime_id & 0x3F;
-                datetime_id >>= 6;
-                uint64_t tz_hour = datetime_id & 0x1F;
-                datetime_id >>= 5;
-                uint64_t tz_sign = datetime_id & 0x1;
-                datetime_id >>= 1;
-                uint64_t sec =  datetime_id & 0x3F;
-                datetime_id >>= 6;
-                uint64_t min =  datetime_id & 0x3F;
-                datetime_id >>= 6;
-                uint64_t hour =  datetime_id & 0x1F;
-                datetime_id >>= 5;
-                uint64_t day =  datetime_id & 0x1F;
-                datetime_id >>= 5;
-                uint64_t mon =  datetime_id & 0xF;
-                datetime_id >>= 4;
-                uint64_t year =  datetime_id & 0xFFFF;
-
-                os << std::setfill('0')
-                   << std::setw(4) << year << '-'
-                   << std::setw(2) << mon  << '-'
-                   << std::setw(2) << day  << 'T'
-                   << std::setw(2) << hour << ':'
-                   << std::setw(2) << min  << ':'
-                   << std::setw(2) << sec;
-
-                // Check timezone
-                if (tz_hour > 0 || tz_min > 0) {
-                    os << ((tz_sign) ? '-' : '+')
-                       << std::setw(2) << tz_hour << ':'
-                       << std::setw(2) << tz_min;
-                } else {
-                    os << 'Z';
-                }
-            }
-            return os << "\"^^<http://www.w3.org/2001/XMLSchema#dateTime>";
+            return os << '"'
+                      << GraphObjectInterpreter::get<DateTime>(graph_obj).get_value_string()
+                      << "\"^^<http://www.w3.org/2001/XMLSchema#dateTime>";            
         }
         case GraphObjectType::DECIMAL: {
             return os << '"'

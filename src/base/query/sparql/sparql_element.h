@@ -12,11 +12,12 @@
 #include "base/query/sparql/literal_datatype.h"
 #include "base/query/sparql/literal_language.h"
 #include "base/query/sparql/path.h"
+#include "base/query/sparql/sparql_element_to_string.h"
 #include "base/query/var.h"
 
 class SparqlElement {
 public:
-    // TODO: replace literal with string?
+    // TODO: implement, replace literal with string?
     std::variant<Var, Iri, Literal, LiteralDatatype, LiteralLanguage, DateTime, Decimal, Boolean, std::unique_ptr<SPARQL::IPath>> value;
 
     SparqlElement() : value(Boolean(false)) { }
@@ -31,11 +32,11 @@ public:
 
     SparqlElement(const LiteralLanguage& literal_language) : value(literal_language) { }
 
-    SparqlElement(DateTime datetime) : value(datetime) { }
+    SparqlElement(const DateTime& datetime) : value(datetime) { }
 
-    SparqlElement(Decimal decimal) : value(decimal) { }
+    SparqlElement(const Decimal& decimal) : value(decimal) { }
 
-    SparqlElement(Boolean boolean) : value(boolean) { }
+    SparqlElement(const Boolean& boolean) : value(boolean) { }
 
     SparqlElement(std::unique_ptr<SPARQL::IPath> path) : value(std::move(path)) { }
 
@@ -64,8 +65,11 @@ public:
         return std::get<Var>(value);
     }
 
+    inline std::string to_string() const {
+        return std::visit(SparqlElementToString(), value);
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const SparqlElement& node_id) {
-        // TODO: implement
-        return os;
+        return os << node_id.to_string();
     }
 };

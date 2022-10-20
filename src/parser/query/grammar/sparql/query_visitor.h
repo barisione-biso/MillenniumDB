@@ -296,47 +296,32 @@ public:
     }
 
     virtual antlrcpp::Any visitNumericLiteralUnsigned(SparqlParser::NumericLiteralUnsignedContext* ctx) override {
-        // TODO: implement
-        // if (ctx->INTEGER()) {
-        //     int64_t value = std::stoll(ctx->INTEGER()->getText());
-        //     current_sparql_element = SparqlElement(value);
-        // } else if (ctx->DECIMAL()) {
-        //     float value = std::stod(ctx->DECIMAL()->getText());
-        //     current_sparql_element = SparqlElement(value);
-        // } else {
-        //     float value = std::stod(ctx->DOUBLE()->getText());
-        //     current_sparql_element = SparqlElement(value);
-        // }
+        uint64_t decimal_id = Decimal::get_decimal_id(ctx->getText().c_str());
+        if (decimal_id == Decimal::INVALID_ID) {
+            throw QueryException("Unsupported decimal value: " + ctx->getText());
+        }
+        Decimal value(decimal_id);
+        current_sparql_element = SparqlElement(value);
         return 0;
     }
 
     virtual antlrcpp::Any visitNumericLiteralPositive(SparqlParser::NumericLiteralPositiveContext* ctx) override {
-        // TODO: implement
-        // if (ctx->INTEGER_POSITIVE()) {
-        //     int64_t value = std::stoll(ctx->INTEGER_POSITIVE()->getText());
-        //     current_sparql_element = SparqlElement(value);
-        // } else if (ctx->DECIMAL_POSITIVE()) {
-        //     float value = std::stod(ctx->DECIMAL_POSITIVE()->getText());
-        //     current_sparql_element = SparqlElement(value);
-        // } else {
-        //     float value = std::stod(ctx->DOUBLE_POSITIVE()->getText());
-        //     current_sparql_element = SparqlElement(value);
-        // }
+        uint64_t decimal_id = Decimal::get_decimal_id(ctx->getText().c_str());
+        if (decimal_id == Decimal::INVALID_ID) {
+            throw QueryException("Unsupported decimal value: " + ctx->getText());
+        }
+        Decimal value(decimal_id);
+        current_sparql_element = SparqlElement(value);
         return 0;
     }
 
     virtual antlrcpp::Any visitNumericLiteralNegative(SparqlParser::NumericLiteralNegativeContext* ctx) override {
-        // TODO: implement
-        // if (ctx->INTEGER_NEGATIVE()) {
-        //     int64_t value = std::stoll(ctx->INTEGER_NEGATIVE()->getText());
-        //     current_sparql_element = SparqlElement(value);
-        // } else if (ctx->DECIMAL_NEGATIVE()) {
-        //     float value = std::stod(ctx->DECIMAL_NEGATIVE()->getText());
-        //     current_sparql_element = SparqlElement(value);
-        // } else {
-        //     float value = std::stod(ctx->DOUBLE_NEGATIVE()->getText());
-        //     current_sparql_element = SparqlElement(value);
-        // }
+        uint64_t decimal_id = Decimal::get_decimal_id(ctx->getText().c_str());
+        if (decimal_id == Decimal::INVALID_ID) {
+            throw QueryException("Unsupported decimal value: " + ctx->getText());
+        }
+        Decimal value(decimal_id);
+        current_sparql_element = SparqlElement(value);
         return 0;
     }
 
