@@ -145,12 +145,6 @@ ObjectId SparqlElementToObjectId::operator()(const LiteralLanguage& ll) {
     }
 }
 
-
-ObjectId SparqlElementToObjectId::operator()(const std::unique_ptr<SPARQL::IPath>&) {
-    throw LogicException("IPath cannot be converted into ObjectId");
-}
-
-
 ObjectId SparqlElementToObjectId::operator()(DateTime dt) {
     return ObjectId(dt.id | ObjectId::MASK_DATETIME);
 }
@@ -159,16 +153,10 @@ ObjectId SparqlElementToObjectId::operator()(Decimal dec) {
     return ObjectId(dec.id | ObjectId::MASK_DECIMAL);
 }
 
-ObjectId SparqlElementToObjectId::operator()(Boolean b) {
-    return ObjectId(ObjectId::MASK_BOOL | (b.id ? 0x01 : 0x00));
+ObjectId SparqlElementToObjectId::operator()(bool b) {
+    return ObjectId(ObjectId::MASK_BOOL | (b ? 0x01 : 0x00));
 }
 
-
-// ObjectId SparqlElementToObjectId::operator()(int64_t) {
-
-// }
-
-
-// ObjectId SparqlElementToObjectId::operator()(float) {
-
-// }
+ObjectId SparqlElementToObjectId::operator()(const std::unique_ptr<SPARQL::IPath>&) {
+    throw LogicException("IPath cannot be converted into ObjectId");
+}

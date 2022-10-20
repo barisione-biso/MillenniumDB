@@ -3,7 +3,6 @@
 #include <memory>
 #include <string>
 
-#include "base/graph_object/boolean.h"
 #include "base/graph_object/datetime.h"
 #include "base/graph_object/decimal.h"
 #include "base/query/sparql/iri.h"
@@ -42,19 +41,11 @@ struct SparqlElementDuplicate {
         return SparqlElement(d);
     }
 
-    SparqlElement operator()(const Boolean& b) {
+    SparqlElement operator()(bool b) {
         return SparqlElement(b);
     }
 
     SparqlElement operator()(const std::unique_ptr<SPARQL::IPath>& p) {
         return SparqlElement(p->duplicate());
     }
-
-    // SparqlElement operator()(int64_t i) {
-    //     return SparqlElement(i);
-    // }
-
-    // SparqlElement operator()(float f) {
-    //     return SparqlElement(f);
-    // }
 };

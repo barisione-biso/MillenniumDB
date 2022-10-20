@@ -4,7 +4,6 @@
 #include <memory>
 #include <variant>
 
-#include "base/graph_object/boolean.h"
 #include "base/graph_object/datetime.h"
 #include "base/graph_object/decimal.h"
 #include "base/query/sparql/iri.h"
@@ -18,9 +17,9 @@
 class SparqlElement {
 public:
     // TODO: implement, replace literal with string?
-    std::variant<Var, Iri, Literal, LiteralDatatype, LiteralLanguage, DateTime, Decimal, Boolean, std::unique_ptr<SPARQL::IPath>> value;
+    std::variant<Var, Iri, Literal, LiteralDatatype, LiteralLanguage, DateTime, Decimal, bool, std::unique_ptr<SPARQL::IPath>> value;
 
-    SparqlElement() : value(Boolean(false)) { }
+    SparqlElement() : value(false) { }
 
     SparqlElement(const Var& var) : value(var) { }
 
@@ -36,13 +35,9 @@ public:
 
     SparqlElement(const Decimal& decimal) : value(decimal) { }
 
-    SparqlElement(const Boolean& boolean) : value(boolean) { }
+    explicit SparqlElement(bool b) : value(b) { }
 
     SparqlElement(std::unique_ptr<SPARQL::IPath> path) : value(std::move(path)) { }
-
-    // SparqlElement(const int64_t i) : value(i) { }
-
-    // SparqlElement(const float f) : value(f) { }
 
     SparqlElement duplicate() const;
 

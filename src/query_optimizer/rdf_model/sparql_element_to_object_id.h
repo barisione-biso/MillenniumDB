@@ -13,10 +13,10 @@ struct SparqlElementToObjectId {
     ObjectId operator()(const Literal&);
     ObjectId operator()(const LiteralDatatype&);
     ObjectId operator()(const LiteralLanguage&);
-    ObjectId operator()(const std::unique_ptr<SPARQL::IPath>&);
     ObjectId operator()(DateTime);
     ObjectId operator()(Decimal);
-    ObjectId operator()(Boolean);
+    ObjectId operator()(bool);
+    ObjectId operator()(const std::unique_ptr<SPARQL::IPath>&);
     // ObjectId operator()(int64_t);
     // ObjectId operator()(float);
 

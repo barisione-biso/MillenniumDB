@@ -23,7 +23,6 @@
 #include "base/graph_object/literal_language_tmp.h"
 #include "base/graph_object/datetime.h"
 #include "base/graph_object/decimal.h"
-#include "base/graph_object/boolean.h"
 #include "execution/graph_object/char_iter.h"
 #include "execution/graph_object/graph_object_factory.h"
 #include "execution/graph_object/graph_object_types.h"
@@ -89,7 +88,7 @@ struct GraphObjectManager {
         case GraphObjectType::NOT_FOUND:
             return os << "NotFoundObj";
         case GraphObjectType::BOOL:
-            return os << '"' << (GraphObjectInterpreter::get<bool>(graph_obj) ? "true" : "false") << "^^<http://www.w3.org/2001/XMLSchema#boolean>";
+            return os << '"' << (GraphObjectInterpreter::get<bool>(graph_obj) ? "true" : "false") << "\"^^<http://www.w3.org/2001/XMLSchema#boolean>";
         case GraphObjectType::IRI_INLINED: {
             auto iri_inl = GraphObjectInterpreter::get<IriInlined>(graph_obj);
 

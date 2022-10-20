@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "base/exceptions.h"
-#include "base/graph_object/boolean.h"
 #include "base/graph_object/decimal.h"
 #include "base/graph_object/datetime.h"
 #include "import/external_string.h"
@@ -283,12 +282,15 @@ private:
         }
         // xsd:boolean
         else if (strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#boolean") == 0) {
-            uint64_t boolean_id = Boolean::get_boolean_id(cchar);
-            if (boolean_id == Boolean::INVALID_ID) {
+            if (strcmp(cchar, "true") == 0 || strcmp(cchar, "1") == 0) {
+                object_id = ObjectId::MASK_BOOL | 0x01;
+            }
+            else if (strcmp(cchar, "false") == 0 || strcmp(cchar, "0") == 0) {
+                object_id = ObjectId::MASK_BOOL | 0x00;
+            }
+            else {
                 std::cout << "Warning [line " << reader->source.cur.line  << "] invalid boolean: " << cchar << '\n';
                 object_has_errors = true;
-            } else {
-                object_id = boolean_id | ObjectId::MASK_BOOL;
             }
         }
         // Unsupported datatypes are stored as literals with datatype

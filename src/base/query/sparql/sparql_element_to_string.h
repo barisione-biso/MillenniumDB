@@ -33,10 +33,10 @@ struct SparqlElementToString {
         return '"' + d.get_value_string() + "\"^^<http://www.w3.org/2001/XMLSchema#decimal>";
     }
 
-    std::string operator()(const Boolean& b) {
-        return b.id ? "true" : "false";
+    std::string operator()(bool b) {
+        return b ? "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>" : "\"false\"^^<http://www.w3.org/2001/XMLSchema#boolean>";
     }
-    
+
     std::string operator()(const std::unique_ptr<SPARQL::IPath>& /*p*/) {
         // TODO: implement this
         return "\"Path2String not implemented\"";

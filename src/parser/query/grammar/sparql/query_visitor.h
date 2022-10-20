@@ -6,7 +6,6 @@
 
 #include "antlr4-runtime.h"
 #include "base/exceptions.h"
-#include "base/graph_object/boolean.h"
 #include "base/graph_object/datetime.h"
 #include "base/graph_object/decimal.h"
 #include "base/query/sparql/sparql_element.h"
@@ -273,11 +272,14 @@ public:
             }
             // xsd:boolean
             else if (iri_ref == "http://www.w3.org/2001/XMLSchema#boolean") {
-                uint64_t boolean_id = Boolean::get_boolean_id(str.c_str());
-                if (boolean_id == Boolean::INVALID_ID) {
-                    throw QueryException("Invalid boolean value: " + str);
+                bool value;
+                if (str == "true" || str == "1") {
+                    value = true;
+                } else if (str == "false" || str == "0") {
+                    value = false;
+                } else {
+                    throw QueryException("Unsupported boolean value: " + str);
                 }
-                Boolean value(boolean_id);
                 current_sparql_element = SparqlElement(value);
             }
             // Unsupported datatypes are interpreted as literals with datatype
@@ -326,7 +328,7 @@ public:
     }
 
     virtual antlrcpp::Any visitBooleanLiteral(SparqlParser::BooleanLiteralContext* ctx) override {
-        Boolean value(ctx->TRUE() != nullptr);
+        bool value(ctx->TRUE() != nullptr);
         current_sparql_element = SparqlElement(value);
         return 0;
     }
