@@ -15,7 +15,7 @@ public:
             // check if it needs more than 7 bytes
             if ( (int_value & 0xFF00'0000'0000'0000UL) == 0) {
                 int_value = (~int_value) & 0x00FF'FFFF'FFFF'FFFFUL;
-                return ObjectId::VALUE_NEGATIVE_INT_MASK | int_value;
+                return ObjectId::MASK_NEGATIVE_INT | int_value;
             } else {
                 // VALUE_EXTERNAL_INT_MASK
                 throw NotSupportedException("BIG INTEGERS NOT SUPPORTED YET");
@@ -24,7 +24,7 @@ public:
         } else {
             // check if it needs more than 7 bytes
             if ( (int_value & 0xFF00'0000'0000'0000UL) == 0) {
-                return ObjectId::VALUE_POSITIVE_INT_MASK | int_value;
+                return ObjectId::MASK_POSITIVE_INT | int_value;
             } else {
                 // VALUE_EXTERNAL_INT_MASK
                 throw NotSupportedException("BIG INTEGERS NOT SUPPORTED YET");
@@ -87,6 +87,6 @@ public:
             res |= byte << shift_size;
             shift_size += 8;
         }
-        return res | ObjectId::VALUE_FLOAT_MASK;
+        return res | ObjectId::MASK_FLOAT;
     }
 };

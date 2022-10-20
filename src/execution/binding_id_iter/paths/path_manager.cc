@@ -108,11 +108,11 @@ ObjectId PathManager::set_path(const Paths::AnyShortest::SearchState* visited_po
         // Points to last element of set
         uint64_t path_id = paths[index].size();
         paths[index].push_back(states_set.find(*visited_pointer).operator->());
-        return ObjectId(ObjectId::VALUE_PATH_MASK | path_id);
+        return ObjectId(ObjectId::MASK_PATH | path_id);
     } else {
         // Save visited pointer directly, visited_pointer always is valid
         paths[index][path_var.id] = visited_pointer;
-        return ObjectId(ObjectId::VALUE_PATH_MASK | path_var.id);
+        return ObjectId(ObjectId::MASK_PATH | path_var.id);
     }
 }
 
@@ -126,7 +126,7 @@ ObjectId PathManager::set_path(const Paths::AnyShortest::SearchStateDijkstra* vi
     }
     // Save visited pointer directly, visited_pointer always is valid
     paths[index][path_var.id] = visited_pointer;
-    return ObjectId(ObjectId::VALUE_PATH_MASK | DIJKSTRA_MASK | path_var.id);
+    return ObjectId(ObjectId::MASK_PATH | DIJKSTRA_MASK | path_var.id);
 }
 
 ObjectId PathManager::set_path(const Paths::AllShortest::SearchState* visited_pointer, VarId path_var) {
@@ -179,11 +179,11 @@ ObjectId PathManager::set_path(const Paths::AllShortest::SearchState* visited_po
         //// Points to last element of set
         //uint64_t path_id = paths[index].size();
         //paths[index].push_back(states_set.find(*visited_pointer).operator->());
-        //return ObjectId(GraphModel::VALUE_PATH_MASK | path_id);
+        //return ObjectId(GraphModel::MASK_PATH | path_id);
     } else {
         // Save visited pointer directly, visited_pointer always is valid
         paths[index][path_var.id] = visited_pointer;
-        return ObjectId(ObjectId::VALUE_PATH_MASK | ALL_STATE_MASK | path_var.id);
+        return ObjectId(ObjectId::MASK_PATH | ALL_STATE_MASK | path_var.id);
     }
 }
 

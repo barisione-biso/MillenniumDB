@@ -4,11 +4,26 @@ options {
 	tokenVocab = MDBLexer;
 }
 
-root: setStatement? matchStatement whereStatement? groupByStatement? orderByStatement? returnStatement EOF
-|     describeStatement EOF
-;
+root: setStatement? (matchQuery | describeQuery | insertQuery) EOF;
 
-describeStatement: K_DESCRIBE fixedNodeInside;
+matchQuery: matchStatement whereStatement? groupByStatement? orderByStatement? returnStatement;
+
+describeQuery: K_DESCRIBE fixedNodeInside;
+
+insertQuery: K_INSERT (insertLabelList | insertPropertyList | insertEdgeList);
+
+insertLabelList: K_LABEL insertLabelElement (',' insertLabelElement)*;
+
+insertPropertyList: K_PROPERTY insertPropertyElement (',' insertPropertyElement)*;
+
+insertEdgeList: K_EDGE insertEdgeElement (',' insertEdgeElement)*;
+
+insertLabelElement: '(' (identifier | ANON_ID) ',' STRING ')';
+
+insertPropertyElement: '(' fixedNodeInside ',' STRING ',' value ')';
+
+// FROM, TO, TYPE
+insertEdgeElement: '(' fixedNodeInside ',' fixedNodeInside ',' identifier ')';
 
 setStatement: K_SET setItem (',' setItem)*;
 
@@ -104,11 +119,11 @@ conditionalOrExpr: conditionalAndExpr (K_OR conditionalAndExpr)*;
 
 conditionalAndExpr: comparisonExpr (K_AND comparisonExpr)*;
 
-comparisonExpr: aditiveExpr (op=('=='|'!='|'<'|'>'|'<='|'>=') aditiveExpr)? # comparisonExprOp
-|               aditiveExpr K_IS K_NOT? exprTypename # comparisonExprIs
+comparisonExpr: additiveExpr (op=('=='|'!='|'<'|'>'|'<='|'>=') additiveExpr)? # comparisonExprOp
+|               additiveExpr K_IS K_NOT? exprTypename # comparisonExprIs
 ;
 
-aditiveExpr: multiplicativeExpr (op+=('+'|'-') multiplicativeExpr)*;
+additiveExpr: multiplicativeExpr (op+=('+'|'-') multiplicativeExpr)*;
 
 multiplicativeExpr: unaryExpr (op+=('*'|'/'|'%') unaryExpr)*;
 
@@ -144,10 +159,13 @@ keyword: K_ALL
 | 	     K_DESCRIBE
 | 	     K_DESC
 | 	     K_DISTINCT
+| 	     K_EDGE
+| 	     K_INSERT
 | 	     K_IS
 | 	     K_INTEGER
 | 	     K_FLOAT
 | 	     K_GROUP
+| 	     K_LABEL
 | 	     K_LIMIT
 | 	     K_MAX
 | 	     K_MATCH
@@ -155,6 +173,7 @@ keyword: K_ALL
 | 	     K_OPTIONAL
 | 	     K_ORDER
 | 	     K_OR
+| 	     K_PROPERTY
 | 	     K_NOT
 | 	     K_NULL
 | 	     K_SET

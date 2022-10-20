@@ -7,6 +7,7 @@ class OpBasicGraphPattern;
 class OpDescribe;
 class OpEdge;
 class OpGroupBy;
+class OpInsert;
 class OpIsolatedTerm;
 class OpIsolatedVar;
 class OpLabel;
@@ -37,6 +38,7 @@ public:
     virtual void visit(MDB::OpDescribe&)          { throw LogicException("visit MDB::OpDescribe not implemented"); }
     virtual void visit(MDB::OpEdge&)              { throw LogicException("visit MDB::OpEdge not implemented"); }
     virtual void visit(MDB::OpGroupBy&)           { throw LogicException("visit MDB::OpGroupBy not implemented"); }
+    virtual void visit(MDB::OpInsert&)            { throw LogicException("visit MDB::OpInsert not implemented"); }
     virtual void visit(MDB::OpIsolatedTerm&)      { throw LogicException("visit MDB::OpIsolatedTerm not implemented"); }
     virtual void visit(MDB::OpIsolatedVar&)       { throw LogicException("visit MDB::OpIsolatedVar not implemented"); }
     virtual void visit(MDB::OpLabel&)             { throw LogicException("visit MDB::OpLabel not implemented"); }

@@ -1,3 +1,2 @@
-http://www.firstPrefixed.com/
-http://www.secondPrefixed.com/
-http://www.thirdPrefixed.com/
+http://www.prefixedInlined.com/
+http://www.prefixedExternal.com/

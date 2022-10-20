@@ -19,7 +19,39 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitDescribeStatement(MDBParser::DescribeStatementContext *ctx) override {
+  virtual antlrcpp::Any visitMatchQuery(MDBParser::MatchQueryContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitDescribeQuery(MDBParser::DescribeQueryContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitInsertQuery(MDBParser::InsertQueryContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitInsertLabelList(MDBParser::InsertLabelListContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitInsertPropertyList(MDBParser::InsertPropertyListContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitInsertEdgeList(MDBParser::InsertEdgeListContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitInsertLabelElement(MDBParser::InsertLabelElementContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitInsertPropertyElement(MDBParser::InsertPropertyElementContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitInsertEdgeElement(MDBParser::InsertEdgeElementContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -195,7 +227,7 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitAditiveExpr(MDBParser::AditiveExprContext *ctx) override {
+  virtual antlrcpp::Any visitAdditiveExpr(MDBParser::AdditiveExprContext *ctx) override {
     return visitChildren(ctx);
   }
 

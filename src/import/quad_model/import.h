@@ -1,33 +1,46 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
-#include <cstring>
 #include <iostream>
 #include <functional>
-#include <vector>
 
 #include "base/exceptions.h"
-#include "import/quad_model/external_string.h"
-#include "import/quad_model/inliner.h"
+#include "import/inliner.h"
+#include "import/disk_vector.h"
+#include "import/external_string.h"
 #include "import/quad_model/lexer/lexer.h"
 #include "import/quad_model/lexer/state.h"
 #include "query_optimizer/quad_model/quad_catalog.h"
 #include "third_party/robin_hood/robin_hood.h"
 
 namespace Import {
-
-class InMemoryImport {
+class OnDiskImport {
 public:
-    InMemoryImport(const std::string& db_folder, size_t initial_strings_in_GB) :
-        initial_strings_in_GB (initial_strings_in_GB),
-        db_folder             (db_folder),
-        catalog               (QuadCatalog("catalog.dat")) { }
+    OnDiskImport(const std::string& db_folder, size_t buffer_size_in_GB) :
+        buffer_size_in_GB   (buffer_size_in_GB),
+        db_folder           (db_folder),
+        catalog             (QuadCatalog("catalog.dat")),
+        declared_nodes      (db_folder + "/tmp_declared_nodes"),
+        labels              (db_folder + "/tmp_labels"),
+        properties          (db_folder + "/tmp_properties"),
+        edges               (db_folder + "/tmp_edges"),
+        equal_from_to       (db_folder + "/tmp_equal_from_to"),
+        equal_from_type     (db_folder + "/tmp_equal_from_type"),
+        equal_to_type       (db_folder + "/tmp_equal_to_type"),
+        equal_from_to_type  (db_folder + "/tmp_equal_from_to_type")
+    {
+        state_transitions = new int[Token::TOTAL_TOKENS*State::TOTAL_STATES];
+        create_automata();
+    }
+
+    ~OnDiskImport() {
+        delete[](state_transitions);
+    }
 
     void start_import(const std::string& input_filename);
 
 private:
-    size_t initial_strings_in_GB;
+    size_t buffer_size_in_GB;
+
     int* state_transitions;
     std::function<void()> state_funcs[Token::TOTAL_TOKENS * State::TOTAL_STATES];
     Lexer lexer;
@@ -47,21 +60,20 @@ private:
     std::string db_folder;
     QuadCatalog catalog;
 
-    std::vector<std::array<uint64_t, 1>> declared_nodes;
-    std::vector<std::array<uint64_t, 2>> labels;
-    std::vector<std::array<uint64_t, 3>> properties;
-    std::vector<std::array<uint64_t, 4>> edges;
-    std::vector<std::array<uint64_t, 3>> equal_from_to;
-    std::vector<std::array<uint64_t, 3>> equal_from_type;
-    std::vector<std::array<uint64_t, 3>> equal_to_type;
-    std::vector<std::array<uint64_t, 2>> equal_from_to_type;
+    DiskVector<1> declared_nodes;
+    DiskVector<2> labels;
+    DiskVector<3> properties;
+    DiskVector<4> edges;
+    DiskVector<3> equal_from_to;
+    DiskVector<3> equal_from_type;
+    DiskVector<3> equal_to_type;
+    DiskVector<2> equal_from_to_type;
 
-    char* external_strings;
+    robin_hood::unordered_set<ExternalString> external_strings_set;
 
+    char*    external_strings;
     uint64_t external_strings_capacity;
     uint64_t external_strings_end;
-
-    robin_hood::unordered_set<ExternalString, ExternalStringHasher> external_ids_map;
 
     void do_nothing() { }
     void set_left_direction() { direction = false; }
@@ -70,16 +82,16 @@ private:
     void save_first_id_identifier() {
         ids_stack.clear();
         if (lexer.str_len < 8) {
-            id1 = Inliner::inline_string(lexer.str) | ObjectId::IDENTIFIABLE_INLINED_MASK ;
+            id1 = Inliner::inline_string(lexer.str) | ObjectId::MASK_NAMED_NODE_INLINED;
         } else {
-            id1 = get_or_create_external_string_id() | ObjectId::IDENTIFIABLE_EXTERNAL_MASK;
+            id1 = get_or_create_external_string_id() | ObjectId::MASK_NAMED_NODE_EXTERN;
         }
     }
 
     void save_first_id_anon() {
         ids_stack.clear();
         uint64_t unmasked_id = std::stoull(lexer.str + 2);
-        id1 = unmasked_id | ObjectId::ANONYMOUS_NODE_MASK;
+        id1 = unmasked_id | ObjectId::MASK_ANON;
         if (unmasked_id > catalog.anonymous_nodes_count) {
             catalog.anonymous_nodes_count = unmasked_id;
         }
@@ -90,15 +102,15 @@ private:
         normalize_string_literal();
 
         if (lexer.str_len < 8) {
-            id1 = Inliner::inline_string(lexer.str) | ObjectId::VALUE_INLINE_STR_MASK ;
+            id1 = Inliner::inline_string(lexer.str) | ObjectId::MASK_STRING_INLINED;
         } else {
-            id1 = get_or_create_external_string_id() | ObjectId::VALUE_EXTERNAL_STR_MASK;
+            id1 = get_or_create_external_string_id() | ObjectId::MASK_STRING_EXTERN;
         }
     }
 
     void save_first_id_iri() {
         ids_stack.clear();
-        // TODO: process IRI when supported
+        //TODO: process IRI when supported
     }
 
     void save_first_id_int() {
@@ -113,12 +125,12 @@ private:
 
     void save_first_id_true() {
         ids_stack.clear();
-        id1 = ObjectId::VALUE_BOOL_MASK | 0x01;
+        id1 = ObjectId::MASK_BOOL | 0x01;
     }
 
     void save_first_id_false() {
         ids_stack.clear();
-        id1 = ObjectId::VALUE_BOOL_MASK | 0x00;
+        id1 = ObjectId::MASK_BOOL | 0x00;
     }
 
     void save_first_id_implicit() {
@@ -143,13 +155,13 @@ private:
 
     void save_edge_type() {
         if (lexer.str_len < 8) {
-            type_id = Inliner::inline_string(lexer.str) | ObjectId::IDENTIFIABLE_INLINED_MASK ;
+            type_id = Inliner::inline_string(lexer.str) | ObjectId::MASK_NAMED_NODE_INLINED;
         } else {
-            type_id = get_or_create_external_string_id() | ObjectId::IDENTIFIABLE_EXTERNAL_MASK;
+            type_id = get_or_create_external_string_id() | ObjectId::MASK_NAMED_NODE_EXTERN;
         }
         ++catalog.type2total_count[type_id];
 
-        edge_id = ++edge_count | ObjectId::CONNECTION_MASK;
+        edge_id = ++edge_count | ObjectId::MASK_EDGE;
         if (direction) {
             edges.push_back({id1, id2, type_id, edge_id});
         } else {
@@ -183,24 +195,24 @@ private:
 
     void save_prop_key() {
         if (lexer.str_len < 8) {
-            key_id = Inliner::inline_string(lexer.str) | ObjectId::VALUE_INLINE_STR_MASK ;
+            key_id = Inliner::inline_string(lexer.str) | ObjectId::MASK_STRING_INLINED;
         } else {
-            key_id = get_or_create_external_string_id() | ObjectId::VALUE_EXTERNAL_STR_MASK  ;
+            key_id = get_or_create_external_string_id() | ObjectId::MASK_STRING_EXTERN;
         }
     }
 
     void save_second_id_identifier() {
         if (lexer.str_len < 8) {
-            id2 = Inliner::inline_string(lexer.str) | ObjectId::IDENTIFIABLE_INLINED_MASK ;
+            id2 = Inliner::inline_string(lexer.str) | ObjectId::MASK_NAMED_NODE_INLINED;
         } else {
-            id2 = get_or_create_external_string_id() | ObjectId::IDENTIFIABLE_EXTERNAL_MASK;
+            id2 = get_or_create_external_string_id() | ObjectId::MASK_NAMED_NODE_EXTERN;
         }
     }
 
     void save_second_id_anon() {
         // delete first 2 characters: '_a'
         uint64_t unmasked_id = std::stoull(lexer.str + 2);
-        id2 = unmasked_id | ObjectId::ANONYMOUS_NODE_MASK;
+        id2 = unmasked_id | ObjectId::MASK_ANON;
         if (unmasked_id > catalog.anonymous_nodes_count) {
             catalog.anonymous_nodes_count = unmasked_id;
         }
@@ -210,9 +222,9 @@ private:
         normalize_string_literal();
 
         if (lexer.str_len < 8) {
-            id2 = Inliner::inline_string(lexer.str) | ObjectId::VALUE_INLINE_STR_MASK ;
+            id2 = Inliner::inline_string(lexer.str) | ObjectId::MASK_STRING_INLINED;
         } else {
-            id2 = get_or_create_external_string_id() | ObjectId::VALUE_EXTERNAL_STR_MASK;
+            id2 = get_or_create_external_string_id() | ObjectId::MASK_STRING_EXTERN;
         }
     }
 
@@ -229,19 +241,19 @@ private:
     }
 
     void save_second_id_true() {
-        id2 = ObjectId::VALUE_BOOL_MASK | 0x01;
+        id2 = ObjectId::MASK_BOOL | 0x01;
     }
 
     void save_second_id_false() {
-        id2 = ObjectId::VALUE_BOOL_MASK | 0x00;
+        id2 = ObjectId::MASK_BOOL | 0x00;
     }
 
     void add_node_label() {
         uint64_t label_id;
         if (lexer.str_len < 8) {
-            label_id = Inliner::inline_string(lexer.str) | ObjectId::VALUE_INLINE_STR_MASK ;
+            label_id = Inliner::inline_string(lexer.str) | ObjectId::MASK_STRING_INLINED;
         } else {
-            label_id = get_or_create_external_string_id() | ObjectId::VALUE_EXTERNAL_STR_MASK;
+            label_id = get_or_create_external_string_id() | ObjectId::MASK_STRING_EXTERN;
         }
         labels.push_back({id1, label_id});
         ++catalog.label2total_count[label_id];
@@ -253,9 +265,9 @@ private:
         normalize_string_literal(); // edits lexer.str_len and lexer.str
 
         if (lexer.str_len < 8) {
-            value_id = Inliner::inline_string(lexer.str) | ObjectId::VALUE_INLINE_STR_MASK ;
+            value_id = Inliner::inline_string(lexer.str) | ObjectId::MASK_STRING_INLINED;
         } else {
-            value_id = get_or_create_external_string_id() | ObjectId::VALUE_EXTERNAL_STR_MASK;
+            value_id = get_or_create_external_string_id() | ObjectId::MASK_STRING_EXTERN;
         }
         properties.push_back({id1, key_id, value_id});
     }
@@ -271,12 +283,12 @@ private:
     }
 
     void add_node_prop_true() {
-        uint64_t value_id = ObjectId::VALUE_BOOL_MASK | 0x01;
+        uint64_t value_id = ObjectId::MASK_BOOL | 0x01;
         properties.push_back({id1, key_id, value_id});
     }
 
     void add_node_prop_false() {
-        uint64_t value_id = ObjectId::VALUE_BOOL_MASK | 0x00;
+        uint64_t value_id = ObjectId::MASK_BOOL | 0x00;
         properties.push_back({id1, key_id, value_id});
     }
 
@@ -286,9 +298,9 @@ private:
         normalize_string_literal(); // edits lexer.str_len and lexer.str
 
         if (lexer.str_len < 8) {
-            value_id = Inliner::inline_string(lexer.str) | ObjectId::VALUE_INLINE_STR_MASK ;
+            value_id = Inliner::inline_string(lexer.str) | ObjectId::MASK_STRING_INLINED;
         } else {
-            value_id = get_or_create_external_string_id() | ObjectId::VALUE_EXTERNAL_STR_MASK;
+            value_id = get_or_create_external_string_id() | ObjectId::MASK_STRING_EXTERN;
         }
         properties.push_back({edge_id, key_id, value_id});
     }
@@ -304,12 +316,12 @@ private:
     }
 
     void add_edge_prop_true() {
-        uint64_t value_id = ObjectId::VALUE_BOOL_MASK | 0x01;
+        uint64_t value_id = ObjectId::MASK_BOOL | 0x01;
         properties.push_back({edge_id, key_id, value_id});
     }
 
     void add_edge_prop_false() {
-        uint64_t value_id = ObjectId::VALUE_BOOL_MASK | 0x00;
+        uint64_t value_id = ObjectId::MASK_BOOL | 0x00;
         properties.push_back({edge_id, key_id, value_id});
     }
 
@@ -344,7 +356,7 @@ private:
         return state_transitions[State::TOTAL_STATES*state + token];
     }
 
-    // modifies conetents of lexer.str and lexer.str_len. lexer.str points to the same place
+    // modifies contents of lexer.str and lexer.str_len. lexer.str points to the same place
     void normalize_string_literal() {
         char* write_ptr = lexer.str;
         char* read_ptr = write_ptr + 1; // skip first character: '"'
@@ -397,8 +409,14 @@ private:
         *write_ptr = '\0';
     }
 
-    void check_external_string_size() {
-        while (external_strings_end + lexer.str_len + 1 >= external_strings_capacity) {
+    uint64_t get_or_create_external_string_id() {
+        // reserve more space if needed
+        while (external_strings_end
+               + lexer.str_len
+               + ExternalString::MIN_PAGE_REMAINING_BYTES
+               + ExternalString::MAX_LEN_BYTES
+               + 1 >= external_strings_capacity)
+        {
             // duplicate buffer
             char* new_external_strings = new char[external_strings_capacity*2];
             std::memcpy(new_external_strings,
@@ -411,33 +429,45 @@ private:
             external_strings = new_external_strings;
             ExternalString::strings = external_strings;
         }
-    }
 
-    uint64_t get_or_create_external_string_id() {
-        check_external_string_size();
-        std::memcpy(
-            &external_strings[external_strings_end],
-            lexer.str,
-            lexer.str_len);
-        external_strings[external_strings_end + lexer.str_len] = '\0';
+
+        // encode length
+        size_t bytes_for_len = 0;
+
+        auto* ptr = &external_strings[external_strings_end];
+        size_t remaining_len = lexer.str_len;
+
+        // TODO: move to string manager?
+        while (remaining_len != 0) {
+            if (remaining_len <= 127) {
+                *ptr = static_cast<char>(remaining_len);
+            } else {
+                *ptr = static_cast<char>(remaining_len & 0x7FUL) | 0x80;
+            }
+            remaining_len = remaining_len >> 7;
+            bytes_for_len++;
+            ptr++;
+        }
+
+        // copy string
+        std::memcpy(ptr, lexer.str, lexer.str_len);
+
         ExternalString s(external_strings_end);
+        auto found = external_strings_set.find(s);
+        if (found == external_strings_set.end()) {
+            external_strings_set.insert(s);
+            external_strings_end += lexer.str_len + bytes_for_len;
 
-        auto search = external_ids_map.find(s);
-        if (search == external_ids_map.end()) {
-            external_strings_end += lexer.str_len + 1;
-            external_ids_map.insert(s);
+            size_t remaining_in_block = StringManager::STRING_BLOCK_SIZE
+                                        - (external_strings_end % StringManager::STRING_BLOCK_SIZE);
+            if (remaining_in_block < ExternalString::MIN_PAGE_REMAINING_BYTES) {
+                external_strings_end += remaining_in_block;
+            }
+
             return s.offset;
         } else {
-            return search->offset;
+            return found->offset;
         }
     }
-
-    template <std::size_t N>
-    void create_bpt(const std::string& base_name, std::vector<std::array<uint64_t, N>>& values);
-
-    template <std::size_t N>
-    void reorder_cols(std::vector<std::array<uint64_t, N>>& values,
-                    std::array<size_t, N>& current_permutation,
-                    std::array<size_t, N>&& new_permutation);
 };
-}
+} // namespace Import

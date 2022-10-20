@@ -1,6 +1,7 @@
 #include "catalog.h"
 
 #include <cassert>
+#include <stdexcept>
 
 #include "storage/file_manager.h"
 
@@ -32,10 +33,6 @@ void Catalog::start_io() {
     file.seekg(0, file.beg);
 }
 
-bool Catalog::check_no_error_flags() {
-    return file.good();
-}
-
 
 uint64_t Catalog::read_uint64() {
     uint64_t res = 0;
@@ -45,6 +42,11 @@ uint64_t Catalog::read_uint64() {
     for (int i = 0, shift = 0; i < 8; ++i, shift += 8) {
         res |= static_cast<uint64_t>(buf[i]) << shift;
     }
+
+    if (!file.good()) {
+        throw std::runtime_error("Error reading uint64");
+    }
+
     return res;
 }
 
@@ -56,6 +58,10 @@ uint_fast32_t Catalog::read_uint32() {
 
     for (int i = 0, shift = 0; i < 4; ++i, shift += 8) {
         res |= static_cast<uint_fast32_t>(buf[i]) << shift;
+    }
+
+    if (!file.good()) {
+        throw std::runtime_error("Error reading uint32");
     }
     return res;
 }

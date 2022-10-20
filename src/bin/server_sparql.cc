@@ -40,7 +40,6 @@
 
 #include "base/binding/binding_iter.h"
 #include "base/exceptions.h"
-#include "base/thread/thread_key.h"
 #include "base/thread/thread_info.h"
 #include "network/tcp_buffer.h"
 #include "parser/query/grammar/error_listener.h"
@@ -55,25 +54,48 @@ using namespace std;
 using namespace SPARQL;
 using boost::asio::ip::tcp;
 
-// For random generation
-std::uniform_int_distribution<uint64_t> random_uint64;
-std::random_device rd;
-std::mt19937_64 gen(rd());
+std::queue<std::shared_ptr<ThreadInfo>> running_threads_queue;
+std::mutex running_threads_queue_mutex;
 
-std::queue<ThreadKey> running_threads_queue;
-std::unordered_map<ThreadKey, ThreadInfo, ThreadKeyHasher> running_threads;
-std::mutex running_threads_mutex;
+bool shutdown_server = false;
 
+void execute_query(ostream& os, unique_ptr<BindingIter> physical_plan) {
+    uint64_t result_count = 0;
+    auto execution_start = chrono::system_clock::now();
+    try {
+        physical_plan->begin(os);
 
-void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock) {
-    auto remove_thread_from_running_threads = [&]() {
-        std::lock_guard<std::mutex> guard(running_threads_mutex);
-        auto it = running_threads.find(thread_key);
-        if (it != running_threads.end()) {
-            running_threads.erase(it);
+        // get all results
+        while (physical_plan->next()) {
+            result_count++;
         }
-    };
 
+        chrono::duration<float, std::milli> execution_duration = chrono::system_clock::now() - execution_start;
+
+        // print execution stats in server console
+        cout << "\nPlan Executed:\n";
+        physical_plan->analyze(cout);
+        cout << "\nResults: " << result_count << "\n";
+        cout.flush();
+
+        // write execution stats in output stream
+        os << "---------------------------------------\n";
+        os << "Found " << result_count << " results.\n";
+        os << "Execution time: " << execution_duration.count() << " ms.\n";
+    }
+    catch (const InterruptedException& e) {
+        cerr << "QueryInterrupted" << endl;
+        os << "---------------------------------------\n";
+        os << "Timeout thrown after "
+           << chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now() - execution_start).count()
+           << " milliseconds.\n";
+        os << "Found " << result_count << " results before timeout.\n";
+        throw e; // throw again to print parser and optimizer duration; and set error status in tcp_buffer
+    }
+}
+
+
+void session(chrono::seconds timeout_duration, tcp::socket sock) {
     try {
         unsigned char query_size_b[CommunicationProtocol::BYTES_FOR_QUERY_LENGTH];
         boost::asio::read(sock, boost::asio::buffer(query_size_b, CommunicationProtocol::BYTES_FOR_QUERY_LENGTH));
@@ -93,137 +115,106 @@ void session(ThreadKey thread_key, ThreadInfo* thread_info, tcp::socket sock) {
 
         TcpBuffer tcp_buffer = TcpBuffer(sock);
         std::ostream os(&tcp_buffer);
-        antlr4::MyErrorListener error_listener;
 
-        // without this line ConnectionException won't be catched propertly
+        // without this line ConnectionException won't be caught properly
         os.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+        chrono::duration<float, std::milli> parser_duration;
+        chrono::duration<float, std::milli> optimizer_duration;
 
         unique_ptr<BindingIter> physical_plan;
 
-        // start timer
-        auto start = chrono::system_clock::now();
         try {
+            antlr4::MyErrorListener error_listener;
+            auto start_parser = chrono::system_clock::now();
             auto logical_plan = QueryParser::get_query_plan(query, &error_listener);
-            physical_plan = rdf_model.exec(*logical_plan, thread_info);
-        }
-        catch (const QueryParsingException& e) {
-            os << "---------------------------------------\n";
-            os << "Query Parsing Exception: " << e.what() << "\n";
-            os << "---------------------------------------\n";
-            tcp_buffer.set_status(CommunicationProtocol::StatusCodes::query_error);
-            remove_thread_from_running_threads();
-            return;
+            parser_duration = chrono::system_clock::now() - start_parser;
+
+            auto thread_info = std::make_shared<ThreadInfo>();
+            auto start_optimizer = chrono::system_clock::now();
+            physical_plan = rdf_model.exec(*logical_plan, thread_info.get());
+            optimizer_duration = chrono::system_clock::now() - start_optimizer;
+
+            {
+                // TODO: stablish private buffer pos? what happens if there is no available private buffer?
+                thread_info->timeout = chrono::system_clock::now() + timeout_duration;
+                std::lock_guard<std::mutex> guard(running_threads_queue_mutex);
+                running_threads_queue.push(thread_info);
+            }
+
+            execute_query(os, move(physical_plan));
+            os << "Optimizer time: " << optimizer_duration.count() << " ms.\n";
+            thread_info->finished = true;
+            tcp_buffer.set_status(CommunicationProtocol::StatusCodes::success);
         }
         catch (const QueryException& e) {
             os << "---------------------------------------\n";
             os << "Query Exception: " << e.what() << "\n";
-            os << "---------------------------------------\n";
+            os << "---------------------------------------" << endl;
             tcp_buffer.set_status(CommunicationProtocol::StatusCodes::query_error);
-            remove_thread_from_running_threads();
-            return;
         }
         catch (const LogicException& e) {
             os << "---------------------------------------\n";
             os << "Logic Exception: " << e.what() << "\n";
-            os << "---------------------------------------\n";
-            tcp_buffer.set_status(CommunicationProtocol::StatusCodes::logic_error);
-            remove_thread_from_running_threads();
-            return;
-        }
-        chrono::duration<float, std::milli> parser_duration = chrono::system_clock::now() - start;
-        uint64_t result_count = 0;
-        auto execution_start = chrono::system_clock::now();
-        try {
-            physical_plan->begin(os);
-
-            // get all results
-            while (physical_plan->next()) {
-                result_count++;
-            }
-
-            chrono::duration<float, std::milli> execution_duration = chrono::system_clock::now() - execution_start;
-
-            // print execution stats in server console
-            cout << "\nPlan Executed:\n";
-            physical_plan->analyze(cout);
-            cout << "\nResults: " << result_count << "\n";
-            cout.flush();
-
-            // write execution stats in output stream
-            os << "---------------------------------------\n";
-            os << "Found " << result_count << " results.\n";
-            os << "Execution time: " << execution_duration.count() << " ms.\n";
-            os << "Query Parser/Optimizer time: " << parser_duration.count() << " ms.\n";
-
-            tcp_buffer.set_status(CommunicationProtocol::StatusCodes::success);
-        }
-        catch (const LogicException& e) {
-            os << "---------------------------------------\n";
-            os << "LogicException:" << e.what() << endl;
+            os << "---------------------------------------" << endl;
             tcp_buffer.set_status(CommunicationProtocol::StatusCodes::logic_error);
         }
         catch (const InterruptedException& e) {
-            std::cerr << "QueryInterrupted" << endl;
-            auto t = chrono::system_clock::now() - start;
-            os << "---------------------------------------\n";
-            os << "Timeout thrown after "
-               << std::chrono::duration_cast<std::chrono::milliseconds>(t).count()
-               << " milliseconds.\n";
-            os << "Found " << result_count << " results before timeout.\n";
-            os << "Query Parser/Optimizer time: " << parser_duration.count() << " ms.\n";
+            os << "Query Parser time: " << parser_duration.count() << " ms. "
+               << "Optimizer time: " << optimizer_duration.count() << "ms." << endl;
             tcp_buffer.set_status(CommunicationProtocol::StatusCodes::timeout);
         }
     }
     catch (const ConnectionException& e) {
-        std::cerr << "Lost connection with client: " << e.what() << endl;
+        cerr << "Lost connection with client: " << e.what() << endl;
     }
     catch (const LogicException& e) {
-        std::cerr << "LogicException:" << e.what() << endl;
+        cerr << "LogicException:" << e.what() << endl;
     }
     catch (...) {
-        std::cerr << "Unknown exception." << endl;
+        cerr << "Unknown exception." << endl;
     }
-
-    remove_thread_from_running_threads();
 }
 
 
-void execute_timeouts(std::chrono::seconds timeout_duration) {
-    std::chrono::nanoseconds sleep_time;
-    while (true) {
+void execute_timeouts(chrono::seconds timeout_duration) {
+    chrono::nanoseconds sleep_time;
+    while (!shutdown_server) {
         bool should_sleep = false;
-        if (running_threads_queue.empty()) {
-            should_sleep = true;
-            sleep_time = timeout_duration;
-        } else {
-            auto thread_key = running_threads_queue.front();
-            std::lock_guard<std::mutex> guard(running_threads_mutex);
-            auto it = running_threads.find(thread_key);
-            if (it == running_threads.end()) {
-                // if thread_key is not in running_threads, it means the thread already finished
-                running_threads_queue.pop();
+        {
+            std::lock_guard<std::mutex> guard(running_threads_queue_mutex);
+            if (running_threads_queue.empty()) {
+                should_sleep = true;
+                sleep_time = timeout_duration;
             } else {
+                auto thread_info = running_threads_queue.front();
                 auto now = chrono::system_clock::now();
-                if (it->second.timeout <= now) {
-                    it->second.interruption_requested = true;
+
+                if (thread_info->timeout <= now || thread_info->finished) {
+                    thread_info->interruption_requested = true; // if thread finished this don't matter
                     running_threads_queue.pop();
-                }
-                else {
-                    // can't sleep here because the mutex is active
-                    auto remaining = it->second.timeout - now;
+                } else {
+                    // should't sleep here because the mutex is locked
+                    sleep_time = thread_info->timeout - now;
                     should_sleep = true;
-                    sleep_time = remaining;
                 }
             }
         }
         if (should_sleep) {
-            std::this_thread::sleep_for(sleep_time);
+            this_thread::sleep_for(sleep_time);
         }
     }
 }
 
 
-void server(unsigned short port, std::chrono::seconds timeout_duration) {
+void interruption_handler(const boost::system::error_code& error, int /*signal_number*/) {
+    if (!error) {
+        shutdown_server = true;
+    }
+}
+
+
+void server(unsigned short port, chrono::seconds timeout_duration) {
     boost::asio::io_context io_context;
 
     std::thread(execute_timeouts, timeout_duration).detach();
@@ -231,22 +222,20 @@ void server(unsigned short port, std::chrono::seconds timeout_duration) {
     tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
     cout << "Server running on port " << port << endl;
     cout << "To terminate press CTRL-C" << endl;
-    while (true) {
-        tcp::socket sock(io_context);
-        acceptor.accept(sock);
 
-        auto now = chrono::system_clock::now();
+    boost::asio::signal_set signals(io_context, SIGINT, SIGTERM);
+    signals.async_wait(interruption_handler);
 
-        auto timeout = now + timeout_duration;
-        uint64_t timestamp = now.time_since_epoch().count();
-        uint64_t rand = random_uint64(gen);
-
-        ThreadKey thread_key(timestamp, rand);
-        ThreadInfo thread_info(timeout);
-
-        running_threads_queue.push(thread_key);
-        auto insertion = running_threads.insert({thread_key, thread_info});
-        std::thread(session, thread_key, &insertion.first->second, std::move(sock)).detach();
+    while (!shutdown_server) {
+        try {
+            tcp::socket sock(io_context);
+            acceptor.accept(sock);
+            std::thread(session, timeout_duration, move(sock)).detach();
+        }
+        catch (boost::system::system_error& e) {
+            // cout << "boost::system::system_error" << endl;
+            break;
+        }
     }
 }
 

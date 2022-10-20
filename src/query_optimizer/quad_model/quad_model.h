@@ -4,10 +4,13 @@
 
 #include "execution/graph_model.h"
 #include "query_optimizer/quad_model/quad_catalog.h"
-#include "storage/index/bplus_tree/bplus_tree.h"
-#include "storage/index/hash/object_file_hash/object_file_hash.h"
-#include "storage/index/object_file/object_file.h"
-#include "storage/index/random_access_table/random_access_table.h"
+
+template <std::size_t N> class BPlusTree;
+template <std::size_t N> class RandomAccessTable;
+
+namespace MDB {
+    class OpInsert;
+}
 
 class QuadModel : public GraphModel {
     class Destroyer {
@@ -48,38 +51,28 @@ public:
     std::unique_ptr<BPlusTree<3>> equal_from_type_inverted; // (to,   from=type, edge)
     std::unique_ptr<BPlusTree<3>> equal_to_type_inverted;   // (from, to=type,   edge)
 
-    // necesary to be called before first usage
+    // necessary to be called before first usage
     static QuadModel::Destroyer init(const std::string& db_folder,
                                      uint_fast32_t      shared_buffer_pool_size,
                                      uint_fast32_t      private_buffer_pool_size,
                                      uint_fast32_t      max_threads);
 
-
     std::unique_ptr<BindingIter> exec(Op&, ThreadInfo*) const override;
 
-    ObjectId get_object_id(const GraphObject&) const override;
+    void exec_inserts(const MDB::OpInsert&);
+
+    ObjectId get_object_id(const QueryElement&) const override;
+
+    ObjectId get_or_create_object_id(const QueryElement&);
 
     GraphObject get_graph_object(ObjectId) const override;
-
-    // Methods used by bulk_import
-    uint64_t get_or_create_object_id(const GraphObject&);
 
     inline QuadCatalog& catalog() const noexcept {
         return const_cast<QuadCatalog&>(reinterpret_cast<const QuadCatalog&>(catalog_buf));
     }
 
-    inline ObjectFile& object_file() const noexcept {
-        return const_cast<ObjectFile&>(reinterpret_cast<const ObjectFile&>(object_file_buf));
-    }
-
-    inline ObjectFileHash& strings_hash() const noexcept {
-        return const_cast<ObjectFileHash&>(reinterpret_cast<const ObjectFileHash&>(strings_cache_buf));
-    }
-
 private:
-    typename std::aligned_storage<sizeof(QuadCatalog), alignof(QuadCatalog)>::type       catalog_buf;
-    typename std::aligned_storage<sizeof(ObjectFile), alignof(ObjectFile)>::type         object_file_buf;
-    typename std::aligned_storage<sizeof(ObjectFileHash), alignof(ObjectFileHash)>::type strings_cache_buf;
+    typename std::aligned_storage<sizeof(QuadCatalog), alignof(QuadCatalog)>::type catalog_buf;
 
     QuadModel(const std::string& db_folder,
               uint_fast32_t      shared_buffer_pool_size,
@@ -87,6 +80,8 @@ private:
               uint_fast32_t      max_threads);
 
     ~QuadModel();
+
+    void try_add_node(ObjectId);
 };
 
 extern QuadModel& quad_model; // global object

@@ -30,6 +30,12 @@ private:
 
     std::vector<std::unique_ptr<ReturnItem>> order_by_items;
 
+    std::vector<OpLabel> insert_labels;
+
+    std::vector<OpProperty> insert_properties;
+
+    std::vector<OpEdge> insert_edges;
+
     std::vector<Var> group_by_vars;
 
     std::vector<bool> order_by_ascending_order;
@@ -58,17 +64,25 @@ private:
 public:
     std::unique_ptr<Op> current_op;
 
-    virtual antlrcpp::Any visitRoot(MDBParser::RootContext* ctx) override {
+    virtual antlrcpp::Any visitDescribeQuery(MDBParser::DescribeQueryContext* ctx) override {
+        visitChildren(ctx);
+        current_op = std::make_unique<OpDescribe>(last_node_id);
+        return 0;
+    }
+
+    virtual antlrcpp::Any visitInsertQuery(MDBParser::InsertQueryContext* ctx) override {
+        visitChildren(ctx);
+        current_op = std::make_unique<OpInsert>(std::move(insert_labels),
+                                                std::move(insert_properties),
+                                                std::move(insert_edges));
+        return 0;
+    }
+
+    virtual antlrcpp::Any visitMatchQuery(MDBParser::MatchQueryContext* ctx) override {
         visitChildren(ctx);
         if (set_items.size() > 0) {
             current_op = std::make_unique<OpSet>(std::move(current_op), std::move(set_items));
         }
-        return 0;
-    }
-
-    virtual antlrcpp::Any visitDescribeStatement(MDBParser::DescribeStatementContext* ctx) override {
-        visitChildren(ctx);
-        current_op = std::make_unique<OpDescribe>(last_node_id);
         return 0;
     }
 
@@ -80,9 +94,45 @@ public:
 
     virtual antlrcpp::Any visitSetItem(MDBParser::SetItemContext* ctx) override {
         set_items.push_back({ Var(ctx->VARIABLE()->getText()),
-                              QueryElement::deduce(ctx->fixedNodeInside()->getText())});
+                              QueryElement::deduce(ctx->fixedNodeInside()->getText()) });
         return 0;
     }
+
+    /* Insert */
+    virtual antlrcpp::Any visitInsertLabelElement(MDBParser::InsertLabelElementContext* ctx) override {
+        auto label_str = ctx->STRING()->getText();
+        // transforming `"label"` to `"label` (first character will be removed in OpLabel constructor removing both quotes)
+        auto label_substr = label_str.substr(0, label_str.size() - 1);
+        if (ctx->identifier() != nullptr) {
+            insert_labels.emplace_back(ctx->identifier()->getText(), label_substr);
+        } else {
+            // if identifier is not present must be anon
+            insert_labels.emplace_back(ctx->ANON_ID()->getText(), label_substr);
+        }
+        return 0;
+    }
+
+    virtual antlrcpp::Any visitInsertPropertyElement(MDBParser::InsertPropertyElementContext* ctx) override {
+        auto obj = ctx->fixedNodeInside()->getText();
+
+        auto key = ctx->STRING()->getText();
+        // transform `"key"` into `key`
+        key = key.substr(1, key.size() - 2);
+
+        auto val = ctx->value()->getText();
+
+        insert_properties.emplace_back(obj, key, val);
+        return 0;
+    }
+
+    virtual antlrcpp::Any visitInsertEdgeElement(MDBParser::InsertEdgeElementContext* ctx) override {
+        auto from = ctx->fixedNodeInside()[0]->getText();
+        auto to   = ctx->fixedNodeInside()[1]->getText();
+        auto type = ctx->identifier()->getText();
+        insert_edges.emplace_back(from, to, type, "?e"); // edge won't be used, pass anything
+        return 0;
+    }
+    /* End Insert */
 
     /* Return */
     virtual antlrcpp::Any visitReturnList(MDBParser::ReturnListContext* ctx) override {
@@ -113,7 +163,7 @@ public:
             var += ctx->KEY()->getText();
         }
         return_items.push_back(
-            std::make_unique<ReturnItemAgg>(asciistrtolower(ctx->aggregateFunc()->getText()), std::move(var))
+            std::make_unique<ReturnItemAgg>(ascii_str_to_lower(ctx->aggregateFunc()->getText()), std::move(var))
         );
         return 0;
     }
@@ -181,7 +231,7 @@ public:
         if (ctx->KEY() != nullptr) {
             var += ctx->KEY()->getText();
         }
-        order_by_items.push_back(std::make_unique<ReturnItemAgg>(asciistrtolower(ctx->aggregateFunc()->getText()), std::move(var)));
+        order_by_items.push_back(std::make_unique<ReturnItemAgg>(ascii_str_to_lower(ctx->aggregateFunc()->getText()), std::move(var)));
         order_by_ascending_order.push_back(ctx->K_DESC() == nullptr);
         return 0;
     }
@@ -384,7 +434,7 @@ public:
             semantic = PathSemantic::ANY;
         } else {
             auto semantic_str = ctx->pathType()->getText();
-            std::transform(semantic_str.begin(), semantic_str.end(), semantic_str.begin(), asciitolower);
+            std::transform(semantic_str.begin(), semantic_str.end(), semantic_str.begin(), ascii_to_lower);
             if (semantic_str == "any") {
                 semantic = PathSemantic::ANY;
             }
@@ -586,10 +636,10 @@ public:
     }
 
     virtual antlrcpp::Any visitComparisonExprOp(MDBParser::ComparisonExprOpContext* ctx) override {
-        ctx->aditiveExpr()[0]->accept(this);
-        if (ctx->aditiveExpr().size() > 1) {
+        ctx->additiveExpr()[0]->accept(this);
+        if (ctx->additiveExpr().size() > 1) {
             auto saved_lhs = std::move(current_expr);
-            ctx->aditiveExpr()[1]->accept(this);
+            ctx->additiveExpr()[1]->accept(this);
             auto op = ctx->op->getText();
             if (op == "==") {
                 current_expr = std::make_unique<ExprEquals>(std::move(saved_lhs), std::move(current_expr));
@@ -612,14 +662,14 @@ public:
     }
 
     virtual antlrcpp::Any visitComparisonExprIs(MDBParser::ComparisonExprIsContext* ctx) override {
-        ctx->aditiveExpr()->accept(this);
+        ctx->additiveExpr()->accept(this);
         current_expr = std::make_unique<ExprIs>(ctx->K_NOT() != nullptr,
                                                 std::move(current_expr),
-                                                asciistrtolower(ctx->exprTypename()->getText()));
+                                                ascii_str_to_lower(ctx->exprTypename()->getText()));
         return 0;
     }
 
-    virtual antlrcpp::Any visitAditiveExpr(MDBParser::AditiveExprContext* ctx) override {
+    virtual antlrcpp::Any visitAdditiveExpr(MDBParser::AdditiveExprContext* ctx) override {
         auto multiplicativeExprs = ctx->multiplicativeExpr();
         multiplicativeExprs[0]->accept(this);
         for (std::size_t i = 1; i < multiplicativeExprs.size(); i++) {
@@ -631,7 +681,7 @@ public:
             } else if (op == "-") {
                 current_expr = std::make_unique<ExprSubtraction>(std::move(saved_lhs), std::move(current_expr));
             }  else {
-                throw std::invalid_argument(op + " not recognized as a valid AditiveExpr operator");
+                throw std::invalid_argument(op + " not recognized as a valid AdditiveExpr operator");
             }
         }
         return 0;
@@ -676,16 +726,16 @@ public:
     }
     /* End Expressions */
 
-    static char asciitolower(char c) {
+    static char ascii_to_lower(char c) {
         if (c <= 'Z' && c >= 'A')
             return c - ('Z' - 'z');
         return c;
     }
 
-    static std::string asciistrtolower(const std::string& str) {
+    static std::string ascii_str_to_lower(const std::string& str) {
         std::string res;
         for (std::size_t i = 0; i < str.size(); i++) {
-            res += asciitolower(str[i]);
+            res += ascii_to_lower(str[i]);
         }
         return res;
     }

@@ -13,6 +13,11 @@
 #include "base/query/sparql/path.h"
 #include "base/query/var.h"
 
+<<<<<<< HEAD
+=======
+// TODO: implement, check if this needs to be removed (it's not used)
+
+>>>>>>> 491a772e18f10acae2c89218a4027d4050e0b098
 struct SparqlElementToString {
     std::string operator()(const Var& v) {
         return "?" + v.name;
@@ -34,12 +39,23 @@ struct SparqlElementToString {
         return '"' + ll.str + '"' + '@' + ll.language;
     }
 
+<<<<<<< HEAD
     std::string operator()(const DateTime& dt) {
         return dt.to_string();
     }
 
     std::string operator()(const Decimal& d) {
         return d.to_string();
+=======
+    std::string operator()(const DateTime& /*dt*/) {
+        // return dt.to_string();
+        return "not implemented";
+    }
+
+    std::string operator()(const Decimal& /*d*/) {
+        // return d.to_string();
+        return "not implemented";
+>>>>>>> 491a772e18f10acae2c89218a4027d4050e0b098
     }
 
     std::string operator()(const Boolean& b) {

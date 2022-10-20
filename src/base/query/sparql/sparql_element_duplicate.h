@@ -50,12 +50,11 @@ struct SparqlElementDuplicate {
         return SparqlElement(p->duplicate());
     }
 
-    SparqlElement operator()(int64_t i) {
-        return SparqlElement(i);
-    }
+    // SparqlElement operator()(int64_t i) {
+    //     return SparqlElement(i);
+    // }
 
-    SparqlElement operator()(float f) {
-        return SparqlElement(f);
-    }
-
+    // SparqlElement operator()(float f) {
+    //     return SparqlElement(f);
+    // }
 };

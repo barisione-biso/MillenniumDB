@@ -87,7 +87,7 @@ void PathPlan::set_input_vars(const std::set<VarId>& input_vars) {
 
 unique_ptr<BindingIdIter> PathPlan::get_binding_id_iter(ThreadInfo* thread_info) const {
     std::function<ObjectId(const std::string&)> str_to_object_id_f = [](const std::string& str) {
-        return quad_model.get_object_id(GraphObject::make_named_node(str));
+        return quad_model.get_object_id(QueryElement(NamedNode(str)));
     };
 
     if (path_semantic == PathSemantic::ANY) {

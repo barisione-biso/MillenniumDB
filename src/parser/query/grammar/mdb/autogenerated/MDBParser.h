@@ -13,34 +13,37 @@ class  MDBParser : public antlr4::Parser {
 public:
   enum {
     K_ANY = 1, K_AND = 2, K_AVG = 3, K_ALL = 4, K_ASC = 5, K_BY = 6, K_BOOL = 7, 
-    K_COUNT = 8, K_DESCRIBE = 9, K_DESC = 10, K_DISTINCT = 11, K_IS = 12, 
-    K_INTEGER = 13, K_FALSE = 14, K_FLOAT = 15, K_GROUP = 16, K_LIMIT = 17, 
-    K_MAX = 18, K_MATCH = 19, K_MIN = 20, K_OPTIONAL = 21, K_ORDER = 22, 
-    K_OR = 23, K_NOT = 24, K_NULL = 25, K_SET = 26, K_SUM = 27, K_STRING = 28, 
-    K_RETURN = 29, K_TRUE = 30, K_WHERE = 31, TRUE_PROP = 32, FALSE_PROP = 33, 
-    ANON_ID = 34, EDGE_ID = 35, KEY = 36, TYPE = 37, TYPE_VAR = 38, VARIABLE = 39, 
-    STRING = 40, UNSIGNED_INTEGER = 41, UNSIGNED_FLOAT = 42, NAME = 43, 
-    LEQ = 44, GEQ = 45, EQ = 46, NEQ = 47, LT = 48, GT = 49, SINGLE_EQ = 50, 
-    PATH_SEQUENCE = 51, PATH_ALTERNATIVE = 52, PATH_NEGATION = 53, STAR = 54, 
-    PERCENT = 55, QUESTION_MARK = 56, PLUS = 57, MINUS = 58, L_PAR = 59, 
-    R_PAR = 60, LCURLY_BRACKET = 61, RCURLY_BRACKET = 62, LSQUARE_BRACKET = 63, 
-    RSQUARE_BRACKET = 64, COMMA = 65, COLON = 66, WHITE_SPACE = 67, SINGLE_LINE_COMMENT = 68, 
-    UNRECOGNIZED = 69
+    K_COUNT = 8, K_DESCRIBE = 9, K_DESC = 10, K_DISTINCT = 11, K_EDGE = 12, 
+    K_INTEGER = 13, K_INSERT = 14, K_IS = 15, K_FALSE = 16, K_FLOAT = 17, 
+    K_GROUP = 18, K_LABEL = 19, K_LIMIT = 20, K_MAX = 21, K_MATCH = 22, 
+    K_MIN = 23, K_OPTIONAL = 24, K_ORDER = 25, K_OR = 26, K_PROPERTY = 27, 
+    K_NOT = 28, K_NULL = 29, K_SET = 30, K_SUM = 31, K_STRING = 32, K_RETURN = 33, 
+    K_TRUE = 34, K_WHERE = 35, TRUE_PROP = 36, FALSE_PROP = 37, ANON_ID = 38, 
+    EDGE_ID = 39, KEY = 40, TYPE = 41, TYPE_VAR = 42, VARIABLE = 43, STRING = 44, 
+    UNSIGNED_INTEGER = 45, UNSIGNED_FLOAT = 46, NAME = 47, LEQ = 48, GEQ = 49, 
+    EQ = 50, NEQ = 51, LT = 52, GT = 53, SINGLE_EQ = 54, PATH_SEQUENCE = 55, 
+    PATH_ALTERNATIVE = 56, PATH_NEGATION = 57, STAR = 58, PERCENT = 59, 
+    QUESTION_MARK = 60, PLUS = 61, MINUS = 62, L_PAR = 63, R_PAR = 64, LCURLY_BRACKET = 65, 
+    RCURLY_BRACKET = 66, LSQUARE_BRACKET = 67, RSQUARE_BRACKET = 68, COMMA = 69, 
+    COLON = 70, WHITE_SPACE = 71, SINGLE_LINE_COMMENT = 72, UNRECOGNIZED = 73
   };
 
   enum {
-    RuleRoot = 0, RuleDescribeStatement = 1, RuleSetStatement = 2, RuleMatchStatement = 3, 
-    RuleWhereStatement = 4, RuleGroupByStatement = 5, RuleOrderByStatement = 6, 
-    RuleReturnStatement = 7, RuleSetItem = 8, RuleReturnItem = 9, RuleAggregateFunc = 10, 
-    RuleOrderByItem = 11, RuleGroupByItem = 12, RuleGraphPattern = 13, RuleOptionalPattern = 14, 
-    RuleBasicPattern = 15, RuleLinearPattern = 16, RulePath = 17, RulePathAlternatives = 18, 
-    RulePathSequence = 19, RulePathAtom = 20, RulePathSuffix = 21, RulePathType = 22, 
-    RuleNode = 23, RuleFixedNode = 24, RuleFixedNodeInside = 25, RuleEdge = 26, 
-    RuleEdgeInside = 27, RuleVarNode = 28, RuleProperties = 29, RuleProperty = 30, 
-    RuleIdentifier = 31, RuleBoolValue = 32, RuleNumericValue = 33, RuleValue = 34, 
-    RuleConditionalOrExpr = 35, RuleConditionalAndExpr = 36, RuleComparisonExpr = 37, 
-    RuleAditiveExpr = 38, RuleMultiplicativeExpr = 39, RuleUnaryExpr = 40, 
-    RuleAtomicExpr = 41, RuleValueExpr = 42, RuleExprTypename = 43, RuleKeyword = 44
+    RuleRoot = 0, RuleMatchQuery = 1, RuleDescribeQuery = 2, RuleInsertQuery = 3, 
+    RuleInsertLabelList = 4, RuleInsertPropertyList = 5, RuleInsertEdgeList = 6, 
+    RuleInsertLabelElement = 7, RuleInsertPropertyElement = 8, RuleInsertEdgeElement = 9, 
+    RuleSetStatement = 10, RuleMatchStatement = 11, RuleWhereStatement = 12, 
+    RuleGroupByStatement = 13, RuleOrderByStatement = 14, RuleReturnStatement = 15, 
+    RuleSetItem = 16, RuleReturnItem = 17, RuleAggregateFunc = 18, RuleOrderByItem = 19, 
+    RuleGroupByItem = 20, RuleGraphPattern = 21, RuleOptionalPattern = 22, 
+    RuleBasicPattern = 23, RuleLinearPattern = 24, RulePath = 25, RulePathAlternatives = 26, 
+    RulePathSequence = 27, RulePathAtom = 28, RulePathSuffix = 29, RulePathType = 30, 
+    RuleNode = 31, RuleFixedNode = 32, RuleFixedNodeInside = 33, RuleEdge = 34, 
+    RuleEdgeInside = 35, RuleVarNode = 36, RuleProperties = 37, RuleProperty = 38, 
+    RuleIdentifier = 39, RuleBoolValue = 40, RuleNumericValue = 41, RuleValue = 42, 
+    RuleConditionalOrExpr = 43, RuleConditionalAndExpr = 44, RuleComparisonExpr = 45, 
+    RuleAdditiveExpr = 46, RuleMultiplicativeExpr = 47, RuleUnaryExpr = 48, 
+    RuleAtomicExpr = 49, RuleValueExpr = 50, RuleExprTypename = 51, RuleKeyword = 52
   };
 
   explicit MDBParser(antlr4::TokenStream *input);
@@ -54,7 +57,15 @@ public:
 
 
   class RootContext;
-  class DescribeStatementContext;
+  class MatchQueryContext;
+  class DescribeQueryContext;
+  class InsertQueryContext;
+  class InsertLabelListContext;
+  class InsertPropertyListContext;
+  class InsertEdgeListContext;
+  class InsertLabelElementContext;
+  class InsertPropertyElementContext;
+  class InsertEdgeElementContext;
   class SetStatementContext;
   class MatchStatementContext;
   class WhereStatementContext;
@@ -91,7 +102,7 @@ public:
   class ConditionalOrExprContext;
   class ConditionalAndExprContext;
   class ComparisonExprContext;
-  class AditiveExprContext;
+  class AdditiveExprContext;
   class MultiplicativeExprContext;
   class UnaryExprContext;
   class AtomicExprContext;
@@ -103,14 +114,11 @@ public:
   public:
     RootContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    MatchStatementContext *matchStatement();
-    ReturnStatementContext *returnStatement();
     antlr4::tree::TerminalNode *EOF();
+    MatchQueryContext *matchQuery();
+    DescribeQueryContext *describeQuery();
+    InsertQueryContext *insertQuery();
     SetStatementContext *setStatement();
-    WhereStatementContext *whereStatement();
-    GroupByStatementContext *groupByStatement();
-    OrderByStatementContext *orderByStatement();
-    DescribeStatementContext *describeStatement();
 
 
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
@@ -119,9 +127,26 @@ public:
 
   RootContext* root();
 
-  class  DescribeStatementContext : public antlr4::ParserRuleContext {
+  class  MatchQueryContext : public antlr4::ParserRuleContext {
   public:
-    DescribeStatementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    MatchQueryContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    MatchStatementContext *matchStatement();
+    ReturnStatementContext *returnStatement();
+    WhereStatementContext *whereStatement();
+    GroupByStatementContext *groupByStatement();
+    OrderByStatementContext *orderByStatement();
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  MatchQueryContext* matchQuery();
+
+  class  DescribeQueryContext : public antlr4::ParserRuleContext {
+  public:
+    DescribeQueryContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *K_DESCRIBE();
     FixedNodeInsideContext *fixedNodeInside();
@@ -131,7 +156,130 @@ public:
    
   };
 
-  DescribeStatementContext* describeStatement();
+  DescribeQueryContext* describeQuery();
+
+  class  InsertQueryContext : public antlr4::ParserRuleContext {
+  public:
+    InsertQueryContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *K_INSERT();
+    InsertLabelListContext *insertLabelList();
+    InsertPropertyListContext *insertPropertyList();
+    InsertEdgeListContext *insertEdgeList();
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  InsertQueryContext* insertQuery();
+
+  class  InsertLabelListContext : public antlr4::ParserRuleContext {
+  public:
+    InsertLabelListContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *K_LABEL();
+    std::vector<InsertLabelElementContext *> insertLabelElement();
+    InsertLabelElementContext* insertLabelElement(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  InsertLabelListContext* insertLabelList();
+
+  class  InsertPropertyListContext : public antlr4::ParserRuleContext {
+  public:
+    InsertPropertyListContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *K_PROPERTY();
+    std::vector<InsertPropertyElementContext *> insertPropertyElement();
+    InsertPropertyElementContext* insertPropertyElement(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  InsertPropertyListContext* insertPropertyList();
+
+  class  InsertEdgeListContext : public antlr4::ParserRuleContext {
+  public:
+    InsertEdgeListContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *K_EDGE();
+    std::vector<InsertEdgeElementContext *> insertEdgeElement();
+    InsertEdgeElementContext* insertEdgeElement(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  InsertEdgeListContext* insertEdgeList();
+
+  class  InsertLabelElementContext : public antlr4::ParserRuleContext {
+  public:
+    InsertLabelElementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *L_PAR();
+    antlr4::tree::TerminalNode *COMMA();
+    antlr4::tree::TerminalNode *STRING();
+    antlr4::tree::TerminalNode *R_PAR();
+    IdentifierContext *identifier();
+    antlr4::tree::TerminalNode *ANON_ID();
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  InsertLabelElementContext* insertLabelElement();
+
+  class  InsertPropertyElementContext : public antlr4::ParserRuleContext {
+  public:
+    InsertPropertyElementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *L_PAR();
+    FixedNodeInsideContext *fixedNodeInside();
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+    antlr4::tree::TerminalNode *STRING();
+    ValueContext *value();
+    antlr4::tree::TerminalNode *R_PAR();
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  InsertPropertyElementContext* insertPropertyElement();
+
+  class  InsertEdgeElementContext : public antlr4::ParserRuleContext {
+  public:
+    InsertEdgeElementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *L_PAR();
+    std::vector<FixedNodeInsideContext *> fixedNodeInside();
+    FixedNodeInsideContext* fixedNodeInside(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+    IdentifierContext *identifier();
+    antlr4::tree::TerminalNode *R_PAR();
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  InsertEdgeElementContext* insertEdgeElement();
 
   class  SetStatementContext : public antlr4::ParserRuleContext {
   public:
@@ -850,7 +998,7 @@ public:
   public:
     ComparisonExprIsContext(ComparisonExprContext *ctx);
 
-    AditiveExprContext *aditiveExpr();
+    AdditiveExprContext *additiveExpr();
     antlr4::tree::TerminalNode *K_IS();
     ExprTypenameContext *exprTypename();
     antlr4::tree::TerminalNode *K_NOT();
@@ -863,8 +1011,8 @@ public:
     ComparisonExprOpContext(ComparisonExprContext *ctx);
 
     antlr4::Token *op = nullptr;
-    std::vector<AditiveExprContext *> aditiveExpr();
-    AditiveExprContext* aditiveExpr(size_t i);
+    std::vector<AdditiveExprContext *> additiveExpr();
+    AdditiveExprContext* additiveExpr(size_t i);
     antlr4::tree::TerminalNode *EQ();
     antlr4::tree::TerminalNode *NEQ();
     antlr4::tree::TerminalNode *LT();
@@ -877,13 +1025,13 @@ public:
 
   ComparisonExprContext* comparisonExpr();
 
-  class  AditiveExprContext : public antlr4::ParserRuleContext {
+  class  AdditiveExprContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *s57 = nullptr;
+    antlr4::Token *s61 = nullptr;
     std::vector<antlr4::Token *> op;
-    antlr4::Token *s58 = nullptr;
-    antlr4::Token *_tset829 = nullptr;
-    AditiveExprContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    antlr4::Token *s62 = nullptr;
+    antlr4::Token *_tset959 = nullptr;
+    AdditiveExprContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<MultiplicativeExprContext *> multiplicativeExpr();
     MultiplicativeExprContext* multiplicativeExpr(size_t i);
@@ -897,15 +1045,15 @@ public:
    
   };
 
-  AditiveExprContext* aditiveExpr();
+  AdditiveExprContext* additiveExpr();
 
   class  MultiplicativeExprContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *s54 = nullptr;
+    antlr4::Token *s58 = nullptr;
     std::vector<antlr4::Token *> op;
-    antlr4::Token *s51 = nullptr;
     antlr4::Token *s55 = nullptr;
-    antlr4::Token *_tset848 = nullptr;
+    antlr4::Token *s59 = nullptr;
+    antlr4::Token *_tset978 = nullptr;
     MultiplicativeExprContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<UnaryExprContext *> unaryExpr();
@@ -1033,10 +1181,13 @@ public:
     antlr4::tree::TerminalNode *K_DESCRIBE();
     antlr4::tree::TerminalNode *K_DESC();
     antlr4::tree::TerminalNode *K_DISTINCT();
+    antlr4::tree::TerminalNode *K_EDGE();
+    antlr4::tree::TerminalNode *K_INSERT();
     antlr4::tree::TerminalNode *K_IS();
     antlr4::tree::TerminalNode *K_INTEGER();
     antlr4::tree::TerminalNode *K_FLOAT();
     antlr4::tree::TerminalNode *K_GROUP();
+    antlr4::tree::TerminalNode *K_LABEL();
     antlr4::tree::TerminalNode *K_LIMIT();
     antlr4::tree::TerminalNode *K_MAX();
     antlr4::tree::TerminalNode *K_MATCH();
@@ -1044,6 +1195,7 @@ public:
     antlr4::tree::TerminalNode *K_OPTIONAL();
     antlr4::tree::TerminalNode *K_ORDER();
     antlr4::tree::TerminalNode *K_OR();
+    antlr4::tree::TerminalNode *K_PROPERTY();
     antlr4::tree::TerminalNode *K_NOT();
     antlr4::tree::TerminalNode *K_NULL();
     antlr4::tree::TerminalNode *K_SET();

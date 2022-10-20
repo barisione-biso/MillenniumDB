@@ -1,4 +1,4 @@
-#include "object_file_hash.h"
+#include "strings_hash.h"
 
 #include <bitset>
 #include <cassert>
@@ -7,20 +7,15 @@
 
 #include "base/exceptions.h"
 #include "storage/file_manager.h"
-#include "storage/index/hash/object_file_hash/object_file_hash_bucket.h"
+#include "storage/index/hash/strings_hash/strings_hash_bucket.h"
 #include "third_party/xxhash/xxhash.h"
 
 
-ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filename) :
-    object_file     (object_file),
+StringsHash::StringsHash(const std::string& filename) :
     buckets_file_id (file_manager.get_file_id(filename + ".dat"))
 {
-    auto file_path = file_manager.get_file_path(filename+ ".dir");
-    // dir_file.open(file_path, std::ios::out|std::ios::app);
-    // if (dir_file.fail()) {
-    //     throw std::runtime_error("Could not open file " + filename);
-    // }
-    // dir_file.close();
+    auto file_path = file_manager.get_file_path(filename + ".dir");
+
     dir_file.open(file_path, std::ios::in|std::ios::out|std::ios::binary);
      if (dir_file.fail()) {
         throw std::runtime_error("Could not open file " + filename);
@@ -32,9 +27,7 @@ ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filen
     if (dir_file.tellg() != 0) {
         dir_file.seekg(0, dir_file.beg);
 
-        uint8_t f_global_depth;
-        dir_file.read(reinterpret_cast<char*>(&f_global_depth), sizeof(f_global_depth));
-        global_depth = f_global_depth;
+        dir_file.read(reinterpret_cast<char*>(&global_depth), sizeof(global_depth));
 
         uint_fast32_t dir_size = 1 << global_depth;
         dir = new uint_fast32_t[dir_size];
@@ -52,7 +45,7 @@ ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filen
         uint_fast32_t dir_size = 1 << global_depth;
         dir = new uint_fast32_t[dir_size];
         for (uint_fast32_t i = 0; i < dir_size; ++i) {
-            ObjectFileHashBucket bucket(buckets_file_id, i, object_file);
+            StringsHashBucket bucket(buckets_file_id, i);
             *bucket.key_count = 0;
             *bucket.local_depth = DEFAULT_GLOBAL_DEPTH;
             dir[i] = i;
@@ -62,10 +55,11 @@ ObjectFileHash::ObjectFileHash(ObjectFile& object_file, const std::string& filen
 }
 
 
-ObjectFileHash::~ObjectFileHash() {
+StringsHash::~StringsHash() {
     dir_file.seekg(0, dir_file.beg);
 
-    dir_file.write(reinterpret_cast<const char*>(&global_depth), sizeof(uint8_t));
+    dir_file.write(reinterpret_cast<const char*>(&global_depth), sizeof(global_depth));
+
     uint_fast32_t dir_size = 1 << global_depth;
     for (uint64_t i = 0; i < dir_size; ++i) {
         uint32_t tmp = dir[i];
@@ -74,7 +68,7 @@ ObjectFileHash::~ObjectFileHash() {
 }
 
 
-void ObjectFileHash::duplicate_dirs() {
+void StringsHash::duplicate_dirs() {
     uint64_t old_dir_size = 1UL << global_depth;
     ++global_depth;
     auto new_dir_size = 1UL << global_depth;
@@ -97,7 +91,7 @@ void ObjectFileHash::duplicate_dirs() {
 }
 
 
-uint64_t ObjectFileHash::get_or_create_id(const std::string& str, bool* const created) {
+uint64_t StringsHash::get_or_create_str_id(const std::string& str) {
     uint64_t hash = XXH3_64bits(str.data(), str.length());
 
     // After a bucket split, need to try insert again.
@@ -106,17 +100,17 @@ uint64_t ObjectFileHash::get_or_create_id(const std::string& str, bool* const cr
         auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
         auto suffix = hash & mask;
         auto bucket_number = dir[suffix];
-        auto bucket = ObjectFileHashBucket(buckets_file_id, bucket_number, object_file);
+        auto bucket = StringsHashBucket(buckets_file_id, bucket_number);
 
         bool need_split;
-        auto id = bucket.get_or_create_id(str, hash, &need_split, created);
+        auto id = bucket.get_or_create_str_id(str, hash, &need_split);
 
         if (need_split) {
             if (*bucket.local_depth < global_depth) {
                 auto new_bucket_number = bucket_number | (1 << (*bucket.local_depth));
                 ++(*bucket.local_depth);
                 auto new_mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - (*bucket.local_depth));
-                auto new_bucket = ObjectFileHashBucket(buckets_file_id, new_bucket_number, object_file);
+                auto new_bucket = StringsHashBucket(buckets_file_id, new_bucket_number);
                 *new_bucket.key_count = 0;
                 (*new_bucket.local_depth) = (*bucket.local_depth);
 
@@ -129,7 +123,7 @@ uint64_t ObjectFileHash::get_or_create_id(const std::string& str, bool* const cr
                     dir[(i << (*bucket.local_depth)) | new_bucket_number] = new_bucket_number;
                 }
 
-                assert(*bucket.key_count + *new_bucket.key_count== ObjectFileHashBucket::MAX_KEYS
+                assert(*bucket.key_count + *new_bucket.key_count== StringsHashBucket::MAX_KEYS
                     && "EXTENDIBLE HASH INCONSISTENCY: sum of keys must be MAX_KEYS after a split");
 
             } else {
@@ -138,7 +132,7 @@ uint64_t ObjectFileHash::get_or_create_id(const std::string& str, bool* const cr
                 ++(*bucket.local_depth);
 
                 auto new_bucket_number = bucket_number | (1 << global_depth);
-                auto new_bucket = ObjectFileHashBucket(buckets_file_id, new_bucket_number, object_file);
+                auto new_bucket = StringsHashBucket(buckets_file_id, new_bucket_number);
                 *new_bucket.key_count = 0;
                 *new_bucket.local_depth = *bucket.local_depth;
 
@@ -151,7 +145,7 @@ uint64_t ObjectFileHash::get_or_create_id(const std::string& str, bool* const cr
                 // update dir for `1|bucket_number`
                 dir[new_bucket_number] = new_bucket_number;
 
-                assert(*bucket.key_count + *new_bucket.key_count== ObjectFileHashBucket::MAX_KEYS
+                assert(*bucket.key_count + *new_bucket.key_count== StringsHashBucket::MAX_KEYS
                     && "EXTENDIBLE HASH INCONSISTENCY: sum of keys must be MAX_KEYS after a split");
             }
         } else {
@@ -161,7 +155,7 @@ uint64_t ObjectFileHash::get_or_create_id(const std::string& str, bool* const cr
 }
 
 
-uint64_t ObjectFileHash::get_id(const std::string& str) const {
+uint64_t StringsHash::get_str_id(const std::string& str) const {
     uint64_t hash = XXH3_64bits(str.data(), str.length());
 
     // After a bucket split, need to try insert again.
@@ -170,8 +164,8 @@ uint64_t ObjectFileHash::get_id(const std::string& str) const {
         auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
         auto suffix = hash & mask;
         auto bucket_number = dir[suffix];
-        auto bucket = ObjectFileHashBucket(buckets_file_id, bucket_number, object_file);
+        auto bucket = StringsHashBucket(buckets_file_id, bucket_number);
 
-        return bucket.get_id(str, hash);
+        return bucket.get_str_id(str, hash);
     }
 }

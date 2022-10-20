@@ -4,7 +4,6 @@
 #include <ostream>
 #include <string>
 #include <stdint.h>
-#include "base/string_manager.h"
 
 class IriInlined {
 public:
@@ -34,10 +33,4 @@ public:
 
     // inline bool operator>(const IriInlined& rhs) const noexcept { }
 
-    friend std::ostream& operator<<(std::ostream& os, const IriInlined& graph_obj) {
-        return os << '<' 
-                  << StringManager::instance->get_prefix(graph_obj.prefix_id)
-                  << graph_obj.id
-                  << '>';
-    }
 };

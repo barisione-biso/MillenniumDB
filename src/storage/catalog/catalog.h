@@ -11,10 +11,6 @@ protected:
 
     bool is_empty();
 
-    // after reading the catalog, check if bytes were readed corerectly.
-    // returns true if no error was detected.
-    bool check_no_error_flags();
-
     // should be called before start reading/writing the catalog
     void start_io();
 

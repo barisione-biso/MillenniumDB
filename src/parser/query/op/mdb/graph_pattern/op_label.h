@@ -25,7 +25,7 @@ public:
     bool operator<(const OpLabel& other) const {
         if (node < other.node) {
             return true;
-        } else if (node > other.node) {
+        } else if (other.node < node) {
             return false;
         } else {
             return label < other.label;

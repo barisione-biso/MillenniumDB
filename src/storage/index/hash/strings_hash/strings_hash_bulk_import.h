@@ -1,29 +1,27 @@
 #pragma once
 
 #include <cassert>
-#include <cstdint>
 #include <cstring>
 #include <string>
 #include <fstream>
 #include <vector>
 
-#include "storage/index/hash/object_file_hash/object_file_hash.h"
-#include "storage/index/hash/object_file_hash/object_file_hash_bucket.h"
+#include "storage/index/hash/strings_hash/strings_hash.h"
+#include "storage/index/hash/strings_hash/strings_hash_bucket.h"
 #include "storage/page.h"
 #include "third_party/xxhash/xxhash.h"
 
-class ObjectFileHashMemImportBucket {
-friend class ObjectFileHashMemImport;
+class StringsHashBulkImportBucket {
+friend class StringsHashBulkImport;
 public:
-    ObjectFileHashMemImportBucket(char* page) :
+    StringsHashBulkImportBucket(char* page) :
         key_count   (reinterpret_cast<uint32_t*>(page)),
         local_depth (reinterpret_cast<uint32_t*>(page + sizeof(uint32_t))),
         hashes      (reinterpret_cast<uint64_t*>(page + 2*sizeof(uint32_t))),
-        ids         (reinterpret_cast<uint64_t*>(page + sizeof(uint64_t) + sizeof(uint64_t)*ObjectFileHashBucket::MAX_KEYS)) { }
+        ids         (reinterpret_cast<uint64_t*>(page + sizeof(uint64_t) + sizeof(uint64_t)*StringsHashBucket::MAX_KEYS)) { }
 
-    void create_id(uint64_t new_id, const uint64_t hash, bool* const need_split)
-    {
-        if (*key_count == ObjectFileHashBucket::MAX_KEYS) {
+    void create_id(uint64_t new_id, const uint64_t hash, bool* const need_split) {
+        if (*key_count == StringsHashBucket::MAX_KEYS) {
             *need_split = true;
             return;
         }
@@ -42,7 +40,7 @@ private:
     uint64_t* const ids;
 
     // TODO: duplicated code with object_file_hash, should be in one place
-    void redistribute(ObjectFileHashMemImportBucket& other, const uint64_t mask, const uint64_t other_suffix) {
+    void redistribute(StringsHashBulkImportBucket& other, const uint64_t mask, const uint64_t other_suffix) {
         uint32_t other_pos = 0;
         uint32_t this_pos = 0;
 
@@ -66,27 +64,27 @@ private:
     }
 };
 
-class ObjectFileHashMemImport {
+class StringsHashBulkImport {
 public:
-    ObjectFileHashMemImport(const std::string& filename) {
+    StringsHashBulkImport(const std::string& filename) {
         dir_file.open(filename + ".dir", std::ios::out|std::ios::binary);
         buckets_file.open(filename + ".dat", std::ios::out|std::ios::binary);
 
-        global_depth = ObjectFileHash::DEFAULT_GLOBAL_DEPTH;
+        global_depth = StringsHash::DEFAULT_GLOBAL_DEPTH;
         uint_fast32_t dir_size = 1 << global_depth;
         dir = new uint_fast32_t[dir_size];
         for (uint_fast32_t i = 0; i < dir_size; ++i) {
             auto new_page = new char[Page::MDB_PAGE_SIZE];
             memset(new_page, 0, Page::MDB_PAGE_SIZE);
             pages.push_back(new_page);
-            ObjectFileHashMemImportBucket bucket(new_page);
+            StringsHashBulkImportBucket bucket(new_page);
             *bucket.key_count = 0;
-            *bucket.local_depth = ObjectFileHash::DEFAULT_GLOBAL_DEPTH;
+            *bucket.local_depth = StringsHash::DEFAULT_GLOBAL_DEPTH;
             dir[i] = i;
         }
     }
 
-    ~ObjectFileHashMemImport() {
+    ~StringsHashBulkImport() {
         dir_file.seekg(0, dir_file.beg);
         buckets_file.seekg(0, buckets_file.beg);
 
@@ -106,15 +104,16 @@ public:
         buckets_file.close();
     }
 
-    void create_id(const char* str, uint64_t id) {
-        uint64_t hash = XXH3_64bits(str, strlen(str));
+    // str is not null terminated
+    void create_id(const char* str, uint64_t id, size_t strlen) {
+        uint64_t hash = XXH3_64bits(str, strlen);
 
         // After a bucket split, need to try insert again.
         while (true) {
             // global_depth must be <= 64
             auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
             auto suffix = hash & mask;
-            ObjectFileHashMemImportBucket bucket(pages[dir[suffix]]);
+            StringsHashBulkImportBucket bucket(pages[dir[suffix]]);
 
             bool need_split;
             bucket.create_id(id, hash, &need_split);
@@ -124,7 +123,7 @@ public:
                 memset(new_page, 0, Page::MDB_PAGE_SIZE);
                 auto new_bucket_number = pages.size();
                 pages.push_back(new_page);
-                ObjectFileHashMemImportBucket new_bucket(new_page);
+                StringsHashBulkImportBucket new_bucket(new_page);
                 *new_bucket.key_count   = 0;
                 *new_bucket.local_depth = *bucket.local_depth + 1;
 
@@ -144,7 +143,7 @@ public:
                         dir[(i << (*bucket.local_depth)) | new_suffix] = new_bucket_number;
                     }
 
-                    assert(*bucket.key_count + *new_bucket.key_count == ObjectFileHashBucket::MAX_KEYS
+                    assert(*bucket.key_count + *new_bucket.key_count == StringsHashBucket::MAX_KEYS
                         && "EXTENDIBLE HASH INCONSISTENCY: sum of keys must be MAX_KEYS after a split");
 
                 } else {
@@ -162,7 +161,7 @@ public:
                     // update dir for `1|suffix`
                     dir[new_suffix] = new_bucket_number;
 
-                    assert(*bucket.key_count + *new_bucket.key_count == ObjectFileHashBucket::MAX_KEYS
+                    assert(*bucket.key_count + *new_bucket.key_count == StringsHashBucket::MAX_KEYS
                         && "EXTENDIBLE HASH INCONSISTENCY: sum of keys must be MAX_KEYS after a split");
                 }
             } else {

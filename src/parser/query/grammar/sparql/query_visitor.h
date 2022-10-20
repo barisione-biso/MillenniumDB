@@ -296,44 +296,47 @@ public:
     }
 
     virtual antlrcpp::Any visitNumericLiteralUnsigned(SparqlParser::NumericLiteralUnsignedContext* ctx) override {
-        if (ctx->INTEGER()) {
-            int64_t value = std::stoll(ctx->INTEGER()->getText());
-            current_sparql_element = SparqlElement(value);
-        } else if (ctx->DECIMAL()) {
-            float value = std::stod(ctx->DECIMAL()->getText());
-            current_sparql_element = SparqlElement(value);
-        } else {
-            float value = std::stod(ctx->DOUBLE()->getText());
-            current_sparql_element = SparqlElement(value);
-        }
+        // TODO: implement
+        // if (ctx->INTEGER()) {
+        //     int64_t value = std::stoll(ctx->INTEGER()->getText());
+        //     current_sparql_element = SparqlElement(value);
+        // } else if (ctx->DECIMAL()) {
+        //     float value = std::stod(ctx->DECIMAL()->getText());
+        //     current_sparql_element = SparqlElement(value);
+        // } else {
+        //     float value = std::stod(ctx->DOUBLE()->getText());
+        //     current_sparql_element = SparqlElement(value);
+        // }
         return 0;
     }
 
     virtual antlrcpp::Any visitNumericLiteralPositive(SparqlParser::NumericLiteralPositiveContext* ctx) override {
-        if (ctx->INTEGER_POSITIVE()) {
-            int64_t value = std::stoll(ctx->INTEGER_POSITIVE()->getText());
-            current_sparql_element = SparqlElement(value);
-        } else if (ctx->DECIMAL_POSITIVE()) {
-            float value = std::stod(ctx->DECIMAL_POSITIVE()->getText());
-            current_sparql_element = SparqlElement(value);
-        } else {
-            float value = std::stod(ctx->DOUBLE_POSITIVE()->getText());
-            current_sparql_element = SparqlElement(value);
-        }
+        // TODO: implement
+        // if (ctx->INTEGER_POSITIVE()) {
+        //     int64_t value = std::stoll(ctx->INTEGER_POSITIVE()->getText());
+        //     current_sparql_element = SparqlElement(value);
+        // } else if (ctx->DECIMAL_POSITIVE()) {
+        //     float value = std::stod(ctx->DECIMAL_POSITIVE()->getText());
+        //     current_sparql_element = SparqlElement(value);
+        // } else {
+        //     float value = std::stod(ctx->DOUBLE_POSITIVE()->getText());
+        //     current_sparql_element = SparqlElement(value);
+        // }
         return 0;
     }
 
     virtual antlrcpp::Any visitNumericLiteralNegative(SparqlParser::NumericLiteralNegativeContext* ctx) override {
-        if (ctx->INTEGER_NEGATIVE()) {
-            int64_t value = std::stoll(ctx->INTEGER_NEGATIVE()->getText());
-            current_sparql_element = SparqlElement(value);
-        } else if (ctx->DECIMAL_NEGATIVE()) {
-            float value = std::stod(ctx->DECIMAL_NEGATIVE()->getText());
-            current_sparql_element = SparqlElement(value);
-        } else {
-            float value = std::stod(ctx->DOUBLE_NEGATIVE()->getText());
-            current_sparql_element = SparqlElement(value);
-        }
+        // TODO: implement
+        // if (ctx->INTEGER_NEGATIVE()) {
+        //     int64_t value = std::stoll(ctx->INTEGER_NEGATIVE()->getText());
+        //     current_sparql_element = SparqlElement(value);
+        // } else if (ctx->DECIMAL_NEGATIVE()) {
+        //     float value = std::stod(ctx->DECIMAL_NEGATIVE()->getText());
+        //     current_sparql_element = SparqlElement(value);
+        // } else {
+        //     float value = std::stod(ctx->DOUBLE_NEGATIVE()->getText());
+        //     current_sparql_element = SparqlElement(value);
+        // }
         return 0;
     }
 
@@ -438,7 +441,7 @@ public:
                     break;
                 case '+':
                     // A+ => A / A*
-                    auto kleene_star = std::make_unique<PathKleeneStar>(std::move(current_path->duplicate()));
+                    auto kleene_star = std::make_unique<PathKleeneStar>(current_path->duplicate());
                     std::vector<std::unique_ptr<IPath>> sequence;
                     sequence.push_back(std::move(current_path));
                     sequence.push_back(std::move(kleene_star));

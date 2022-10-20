@@ -18,9 +18,10 @@
 
 class SparqlElement {
 public:
-    std::variant<Var, Iri, Literal, LiteralDatatype, LiteralLanguage, DateTime, Decimal, Boolean, std::unique_ptr<SPARQL::IPath>, int64_t, float> value;
+    // TODO: replace literal with string?
+    std::variant<Var, Iri, Literal, LiteralDatatype, LiteralLanguage, DateTime, Decimal, Boolean, std::unique_ptr<SPARQL::IPath>> value;
 
-    SparqlElement() : value(int64_t(0)) {};
+    SparqlElement() : value(Boolean(false)) { }
 
     SparqlElement(const Var& var) : value(var) { }
 
@@ -32,17 +33,17 @@ public:
 
     SparqlElement(const LiteralLanguage& literal_language) : value(literal_language) { }
 
-    SparqlElement(const DateTime& datetime) : value(datetime) { }
+    SparqlElement(DateTime datetime) : value(datetime) { }
 
-    SparqlElement(const Decimal& decimal) : value(decimal) { }
+    SparqlElement(Decimal decimal) : value(decimal) { }
 
     SparqlElement(Boolean boolean) : value(boolean) { }
 
     SparqlElement(std::unique_ptr<SPARQL::IPath> path) : value(std::move(path)) { }
 
-    SparqlElement(const int64_t i) : value(i) { }
+    // SparqlElement(const int64_t i) : value(i) { }
 
-    SparqlElement(const float f) : value(f) { }
+    // SparqlElement(const float f) : value(f) { }
 
     SparqlElement duplicate() const;
 
@@ -69,9 +70,11 @@ public:
         return std::get<Var>(value);
     }
 
-    GraphObject to_graph_object() const {
-        return std::visit(SparqlElementToGraphObject(), value);
-    }
+    // GraphObject to_graph_object() const {
+    //     // TODO: implement? erase?
+    //     // return std::visit(SparqlElementToGraphObject(), value);
+    //     return GraphObject();
+    // }
 
     friend std::ostream& operator<<(std::ostream& os, const SparqlElement& node_id) {
         return os << node_id.to_string();

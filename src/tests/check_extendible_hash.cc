@@ -8,7 +8,9 @@
 #include "base/exceptions.h"
 #include "query_optimizer/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
+#include "storage/index/hash/strings_hash/strings_hash.h"
 #include "storage/file_manager.h"
+#include "storage/string_manager.h"
 #include "third_party/cxxopts/cxxopts.h"
 
 using namespace std;
@@ -37,36 +39,38 @@ int main(int argc, char **argv) {
 
     auto model_destroyer = QuadModel::init(db_folder, buffer_size, 0, 0);
 
-    auto& object_file  = quad_model.object_file();
-    auto& strings_hash = quad_model.strings_hash();
+    // auto& object_file  = *quad_model.object_file;
+    // auto& strings_hash = quad_model.exec_inserts;
 
     uint64_t current_id = 1;
 
     uint64_t correct = 0;
     uint64_t wrong = 0;
     uint64_t not_found = 0;
+    // TODO: redo test
     try {
         while (true) {
-            auto str = object_file.get_string(current_id);
+            // auto tmp = object_file.get_string(current_id);
 
-            auto id_found = strings_hash.get_id(str);
-            if (current_id != id_found) {
-                if (id_found == ObjectId::OBJECT_ID_NOT_FOUND) {
-                    ++not_found;
-                     cerr << "string \"" << str << "\", real id: " << current_id
-                        << ", not found\n";
-                } else {
-                    ++wrong;
-                    auto diff = current_id - id_found;
-                    cerr << "Wrong ID for string \"" << str << "\", real id: " << current_id
-                        << ", found: " << id_found << ", diff: " << diff << "\n";
-                }
-                exit(1);
-            } else {
-                ++correct;
-            }
+    //         auto id_found = strings_hash.get_id(tmp.str);
+    //         if (current_id != id_found) {
+    //             if (id_found == ObjectId::OBJECT_ID_NOT_FOUND) {
+    //                 ++not_found;
+    //                  cerr << "string \"" << tmp.str << "\", real id: " << current_id
+    //                     << ", not found\n";
+    //             } else {
+    //                 ++wrong;
+    //                 auto diff = current_id - id_found;
+    //                 cerr << "Wrong ID for string \"" << tmp.str << "\", real id: " << current_id
+    //                     << ", found: " << id_found << ", diff: " << diff << "\n";
+    //             }
+    //             exit(1);
+    //         } else {
+    //             ++correct;
+    //         }
 
-            current_id += str.size() + 1;
+    //         break; // TODO: avanzar a siguiente string
+    //         // current_id += str.size() + 1;
         }
     }
     catch (LogicException&) {

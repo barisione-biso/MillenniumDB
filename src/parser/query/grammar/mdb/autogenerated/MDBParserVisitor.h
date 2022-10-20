@@ -21,7 +21,23 @@ public:
    */
     virtual antlrcpp::Any visitRoot(MDBParser::RootContext *context) = 0;
 
-    virtual antlrcpp::Any visitDescribeStatement(MDBParser::DescribeStatementContext *context) = 0;
+    virtual antlrcpp::Any visitMatchQuery(MDBParser::MatchQueryContext *context) = 0;
+
+    virtual antlrcpp::Any visitDescribeQuery(MDBParser::DescribeQueryContext *context) = 0;
+
+    virtual antlrcpp::Any visitInsertQuery(MDBParser::InsertQueryContext *context) = 0;
+
+    virtual antlrcpp::Any visitInsertLabelList(MDBParser::InsertLabelListContext *context) = 0;
+
+    virtual antlrcpp::Any visitInsertPropertyList(MDBParser::InsertPropertyListContext *context) = 0;
+
+    virtual antlrcpp::Any visitInsertEdgeList(MDBParser::InsertEdgeListContext *context) = 0;
+
+    virtual antlrcpp::Any visitInsertLabelElement(MDBParser::InsertLabelElementContext *context) = 0;
+
+    virtual antlrcpp::Any visitInsertPropertyElement(MDBParser::InsertPropertyElementContext *context) = 0;
+
+    virtual antlrcpp::Any visitInsertEdgeElement(MDBParser::InsertEdgeElementContext *context) = 0;
 
     virtual antlrcpp::Any visitSetStatement(MDBParser::SetStatementContext *context) = 0;
 
@@ -109,7 +125,7 @@ public:
 
     virtual antlrcpp::Any visitComparisonExprIs(MDBParser::ComparisonExprIsContext *context) = 0;
 
-    virtual antlrcpp::Any visitAditiveExpr(MDBParser::AditiveExprContext *context) = 0;
+    virtual antlrcpp::Any visitAdditiveExpr(MDBParser::AdditiveExprContext *context) = 0;
 
     virtual antlrcpp::Any visitMultiplicativeExpr(MDBParser::MultiplicativeExprContext *context) = 0;
 

@@ -13,12 +13,4 @@ public:
         return (*this->ld).str == (*rhs.ld).str &&
                (*this->ld).datatype == (*rhs.ld).datatype;
     }
-
-    friend std::ostream& operator<<(std::ostream& os, const LiteralDatatypeTmp& graph_obj) {
-        return os << '"' 
-                  << (*graph_obj.ld).str
-                  << '"'
-                  << "^^"
-                  << (*graph_obj.ld).datatype;
-    }
 };

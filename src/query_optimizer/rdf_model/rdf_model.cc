@@ -7,20 +7,19 @@
 #include "base/exceptions.h"
 #include "base/graph_object/anonymous_node.h"
 #include "base/graph_object/edge.h"
-#include "base/graph_object/named_node_external.h"
 #include "base/graph_object/path.h"
 #include "base/path_printer.h"
 #include "execution/binding_id_iter/paths/path_manager.h"
+#include "execution/graph_object/graph_object_manager.h"
 #include "query_optimizer/rdf_model/binding_iter_visitor.h"
 #include "query_optimizer/rdf_model/graph_object_visitor.h"
-// #include "query_optimizer/quad_model/binding_iter_visitor.h"
+#include "query_optimizer/rdf_model/sparql_element_to_object_id.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
+#include "storage/index/bplus_tree/bplus_tree.h"
+#include "storage/string_manager.h"
 
 using namespace std;
-
-// PathPrinter* Path::path_printer = nullptr;
-// StringManager* StringManager::instance = nullptr;
 
 // memory for the object
 static typename std::aligned_storage<sizeof(RdfModel), alignof(RdfModel)>::type rdf_model_buf;
@@ -49,13 +48,20 @@ RdfModel::RdfModel(const std::string& db_folder,
     FileManager::init(db_folder);
     BufferManager::init(shared_buffer_pool_size, private_buffer_pool_size, max_threads);
     PathManager::init(max_threads);
+    StringManager::init();
 
-    new (&catalog())       RdfCatalog("catalog.dat");                // placement new
-    new (&object_file()) ObjectFile("object_file.dat");              // placement new
-    new (&strings_hash()) ObjectFileHash(object_file(), "str_hash"); // placement new
+    new (&catalog())       RdfCatalog("catalog.dat"); // placement new
 
-    Path::path_printer      = &path_manager;
-    StringManager::instance = &object_file();
+    Path::path_printer = &path_manager;
+
+    GraphObject::graph_object_print    = GraphObjectManager::print_rdf;
+    GraphObject::graph_object_eq       = GraphObjectManager::equal;
+    GraphObject::graph_object_cmp      = GraphObjectManager::compare;
+    GraphObject::graph_object_sum      = GraphObjectManager::sum;
+    GraphObject::graph_object_minus    = GraphObjectManager::minus;
+    GraphObject::graph_object_multiply = GraphObjectManager::multiply;
+    GraphObject::graph_object_divide   = GraphObjectManager::divide;
+    GraphObject::graph_object_modulo   = GraphObjectManager::modulo;
 
     spo = make_unique<BPlusTree<3>>("spo");
     pos = make_unique<BPlusTree<3>>("pos");
@@ -75,8 +81,6 @@ RdfModel::RdfModel(const std::string& db_folder,
 
 RdfModel::~RdfModel() {
     // Must destroy everything before buffer and file manager
-    strings_hash().~ObjectFileHash();
-    object_file().~ObjectFile();
     catalog().~RdfCatalog();
 
     spo.reset();
@@ -88,11 +92,11 @@ RdfModel::~RdfModel() {
     equal_sp.reset();
     equal_so.reset();
     equal_po.reset();
-    
     equal_sp_inverted.reset();
     equal_so_inverted.reset();
     equal_po_inverted.reset();
 
+    string_manager.~StringManager();
     path_manager.~PathManager();
     buffer_manager.~BufferManager();
     file_manager.~FileManager();
@@ -108,110 +112,160 @@ std::unique_ptr<BindingIter> RdfModel::exec(Op& op, ThreadInfo* thread_info) con
 
 
 GraphObject RdfModel::get_graph_object(ObjectId object_id) const {
-    if (object_id.is_not_found()) {
-        return GraphObject::make_not_found();
+    if ( object_id.is_not_found() ) {
+        return GraphObjectFactory::make_not_found();
     }
-    if (object_id.is_null()) {
-        return GraphObject::make_null();
+    if ( object_id.is_null() ) {
+        return GraphObjectFactory::make_null();
     }
     auto mask        = object_id.id & ObjectId::TYPE_MASK;
     auto unmasked_id = object_id.id & ObjectId::VALUE_MASK;
     switch (mask) {
-    case ObjectId::VALUE_EXTERNAL_STR_MASK: {
-        return GraphObject::make_string_external(unmasked_id);
-    }
-
-    case ObjectId::VALUE_INLINE_STR_MASK: {
-        char c[8];
-        int  shift_size = 6 * 8;
-        for (int i = 0; i < ObjectId::MAX_INLINED_BYTES; i++) {
-            uint8_t byte = (object_id.id >> shift_size) & 0xFF;
-            c[i]         = byte;
-            shift_size -= 8;
+        case ObjectId::MASK_STRING_EXTERN : {
+            return GraphObjectFactory::make_string_external(unmasked_id);
         }
-        c[7] = '\0';
-        return GraphObject::make_string_inlined(c);
-    }
 
-    case ObjectId::EXTERNAL_IRI_MASK: {
-        return GraphObject::make_iri_external(unmasked_id);
-    }
-
-    case ObjectId::INLINE_IRI_MASK: {
-        char c[7];
-        int  suffix_shift_size = 5 * 8;
-        for (int i = 0; i < 6; i++) {
-            uint8_t byte = (object_id.id >> suffix_shift_size) & 0xFF;
-            c[i]         = byte;
-            suffix_shift_size -= 8;
+        case ObjectId::MASK_STRING_INLINED : {
+            char c[8];
+            int shift_size = 6*8;
+            for (int i = 0; i < ObjectId::MAX_INLINED_BYTES; i++) {
+                uint8_t byte = (object_id.id >> shift_size) & 0xFF;
+                c[i] = byte;
+                shift_size -= 8;
+            }
+            c[7] = '\0';
+            return GraphObjectFactory::make_string_inlined(c);
         }
-        c[6] = '\0';
-        int     prefix_shift_size = 6 * 8;
-        uint8_t prefix_id         = (object_id.id & 0x00FF'0000'0000'0000UL) >> prefix_shift_size;
-        return GraphObject::make_iri_inlined(c, prefix_id);
-    }
 
-    case ObjectId::VALUE_INLINE_STR_DATATYPE_MASK: {
-        char c[6];
-        int  shift_size = 4 * 8;
-        for (int i = 0; i < 5; i++) {
-            uint8_t byte = (object_id.id >> shift_size) & 0xFF;
-            c[i]         = byte;
-            shift_size -= 8;
+        case ObjectId::MASK_POSITIVE_INT : {
+            static_assert(sizeof(int64_t) == 8, "int64_t must be 8 bytes");
+            int64_t i = object_id.id & 0x00FF'FFFF'FFFF'FFFFUL;
+            return GraphObjectFactory::make_int(i);
         }
-        c[5] = '\0';
-        int prefix_shift_size = 5 * 8;
-        uint16_t datatype_id = (object_id.id & 0x00FF'FF00'0000'0000UL) >> prefix_shift_size;
-        return GraphObject::make_literal_datatype_inlined(c, datatype_id);
-    }
 
-    case ObjectId::VALUE_EXTERNAL_STR_DATATYPE_MASK: {
-        return GraphObject::make_literal_datatype_external(unmasked_id);
-    }
-
-    case ObjectId::VALUE_INLINE_STR_LANGUAGE_MASK: {
-        char c[6];
-        int  shift_size = 4 * 8;
-        for (int i = 0; i < 5; i++) {
-            uint8_t byte = (object_id.id >> shift_size) & 0xFF;
-            c[i]         = byte;
-            shift_size -= 8;
+        case ObjectId::MASK_NEGATIVE_INT : {
+            static_assert(sizeof(int64_t) == 8, "int64_t must be 8 bytes");
+            int64_t i = (~object_id.id) & 0x00FF'FFFF'FFFF'FFFFUL;
+            return GraphObjectFactory::make_int(i*-1);
         }
-        c[5] = '\0';
-        int prefix_shift_size = 5 * 8;
-        uint16_t language_id = (object_id.id & 0x00FF'FF00'0000'0000UL) >> prefix_shift_size;
-        return GraphObject::make_literal_language_inlined(c, language_id);
-    }
 
-    case ObjectId::VALUE_EXTERNAL_STR_LANGUAGE_MASK: {
-        return GraphObject::make_literal_language_external(unmasked_id);
-    }
+        case ObjectId::MASK_FLOAT : {
+            static_assert(sizeof(float) == 4, "float must be 4 bytes");
+            float f;
+            uint8_t* dest = (uint8_t*)&f;
+            dest[0] =  object_id.id        & 0xFF;
+            dest[1] = (object_id.id >> 8)  & 0xFF;
+            dest[2] = (object_id.id >> 16) & 0xFF;
+            dest[3] = (object_id.id >> 24) & 0xFF;
+            return GraphObjectFactory::make_float(f);
+        }
 
-    case ObjectId::ANONYMOUS_NODE_MASK: {
-        return GraphObject::make_anonymous(unmasked_id);
-    }
+        case ObjectId::MASK_BOOL : {
+            bool b;
+            uint8_t* dest = (uint8_t*)&b;
+            *dest = object_id.id & 0xFF;
+            return GraphObjectFactory::make_bool(b);
+        }
 
-    case ObjectId::VALUE_DATETIME_MASK: {
-        return GraphObject::make_datetime(unmasked_id);
-    }
+        case ObjectId::MASK_NAMED_NODE_EXTERN : {
+            return GraphObjectFactory::make_named_node_external(unmasked_id);
+        }
 
-    case ObjectId::VALUE_DECIMAL_MASK: {
-        return GraphObject::make_decimal(unmasked_id);
-    }
+        case ObjectId::MASK_NAMED_NODE_INLINED : {
+            char c[8];
+            int shift_size = 6*8;
+            for (int i = 0; i < ObjectId::MAX_INLINED_BYTES; i++) {
+                uint8_t byte = (object_id.id >> shift_size) & 0xFF;
+                c[i] = byte;
+                shift_size -= 8;
+            }
+            c[7] = '\0';
+            return GraphObjectFactory::make_named_node_inlined(c);
+        }
 
-    case ObjectId::VALUE_BOOLEAN_MASK: {
-        return GraphObject::make_boolean(unmasked_id ? true : false);
-    }
+        case ObjectId::MASK_ANON : {
+            return GraphObjectFactory::make_anonymous(unmasked_id);
+        }
 
-    default: {
-        throw LogicException("Unhandled Object Type.");
-    }
+        case ObjectId::MASK_PATH : {
+            return GraphObjectFactory::make_path(unmasked_id);
+        }
+
+        case ObjectId::MASK_EDGE : {
+            return GraphObjectFactory::make_edge(unmasked_id);
+        }
+
+        case ObjectId::MASK_IRI_EXTERN: {
+            return GraphObjectFactory::make_iri_external(unmasked_id);
+        }
+
+        case ObjectId::MASK_IRI_INLINED: {
+            char c[7];
+            int  suffix_shift_size = 5 * 8;
+            for (int i = 0; i < 6; i++) {
+                uint8_t byte = (object_id.id >> suffix_shift_size) & 0xFF;
+                c[i]         = byte;
+                suffix_shift_size -= 8;
+            }
+            c[6] = '\0';
+            int     prefix_shift_size = 6 * 8;
+            uint8_t prefix_id         = (object_id.id & 0x00FF'0000'0000'0000UL) >> prefix_shift_size;
+            return GraphObjectFactory::make_iri_inlined(c, prefix_id);
+        }
+
+        case ObjectId::MASK_STRING_DATATYPE_INLINED: {
+            char c[6];
+            int  shift_size = 4 * 8;
+            for (int i = 0; i < 5; i++) {
+                uint8_t byte = (object_id.id >> shift_size) & 0xFF;
+                c[i]         = byte;
+                shift_size -= 8;
+            }
+            c[5] = '\0';
+            int prefix_shift_size = 5 * 8;
+            uint16_t datatype_id = (object_id.id & 0x00FF'FF00'0000'0000UL) >> prefix_shift_size;
+            return GraphObjectFactory::make_literal_datatype_inlined(c, datatype_id);
+        }
+
+        case ObjectId::MASK_STRING_DATATYPE_EXTERN: {
+            return GraphObjectFactory::make_literal_datatype_external(unmasked_id);
+        }
+
+        case ObjectId::MASK_STRING_LANG_INLINED: {
+            char c[6];
+            int  shift_size = 4 * 8;
+            for (int i = 0; i < 5; i++) {
+                uint8_t byte = (object_id.id >> shift_size) & 0xFF;
+                c[i]         = byte;
+                shift_size -= 8;
+            }
+            c[5] = '\0';
+            int prefix_shift_size = 5 * 8;
+            uint16_t language_id = (object_id.id & 0x00FF'FF00'0000'0000UL) >> prefix_shift_size;
+            return GraphObjectFactory::make_literal_language_inlined(c, language_id);
+        }
+
+        case ObjectId::MASK_STRING_LANG_EXTERN: {
+            return GraphObjectFactory::make_literal_language_external(unmasked_id);
+        }
+
+        case ObjectId::MASK_DATETIME: {
+            return GraphObjectFactory::make_datetime(unmasked_id);
+        }
+
+        case ObjectId::MASK_DECIMAL: {
+            return GraphObjectFactory::make_decimal(unmasked_id);
+        }
+
+        default: {
+            throw LogicException("Unhandled Object Type.");
+        }
     }
 }
 
 
-ObjectId RdfModel::get_object_id(const GraphObject& graph_object) const {
-    SPARQL::GraphObjectVisitor visitor(false);
+ObjectId RdfModel::get_object_id(const SparqlElement& graph_object) const {
+    SparqlElementToObjectId visitor(false);
     return visitor(graph_object);
 }
 

@@ -9,6 +9,7 @@
 #include "parser/query/op/mdb/graph_pattern/op_path.h"
 #include "parser/query/op/mdb/graph_pattern/op_property.h"
 #include "parser/query/op/mdb/op_describe.h"
+#include "parser/query/op/mdb/op_insert.h"
 #include "parser/query/op/mdb/op_group_by.h"
 #include "parser/query/op/mdb/op_match.h"
 #include "parser/query/op/mdb/op_order_by.h"

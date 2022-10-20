@@ -6,16 +6,17 @@
 #include "base/graph_object/boolean.h"
 #include "base/graph_object/decimal.h"
 #include "base/graph_object/datetime.h"
-#include "import/quad_model/external_string.h"
-#include "import/quad_model/inliner.h"
-#include "import/quad_model/on_disk/disk_vector.h"
-#include "import/quad_model/on_disk/stats_processor.h"
-#include "storage/index/hash/object_file_hash/object_file_hash_mem_import.h"
+#include "import/external_string.h"
+#include "import/inliner.h"
+#include "import/disk_vector.h"
+#include "import/stats_processor.h"
+#include "storage/index/hash/strings_hash/strings_hash.h"
 #include "query_optimizer/rdf_model/rdf_catalog.h"
 #include "third_party/robin_hood/robin_hood.h"
 #include "third_party/serd/reader.h"
 #include "third_party/serd/serd.h"
 
+// TODO: put inside namespace Import?
 namespace ImportRdf {
 class OnDiskImport {
 public:
@@ -173,12 +174,12 @@ private:
     Import::DiskVector<2> equal_so;
     Import::DiskVector<2> equal_po;
 
+    robin_hood::unordered_set<Import::ExternalString> external_strings_set;
+
     // External strings
     char*    external_strings;
     uint64_t external_strings_capacity;
     uint64_t external_strings_end;
-
-    robin_hood::unordered_set<Import::ExternalString, Import::ExternalStringHasher> external_ids_map;
 
     // Blank nodes
     uint64_t blank_node_count = 0;
@@ -243,9 +244,9 @@ private:
         auto size  = object->n_bytes;
 
         if (size < 8) {
-            object_id = Inliner::inline_string(cchar) | ObjectId::VALUE_INLINE_STR_MASK;
+            object_id = Inliner::inline_string(cchar) | ObjectId::MASK_STRING_INLINED;
         } else {
-            object_id = get_or_create_external_string_id(cchar, size) | ObjectId::VALUE_EXTERNAL_STR_MASK;
+            object_id = get_or_create_external_string_id(cchar, size) | ObjectId::MASK_STRING_EXTERN;
         }
     }
 
@@ -267,7 +268,7 @@ private:
                 std::cout << "Warning [line " << reader->source.cur.line  << "] invalid datetime: " << cchar << '\n';
                 object_has_errors = true;
             } else {
-                object_id = datetime_id | ObjectId::VALUE_DATETIME_MASK;
+                object_id = datetime_id | ObjectId::MASK_DATETIME;
             }
         }
         // xsd:decimal
@@ -277,7 +278,7 @@ private:
                 std::cout << "Warning [line " << reader->source.cur.line  << "] unsupported decimal: " << cchar << '\n';
                 object_has_errors = true;
             } else {
-                object_id = decimal_id | ObjectId::VALUE_DECIMAL_MASK;
+                object_id = decimal_id | ObjectId::MASK_DECIMAL;
             }
         }
         // xsd:boolean
@@ -287,16 +288,16 @@ private:
                 std::cout << "Warning [line " << reader->source.cur.line  << "] invalid boolean: " << cchar << '\n';
                 object_has_errors = true;
             } else {
-                object_id = boolean_id | ObjectId::VALUE_BOOLEAN_MASK;
+                object_id = boolean_id | ObjectId::MASK_BOOL;
             }
         }
         // Unsupported datatypes are stored as literals with datatype
         else {
             uint64_t datatype_id = get_datatype_id(cchar_datatype) << 40;
             if (size < 6) {
-                object_id = Inliner::inline_string5(cchar) | ObjectId::VALUE_INLINE_STR_DATATYPE_MASK | datatype_id;
+                object_id = Inliner::inline_string5(cchar) | ObjectId::MASK_STRING_DATATYPE_INLINED | datatype_id;
             } else {
-                object_id = get_or_create_external_string_id(cchar, size) | ObjectId::VALUE_EXTERNAL_STR_DATATYPE_MASK | datatype_id;
+                object_id = get_or_create_external_string_id(cchar, size) | ObjectId::MASK_STRING_DATATYPE_EXTERN | datatype_id;
             }
         }
     }
@@ -313,9 +314,9 @@ private:
         uint64_t lang_id = get_lang_id(cchar_lang) << 40;
 
         if (size < 6) {
-            object_id = Inliner::inline_string5(cchar) | ObjectId::VALUE_INLINE_STR_LANGUAGE_MASK | lang_id;
+            object_id = Inliner::inline_string5(cchar) | ObjectId::MASK_STRING_LANG_INLINED | lang_id;
         } else {
-            object_id = get_or_create_external_string_id(cchar, size) | ObjectId::VALUE_EXTERNAL_STR_LANGUAGE_MASK | lang_id;
+            object_id = get_or_create_external_string_id(cchar, size) | ObjectId::MASK_STRING_LANG_EXTERN | lang_id;
         }
     }
 
@@ -333,9 +334,9 @@ private:
         }
 
         if (str_len < 7) {
-            return Inliner::inline_iri(str) | ObjectId::INLINE_IRI_MASK | prefix_id;
+            return Inliner::inline_iri(str) | ObjectId::MASK_IRI_INLINED | prefix_id;
         } else {
-            return get_or_create_external_string_id(str, str_len) | ObjectId::EXTERNAL_IRI_MASK | prefix_id;
+            return get_or_create_external_string_id(str, str_len) | ObjectId::MASK_IRI_EXTERN | prefix_id;
         }
     }
 
@@ -354,10 +355,10 @@ private:
             blank_node_count++;
             blank_ids_map.insert({ str, blank_node_count });
             catalog.blank_nodes_count = blank_node_count;
-            return blank_node_count | ObjectId::ANONYMOUS_NODE_MASK;
+            return blank_node_count | ObjectId::MASK_ANON;
         } else {
             // Blank node found
-            return it->second | ObjectId::ANONYMOUS_NODE_MASK;
+            return it->second | ObjectId::MASK_ANON;
         }
     }
 
@@ -387,35 +388,96 @@ private:
     }
 
     // External string methods
-    void check_external_string_size(size_t str_len) {
-        while (external_strings_end + str_len + 1 >= external_strings_capacity) {
+    // void check_external_string_size(size_t str_len) {
+    //     while (external_strings_end + str_len + 1 >= external_strings_capacity) {
+    //         // duplicate buffer
+    //         char* new_external_strings = new char[external_strings_capacity * 2];
+    //         std::memcpy(new_external_strings, external_strings, external_strings_capacity);
+
+    //         external_strings_capacity *= 2;
+
+    //         delete[] external_strings;
+    //         external_strings                = new_external_strings;
+    //         Import::ExternalString::strings = external_strings;
+    //     }
+    // }
+
+    // uint64_t get_or_create_external_string_id(const char* str, size_t str_len) {
+    //     check_external_string_size(str_len);
+
+    //     std::memcpy(&external_strings[external_strings_end], str, str_len);
+    //     external_strings[external_strings_end + str_len] = '\0';
+    //     Import::ExternalString s(external_strings_end);
+
+    //     auto search = external_ids_map.find(s);
+    //     if (search == external_ids_map.end()) {
+    //         external_strings_end += str_len + 1;
+    //         external_ids_map.insert(s);
+    //         return s.offset;
+    //     } else {
+    //         return search->offset;
+    //     }
+    // }
+
+    uint64_t get_or_create_external_string_id(const char* str, size_t str_len) {
+        // reserve more space if needed
+        while (external_strings_end
+               + str_len
+               + Import::ExternalString::MIN_PAGE_REMAINING_BYTES
+               + Import::ExternalString::MAX_LEN_BYTES
+               + 1 >= external_strings_capacity)
+        {
             // duplicate buffer
-            char* new_external_strings = new char[external_strings_capacity * 2];
-            std::memcpy(new_external_strings, external_strings, external_strings_capacity);
+            char* new_external_strings = new char[external_strings_capacity*2];
+            std::memcpy(new_external_strings,
+                        external_strings,
+                        external_strings_capacity);
 
             external_strings_capacity *= 2;
 
             delete[] external_strings;
-            external_strings                = new_external_strings;
+            external_strings = new_external_strings;
             Import::ExternalString::strings = external_strings;
         }
-    }
 
-    uint64_t get_or_create_external_string_id(const char* str, size_t str_len) {
-        check_external_string_size(str_len);
 
-        std::memcpy(&external_strings[external_strings_end], str, str_len);
-        external_strings[external_strings_end + str_len] = '\0';
+        // encode length
+        size_t bytes_for_len = 0;
+
+        auto* ptr = &external_strings[external_strings_end];
+        size_t remaining_len = str_len;
+
+        // TODO: move to string manager?
+        while (remaining_len != 0) {
+            if (remaining_len <= 127) {
+                *ptr = static_cast<char>(remaining_len);
+            } else {
+                *ptr = static_cast<char>(remaining_len & 0x7FUL) | 0x80;
+            }
+            remaining_len = remaining_len >> 7;
+            bytes_for_len++;
+            ptr++;
+        }
+
+        // copy string
+        std::memcpy(ptr, str, str_len);
+
         Import::ExternalString s(external_strings_end);
+        auto found = external_strings_set.find(s);
+        if (found == external_strings_set.end()) {
+            external_strings_set.insert(s);
+            external_strings_end += str_len + bytes_for_len;
 
-        auto search = external_ids_map.find(s);
-        if (search == external_ids_map.end()) {
-            external_strings_end += str_len + 1;
-            external_ids_map.insert(s);
+            size_t remaining_in_block = StringManager::STRING_BLOCK_SIZE
+                                        - (external_strings_end % StringManager::STRING_BLOCK_SIZE);
+            if (remaining_in_block < Import::ExternalString::MIN_PAGE_REMAINING_BYTES) {
+                external_strings_end += remaining_in_block;
+            }
+
             return s.offset;
         } else {
-            return search->offset;
+            return found->offset;
         }
-    };
+    }
 };
 } // namespace ImportRdf

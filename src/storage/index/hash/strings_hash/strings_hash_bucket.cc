@@ -1,34 +1,34 @@
-#include "object_file_hash_bucket.h"
+#include "strings_hash_bucket.h"
 
 #include <bitset>
 #include <cstring>
 #include <memory>
 
+#include "base/ids/object_id.h"
 #include "storage/buffer_manager.h"
+#include "storage/string_manager.h"
 
 using namespace std;
 
-ObjectFileHashBucket::ObjectFileHashBucket(FileId file_id, uint_fast32_t bucket_number, ObjectFile& object_file) :
+StringsHashBucket::StringsHashBucket(FileId file_id, uint_fast32_t bucket_number) :
     page        (buffer_manager.get_page(file_id, bucket_number)),
-    object_file (object_file),
     key_count   (reinterpret_cast<uint32_t*>(page.get_bytes())),
     local_depth (reinterpret_cast<uint32_t*>(page.get_bytes() + sizeof(uint32_t))),
     hashes      (reinterpret_cast<uint64_t*>(page.get_bytes() + 2*sizeof(uint32_t))),
-    ids         (reinterpret_cast<uint64_t*>(page.get_bytes() + sizeof(uint64_t) + sizeof(uint64_t)*ObjectFileHashBucket::MAX_KEYS)) { }
+    ids         (reinterpret_cast<uint64_t*>(page.get_bytes() + sizeof(uint64_t) + sizeof(uint64_t)*StringsHashBucket::MAX_KEYS)) { }
 
 
-ObjectFileHashBucket::~ObjectFileHashBucket() {
+StringsHashBucket::~StringsHashBucket() {
     buffer_manager.unpin(page);
 }
 
 
-uint64_t ObjectFileHashBucket::get_id(const string& str, const uint64_t hash) const {
+uint64_t StringsHashBucket::get_str_id(const string& str, uint64_t hash) const {
     for (size_t i = 0; i < *key_count; ++i) {
         if (hashes[i] == hash) {
             // check if object is
             auto id = ids[i];
-            auto str2 = object_file.get_string(id);
-            if (str == str2) {
+            if (string_manager.str_eq(str, id)) {
                 return id;
             }
         }
@@ -37,18 +37,12 @@ uint64_t ObjectFileHashBucket::get_id(const string& str, const uint64_t hash) co
 }
 
 
-uint64_t ObjectFileHashBucket::get_or_create_id(const string& str,
-                                                const uint64_t hash,
-                                                bool* const need_split,
-                                                bool* const created)
-{
+uint64_t StringsHashBucket::get_or_create_str_id(const string& str, uint64_t hash, bool* need_split) {
     for (size_t i = 0; i < *key_count; ++i) {
         if (hashes[i] == hash) {
             // check if object is
             auto id = ids[i];
-            auto str2 = object_file.get_string(id);
-            if (str == str2) {
-                *created = false;
+            if (string_manager.str_eq(str, id)) {
                 *need_split = false;
                 return id;
             }
@@ -59,7 +53,7 @@ uint64_t ObjectFileHashBucket::get_or_create_id(const string& str,
         return 0; // doesn't matter this returned value, ExtendibleHash needs to try to insert again
     }
 
-    auto new_id = object_file.write(str);
+    auto new_id = string_manager.create_new(str);
 
     hashes[*key_count] = hash;
 
@@ -67,13 +61,12 @@ uint64_t ObjectFileHashBucket::get_or_create_id(const string& str,
     ++(*key_count);
     page.make_dirty();
 
-    *created = true;
     *need_split = false;
     return new_id;
 }
 
 
-void ObjectFileHashBucket::redistribute(ObjectFileHashBucket& other, const uint64_t mask, const uint64_t other_suffix) {
+void StringsHashBucket::redistribute(StringsHashBucket& other, uint64_t mask, uint64_t other_suffix) {
     uint32_t other_pos = 0;
     uint32_t this_pos = 0;
 

@@ -56,7 +56,6 @@ public:
                     times *= 10;
                 }
                 number = number * times + fraction;
-                
                 if (number > 0x0007'FFFF'FFFF'FFFF) {
                     // Integer overflow (after adding fractional part)
                     return INVALID_ID;
@@ -149,20 +148,5 @@ public:
                << '0';
         }
         return ss.str();
-    }
-
-    std::string to_string() const {
-        std::stringstream ss;
-
-        ss << '"';
-        ss << get_value_string();
-        ss << '"'
-           << "^^<http://www.w3.org/2001/XMLSchema#decimal>";
-        return ss.str();
-    }
-
-    friend std::ostream& operator<<(std::ostream& os, const Decimal& dt) {
-        os << dt.to_string();
-        return os;
     }
 };

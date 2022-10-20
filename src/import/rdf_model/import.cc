@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+#include "storage/index/hash/strings_hash/strings_hash_bulk_import.h"
+
 using namespace ImportRdf;
 
 char* Import::ExternalString::strings = nullptr;
@@ -55,7 +57,7 @@ void OnDiskImport::start_import(const std::string& input_filename, const std::st
     external_strings                     = new char[external_strings_initial_size];
     Import::ExternalString::strings      = external_strings;
     external_strings_capacity            = external_strings_initial_size;
-    external_strings_end                 = 1;
+    external_strings_end                 = StringManager::METADATA_SIZE;
 
     if (prefixes_filename.empty()) {
         prefixes = { "" };
@@ -63,7 +65,7 @@ void OnDiskImport::start_import(const std::string& input_filename, const std::st
         // Open file
         FILE* prefixes_file = fopen(prefixes_filename.c_str(), "r");
         // Read line by line and store in prefixes vector
-        char* line  = new char[1024];
+        char* line = NULL;
         size_t len = 0;
         ssize_t nread;
         while ((nread = getline(&line, &len, prefixes_file)) != -1) {
@@ -109,8 +111,8 @@ void OnDiskImport::start_import(const std::string& input_filename, const std::st
     equal_po.finish_appends();
 
     { // Destroy external_ids_map replacing it with an empty map
-        robin_hood::unordered_set<Import::ExternalString, Import::ExternalStringHasher> tmp;
-        external_ids_map.swap(tmp);
+        robin_hood::unordered_set<Import::ExternalString> tmp;
+        external_strings_set.swap(tmp);
     }
 
     { // Destroy blank_ids_map replacing it with an empty map
@@ -118,18 +120,41 @@ void OnDiskImport::start_import(const std::string& input_filename, const std::st
         blank_ids_map.swap(tmp);
     }
 
-    { // Write ObjectFile and ObjectFileHash
-        std::fstream object_file;
-        object_file.open(db_folder + "/object_file.dat", std::ios::out | std::ios::binary);
-        object_file.write(external_strings, external_strings_end);
+    {   // Write Strings
+        // write end
+        *reinterpret_cast<uint64_t*>(external_strings) = external_strings_end;
 
-        ObjectFileHashMemImport object_file_hash(db_folder + "/str_hash");
+        std::fstream strings_file;
+        strings_file.open(db_folder + "/strings.dat", std::ios::out|std::ios::binary);
+        strings_file.write(external_strings, external_strings_end);
 
-        size_t current_offset = 1;
+        // round up to PAGE_SIZE multiple
+        auto remaining = StringManager::STRING_BLOCK_SIZE
+                         - (external_strings_end % StringManager::STRING_BLOCK_SIZE);
+        strings_file.write(external_strings, remaining); // copies anything, content doesn't matter
+    }
+
+    {   // Write StringsHash
+        StringsHashBulkImport strings_hash(db_folder + "/str_hash");
+
+        size_t current_offset = StringManager::METADATA_SIZE;
         while (current_offset < external_strings_end) {
             auto current_str = external_strings + current_offset;
-            object_file_hash.create_id(current_str, current_offset);
-            current_offset += strlen(current_str) + 1;
+
+            size_t bytes_for_len;
+            size_t len = StringManager::get_string_len(current_str, &bytes_for_len);
+            current_str += bytes_for_len;
+
+            strings_hash.create_id(current_str, current_offset, len);
+
+            current_offset += bytes_for_len + len;
+
+            // skip alignment bytes
+            size_t remaining_in_page = StringManager::STRING_BLOCK_SIZE
+                                       - (current_offset % StringManager::STRING_BLOCK_SIZE);
+            if (remaining_in_page < Import::ExternalString::MIN_PAGE_REMAINING_BYTES) {
+                current_offset += remaining_in_page;
+            }
         }
 
         delete[] external_strings;
@@ -217,7 +242,6 @@ void OnDiskImport::start_import(const std::string& input_filename, const std::st
         equal_so.create_bpt(db_folder + "/equal_so",
                             { COL_SUBJ_OBJ, COL_PRED },
                             no_stat);
-        
         Import::NoStat<2> no_stat_inverted;
         equal_so.create_bpt(db_folder + "/equal_so_inverted",
                             { COL_PRED, COL_SUBJ_OBJ },

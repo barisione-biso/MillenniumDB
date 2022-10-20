@@ -12,10 +12,4 @@ public:
     inline bool operator==(const IriTmp& rhs) const noexcept {
         return *this->str == *rhs.str;
     }
-
-    friend std::ostream& operator<<(std::ostream& os, const IriTmp& graph_obj) {
-        return os << '<' 
-                  << graph_obj.str
-                  << '>';
-    }
 };

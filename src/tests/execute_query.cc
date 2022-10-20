@@ -6,7 +6,6 @@
 #include "base/binding/binding_iter.h"
 #include "base/exceptions.h"
 #include "parser/query/mdb_query_parser.h"
-#include "base/thread/thread_key.h"
 #include "query_optimizer/quad_model/quad_model.h"
 #include "storage/buffer_manager.h"
 #include "storage/file_manager.h"
@@ -16,7 +15,7 @@ using namespace std;
 
 void execute_query(const std::string& query) {
     unique_ptr<BindingIter> physical_plan;
-    ThreadInfo thread_info(chrono::system_clock::now()); // timeout is not considered in this test
+    ThreadInfo thread_info; // timeout is not considered in this test
 
     // start timer
     auto start = chrono::system_clock::now();

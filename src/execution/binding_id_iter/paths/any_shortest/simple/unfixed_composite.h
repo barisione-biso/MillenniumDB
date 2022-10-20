@@ -26,7 +26,7 @@ BFSIterEnum class, starting from the found node.
 */
 class UnfixedComposite : public BindingIdIter {
 private:
-    // Attributes determined in the constuctor
+    // Attributes determined in the constructor
     ThreadInfo*  thread_info;
     VarId        path_var;
     VarId        start;
@@ -37,10 +37,6 @@ private:
     BindingId* parent_binding;
 
     std::unique_ptr<BFSIterEnum> path_enum;
-
-    // Ranges to search in BPT. They are not local variables because some positions are reused.
-     std::array<uint64_t, 4> min_ids;
-     std::array<uint64_t, 4> max_ids;
 
     // Structs to handle the fixed a node as start
     uint32_t current_start_transition = 0;

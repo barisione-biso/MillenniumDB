@@ -39,15 +39,15 @@ def print_log(message, type=""):
     if type == "ok":
         to_print += colorama.Fore.GREEN  + "[ OK! ]"
     elif type == "error":
-        to_print += colorama.Fore.RED    + "[ERROR]" 
+        to_print += colorama.Fore.RED    + "[ERROR]"
     elif type == "begin":
-        to_print += colorama.Fore.WHITE + "[BEGIN]" 
+        to_print += colorama.Fore.WHITE + "[BEGIN]"
     elif type == "end":
         to_print += colorama.Fore.WHITE + "[ END ]"
     elif type == "warning":
         to_print += colorama.Fore.YELLOW + "[WARN!]"
     else:
-        to_print += colorama.Fore.CYAN   + "[DEBUG]" 
+        to_print += colorama.Fore.CYAN   + "[DEBUG]"
     print(to_print, colorama.Fore.RESET, message)
 
 
@@ -59,7 +59,7 @@ def create_db(rdf_file, prefixes_file):
         print_log(f"Database directory \"{db_dir}\" already exists", type="warning")
     else:
         CREATE_DB_PROCESS = subprocess.Popen(
-            [CREATE_DB_EXECUTABLE, rdf_file, db_dir, prefixes_file],
+            [CREATE_DB_EXECUTABLE, rdf_file, db_dir, "-p", prefixes_file],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
@@ -73,10 +73,10 @@ def create_db(rdf_file, prefixes_file):
 
 def start_server(db_dir):
     print_log("START_SERVER()", type="begin")
-    
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     location = ("127.0.0.1", PORT)
-    
+
     # Check if port is already in use
     if s.connect_ex(location) == 0:
         print_log(f"Port {PORT} is already in use", type="error")
@@ -206,8 +206,8 @@ def execute_queries():
         else:
             print_log(f"No RDF file (.ttl or .nt) found in {test_dir}", type="error")
             continue
-        
-        
+
+
         server_process = start_server(db_dir)
 
         bad_queries_dir  = os.path.join(test_dir, "bad_queries")

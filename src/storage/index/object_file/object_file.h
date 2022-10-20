@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "base/ids/object_id.h"
-#include "base/string_manager.h"
 
 /*
 Object File is designed to contain all strings (from labels, property keys,
@@ -17,7 +16,7 @@ terminator: '\0'. The ID is the position in the array where it starts.
 Because the ID=0 is special (represents the null object), we need to skip the
 first byte when creating the file so the first object will have the ID=1.
 */
-class ObjectFile : public StringManager {
+class ObjectFile {
 public:
     static constexpr auto INITIAL_SIZE = 4096*1024;
 

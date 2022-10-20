@@ -98,6 +98,6 @@ Id BindingIdIterVisitor::get_id(const SparqlElement& sparql_element) const {
     if (sparql_element.is_var()) {
         return get_var_id(sparql_element.to_var());
     } else {
-        return rdf_model.get_object_id(sparql_element.to_graph_object());
+        return rdf_model.get_object_id(sparql_element);
     }
 }

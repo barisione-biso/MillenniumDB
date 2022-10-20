@@ -27,7 +27,7 @@ public:
     bool operator<(const OpProperty& other) const {
         if (node < other.node) {
             return true;
-        } else if (node > other.node) {
+        } else if (other.node < node) {
             return false;
         } else {
             return key < other.key;

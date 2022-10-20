@@ -25,15 +25,15 @@ public:
     bool operator<(const OpEdge& other) const {
         if (from < other.from) {
             return true;
-        } else if (from > other.from) {
+        } else if (other.from < from) {
             return false;
         } else if (to < other.to) {
             return true;
-        } else if (to > other.to) {
+        } else if (other.to < to) {
             return false;
         } else if (edge < other.edge) {
             return true;
-        } else if (edge > other.edge) {
+        } else if (other.edge < edge) {
             return false;
         } else {
             return type < other.type;

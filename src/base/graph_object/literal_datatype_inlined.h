@@ -4,7 +4,6 @@
 #include <ostream>
 #include <stdint.h>
 #include <string>
-#include "base/string_manager.h"
 
 class LiteralDatatypeInlined {
 public:
@@ -33,14 +32,4 @@ public:
     // inline bool operator<(const LiteralDatatypeInlined& rhs) const noexcept { }
 
     // inline bool operator>(const LiteralDatatypeInlined& rhs) const noexcept { }
-
-    friend std::ostream& operator<<(std::ostream& os, const LiteralDatatypeInlined& graph_obj) {
-        return os << '"' 
-                  << graph_obj.id
-                  << '"' 
-                  << "^^" 
-                  << '<' 
-                  << StringManager::instance->get_datatype(graph_obj.datatype_id)
-                  << '>';
-    }
 };

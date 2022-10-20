@@ -2,25 +2,21 @@
 
 #include <chrono>
 
-#include "storage/index/hash/object_file_hash/object_file_hash_mem_import.h"
+#include "import/stats_processor.h"
+#include "storage/index/hash/strings_hash/strings_hash_bulk_import.h"
 #include "storage/index/random_access_table/edge_table_mem_import.h"
-#include "stats_processor.h"
 
 using namespace Import;
-
-char* ExternalString::strings = nullptr;
 
 void OnDiskImport::start_import(const std::string& input_filename) {
     auto start = std::chrono::system_clock::now();
     lexer.begin(input_filename);
 
-    // we only use half of what the user gave us because hasmap will use a significant amount of memory
-    size_t external_strings_initial_size = (1024ULL * 1024ULL * 1024ULL * buffer_size_in_GB)/2;
-
-    external_strings = new char[external_strings_initial_size];
+    external_strings_capacity = (1024ULL * 1024ULL * 1024ULL * buffer_size_in_GB)/2;
+    external_strings = new char[external_strings_capacity];
     ExternalString::strings = external_strings;
-    external_strings_capacity = external_strings_initial_size;
-    external_strings_end = 1;
+    external_strings_end = StringManager::METADATA_SIZE;
+
     catalog.anonymous_nodes_count = 0;
 
     int current_state = State::LINE_BEGIN;
@@ -28,10 +24,6 @@ void OnDiskImport::start_import(const std::string& input_filename) {
     while (int token = lexer.next_token()) {
         current_state = get_transition(current_state, token);
     }
-
-    auto end_lexer = std::chrono::system_clock::now();
-    std::chrono::duration<float, std::milli> parser_duration = end_lexer - start;
-    std::cout << "Parser duration: " << parser_duration.count() << " ms\n";
 
     declared_nodes.finish_appends();
     labels.finish_appends();
@@ -42,23 +34,51 @@ void OnDiskImport::start_import(const std::string& input_filename) {
     equal_from_type.finish_appends();
     equal_to_type.finish_appends();
 
-    {   // Destroy external_ids_map replacing it with an empty map
-        robin_hood::unordered_set<ExternalString, ExternalStringHasher> tmp;
-        external_ids_map.swap(tmp);
+    auto end_lexer = std::chrono::system_clock::now();
+    std::chrono::duration<float, std::milli> parser_duration = end_lexer - start;
+    std::cout << "Parser duration: " << parser_duration.count() << " ms\n";
+
+    {   // Destroy external_strings_set replacing it with an empty map
+        robin_hood::unordered_set<ExternalString> tmp;
+        external_strings_set.swap(tmp);
     }
 
-    {   // Write ObjectFile and ObjectFileHash
-        std::fstream object_file;
-        object_file.open(db_folder + "/object_file.dat", std::ios::out|std::ios::binary);
-        object_file.write(external_strings, external_strings_end);
+    {   // Write Strings
+        // write end
+        *reinterpret_cast<uint64_t*>(external_strings) = external_strings_end;
 
-        ObjectFileHashMemImport object_file_hash(db_folder + "/str_hash");
+        std::fstream strings_file;
+        strings_file.open(db_folder + "/strings.dat", std::ios::out|std::ios::binary);
+        strings_file.write(external_strings, external_strings_end);
 
-        size_t current_offset = 1;
+        // round up to PAGE_SIZE multiple
+        auto remaining = StringManager::STRING_BLOCK_SIZE
+                         - (external_strings_end % StringManager::STRING_BLOCK_SIZE);
+        strings_file.write(external_strings, remaining); // copies anything, content doesn't matter
+
+    }
+
+    {   // Write StringsHash
+        StringsHashBulkImport strings_hash(db_folder + "/str_hash");
+
+        size_t current_offset = StringManager::METADATA_SIZE;
         while (current_offset < external_strings_end) {
             auto current_str = external_strings + current_offset;
-            object_file_hash.create_id(current_str, current_offset);
-            current_offset += strlen(current_str) + 1;
+
+            size_t bytes_for_len;
+            size_t len = StringManager::get_string_len(current_str, &bytes_for_len);
+            current_str += bytes_for_len;
+
+            strings_hash.create_id(current_str, current_offset, len);
+
+            current_offset += bytes_for_len + len;
+
+            // skip alignment bytes
+            size_t remaining_in_page = StringManager::STRING_BLOCK_SIZE
+                                       - (current_offset % StringManager::STRING_BLOCK_SIZE);
+            if (remaining_in_page < ExternalString::MIN_PAGE_REMAINING_BYTES) {
+                current_offset += remaining_in_page;
+            }
         }
 
         delete[] external_strings;
@@ -66,10 +86,9 @@ void OnDiskImport::start_import(const std::string& input_filename) {
 
     auto end_obj_file = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> obj_duration = end_obj_file - end_lexer;
-    std::cout << "Write obj file and obj file hash duration: " << obj_duration.count() << " ms\n";
+    std::cout << "Write strings and strings hash duration: " << obj_duration.count() << " ms\n";
 
-    // Append undeclared nodes (being on an edge)
-    {
+    {   // Append undeclared nodes (being on an edge)
         robin_hood::unordered_set<uint64_t> nodes_set;
 
         declared_nodes.begin_tuple_iter();
@@ -115,6 +134,7 @@ void OnDiskImport::start_import(const std::string& input_filename) {
                                    no_stat);
         declared_nodes.finish_indexing();
     }
+
     auto end_nodes_index = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> nodes_index_duration = end_nodes_index - end_obj_file;
     std::cout << "Write edge table and nodes index: " << nodes_index_duration.count() << " ms\n";
@@ -302,13 +322,12 @@ void OnDiskImport::start_import(const std::string& input_filename) {
     std::chrono::duration<float, std::milli> total_duration = end_special_index - start;
     std::cout << "Total duration: " << total_duration.count() << " ms\n";
 
-
     catalog.print();
     catalog.save_changes();
 }
 
 void OnDiskImport::create_automata() {
-    // llenar vacío
+    // set all transitions as error at first, transitions that are defined later will stay as error.
     for (int s = 0; s < State::TOTAL_STATES; s++) {
         for (int t = 1; t < Token::TOTAL_TOKENS; t++) {
             set_transition(s, t, State::WRONG_LINE, std::bind(&OnDiskImport::print_error, this) );
