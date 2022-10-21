@@ -5,7 +5,7 @@
 #include <variant>
 
 #include "base/graph_object/datetime.h"
-#include "base/graph_object/decimal.h"
+#include "base/query/sparql/decimal.h"
 #include "base/query/sparql/iri.h"
 #include "base/query/sparql/literal.h"
 #include "base/query/sparql/literal_datatype.h"

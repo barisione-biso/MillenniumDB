@@ -26,5 +26,7 @@ enum class GraphObjectType {
     LITERAL_LANGUAGE_EXTERNAL = 21,
     LITERAL_LANGUAGE_TMP      = 22,
     DATETIME                  = 23,
-    DECIMAL                   = 24,
+    DECIMAL_INLINED           = 24,
+    DECIMAL_EXTERNAL          = 25,
+    DECIMAL_TMP               = 26,
 };

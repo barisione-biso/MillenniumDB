@@ -1,7 +1,0 @@
-s,p
----------------------------------------
-<http://www.decimal.com/s>,<http://www.decimal.com/p>
----------------------------------------
-Found 1 results.
-Execution time: 0.0626 ms.
-Query Parser/Optimizer time: 6.6966 ms.

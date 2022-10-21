@@ -3,8 +3,9 @@
 #include <iostream>
 
 #include "base/exceptions.h"
-#include "base/graph_object/decimal.h"
 #include "base/graph_object/datetime.h"
+#include "base/query/sparql/decimal.h"
+#include "base/graph_object/decimal_inlined.h"
 #include "import/external_string.h"
 #include "import/inliner.h"
 #include "import/disk_vector.h"
@@ -272,12 +273,13 @@ private:
         }
         // xsd:decimal
         else if (strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#decimal") == 0) {
-            uint64_t decimal_id = Decimal::get_decimal_id(cchar);
-            if (decimal_id == Decimal::INVALID_ID) {
-                std::cout << "Warning [line " << reader->source.cur.line  << "] unsupported decimal: " << cchar << '\n';
-                object_has_errors = true;
+            uint64_t decimal_id = DecimalInlined::get_decimal_id(cchar);
+            if (decimal_id == DecimalInlined::INVALID_ID) {
+                std::string str(cchar);
+                std::string normalized = Decimal::normalize(str);
+                object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
             } else {
-                object_id = decimal_id | ObjectId::MASK_DECIMAL;
+                object_id = decimal_id | ObjectId::MASK_DECIMAL_INLINED;
             }
         }
         // xsd:boolean

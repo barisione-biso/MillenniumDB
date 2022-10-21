@@ -45,7 +45,8 @@ public:
     static constexpr uint64_t MASK_EDGE                    = 0x11'00000000000000UL;
     static constexpr uint64_t MASK_PATH                    = 0x12'00000000000000UL;
     static constexpr uint64_t MASK_DATETIME                = 0x13'00000000000000UL;
-    static constexpr uint64_t MASK_DECIMAL                 = 0x14'00000000000000UL;
+    static constexpr uint64_t MASK_DECIMAL_INLINED         = 0x14'00000000000000UL;
+    static constexpr uint64_t MASK_DECIMAL_EXTERN          = 0x15'00000000000000UL;
 
     static_assert(MASK_NEGATIVE_INT < MASK_POSITIVE_INT, "Integers won't be ordered properly in the B+Tree.");
 

@@ -1,6 +1,0 @@
-PREFIX dec: <http://www.decimal.com/>
-
-SELECT ?o
-WHERE {
-    dec:s dec:p ?o .
-}

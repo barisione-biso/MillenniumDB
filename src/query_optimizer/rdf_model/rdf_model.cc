@@ -252,8 +252,12 @@ GraphObject RdfModel::get_graph_object(ObjectId object_id) const {
             return GraphObjectFactory::make_datetime(unmasked_id);
         }
 
-        case ObjectId::MASK_DECIMAL: {
-            return GraphObjectFactory::make_decimal(unmasked_id);
+        case ObjectId::MASK_DECIMAL_EXTERN: {
+            return GraphObjectFactory::make_decimal_external(unmasked_id);
+        }
+
+        case ObjectId::MASK_DECIMAL_INLINED: {
+            return GraphObjectFactory::make_decimal_inlined(unmasked_id);
         }
 
         default: {

@@ -1,4 +1,4 @@
-#include "base/graph_object/decimal.h"
+#include "base/graph_object/decimal_inlined.h"
 
 #include <iostream>
 #include <math.h>
@@ -79,7 +79,7 @@ int main() {
 
     std::vector<uint64_t> tests;
     for (auto &str : tests_str) {
-        tests.emplace_back(Decimal::get_decimal_id(str.c_str()));
+        tests.emplace_back(DecimalInlined::get_decimal_id(str.c_str()));
     }
 
     for (size_t i=0; i<tests.size(); i++) {

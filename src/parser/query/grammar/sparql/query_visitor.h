@@ -7,7 +7,7 @@
 #include "antlr4-runtime.h"
 #include "base/exceptions.h"
 #include "base/graph_object/datetime.h"
-#include "base/graph_object/decimal.h"
+#include "base/query/sparql/decimal.h"
 #include "base/query/sparql/sparql_element.h"
 #include "base/query/sparql/path.h"
 #include "base/query/sparql/path_alternatives.h"
@@ -263,11 +263,7 @@ public:
             }
             // xsd:decimal
             else if (iri_ref == "http://www.w3.org/2001/XMLSchema#decimal") {
-                uint64_t decimal_id = Decimal::get_decimal_id(str.c_str());
-                if (decimal_id == Decimal::INVALID_ID) {
-                    throw QueryException("Unsupported decimal value: " + str);
-                }
-                Decimal value(decimal_id);
+                Decimal value(Decimal::normalize(str));
                 current_sparql_element = SparqlElement(value);
             }
             // xsd:boolean
@@ -298,31 +294,19 @@ public:
     }
 
     virtual antlrcpp::Any visitNumericLiteralUnsigned(SparqlParser::NumericLiteralUnsignedContext* ctx) override {
-        uint64_t decimal_id = Decimal::get_decimal_id(ctx->getText().c_str());
-        if (decimal_id == Decimal::INVALID_ID) {
-            throw QueryException("Unsupported decimal value: " + ctx->getText());
-        }
-        Decimal value(decimal_id);
+        Decimal value(Decimal::normalize(ctx->getText()));
         current_sparql_element = SparqlElement(value);
         return 0;
     }
 
     virtual antlrcpp::Any visitNumericLiteralPositive(SparqlParser::NumericLiteralPositiveContext* ctx) override {
-        uint64_t decimal_id = Decimal::get_decimal_id(ctx->getText().c_str());
-        if (decimal_id == Decimal::INVALID_ID) {
-            throw QueryException("Unsupported decimal value: " + ctx->getText());
-        }
-        Decimal value(decimal_id);
+        Decimal value(Decimal::normalize(ctx->getText()));
         current_sparql_element = SparqlElement(value);
         return 0;
     }
 
     virtual antlrcpp::Any visitNumericLiteralNegative(SparqlParser::NumericLiteralNegativeContext* ctx) override {
-        uint64_t decimal_id = Decimal::get_decimal_id(ctx->getText().c_str());
-        if (decimal_id == Decimal::INVALID_ID) {
-            throw QueryException("Unsupported decimal value: " + ctx->getText());
-        }
-        Decimal value(decimal_id);
+        Decimal value(Decimal::normalize(ctx->getText()));
         current_sparql_element = SparqlElement(value);
         return 0;
     }

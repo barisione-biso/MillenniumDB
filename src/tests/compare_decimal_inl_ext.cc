@@ -1,4 +1,5 @@
-#include "base/graph_object/decimal.h"
+#include "base/graph_object/decimal_inlined.h"
+#include "base/query/sparql/decimal.h"
 
 #include <cstring>
 #include <iostream>
@@ -43,7 +44,7 @@ int compare_external(std::string& lhs, std::string& rhs) {
     return 0;
 }
 
-int compare(Decimal lhs, std::string& rhs) {
+int compare(DecimalInlined lhs, std::string& rhs) {
     std::string lhs_external   = lhs.get_value_string();
     std::string rhs_normalized = Decimal::normalize(rhs);
 
@@ -52,23 +53,22 @@ int compare(Decimal lhs, std::string& rhs) {
 
 int main() {
     // On this tests the left hand side is always lower than the right hand side
-    std::vector<std::pair<Decimal, std::string>> tests = {
-        { Decimal(Decimal::get_decimal_id("-11.1111")), "-1.10000000000000000000000000000000000000001" },
-        { Decimal(Decimal::get_decimal_id("-1")), "-.010000000000000000000000000000000000000001" },
-        { Decimal(Decimal::get_decimal_id("-0.01")), "-.000100000000000000000000000000000000001" },
+    std::vector<std::pair<DecimalInlined, std::string>> tests = {
+        { DecimalInlined(DecimalInlined::get_decimal_id("-11.1111")), "-1.10000000000000000000000000000000000000001" },
+        { DecimalInlined(DecimalInlined::get_decimal_id("-1")), "-.010000000000000000000000000000000000000001" },
+        { DecimalInlined(DecimalInlined::get_decimal_id("-0.01")), "-.000100000000000000000000000000000000001" },
 
-        { Decimal(Decimal::get_decimal_id("0")), ".30303030303030303030303030303030303" },
-        { Decimal(Decimal::get_decimal_id("0")), "30303030303030303030303030303030303" },
-        { Decimal(Decimal::get_decimal_id(".01")), ".01000000000000000000000000000000000000001" },
-        { Decimal(Decimal::get_decimal_id("1")), "1111111111111111111111111111111111111111111111" },
-        { Decimal(Decimal::get_decimal_id("1.1")), "1.10000000000000000000000000000000000000001" },
-        { Decimal(Decimal::get_decimal_id("-1.1")), "1.10000000000000000000000000000000000000001" },
+        { DecimalInlined(DecimalInlined::get_decimal_id("0")), ".30303030303030303030303030303030303" },
+        { DecimalInlined(DecimalInlined::get_decimal_id("0")), "30303030303030303030303030303030303" },
+        { DecimalInlined(DecimalInlined::get_decimal_id(".01")), ".01000000000000000000000000000000000000001" },
+        { DecimalInlined(DecimalInlined::get_decimal_id("1")), "1111111111111111111111111111111111111111111111" },
+        { DecimalInlined(DecimalInlined::get_decimal_id("1.1")), "1.10000000000000000000000000000000000000001" },
+        { DecimalInlined(DecimalInlined::get_decimal_id("-1.1")), "1.10000000000000000000000000000000000000001" },
     };
 
     for (auto& test : tests) {
         int result = compare(test.first, test.second);
         if (result >= 0) {
-            std::cout << "FAILED: " << test.first.get_value_string() << " >= " << test.second << std::endl;
             return 1;
         }
     }

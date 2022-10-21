@@ -22,7 +22,9 @@
 #include "base/graph_object/literal_language_external.h"
 #include "base/graph_object/literal_language_tmp.h"
 #include "base/graph_object/datetime.h"
-#include "base/graph_object/decimal.h"
+#include "base/graph_object/decimal_inlined.h"
+#include "base/graph_object/decimal_external.h"
+#include "base/graph_object/decimal_tmp.h"
 #include "execution/graph_object/char_iter.h"
 #include "execution/graph_object/graph_object_factory.h"
 #include "execution/graph_object/graph_object_types.h"
@@ -110,7 +112,7 @@ struct GraphObjectManager {
         }
         case GraphObjectType::IRI_TMP:
             return os << '<'
-                      << GraphObjectInterpreter::get<IriTmp>(graph_obj).str
+                      << *GraphObjectInterpreter::get<IriTmp>(graph_obj).str
                       << '>';
         case GraphObjectType::LITERAL_DATATYPE_INLINED: {
             auto ld_inl = GraphObjectInterpreter::get<LiteralDatatypeInlined>(graph_obj);
@@ -137,9 +139,9 @@ struct GraphObjectManager {
             auto ld_tmp = GraphObjectInterpreter::get<LiteralDatatypeTmp>(graph_obj);
 
             return os << '"' 
-                      << (*ld_tmp.ld).str
+                      << ld_tmp.ld->str
                       << "\"^^<"
-                      << (*ld_tmp.ld).datatype
+                      << ld_tmp.ld->datatype
                       << '>';
         }
         case GraphObjectType::LITERAL_LANGUAGE_INLINED: {
@@ -165,18 +167,28 @@ struct GraphObjectManager {
             auto ll_tmp = GraphObjectInterpreter::get<LiteralLanguageTmp>(graph_obj);
 
             return os << '"' 
-                      << (*ll_tmp.ll).str
+                      << ll_tmp.ll->str
                       << "\"@"
-                      << (*ll_tmp.ll).language;
+                      << ll_tmp.ll->language;
         }
         case GraphObjectType::DATETIME: {
             return os << '"'
                       << GraphObjectInterpreter::get<DateTime>(graph_obj).get_value_string()
                       << "\"^^<http://www.w3.org/2001/XMLSchema#dateTime>";            
         }
-        case GraphObjectType::DECIMAL: {
+        case GraphObjectType::DECIMAL_INLINED: {
             return os << '"'
-                      << GraphObjectInterpreter::get<Decimal>(graph_obj).get_value_string()
+                      << GraphObjectInterpreter::get<DecimalInlined>(graph_obj).get_value_string()
+                      << "\"^^<http://www.w3.org/2001/XMLSchema#decimal>";
+        }
+        case GraphObjectType::DECIMAL_EXTERNAL: {
+            os << '"';
+            string_manager.print(os, GraphObjectInterpreter::get<DecimalExternal>(graph_obj).external_id);
+            return os << "\"^^<http://www.w3.org/2001/XMLSchema#decimal>";
+        }
+        case GraphObjectType::DECIMAL_TMP: {
+            return os << '"'
+                      << *GraphObjectInterpreter::get<DecimalTmp>(graph_obj).str
                       << "\"^^<http://www.w3.org/2001/XMLSchema#decimal>";
         }
         default:

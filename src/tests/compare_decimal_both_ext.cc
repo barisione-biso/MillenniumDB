@@ -1,4 +1,4 @@
-#include "base/graph_object/decimal.h"
+#include "base/query/sparql/decimal.h"
 
 #include <cstring>
 #include <iostream>

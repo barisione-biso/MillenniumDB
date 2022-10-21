@@ -2,7 +2,9 @@
 
 #include "base/graph_object/anonymous_node.h"
 #include "base/graph_object/datetime.h"
-#include "base/graph_object/decimal.h"
+#include "base/graph_object/decimal_inlined.h"
+#include "base/graph_object/decimal_external.h"
+#include "base/graph_object/decimal_tmp.h"
 #include "base/graph_object/edge.h"
 #include "base/graph_object/graph_object.h"
 #include "base/graph_object/iri_external.h"
@@ -45,7 +47,9 @@ union GraphObjectUnion {
     LiteralLanguageExternal ll_external;
     LiteralLanguageTmp      ll_tmp;
     DateTime                datetime;
-    Decimal                 decimal;
+    DecimalInlined          decimal_inlined;
+    DecimalExternal         decimal_external;
+    DecimalTmp              decimal_tmp;
 
 private:
     GraphObjectUnion(Edge n) : edge(n) { }
@@ -66,7 +70,9 @@ private:
     GraphObjectUnion(LiteralLanguageExternal n) : ll_external(n) { }
     GraphObjectUnion(LiteralLanguageTmp n) : ll_tmp(n) { }
     GraphObjectUnion(DateTime n) : datetime(n) { }
-    GraphObjectUnion(Decimal n) : decimal(n) { }
+    GraphObjectUnion(DecimalInlined n) : decimal_inlined(n) { }
+    GraphObjectUnion(DecimalExternal n) : decimal_external(n) { }
+    GraphObjectUnion(DecimalTmp n) : decimal_tmp(n) { }
     // TODO: implement what to do with sparql paths?? they shouldn't be transformed to GraphObject
 };
 
@@ -138,20 +144,12 @@ GraphObject GraphObjectFactory::make_iri_inlined(const char* str, uint8_t prefix
     return GraphObject(GraphObjectUnion(IriInlined(str, prefix_id)).i, GraphObjectType::IRI_INLINED);
 }
 
-GraphObject GraphObjectFactory::make_iri_tmp(const std::string& str) {
-    return GraphObject(GraphObjectUnion(IriTmp(str)).i, GraphObjectType::IRI_TMP);
-}
-
 GraphObject GraphObjectFactory::make_literal_datatype_external(uint64_t external_id) {
     return GraphObject(GraphObjectUnion(LiteralDatatypeExternal(external_id)).i, GraphObjectType::LITERAL_DATATYPE_EXTERNAL);
 }
 
 GraphObject GraphObjectFactory::make_literal_datatype_inlined(const char* str, uint16_t datatype_id) {
     return GraphObject(GraphObjectUnion(LiteralDatatypeInlined(str, datatype_id)).i, GraphObjectType::LITERAL_DATATYPE_INLINED);
-}
-
-GraphObject GraphObjectFactory::make_literal_datatype_tmp(const LiteralDatatype& ld) {
-    return GraphObject(GraphObjectUnion(LiteralDatatypeTmp(ld)).i, GraphObjectType::LITERAL_DATATYPE_TMP);
 }
 
 GraphObject GraphObjectFactory::make_literal_language_external(uint64_t external_id) {
@@ -162,16 +160,16 @@ GraphObject GraphObjectFactory::make_literal_language_inlined(const char* str, u
     return GraphObject(GraphObjectUnion(LiteralLanguageInlined(str, language_id)).i, GraphObjectType::LITERAL_LANGUAGE_INLINED);
 }
 
-GraphObject GraphObjectFactory::make_literal_language_tmp(const LiteralLanguage& ll) {
-    return GraphObject(GraphObjectUnion(LiteralLanguageTmp(ll)).i, GraphObjectType::LITERAL_LANGUAGE_TMP);
-}
-
 GraphObject GraphObjectFactory::make_datetime(uint64_t datetime_id) {
     return GraphObject(GraphObjectUnion(DateTime(datetime_id)).i, GraphObjectType::DATETIME);
 }
 
-GraphObject GraphObjectFactory::make_decimal(uint64_t decimal_id) {
-    return GraphObject(GraphObjectUnion(Decimal(decimal_id)).i, GraphObjectType::DECIMAL);
+GraphObject GraphObjectFactory::make_decimal_external(uint64_t external_id) {
+    return GraphObject(GraphObjectUnion(DecimalExternal(external_id)).i, GraphObjectType::DECIMAL_EXTERNAL);
+}
+
+GraphObject GraphObjectFactory::make_decimal_inlined(uint64_t decimal_id) {
+    return GraphObject(GraphObjectUnion(DecimalInlined(decimal_id)).i, GraphObjectType::DECIMAL_INLINED);
 }
 
 template<>
@@ -270,6 +268,16 @@ DateTime GraphObjectInterpreter::get<DateTime>(const GraphObject graph_object) {
 }
 
 template<>
-Decimal GraphObjectInterpreter::get<Decimal>(const GraphObject graph_object) {
-    return GraphObjectUnion(int64_t(graph_object.encoded_value)).decimal;
+DecimalInlined GraphObjectInterpreter::get<DecimalInlined>(const GraphObject graph_object) {
+    return GraphObjectUnion(int64_t(graph_object.encoded_value)).decimal_inlined;
+}
+
+template<>
+DecimalExternal GraphObjectInterpreter::get<DecimalExternal>(const GraphObject graph_object) {
+    return GraphObjectUnion(int64_t(graph_object.encoded_value)).decimal_external;
+}
+
+template<>
+DecimalTmp GraphObjectInterpreter::get<DecimalTmp>(const GraphObject graph_object) {
+    return GraphObjectUnion(int64_t(graph_object.encoded_value)).decimal_tmp;
 }

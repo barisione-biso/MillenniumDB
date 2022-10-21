@@ -150,7 +150,18 @@ ObjectId SparqlElementToObjectId::operator()(DateTime dt) {
 }
 
 ObjectId SparqlElementToObjectId::operator()(Decimal dec) {
-    return ObjectId(dec.id | ObjectId::MASK_DECIMAL);
+    uint64_t decimal_id = DecimalInlined::get_decimal_id(dec.str.c_str());
+    if (decimal_id == DecimalInlined::INVALID_ID) {
+        uint64_t external_id = string_manager.get_str_id(Decimal::normalize(dec.str), create_if_not_exists);
+        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
+            return ObjectId::get_not_found();
+        } else {
+            return ObjectId(external_id | ObjectId::MASK_DECIMAL_EXTERN);
+        }
+    }
+    else {
+        return ObjectId(decimal_id | ObjectId::MASK_DECIMAL_INLINED);
+    }
 }
 
 ObjectId SparqlElementToObjectId::operator()(bool b) {
