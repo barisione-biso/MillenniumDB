@@ -55,7 +55,7 @@ RdfModel::RdfModel(const std::string& db_folder,
 
     GraphObject::graph_object_print    = GraphObjectManager::print_rdf;
     GraphObject::graph_object_eq       = GraphObjectManager::equal;
-    GraphObject::graph_object_cmp      = GraphObjectManager::compare;
+    GraphObject::graph_object_cmp      = GraphObjectManager::compare_rdf;
     GraphObject::graph_object_sum      = GraphObjectManager::sum;
     GraphObject::graph_object_minus    = GraphObjectManager::minus;
     GraphObject::graph_object_multiply = GraphObjectManager::multiply;

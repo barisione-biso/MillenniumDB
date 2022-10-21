@@ -328,6 +328,127 @@ struct GraphObjectManager {
         }
     }
 
+    // returns negative number if lhs < rhs,
+    // returns positive number if lhs > rhs
+    // returns 0 if lhs == rhs
+    static int compare_rdf(const GraphObject& lhs, const GraphObject& rhs) {
+        if (lhs.type == rhs.type && lhs.encoded_value == rhs.encoded_value)
+            return 0;
+        switch(lhs.type) {
+            // case GraphObjectType::NULL_OBJ:
+            // case GraphObjectType::NOT_FOUND:
+            // case GraphObjectType::IRI_INLINED:
+            // case GraphObjectType::IRI_EXTERNAL:
+            // case GraphObjectType::IRI_TMP:
+            // case GraphObjectType::STRING_INLINED:
+            // case GraphObjectType::STRING_EXTERNAL:
+            // case GraphObjectType::STRING_TMP:
+            // case GraphObjectType::LITERAL_DATATYPE_INLINED:
+            // case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
+            // case GraphObjectType::LITERAL_DATATYPE_TMP:
+            // case GraphObjectType::LITERAL_LANGUAGE_INLINED:
+            // case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
+            // case GraphObjectType::LITERAL_LANGUAGE_TMP:
+            // case GraphObjectType::DATETIME:
+            // case GraphObjectType::DECIMAL_INLINED:
+            // case GraphObjectType::DECIMAL_EXTERNAL:
+            // case GraphObjectType::DECIMAL_TMP:
+            // case GraphObjectType::BOOL:
+            // case GraphObjectType::PATH:
+            default:
+                throw LogicException("Unmanaged case");
+        }
+        switch(rhs.type) {
+            // case GraphObjectType::NULL_OBJ:
+            // case GraphObjectType::NOT_FOUND:
+            // case GraphObjectType::IRI_INLINED:
+            // case GraphObjectType::IRI_EXTERNAL:
+            // case GraphObjectType::IRI_TMP:
+            // case GraphObjectType::STRING_INLINED:
+            // case GraphObjectType::STRING_EXTERNAL:
+            // case GraphObjectType::STRING_TMP:
+            // case GraphObjectType::LITERAL_DATATYPE_INLINED:
+            // case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
+            // case GraphObjectType::LITERAL_DATATYPE_TMP:
+            // case GraphObjectType::LITERAL_LANGUAGE_INLINED:
+            // case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
+            // case GraphObjectType::LITERAL_LANGUAGE_TMP:
+            // case GraphObjectType::DATETIME:
+            // case GraphObjectType::DECIMAL_INLINED:
+            // case GraphObjectType::DECIMAL_EXTERNAL:
+            // case GraphObjectType::DECIMAL_TMP:
+            // case GraphObjectType::BOOL:
+            // case GraphObjectType::PATH:
+            default:
+                throw LogicException("Unmanaged case");
+        }
+        if (lhs.type == lhs.type) {
+            switch (lhs.type) {
+            // case GraphObjectType::IRI_INLINED:
+            // case GraphObjectType::IRI_EXTERNAL:
+            // case GraphObjectType::IRI_TMP:
+            // case GraphObjectType::STRING_INLINED:
+            // case GraphObjectType::STRING_EXTERNAL:
+            // case GraphObjectType::STRING_TMP:
+            // case GraphObjectType::LITERAL_DATATYPE_INLINED:
+            // case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
+            // case GraphObjectType::LITERAL_DATATYPE_TMP:
+            // case GraphObjectType::LITERAL_LANGUAGE_INLINED:
+            // case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
+            // case GraphObjectType::LITERAL_LANGUAGE_TMP:
+            // case GraphObjectType::DECIMAL_INLINED:
+            // case GraphObjectType::DECIMAL_EXTERNAL:
+            // case GraphObjectType::DECIMAL_TMP:
+            // case GraphObjectType::PATH:
+            case GraphObjectType::NULL_OBJ:
+                return 0;
+            case GraphObjectType::NOT_FOUND:
+                return 0;
+            case GraphObjectType::ANON:
+                return GraphObjectInterpreter::get<AnonymousNode>(lhs).id
+                     - GraphObjectInterpreter::get<AnonymousNode>(rhs).id;
+            case GraphObjectType::BOOL:
+                return GraphObjectInterpreter::get<bool>(lhs) - GraphObjectInterpreter::get<bool>(rhs);
+            case GraphObjectType::DATETIME: {
+                const auto& lhs_id = GraphObjectInterpreter::get<DateTime>(lhs).id;
+                const auto& rhs_id = GraphObjectInterpreter::get<DateTime>(rhs).id;
+
+                // Check sign bit
+                uint64_t sign_mask = 1ULL << 55;
+                int64_t  sign_diff = (lhs_id & sign_mask) - (rhs_id & sign_mask);
+                if (sign_diff != 0) {
+                    return sign_diff > 0 ? -1 : 1;
+                }
+                // From now on, both numbers have the same sign
+                int64_t diff = 0;
+                // Check precision bit
+                uint64_t precision_mask = 1ULL << 54;
+                int64_t  precision_diff = (lhs_id & precision_mask) - (rhs_id & precision_mask);
+                if (precision_diff != 0) {
+                    diff = precision_diff > 0 ? 1 : -1;
+                }
+                // Handle same precision
+                else {
+                    uint64_t datetime_mask = 0x00'3F'FFFF'FFFF'FFFF;
+                    int64_t  datetime_diff = (lhs_id & datetime_mask) - (rhs_id & datetime_mask);
+                    diff = datetime_diff > 0 ? 1 : -1;
+                }
+                // Flip if the result if both signs were negative
+                if (lhs_id & sign_mask) {
+                    return -diff;
+                } else {
+                    return diff;
+                }
+            }
+            default:
+                throw LogicException("Unmanaged case");
+            }
+        }
+        else {
+            return (lhs.type < rhs.type) ? -1 : 1;
+        }
+    }
+
     static GraphObject sum(const GraphObject& lhs, const GraphObject& rhs) {
         if (lhs.type == GraphObjectType::INT) {
             if (rhs.type == GraphObjectType::INT) {
