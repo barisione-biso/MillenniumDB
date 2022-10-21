@@ -8,9 +8,4 @@ public:
 
     LiteralDatatypeTmp(const LiteralDatatype& ld) :
         ld (&ld) { }
-
-    inline bool operator==(const LiteralDatatypeTmp& rhs) const noexcept {
-        return (*this->ld).str == (*rhs.ld).str &&
-               (*this->ld).datatype == (*rhs.ld).datatype;
-    }
 };
