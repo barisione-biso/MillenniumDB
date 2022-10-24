@@ -449,12 +449,22 @@ struct GraphObjectManager {
                 lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
                 break;
             }
-            // case GraphObjectType::DECIMAL_INLINED:
-            // case GraphObjectType::DECIMAL_EXTERNAL:
-            // case GraphObjectType::DECIMAL_TMP:
+            case GraphObjectType::DECIMAL_INLINED: {
+                lhs_decimal_string = GraphObjectInterpreter::get<DecimalInlined>(lhs).get_value_string();
+                break;
+            }
+            case GraphObjectType::DECIMAL_EXTERNAL: {
+                lhs_decimal_string = string_manager.get_string_block(GraphObjectInterpreter::get<DecimalExternal>(lhs).external_id);
+                break;
+            }
+            case GraphObjectType::DECIMAL_TMP: {
+                lhs_decimal_string = *GraphObjectInterpreter::get<DecimalTmp>(lhs).str;
+                break;
+            }
             default:
                 break;
         }
+
         switch(rhs.type) {
             case GraphObjectType::STR_INLINED: {
                 rhs_iter = std::make_unique<StringInlineIter>(rhs.encoded_value);
@@ -550,9 +560,18 @@ struct GraphObjectManager {
                 rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
                 break;
             }
-            // case GraphObjectType::DECIMAL_INLINED:
-            // case GraphObjectType::DECIMAL_EXTERNAL:
-            // case GraphObjectType::DECIMAL_TMP:
+            case GraphObjectType::DECIMAL_INLINED: {
+                rhs_decimal_string = GraphObjectInterpreter::get<DecimalInlined>(rhs).get_value_string();
+                break;
+            }
+            case GraphObjectType::DECIMAL_EXTERNAL: {
+                rhs_decimal_string = string_manager.get_string_block(GraphObjectInterpreter::get<DecimalExternal>(rhs).external_id);
+                break;
+            }
+            case GraphObjectType::DECIMAL_TMP: {
+                rhs_decimal_string = *GraphObjectInterpreter::get<DecimalTmp>(rhs).str;
+                break;
+            }
             default:
                 break;
         }
@@ -567,15 +586,45 @@ struct GraphObjectManager {
                 return StringManager::compare(*lhs_iter, *rhs_iter);
             case SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE:
                 return StringManager::compare(*lhs_iter, *rhs_iter);
-            case SPARQL_COMPLEX_TYPES::DECIMAL:
-                throw LogicException("Decimal comparison not implemented");
+            case SPARQL_COMPLEX_TYPES::DECIMAL: {
+                // NOTE: It is assumed that the format of both strings follows the following pattern:
+                // (-)?(0|[1-9][0-9]*).(0|[0-9]*[1-9])
+
+                // 1. Compare signs
+                bool lhs_neg = lhs_decimal_string[0] == '-';
+                bool rhs_neg = rhs_decimal_string[0] == '-';
+                int sign_diff = lhs_neg - rhs_neg;
+                if (sign_diff != 0) {
+                    return sign_diff > 0 ? -1 : 1;
+                }
+                // 2. Compare integer part
+                size_t lhs_sep = lhs_decimal_string.find('.');
+                size_t rhs_sep = rhs_decimal_string.find('.');
+                // Compare integer part length
+                int intlen_diff = lhs_sep - rhs_sep;
+                if (intlen_diff != 0) {
+                    return lhs_neg ? -intlen_diff : intlen_diff;
+                }
+                // NOTE: lhs_sep == rhs_sep at this point
+                // Compare integer part digits
+                int int_diff = strncmp(lhs_decimal_string.c_str(), rhs_decimal_string.c_str(), lhs_sep);
+                if (int_diff != 0) {
+                    return lhs_neg ? -int_diff : int_diff;
+                }
+                // 3. Compare fractional part
+                // Compare fractional part digits
+                int frac_diff = strcmp(lhs_decimal_string.c_str() + lhs_sep, rhs_decimal_string.c_str() + lhs_sep);
+                if (frac_diff != 0) {
+                    return lhs_neg ? -frac_diff : frac_diff;
+                }
+                return 0;
+            }
             default:
                 break;
             }
         }
         if (lhs.type == lhs.type) {
             switch (lhs.type) {
-            // case GraphObjectType::PATH:
             case GraphObjectType::NULL_OBJ:
                 return 0;
             case GraphObjectType::NOT_FOUND:
