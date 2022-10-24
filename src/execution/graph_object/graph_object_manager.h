@@ -31,6 +31,16 @@
 #include "storage/string_manager.h"
 #include "query_optimizer/rdf_model/rdf_model.h"
 
+// Types that can be saved both inline and external
+enum SPARQL_COMPLEX_TYPES {
+    NONE,
+    DECIMAL,
+    IRI,
+    STRING,
+    LITERAL_LANGUAGE,
+    LITERAL_DATATYPE,
+};
+
 struct GraphObjectManager {
     static std::ostream& print(std::ostream& os, const GraphObject& graph_obj) {
         switch (graph_obj.type) {
@@ -334,71 +344,237 @@ struct GraphObjectManager {
     static int compare_rdf(const GraphObject& lhs, const GraphObject& rhs) {
         if (lhs.type == rhs.type && lhs.encoded_value == rhs.encoded_value)
             return 0;
+        
+        auto lhs_complex_type = SPARQL_COMPLEX_TYPES::NONE;
+        auto rhs_complex_type = SPARQL_COMPLEX_TYPES::NONE;
+
+        std::unique_ptr<CharIter> lhs_iter;
+        std::unique_ptr<CharIter> rhs_iter;
+
+        std::string lhs_decimal_string;
+        std::string rhs_decimal_string;
+
         switch(lhs.type) {
-            // case GraphObjectType::NULL_OBJ:
-            // case GraphObjectType::NOT_FOUND:
-            // case GraphObjectType::IRI_INLINED:
-            // case GraphObjectType::IRI_EXTERNAL:
-            // case GraphObjectType::IRI_TMP:
-            // case GraphObjectType::STRING_INLINED:
-            // case GraphObjectType::STRING_EXTERNAL:
-            // case GraphObjectType::STRING_TMP:
-            // case GraphObjectType::LITERAL_DATATYPE_INLINED:
-            // case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
-            // case GraphObjectType::LITERAL_DATATYPE_TMP:
-            // case GraphObjectType::LITERAL_LANGUAGE_INLINED:
-            // case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
-            // case GraphObjectType::LITERAL_LANGUAGE_TMP:
-            // case GraphObjectType::DATETIME:
+            case GraphObjectType::STR_INLINED: {
+                lhs_iter = std::make_unique<StringInlineIter>(lhs.encoded_value);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::STRING;
+                break;
+            }
+            case GraphObjectType::STR_EXTERNAL: {
+                lhs_iter = string_manager.get_char_iter(GraphObjectInterpreter::get<StringExternal>(lhs).external_id);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::STRING;
+                break;
+            }
+            case GraphObjectType::STR_TMP: {
+                lhs_iter = std::make_unique<StringTmpIter>(*GraphObjectInterpreter::get<StringTmp>(lhs).str);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::STRING;
+                break;
+            }
+            case GraphObjectType::IRI_INLINED: {
+                const auto& iri_inl = GraphObjectInterpreter::get<IriInlined>(lhs);
+
+                std::string prefix = rdf_model.catalog().prefixes[iri_inl.prefix_id];
+
+                lhs_iter = std::make_unique<IriInlineIter>(prefix, iri_inl.id);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
+                break;
+            }
+            case GraphObjectType::IRI_EXTERNAL: {
+                uint64_t external_id = GraphObjectInterpreter::get<IriExternal>(lhs).external_id;
+                uint64_t iri_id      = external_id & 0x0000'FFFF'FFFF'FFFFUL;
+                uint8_t  prefix_id   = (external_id & 0x00FF'0000'0000'0000UL) >> 48;
+
+                std::string prefix = rdf_model.catalog().prefixes[prefix_id];
+
+                lhs_iter = std::make_unique<IriExternalIter>(prefix, iri_id);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
+                break;
+            }
+            case GraphObjectType::IRI_TMP: {
+                lhs_iter = std::make_unique<IriTmpIter>(*GraphObjectInterpreter::get<IriTmp>(lhs).str);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
+                break;
+            }
+            case GraphObjectType::LITERAL_DATATYPE_INLINED: {
+                const auto& lit_dt_inl = GraphObjectInterpreter::get<LiteralDatatypeInlined>(lhs);
+
+                std::string datatype = rdf_model.catalog().datatypes[lit_dt_inl.datatype_id];
+
+                lhs_iter = std::make_unique<LiteralWithSuffixInlineIter>(lit_dt_inl.id, datatype);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE;
+                break;
+            }
+            case GraphObjectType::LITERAL_DATATYPE_EXTERNAL: {
+                uint64_t external_id = GraphObjectInterpreter::get<LiteralDatatypeExternal>(lhs).external_id;
+                uint64_t literal_id  = external_id & 0x0000'00FF'FFFF'FFFFUL;
+                uint16_t datatype_id = (external_id & 0x00FF'FF00'0000'0000UL) >> 40;
+
+                std::string datatype = rdf_model.catalog().datatypes[datatype_id];
+
+                lhs_iter = std::make_unique<LiteralWithSuffixExternalIter>(literal_id, datatype);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE;
+                break;
+            }
+            case GraphObjectType::LITERAL_DATATYPE_TMP: {
+                auto ld = GraphObjectInterpreter::get<LiteralDatatypeTmp>(lhs).ld;
+
+                lhs_iter = std::make_unique<StringTmpIter>(ld->str + ld->datatype);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE;
+                break;
+            }
+            case GraphObjectType::LITERAL_LANGUAGE_INLINED: {
+                const auto& lit_lang_inl = GraphObjectInterpreter::get<LiteralLanguageInlined>(lhs);
+
+                std::string language = rdf_model.catalog().languages[lit_lang_inl.language_id];
+
+                lhs_iter = std::make_unique<LiteralWithSuffixInlineIter>(lit_lang_inl.id, language);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
+                break;
+            }
+            case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL: {
+                uint64_t external_id = GraphObjectInterpreter::get<LiteralLanguageExternal>(lhs).external_id;
+                uint64_t literal_id  = external_id & 0x0000'00FF'FFFF'FFFFUL;
+                uint16_t language_id = (external_id & 0x00FF'FF00'0000'0000UL) >> 40;
+
+                std::string language = rdf_model.catalog().languages[language_id];
+
+                lhs_iter = std::make_unique<LiteralWithSuffixExternalIter>(literal_id, language);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
+                break;
+            }
+            case GraphObjectType::LITERAL_LANGUAGE_TMP: {
+                auto ll = GraphObjectInterpreter::get<LiteralLanguageTmp>(lhs).ll;
+
+                lhs_iter = std::make_unique<StringTmpIter>(ll->str + ll->language);
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
+                break;
+            }
             // case GraphObjectType::DECIMAL_INLINED:
             // case GraphObjectType::DECIMAL_EXTERNAL:
             // case GraphObjectType::DECIMAL_TMP:
-            // case GraphObjectType::BOOL:
-            // case GraphObjectType::PATH:
             default:
-                throw LogicException("Unmanaged case");
+                break;
         }
         switch(rhs.type) {
-            // case GraphObjectType::NULL_OBJ:
-            // case GraphObjectType::NOT_FOUND:
-            // case GraphObjectType::IRI_INLINED:
-            // case GraphObjectType::IRI_EXTERNAL:
-            // case GraphObjectType::IRI_TMP:
-            // case GraphObjectType::STRING_INLINED:
-            // case GraphObjectType::STRING_EXTERNAL:
-            // case GraphObjectType::STRING_TMP:
-            // case GraphObjectType::LITERAL_DATATYPE_INLINED:
-            // case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
-            // case GraphObjectType::LITERAL_DATATYPE_TMP:
-            // case GraphObjectType::LITERAL_LANGUAGE_INLINED:
-            // case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
-            // case GraphObjectType::LITERAL_LANGUAGE_TMP:
-            // case GraphObjectType::DATETIME:
+            case GraphObjectType::STR_INLINED: {
+                rhs_iter = std::make_unique<StringInlineIter>(rhs.encoded_value);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::STRING;
+                break;
+            }
+            case GraphObjectType::STR_EXTERNAL: {
+                rhs_iter = string_manager.get_char_iter(GraphObjectInterpreter::get<StringExternal>(rhs).external_id);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::STRING;
+                break;
+            }
+            case GraphObjectType::STR_TMP: {
+                rhs_iter = std::make_unique<StringTmpIter>(*GraphObjectInterpreter::get<StringTmp>(rhs).str);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::STRING;
+                break;
+            }
+            case GraphObjectType::IRI_INLINED: {
+                const auto& iri_inl = GraphObjectInterpreter::get<IriInlined>(rhs);
+
+                std::string prefix = rdf_model.catalog().prefixes[iri_inl.prefix_id];
+
+                rhs_iter = std::make_unique<IriInlineIter>(prefix, iri_inl.id);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
+                break;
+            }
+            case GraphObjectType::IRI_EXTERNAL: {
+                uint64_t external_id = GraphObjectInterpreter::get<IriExternal>(rhs).external_id;
+                uint64_t iri_id      = external_id & 0x0000'FFFF'FFFF'FFFFUL;
+                uint8_t  prefix_id   = (external_id & 0x00FF'0000'0000'0000UL) >> 48;
+
+                std::string prefix = rdf_model.catalog().prefixes[prefix_id];
+
+                rhs_iter = std::make_unique<IriExternalIter>(prefix, iri_id);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
+                break;
+            }
+            case GraphObjectType::IRI_TMP: {
+                rhs_iter = std::make_unique<IriTmpIter>(*GraphObjectInterpreter::get<IriTmp>(rhs).str);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
+                break;
+            }
+            case GraphObjectType::LITERAL_DATATYPE_INLINED: {
+                const auto& lit_dt_inl = GraphObjectInterpreter::get<LiteralDatatypeInlined>(rhs);
+
+                std::string datatype = rdf_model.catalog().datatypes[lit_dt_inl.datatype_id];
+
+                rhs_iter = std::make_unique<LiteralWithSuffixInlineIter>(lit_dt_inl.id, datatype);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE;
+                break;
+            }
+            case GraphObjectType::LITERAL_DATATYPE_EXTERNAL: {
+                uint64_t external_id = GraphObjectInterpreter::get<LiteralDatatypeExternal>(rhs).external_id;
+                uint64_t literal_id  = external_id & 0x0000'00FF'FFFF'FFFFUL;
+                uint16_t datatype_id = (external_id & 0x00FF'FF00'0000'0000UL) >> 40;
+
+                std::string datatype = rdf_model.catalog().datatypes[datatype_id];
+
+                rhs_iter = std::make_unique<LiteralWithSuffixExternalIter>(literal_id, datatype);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE;
+                break;
+            }
+            case GraphObjectType::LITERAL_DATATYPE_TMP: {
+                auto ld = GraphObjectInterpreter::get<LiteralDatatypeTmp>(rhs).ld;
+
+                rhs_iter = std::make_unique<StringTmpIter>(ld->str + ld->datatype);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE;
+                break;
+            }
+            case GraphObjectType::LITERAL_LANGUAGE_INLINED: {
+                const auto& lit_lang_inl = GraphObjectInterpreter::get<LiteralLanguageInlined>(rhs);
+
+                std::string language = rdf_model.catalog().languages[lit_lang_inl.language_id];
+
+                rhs_iter = std::make_unique<LiteralWithSuffixInlineIter>(lit_lang_inl.id, language);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
+                break;
+            }
+            case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL: {
+                uint64_t external_id = GraphObjectInterpreter::get<LiteralLanguageExternal>(rhs).external_id;
+                uint64_t literal_id  = external_id & 0x0000'00FF'FFFF'FFFFUL;
+                uint16_t language_id = (external_id & 0x00FF'FF00'0000'0000UL) >> 40;
+
+                std::string language = rdf_model.catalog().languages[language_id];
+
+                rhs_iter = std::make_unique<LiteralWithSuffixExternalIter>(literal_id, language);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
+                break;
+            }
+            case GraphObjectType::LITERAL_LANGUAGE_TMP: {
+                auto ll = GraphObjectInterpreter::get<LiteralLanguageTmp>(rhs).ll;
+
+                rhs_iter = std::make_unique<StringTmpIter>(ll->str + ll->language);
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
+                break;
+            }
             // case GraphObjectType::DECIMAL_INLINED:
             // case GraphObjectType::DECIMAL_EXTERNAL:
             // case GraphObjectType::DECIMAL_TMP:
-            // case GraphObjectType::BOOL:
-            // case GraphObjectType::PATH:
             default:
-                throw LogicException("Unmanaged case");
+                break;
+        }
+
+        if (lhs_complex_type == rhs_complex_type) {
+            switch (lhs_complex_type) {
+            case SPARQL_COMPLEX_TYPES::STRING:
+                return StringManager::compare(*lhs_iter, *rhs_iter);
+            case SPARQL_COMPLEX_TYPES::IRI:
+                return StringManager::compare(*lhs_iter, *rhs_iter);
+            case SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE:
+                return StringManager::compare(*lhs_iter, *rhs_iter);
+            case SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE:
+                return StringManager::compare(*lhs_iter, *rhs_iter);
+            case SPARQL_COMPLEX_TYPES::DECIMAL:
+                throw LogicException("Decimal comparison not implemented");
+            default:
+                break;
+            }
         }
         if (lhs.type == lhs.type) {
             switch (lhs.type) {
-            // case GraphObjectType::IRI_INLINED:
-            // case GraphObjectType::IRI_EXTERNAL:
-            // case GraphObjectType::IRI_TMP:
-            // case GraphObjectType::STRING_INLINED:
-            // case GraphObjectType::STRING_EXTERNAL:
-            // case GraphObjectType::STRING_TMP:
-            // case GraphObjectType::LITERAL_DATATYPE_INLINED:
-            // case GraphObjectType::LITERAL_DATATYPE_EXTERNAL:
-            // case GraphObjectType::LITERAL_DATATYPE_TMP:
-            // case GraphObjectType::LITERAL_LANGUAGE_INLINED:
-            // case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL:
-            // case GraphObjectType::LITERAL_LANGUAGE_TMP:
-            // case GraphObjectType::DECIMAL_INLINED:
-            // case GraphObjectType::DECIMAL_EXTERNAL:
-            // case GraphObjectType::DECIMAL_TMP:
             // case GraphObjectType::PATH:
             case GraphObjectType::NULL_OBJ:
                 return 0;

@@ -57,3 +57,72 @@ char StringExternalIter::next_char() {
     // bytes_left--;
     // return res;
 }
+
+char IriTmpIter::next_char() {
+    if (current == end) {
+        return '\0';
+    } else {
+        auto res = *current;
+        ++current;
+        return res;
+    }
+}
+
+char IriInlineIter::next_char() {
+    if (iter_prefix) {
+        auto res = prefix_iter.next_char();
+        if (res == '\0') {
+            iter_prefix = false;
+        } else {
+            return res;
+        }
+    }
+    auto res = *current;
+    ++current;
+    return res;
+}
+
+IriExternalIter::IriExternalIter(const std::string& prefix, uint64_t iri_id) :
+    prefix_iter(StringTmpIter(prefix)),
+    suffix_iter(string_manager.get_char_iter(iri_id)) { }
+
+char IriExternalIter::next_char() {
+    if (iter_prefix) {
+        auto res = prefix_iter.next_char();
+        if (res == '\0') {
+            iter_prefix = false;
+        } else {
+            return res;
+        }
+    }
+    return suffix_iter->next_char();
+}
+
+char LiteralWithSuffixInlineIter::next_char() {
+    if (iter_prefix) {
+        auto res = *current;
+        ++current;
+        if (res == '\0') {
+            iter_prefix = false;
+        } else {
+            return res;
+        }
+    }
+    return suffix_iter.next_char();
+}
+
+LiteralWithSuffixExternalIter::LiteralWithSuffixExternalIter(uint64_t literal_id, const std::string& suffix) :
+    prefix_iter(string_manager.get_char_iter(literal_id)),
+    suffix_iter(StringTmpIter(suffix)) { }
+
+char LiteralWithSuffixExternalIter::next_char() {
+    if (iter_prefix) {
+        auto res = prefix_iter->next_char();
+        if (res == '\0') {
+            iter_prefix = false;
+        } else {
+            return res;
+        }
+    }
+    return suffix_iter.next_char();
+}
