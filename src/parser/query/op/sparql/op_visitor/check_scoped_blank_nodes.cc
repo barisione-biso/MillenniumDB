@@ -43,3 +43,7 @@ void CheckScopedBlankNodes::visit(OpSelect& op_select) {
 void CheckScopedBlankNodes::visit(OpWhere& op_where) {
     op_where.op->accept_visitor(*this);
 }
+
+void CheckScopedBlankNodes::visit(OpOrderBy& op_order_by) {
+    op_order_by.op->accept_visitor(*this);
+}

@@ -86,8 +86,8 @@ public:
 
     virtual antlrcpp::Any visitSelectQuery(SparqlParser::SelectQueryContext* ctx) override {
         // Control the visitor order explicitly
-        visit(ctx->solutionModifier());
         visit(ctx->whereClause());
+        visit(ctx->solutionModifier());
         visit(ctx->selectClause());
         return 0;
     }
@@ -424,16 +424,33 @@ public:
     }
     virtual antlrcpp::Any visitSolutionModifier(SparqlParser::SolutionModifierContext* ctx) override {
         // LIMIT and OFFSET
-        auto loc = ctx->limitOffsetClauses();
-        if (loc) {
-            auto lc = loc->limitClause();
-            if (lc) {
-                limit = std::stoull(lc->INTEGER()->getText());
+        auto limoffc = ctx->limitOffsetClauses();
+        if (limoffc) {
+            auto limc = limoffc->limitClause();
+            if (limc) {
+                limit = std::stoull(limc->INTEGER()->getText());
             }
-            auto oc = loc->offsetClause();
-            if (oc) {
-                offset = std::stoull(oc->INTEGER()->getText());
+            auto offc = limoffc->offsetClause();
+            if (offc) {
+                offset = std::stoull(offc->INTEGER()->getText());
             }
+        }
+        // ORDER BY
+        auto ordc = ctx->orderClause();
+        if (ordc) {
+            std::vector<Var> items;
+            std::vector<bool> ascending_order;
+            for (auto& oc : ordc->orderCondition()) {
+                if (oc->var()) {
+                    items.emplace_back(oc->var()->getText().substr(1));
+                    // TODO: implement ASC/DESC
+                    ascending_order.push_back(true);
+                } else {
+                    // TODO: implement this cases
+                    throw QuerySemanticException("Unsupported ORDER BY condition: '" + oc->getText() + "'");
+                }
+            }
+            current_op = std::make_unique<OpOrderBy>(std::move(current_op), std::move(items), std::move(ascending_order));
         }
         return 0;
     }

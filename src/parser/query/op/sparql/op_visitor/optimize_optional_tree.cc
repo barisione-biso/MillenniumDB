@@ -78,3 +78,7 @@ void OptimizeOptionalTree::visit(OpWhere& op_where) {
         op_where.op = move(optionals[0]);
     }
 }
+
+void OptimizeOptionalTree::visit(OpOrderBy& op_order_by) {
+    op_order_by.op->accept_visitor(*this);
+}

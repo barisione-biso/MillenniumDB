@@ -39,3 +39,7 @@ void CheckWellDesigned::visit(OpSelect& op_select) {
 void CheckWellDesigned::visit(OpWhere& op_where) {
     op_where.op->accept_visitor(*this);
 }
+
+void CheckWellDesigned::visit(OpOrderBy& op_order_by) {
+    op_order_by.op->accept_visitor(*this);
+}

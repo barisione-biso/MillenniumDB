@@ -451,14 +451,19 @@ struct GraphObjectManager {
             }
             case GraphObjectType::DECIMAL_INLINED: {
                 lhs_decimal_string = GraphObjectInterpreter::get<DecimalInlined>(lhs).get_value_string();
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::DECIMAL;
                 break;
             }
             case GraphObjectType::DECIMAL_EXTERNAL: {
-                lhs_decimal_string = string_manager.get_string_block(GraphObjectInterpreter::get<DecimalExternal>(lhs).external_id);
+                std::stringstream ss;
+                string_manager.print(ss, GraphObjectInterpreter::get<DecimalExternal>(lhs).external_id);
+                lhs_decimal_string = ss.str();
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::DECIMAL;
                 break;
             }
             case GraphObjectType::DECIMAL_TMP: {
                 lhs_decimal_string = *GraphObjectInterpreter::get<DecimalTmp>(lhs).str;
+                lhs_complex_type = SPARQL_COMPLEX_TYPES::DECIMAL;
                 break;
             }
             default:
@@ -562,14 +567,19 @@ struct GraphObjectManager {
             }
             case GraphObjectType::DECIMAL_INLINED: {
                 rhs_decimal_string = GraphObjectInterpreter::get<DecimalInlined>(rhs).get_value_string();
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::DECIMAL;
                 break;
             }
             case GraphObjectType::DECIMAL_EXTERNAL: {
-                rhs_decimal_string = string_manager.get_string_block(GraphObjectInterpreter::get<DecimalExternal>(rhs).external_id);
+                std::stringstream ss;
+                string_manager.print(ss, GraphObjectInterpreter::get<DecimalExternal>(rhs).external_id);
+                rhs_decimal_string = ss.str();
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::DECIMAL;
                 break;
             }
             case GraphObjectType::DECIMAL_TMP: {
                 rhs_decimal_string = *GraphObjectInterpreter::get<DecimalTmp>(rhs).str;
+                rhs_complex_type = SPARQL_COMPLEX_TYPES::DECIMAL;
                 break;
             }
             default:
@@ -579,11 +589,8 @@ struct GraphObjectManager {
         if (lhs_complex_type == rhs_complex_type) {
             switch (lhs_complex_type) {
             case SPARQL_COMPLEX_TYPES::STRING:
-                return StringManager::compare(*lhs_iter, *rhs_iter);
             case SPARQL_COMPLEX_TYPES::IRI:
-                return StringManager::compare(*lhs_iter, *rhs_iter);
             case SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE:
-                return StringManager::compare(*lhs_iter, *rhs_iter);
             case SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE:
                 return StringManager::compare(*lhs_iter, *rhs_iter);
             case SPARQL_COMPLEX_TYPES::DECIMAL: {
@@ -623,7 +630,7 @@ struct GraphObjectManager {
                 break;
             }
         }
-        if (lhs.type == lhs.type) {
+        if (lhs.type == rhs.type) {
             switch (lhs.type) {
             case GraphObjectType::NULL_OBJ:
                 return 0;

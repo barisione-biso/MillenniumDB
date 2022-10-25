@@ -23,6 +23,7 @@ class OpWhere;
 
 namespace SPARQL {
 class OpOptional;
+class OpOrderBy;
 class OpSelect;
 class OpTriples;
 class OpTriple;
@@ -52,6 +53,7 @@ public:
     virtual void visit(MDB::OpWhere&)             { throw LogicException("visit MDB::OpWhere not implemented"); }
     // SPARQL
     virtual void visit(SPARQL::OpOptional&)       { throw LogicException("visit SPARQL::OpOptional not implemented"); }
+    virtual void visit(SPARQL::OpOrderBy&)        { throw LogicException("visit SPARQL::OpOrderBy not implemented"); }
     virtual void visit(SPARQL::OpSelect&)         { throw LogicException("visit SPARQL::OpSelect not implemented"); }
     virtual void visit(SPARQL::OpTriples&)        { throw LogicException("visit SPARQL::OpTriples not implemented"); }
     virtual void visit(SPARQL::OpTriple&)         { throw LogicException("visit SPARQL::OpTriple not implemented"); }

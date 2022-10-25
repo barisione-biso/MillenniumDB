@@ -3,6 +3,7 @@
 #include "execution/binding_id_iter/distinct_id_hash.h"
 #include "execution/binding_iter/distinct_hash.h"
 #include "execution/binding_iter/sparql/select.h"
+#include "execution/binding_iter/sparql/order_by.h"
 #include "execution/binding_iter/sparql/where.h"
 
 using namespace std;
@@ -81,4 +82,24 @@ void BindingIterVisitor::visit(OpWhere& op_where) {
     }
 
     tmp = make_unique<Where>(move(binding_id_iter_current_root), binding_size);
+}
+
+void BindingIterVisitor::visit(OpOrderBy& op_order_by) {
+    std::vector<VarId> order_vars;
+    std::set<VarId> saved_vars;
+
+    for (auto& order_item : op_order_by.items) {
+        const auto var_id = get_var_id(order_item);
+        order_vars.push_back(var_id);
+        saved_vars.insert(var_id);
+    }
+
+    for (auto& [var, var_id] : projection_vars) {
+        saved_vars.insert(var_id);
+    }
+
+    // TODO: implement, we could set distinct_ordered_possible=true if the projection vars are in the begining
+    // e.g. if we have ORDER BY ?x, ?z, ?y RETURN DISTINCT ?x, ?y we can't use DistinctOrdered
+    op_order_by.op->accept_visitor(*this);
+    tmp = make_unique<OrderBy>(thread_info, move(tmp), saved_vars, order_vars, op_order_by.ascending_order);
 }

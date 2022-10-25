@@ -33,8 +33,9 @@ public:
     void visit(OpTriples&) override;
     void visit(OpOptional&) override;
     // BindingIdIterVisitor manages these ops
-    void visit(OpSelect&) override {};
-    void visit(OpWhere&) override {};
+    void visit(OpSelect&) override { };
+    void visit(OpOrderBy&) override { };
+    void visit(OpWhere&) override { };
 
 private:
     Id get_id(const SparqlElement&) const;

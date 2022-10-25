@@ -40,9 +40,10 @@ public:
     static std::map<Var, VarId> construct_var2var_id(std::set<Var>& var);
 
     void visit(OpSelect&) override;
+    void visit(OpOrderBy&) override;
     void visit(OpWhere&) override;
     // BindingIdIterVisitor manages these ops
-    void visit(OpTriples&) override {};
-    void visit(OpOptional&) override {};
+    void visit(OpTriples&) override { };
+    void visit(OpOptional&) override { };
 };
 } // namespace SPARQL

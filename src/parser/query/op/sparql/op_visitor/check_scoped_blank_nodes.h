@@ -23,5 +23,6 @@ public:
     void visit(OpWhere&)    override;
     void visit(OpOptional&) override;
     void visit(OpTriples&)  override;
+    void visit(OpOrderBy&)  override;
 };
 } // namespace SPARQL
