@@ -71,28 +71,16 @@ public:
     char next_char() override;
 };
 
-class IriTmpIter : public CharIter {
-    std::string::const_iterator current;
-    std::string::const_iterator end;
-
-public:
-    IriTmpIter(const std::string& str) :
-        current (str.begin()),
-        end     (str.end()) { }
-
-    char next_char() override;
-};
-
 class IriInlineIter : public CharIter {
     StringTmpIter prefix_iter;
-    char* current;
+    const char* current;
     bool iter_prefix = true;
 
 public:
-    IriInlineIter(const std::string& prefix, const char suffix[7]) :
+    IriInlineIter(const std::string& prefix, const char suffix[]) :
         prefix_iter(prefix)
     {
-        current = reinterpret_cast<char*>(&suffix);
+        current = &suffix[0];
     }
 
     char next_char() override;
@@ -108,27 +96,51 @@ public:
     char next_char() override;
 };
 
-class LiteralWithSuffixInlineIter : public CharIter {
-    StringTmpIter suffix_iter;
-    char* current;
-    bool iter_prefix = true;
-
+class LiteralLanguageInlineIter : public CharIter {
+    StringTmpIter language_iter;
+    const char* current;
 public:
-    LiteralWithSuffixInlineIter(const char prefix[6], const std::string& suffix) :
-        suffix_iter(suffix)
+    LiteralLanguageInlineIter(const char prefix[], const std::string& language) :
+        language_iter(language)
     {
-        current = reinterpret_cast<char*>(&prefix);
+        current = &prefix[0];
     }
 
     char next_char() override;
 };
 
-class LiteralWithSuffixExternalIter : public CharIter {
+class LiteralLanguageExternalIter : public CharIter {
     std::unique_ptr<CharIter> prefix_iter;
-    StringTmpIter suffix_iter;
-    bool iter_prefix = true;
+    StringTmpIter language_iter;
+
 public:
-    LiteralWithSuffixExternalIter(uint64_t literal_id, const std::string& suffix);
+    LiteralLanguageExternalIter(uint64_t literal_id, const std::string& language);
+
+    char next_char() override;
+};
+
+class LiteralDatatypeInlineIter : public CharIter {
+    StringTmpIter datatype_iter;
+    const char* current;
+    bool iter_datatype = true;
+
+public:
+    LiteralDatatypeInlineIter(const char prefix[], const std::string& datatype) :
+        datatype_iter(datatype)
+    {
+        current = &prefix[0];
+    }
+
+    char next_char() override;
+};
+
+class LiteralDatatypeExternalIter : public CharIter {
+    std::unique_ptr<CharIter> literal_iter;
+    StringTmpIter datatype_iter;
+    bool iter_datatype = true;
+
+public:
+    LiteralDatatypeExternalIter(uint64_t literal_id, const std::string& datatype);
 
     char next_char() override;
 };

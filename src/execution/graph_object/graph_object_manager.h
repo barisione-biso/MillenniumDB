@@ -373,7 +373,7 @@ struct GraphObjectManager {
             case GraphObjectType::IRI_INLINED: {
                 const auto& iri_inl = GraphObjectInterpreter::get<IriInlined>(lhs);
 
-                std::string prefix = rdf_model.catalog().prefixes[iri_inl.prefix_id];
+                auto& prefix = rdf_model.catalog().prefixes[iri_inl.prefix_id];
 
                 lhs_iter = std::make_unique<IriInlineIter>(prefix, iri_inl.id);
                 lhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
@@ -384,23 +384,23 @@ struct GraphObjectManager {
                 uint64_t iri_id      = external_id & 0x0000'FFFF'FFFF'FFFFUL;
                 uint8_t  prefix_id   = (external_id & 0x00FF'0000'0000'0000UL) >> 48;
 
-                std::string prefix = rdf_model.catalog().prefixes[prefix_id];
+                auto& prefix = rdf_model.catalog().prefixes[prefix_id];
 
                 lhs_iter = std::make_unique<IriExternalIter>(prefix, iri_id);
                 lhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
                 break;
             }
             case GraphObjectType::IRI_TMP: {
-                lhs_iter = std::make_unique<IriTmpIter>(*GraphObjectInterpreter::get<IriTmp>(lhs).str);
+                lhs_iter = std::make_unique<StringTmpIter>(*GraphObjectInterpreter::get<IriTmp>(lhs).str);
                 lhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
                 break;
             }
             case GraphObjectType::LITERAL_DATATYPE_INLINED: {
                 const auto& lit_dt_inl = GraphObjectInterpreter::get<LiteralDatatypeInlined>(lhs);
 
-                std::string datatype = rdf_model.catalog().datatypes[lit_dt_inl.datatype_id];
+                auto& datatype = rdf_model.catalog().datatypes[lit_dt_inl.datatype_id];
 
-                lhs_iter = std::make_unique<LiteralWithSuffixInlineIter>(lit_dt_inl.id, datatype);
+                lhs_iter = std::make_unique<LiteralDatatypeInlineIter>(lit_dt_inl.id, datatype);
                 lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE;
                 break;
             }
@@ -409,9 +409,9 @@ struct GraphObjectManager {
                 uint64_t literal_id  = external_id & 0x0000'00FF'FFFF'FFFFUL;
                 uint16_t datatype_id = (external_id & 0x00FF'FF00'0000'0000UL) >> 40;
 
-                std::string datatype = rdf_model.catalog().datatypes[datatype_id];
+                auto& datatype = rdf_model.catalog().datatypes[datatype_id];
 
-                lhs_iter = std::make_unique<LiteralWithSuffixExternalIter>(literal_id, datatype);
+                lhs_iter = std::make_unique<LiteralDatatypeExternalIter>(literal_id, datatype);
                 lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE;
                 break;
             }
@@ -425,9 +425,9 @@ struct GraphObjectManager {
             case GraphObjectType::LITERAL_LANGUAGE_INLINED: {
                 const auto& lit_lang_inl = GraphObjectInterpreter::get<LiteralLanguageInlined>(lhs);
 
-                std::string language = rdf_model.catalog().languages[lit_lang_inl.language_id];
+                auto& language = rdf_model.catalog().languages[lit_lang_inl.language_id];
 
-                lhs_iter = std::make_unique<LiteralWithSuffixInlineIter>(lit_lang_inl.id, language);
+                lhs_iter = std::make_unique<LiteralLanguageInlineIter>(lit_lang_inl.id, language);
                 lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
                 break;
             }
@@ -436,9 +436,9 @@ struct GraphObjectManager {
                 uint64_t literal_id  = external_id & 0x0000'00FF'FFFF'FFFFUL;
                 uint16_t language_id = (external_id & 0x00FF'FF00'0000'0000UL) >> 40;
 
-                std::string language = rdf_model.catalog().languages[language_id];
+                auto& language = rdf_model.catalog().languages[language_id];
 
-                lhs_iter = std::make_unique<LiteralWithSuffixExternalIter>(literal_id, language);
+                lhs_iter = std::make_unique<LiteralLanguageExternalIter>(literal_id, language);
                 lhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
                 break;
             }
@@ -489,7 +489,7 @@ struct GraphObjectManager {
             case GraphObjectType::IRI_INLINED: {
                 const auto& iri_inl = GraphObjectInterpreter::get<IriInlined>(rhs);
 
-                std::string prefix = rdf_model.catalog().prefixes[iri_inl.prefix_id];
+                auto& prefix = rdf_model.catalog().prefixes[iri_inl.prefix_id];
 
                 rhs_iter = std::make_unique<IriInlineIter>(prefix, iri_inl.id);
                 rhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
@@ -500,23 +500,23 @@ struct GraphObjectManager {
                 uint64_t iri_id      = external_id & 0x0000'FFFF'FFFF'FFFFUL;
                 uint8_t  prefix_id   = (external_id & 0x00FF'0000'0000'0000UL) >> 48;
 
-                std::string prefix = rdf_model.catalog().prefixes[prefix_id];
+                auto& prefix = rdf_model.catalog().prefixes[prefix_id];
 
                 rhs_iter = std::make_unique<IriExternalIter>(prefix, iri_id);
                 rhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
                 break;
             }
             case GraphObjectType::IRI_TMP: {
-                rhs_iter = std::make_unique<IriTmpIter>(*GraphObjectInterpreter::get<IriTmp>(rhs).str);
+                rhs_iter = std::make_unique<StringTmpIter>(*GraphObjectInterpreter::get<IriTmp>(rhs).str);
                 rhs_complex_type = SPARQL_COMPLEX_TYPES::IRI;
                 break;
             }
             case GraphObjectType::LITERAL_DATATYPE_INLINED: {
                 const auto& lit_dt_inl = GraphObjectInterpreter::get<LiteralDatatypeInlined>(rhs);
 
-                std::string datatype = rdf_model.catalog().datatypes[lit_dt_inl.datatype_id];
+                auto& datatype = rdf_model.catalog().datatypes[lit_dt_inl.datatype_id];
 
-                rhs_iter = std::make_unique<LiteralWithSuffixInlineIter>(lit_dt_inl.id, datatype);
+                rhs_iter = std::make_unique<LiteralDatatypeInlineIter>(lit_dt_inl.id, datatype);
                 rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE;
                 break;
             }
@@ -525,9 +525,9 @@ struct GraphObjectManager {
                 uint64_t literal_id  = external_id & 0x0000'00FF'FFFF'FFFFUL;
                 uint16_t datatype_id = (external_id & 0x00FF'FF00'0000'0000UL) >> 40;
 
-                std::string datatype = rdf_model.catalog().datatypes[datatype_id];
+                auto& datatype = rdf_model.catalog().datatypes[datatype_id];
 
-                rhs_iter = std::make_unique<LiteralWithSuffixExternalIter>(literal_id, datatype);
+                rhs_iter = std::make_unique<LiteralDatatypeExternalIter>(literal_id, datatype);
                 rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_DATATYPE;
                 break;
             }
@@ -541,9 +541,9 @@ struct GraphObjectManager {
             case GraphObjectType::LITERAL_LANGUAGE_INLINED: {
                 const auto& lit_lang_inl = GraphObjectInterpreter::get<LiteralLanguageInlined>(rhs);
 
-                std::string language = rdf_model.catalog().languages[lit_lang_inl.language_id];
+                auto& language = rdf_model.catalog().languages[lit_lang_inl.language_id];
 
-                rhs_iter = std::make_unique<LiteralWithSuffixInlineIter>(lit_lang_inl.id, language);
+                rhs_iter = std::make_unique<LiteralLanguageInlineIter>(lit_lang_inl.id, language);
                 rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
                 break;
             }
@@ -552,9 +552,9 @@ struct GraphObjectManager {
                 uint64_t literal_id  = external_id & 0x0000'00FF'FFFF'FFFFUL;
                 uint16_t language_id = (external_id & 0x00FF'FF00'0000'0000UL) >> 40;
 
-                std::string language = rdf_model.catalog().languages[language_id];
+                auto& language = rdf_model.catalog().languages[language_id];
 
-                rhs_iter = std::make_unique<LiteralWithSuffixExternalIter>(literal_id, language);
+                rhs_iter = std::make_unique<LiteralLanguageExternalIter>(literal_id, language);
                 rhs_complex_type = SPARQL_COMPLEX_TYPES::LITERAL_LANGUAGE;
                 break;
             }

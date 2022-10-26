@@ -58,16 +58,6 @@ char StringExternalIter::next_char() {
     // return res;
 }
 
-char IriTmpIter::next_char() {
-    if (current == end) {
-        return '\0';
-    } else {
-        auto res = *current;
-        ++current;
-        return res;
-    }
-}
-
 char IriInlineIter::next_char() {
     if (iter_prefix) {
         auto res = prefix_iter.next_char();
@@ -98,31 +88,57 @@ char IriExternalIter::next_char() {
     return suffix_iter->next_char();
 }
 
-char LiteralWithSuffixInlineIter::next_char() {
-    if (iter_prefix) {
+char LiteralLanguageInlineIter::next_char() {
+    if (*current != '\0') {
         auto res = *current;
         ++current;
-        if (res == '\0') {
-            iter_prefix = false;
-        } else {
-            return res;
-        }
+        return res;
     }
-    return suffix_iter.next_char();
+    return language_iter.next_char();
 }
 
-LiteralWithSuffixExternalIter::LiteralWithSuffixExternalIter(uint64_t literal_id, const std::string& suffix) :
+LiteralLanguageExternalIter::LiteralLanguageExternalIter(uint64_t literal_id, const std::string& language) :
     prefix_iter(string_manager.get_char_iter(literal_id)),
-    suffix_iter(StringTmpIter(suffix)) { }
+    language_iter(StringTmpIter(language)) { }
 
-char LiteralWithSuffixExternalIter::next_char() {
-    if (iter_prefix) {
+char LiteralLanguageExternalIter::next_char() {
+    if (prefix_iter != nullptr) {
         auto res = prefix_iter->next_char();
         if (res == '\0') {
-            iter_prefix = false;
+            prefix_iter.reset();
         } else {
             return res;
         }
     }
-    return suffix_iter.next_char();
+    return language_iter.next_char();
+}
+
+char LiteralDatatypeInlineIter::next_char() {
+    if (iter_datatype) {
+        auto res = datatype_iter.next_char();
+        if (res == '\0') {
+            iter_datatype = false;
+        } else {
+            return res;
+        }
+    }
+    auto res = *current;
+    ++current;
+    return res;
+}
+
+LiteralDatatypeExternalIter::LiteralDatatypeExternalIter(uint64_t literal_id, const std::string& datatype) :
+    literal_iter(string_manager.get_char_iter(literal_id)),
+    datatype_iter(StringTmpIter(datatype)) { }
+
+char LiteralDatatypeExternalIter::next_char() {
+    if (iter_datatype) {
+        auto res = datatype_iter.next_char();
+        if (res == '\0') {
+            iter_datatype = false;
+        } else {
+            return res;
+        }
+    }
+    return literal_iter->next_char();
 }
