@@ -26,6 +26,10 @@ private:
     std::vector<Var>      select_variables;
     std::vector<OpTriple> current_triples;
 
+    std::vector<Var>  order_by_items;
+    std::vector<bool> order_by_ascending;
+    std::unique_ptr<Var>  order_by_current_expr;
+
     SparqlElement current_sparql_element;
 
     bool current_path_inverse;
@@ -436,23 +440,80 @@ public:
             }
         }
         // ORDER BY
-        auto ordc = ctx->orderClause();
-        if (ordc) {
-            std::vector<Var> items;
-            std::vector<bool> ascending_order;
-            for (auto& oc : ordc->orderCondition()) {
-                if (oc->var()) {
-                    items.emplace_back(oc->var()->getText().substr(1));
-                    // TODO: implement ASC/DESC
-                    ascending_order.push_back(true);
-                } else {
-                    // TODO: implement this cases
-                    throw QuerySemanticException("Unsupported ORDER BY condition: '" + oc->getText() + "'");
-                }
+        visit(ctx->orderClause());
+        current_op = std::make_unique<OpOrderBy>(std::move(current_op), std::move(order_by_items), std::move(order_by_ascending));
+        return 0;
+    }
+
+    virtual antlrcpp::Any visitOrderClause(SparqlParser::OrderClauseContext* ctx) override {
+        for (auto& oc : ctx->orderCondition()) {
+            if (oc->var()) {
+                order_by_items.emplace_back(oc->var()->getText().substr(1));
+                order_by_ascending.push_back(true);
             }
-            current_op = std::make_unique<OpOrderBy>(std::move(current_op), std::move(items), std::move(ascending_order));
+            else if (oc->expression()) {
+                // TODO: implement a handler for unsupported expressions
+                visit(oc->expression());
+                order_by_items.push_back(*order_by_current_expr);
+                order_by_ascending.push_back(oc->ASC() != nullptr);
+            }
+            else {
+                throw QuerySemanticException("Unsupported ORDER BY condition: '" + oc->getText() + "'");
+            }
         }
         return 0;
+    }
+
+    virtual antlrcpp::Any visitBaseExpression(SparqlParser::BaseExpressionContext* ctx) override {
+        auto pe = ctx->primaryExpression();
+        if (pe->var()) {
+            order_by_current_expr = std::make_unique<Var>(pe->var()->getText().substr(1));
+        }
+        else {
+            throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
+        }
+        return 0;
+    }
+
+
+    virtual antlrcpp::Any visitUnaryMultiplicativeExpression(SparqlParser::UnaryMultiplicativeExpressionContext* ctx) override {
+        throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
+    }
+
+    virtual antlrcpp::Any visitUnaryAdditiveExpression(SparqlParser::UnaryAdditiveExpressionContext* ctx) override {
+        throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
+    }
+
+    virtual antlrcpp::Any visitUnaryNegationExpression(SparqlParser::UnaryNegationExpressionContext* ctx) override {
+        throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
+    }
+
+    virtual antlrcpp::Any visitMultiplicativeExpression(SparqlParser::MultiplicativeExpressionContext* ctx) override {
+        throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
+    }
+
+    virtual antlrcpp::Any visitAdditiveExpression(SparqlParser::AdditiveExpressionContext* ctx) override {
+        throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
+    }
+
+    virtual antlrcpp::Any visitUnarySignedLiteralExpression(SparqlParser::UnarySignedLiteralExpressionContext* ctx) override {
+        throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
+    }
+
+    virtual antlrcpp::Any visitRelationalSetExpression(SparqlParser::RelationalSetExpressionContext* ctx) override {
+        throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
+    }
+
+    virtual antlrcpp::Any visitRelationalExpression(SparqlParser::RelationalExpressionContext* ctx) override {
+        throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
+    }
+
+    virtual antlrcpp::Any visitConditionalAndExpression(SparqlParser::ConditionalAndExpressionContext* ctx) override {
+        throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
+    }
+
+    virtual antlrcpp::Any visitConditionalOrExpression(SparqlParser::ConditionalOrExpressionContext* ctx) override {
+        throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
     }
 
     std::string IriContext_to_string(SparqlParser::IriContext* ctx) {
