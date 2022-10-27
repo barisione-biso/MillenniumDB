@@ -335,7 +335,8 @@ public:
             PathAtom* tmp = dynamic_cast<PathAtom*>(current_path.get());
             if (!tmp->inverse) {
                 // And it is not inverted, it can be simplified as an Iri
-                current_sparql_element = SparqlElement(tmp->iri);
+                Iri value(tmp->iri);
+                current_sparql_element = SparqlElement(value);
                 return 0;
             }
         }
@@ -391,11 +392,9 @@ public:
             assert(current_path != nullptr);
         } else if (pp->iri()) {
             std::string iri_ref = IriContext_to_string(pp->iri());
-            Iri value(iri_ref);
             current_path = std::make_unique<PathAtom>(iri_ref, current_path_inverse);
         } else if (pp->A()) {
             std::string iri_ref = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-            Iri value(iri_ref);
             current_path = std::make_unique<PathAtom>(iri_ref, current_path_inverse);
         } else {
             throw QuerySemanticException("Unsupported path element: '" + ctx->getText() + "'");

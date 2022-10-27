@@ -6,10 +6,10 @@ namespace SPARQL {
 
 class PathAtom : public IPath {
 public:
-    Iri  iri;
+    std::string iri;
     bool inverse;
 
-    PathAtom(Iri iri, bool inverse) : iri(iri), inverse(inverse) { }
+    PathAtom(std::string iri, bool inverse) : iri(iri), inverse(inverse) { }
 
     PathAtom(const PathAtom& other) : iri(other.iri), inverse(other.inverse) { }
 
@@ -27,7 +27,7 @@ public:
             ret += "^";
         }
         ret += "<";
-        ret += iri.name;
+        ret += iri;
         ret += ">";
         return ret;
     }
@@ -41,8 +41,7 @@ public:
         auto automaton = RPQAutomaton();
         automaton.end_states.insert(1);
         // Connect states with atom as label
-        std::string iri_str = iri.name;
-        automaton.add_transition(Transition(0, 1, iri_str, inverse));
+        automaton.add_transition(Transition(0, 1, iri, inverse));
         return automaton;
     }
 };
