@@ -37,8 +37,7 @@ struct SparqlElementToString {
         return b ? "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>" : "\"false\"^^<http://www.w3.org/2001/XMLSchema#boolean>";
     }
 
-    std::string operator()(const std::unique_ptr<SPARQL::IPath>& /*p*/) {
-        // TODO: implement this
-        return "\"Path2String not implemented\"";
+    std::string operator()(const std::unique_ptr<SPARQL::IPath>& path) {
+        return path.get()->to_string();
     }
 };
