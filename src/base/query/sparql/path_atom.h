@@ -41,7 +41,6 @@ public:
         auto automaton = RPQAutomaton();
         automaton.end_states.insert(1);
         // Connect states with atom as label
-        // ! TODO: Review this (iri as std::string or as SparqlElement Iri)
         std::string iri_str = iri.name;
         automaton.add_transition(Transition(0, 1, iri_str, inverse));
         return automaton;

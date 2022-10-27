@@ -7,6 +7,7 @@
 #include "query_optimizer/quad_model/join_order/greedy_optimizer.h"
 #include "query_optimizer/quad_model/join_order/leapfrog_optimizer.h"
 #include "query_optimizer/quad_model/plan/sparql/triple_plan.h"
+#include "query_optimizer/quad_model/plan/sparql/sparql_path_plan.h"
 
 using namespace std;
 using namespace SPARQL;
@@ -33,8 +34,10 @@ void BindingIdIterVisitor::visit(OpTriples& op_triples) {
             auto object_id    = get_id(triple.object);
             base_plans.push_back(make_unique<TriplePlan>(subject_id, predicate_id, object_id));
         } else {
-            // TODO: We are assuming that predicate_id is not a path.
-            throw LogicException("Paths are not supported yet");
+            auto subject_id   = get_id(triple.subject);
+            auto path = std::get<std::unique_ptr<SPARQL::IPath>>(triple.predicate.value).get();
+            auto object_id    = get_id(triple.object);
+            base_plans.push_back(make_unique<SparqlPathPlan>(subject_id, *path, object_id));
         }
     }
 

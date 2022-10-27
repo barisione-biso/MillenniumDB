@@ -440,8 +440,11 @@ public:
             }
         }
         // ORDER BY
-        visit(ctx->orderClause());
-        current_op = std::make_unique<OpOrderBy>(std::move(current_op), std::move(order_by_items), std::move(order_by_ascending));
+        auto oc = ctx->orderClause();
+        if (oc) {
+            visit(oc);
+            current_op = std::make_unique<OpOrderBy>(std::move(current_op), std::move(order_by_items), std::move(order_by_ascending));
+        }
         return 0;
     }
 
@@ -452,7 +455,6 @@ public:
                 order_by_ascending.push_back(true);
             }
             else if (oc->expression()) {
-                // TODO: implement a handler for unsupported expressions
                 visit(oc->expression());
                 order_by_items.push_back(*order_by_current_expr);
                 order_by_ascending.push_back(oc->ASC() != nullptr);
@@ -474,7 +476,6 @@ public:
         }
         return 0;
     }
-
 
     virtual antlrcpp::Any visitUnaryMultiplicativeExpression(SparqlParser::UnaryMultiplicativeExpressionContext* ctx) override {
         throw QuerySemanticException("Unsupported ORDER BY expression: '" + ctx->getText() + "'");
