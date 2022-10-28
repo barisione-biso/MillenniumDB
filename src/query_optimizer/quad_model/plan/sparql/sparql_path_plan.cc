@@ -14,7 +14,9 @@ using namespace std;
 SparqlPathPlan::SparqlPathPlan(Id subject, SPARQL::IPath& path, Id object) :
     subject (subject),
     path    (path),
-    object  (object) { }
+    object  (object),
+    subject_assigned(std::holds_alternative<ObjectId>(subject)),
+    object_assigned(std::holds_alternative<ObjectId>(object)) { }
 
 double SparqlPathPlan::estimate_cost() const {
     // TODO: find a better estimation
