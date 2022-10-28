@@ -28,6 +28,10 @@ public:
         return "(" + path->to_string() + ")*";
     }
 
+    std::unique_ptr<IPath> invert() const override {
+        return std::make_unique<PathKleeneStar>(path->invert());
+    }
+
     bool nullable() const override {
         return true;
     }
