@@ -6,6 +6,8 @@
 #include "base/query/sparql/sparql_element.h"
 #include "base/query/sparql/path.h"
 #include "query_optimizer/rdf_model/rdf_model.h"
+#include "execution/binding_id_iter/paths/any_shortest/iter/bfs_iter_enum2.h"
+#include "execution/binding_id_iter/paths/rdf_model_index_provider.h"
 
 using namespace std;
 
@@ -80,84 +82,45 @@ unique_ptr<BindingIdIter> SparqlPathPlan::get_binding_id_iter(ThreadInfo* thread
         return rdf_model.get_object_id(SparqlElement(Iri(str)));
     };
 
-    auto automaton = path.get_rpq_automaton(str_to_object_id_f);
-
-    automaton.print();
-
-    // if (path_semantic == PathSemantic::ANY) {
-    //     if (from_assigned) {
-    //         auto automaton = path.get_rpq_automaton(str_to_object_id_f);
-    //         if (to_assigned) {
-    //             // bool case
-    //             return make_unique<Paths::AnyShortest::BFSCheck>(thread_info,
-    //                                                              path_var,
-    //                                                              from,
-    //                                                              to,
-    //                                                              automaton);
-    //         } else {
-    //             // enum starting on from
-    //             return make_unique<Paths::AnyShortest::BFSIterEnum>(thread_info,
-    //                                                                 path_var,
-    //                                                                 from,
-    //                                                                 std::get<VarId>(to),
-    //                                                                 automaton);
-    //         }
-    //     } else {
-    //         if (to_assigned) {
-    //             // enum starting on to
-    //             auto inverted_path = path.invert();
-    //             auto automaton     = inverted_path->get_rpq_automaton(str_to_object_id_f);
-    //             return make_unique<Paths::AnyShortest::BFSIterEnum>(thread_info,
-    //                                                                 path_var,
-    //                                                                 to,
-    //                                                                 std::get<VarId>(from),
-    //                                                                 automaton);
-    //         } else {
-    //             if (path.nullable()) {
-    //                 throw QuerySemanticException("Nullable property paths must have at least 1 node fixed");
-    //             }
-    //             auto automaton = path.get_rpq_automaton(str_to_object_id_f);
-    //             return make_unique<Paths::AnyShortest::UnfixedComposite>(thread_info,
-    //                                                                      path_var,
-    //                                                                      std::get<VarId>(from),
-    //                                                                      std::get<VarId>(to),
-    //                                                                      automaton);
-    //         }
-    //     }
-    // } else {
-    //     // ALL SHORTEST
-    //     if (from_assigned) {
-    //         auto automaton = path.get_rpq_automaton(str_to_object_id_f);
-    //         if (to_assigned) {
-    //             // bool case
-    //             return make_unique<Paths::AllShortest::BFSCheck>(thread_info,
-    //                                                              path_var,
-    //                                                              from,
-    //                                                              to,
-    //                                                              automaton);
-    //         } else {
-    //             // enum starting on from
-    //             return make_unique<Paths::AllShortest::BFSEnum>(thread_info,
-    //                                                             path_var,
-    //                                                             from,
-    //                                                             std::get<VarId>(to),
-    //                                                             automaton);
-    //         }
-    //     } else {
-    //         if (to_assigned) {
-    //             // enum starting on to
-    //             auto inverted_path = path.invert();
-    //             auto automaton     = inverted_path->get_rpq_automaton(str_to_object_id_f);
-    //             return make_unique<Paths::AllShortest::BFSEnum>(thread_info,
-    //                                                             path_var,
-    //                                                             to,
-    //                                                             std::get<VarId>(from),
-    //                                                             automaton);
-    //         } else {
-    //             // TODO: allow no-nullable unfixed paths
-    //             throw QuerySemanticException("property paths must have at least 1 node fixed.");
-    //         }
-    //     }
-    // }
+    auto provider = make_unique<Paths::RdfModelIndexProvider>(&thread_info->interruption_requested);
+    if (subject_assigned) {
+        auto automaton = path.get_rpq_automaton(str_to_object_id_f);
+        if (object_assigned) {
+            // TODO: implement this
+            return nullptr;
+        }
+        else {
+            return make_unique<Paths::AnyShortest::BFSIterEnum2>(thread_info,
+                                                                 subject,
+                                                                 std::get<VarId>(object),
+                                                                 automaton,
+                                                                 move(provider));
+        }
+    } else {
+        if (object_assigned) {
+            // TODO: implement this
+            // auto inverted_path = path.invert();
+            // auto automaton     = inverted_path->get_rpq_automaton(str_to_object_id_f);
+            // return make_unique<Paths::AnyShortest::BFSIterEnum2>(thread_info,
+            //                                                      object,
+            //                                                      std::get<VarId>(subject),
+            //                                                      automaton,
+            //                                                      move(provider));
+            return nullptr;
+        }
+        else {
+            // TODO: implement this
+            // if (path.nullable()) {
+            //     throw QuerySemanticException("Nullable property paths must have at least 1 node fixed");
+            // }
+            // auto automaton = path.get_rpq_automaton(str_to_object_id_f);
+            // return make_unique<Paths::AnyShortest::UnfixedComposite>(thread_info,
+            //                                                             path_var,
+            //                                                             std::get<VarId>(to),
+            //                                                             std::get<VarId>(from),
+            //                                                             automaton);
+            return nullptr;
+        }
+    }
     return nullptr;
 }
