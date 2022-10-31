@@ -49,7 +49,7 @@ If you work on windows, you can use Windows Subsystem for Linux (WSL).
     - `sudo apt update`
     - `sudo apt install git g++ cmake libboost-all-dev`
 
-     Other linux distributions may need to install the prerequisites differenlty. Some distributions might have repositories with too old versions and the project won't compile, in that case you'll need to manually install the appropiate versions.
+     Other linux distributions may need to install the prerequisites differently. Some distributions might have repositories with too old versions and the project won't compile, in that case you'll need to manually install the appropriate versions.
 
 2. Clone this repository and enter to the 'MillenniumDB' folder:
 
@@ -81,7 +81,7 @@ Everything in the graph model is an **Object**, and there are 4 different types 
 
     - **NamedNodes**: they have a **Name** as identifier when you add them into the database.
 
-    - **AnonymousNodes**: they don't have a name as identifier when you add them into the database. They will have an auto-generated identifier to direcly refeer to them later.
+    - **AnonymousNodes**: they don't have a name as identifier when you add them into the database. They will have an auto-generated identifier to directly refer to them later.
 
 3. **Edges**: an edge is an object that relates other objects, having the following attributes:
     - `ID` (always auto-generated in edges).
@@ -93,7 +93,7 @@ Everything in the graph model is an **Object**, and there are 4 different types 
 
 ## Model constraints
 The abstract model presented before is very flexible, but being that flexible may come with a downside of performance.
-For that reason, we allow having multiple concrete models, where each model meets the requirents of the generic data model with some additional restrictions.
+For that reason, we allow having multiple concrete models, where each model meets the requirements of the generic data model with some additional restrictions.
 
 ### Quad Model
 Currently **QuadModel** is the only one implemented. The only restriction to the generic model presented before is that **every edge must have one type**. Thus edges can be saved as a tuple of 4 elements: <EdgeID, FromID, ToID, TypeID>.
@@ -161,7 +161,7 @@ Let's analyze line by line
     - A **type variable** (after the edge variable or fixed edge if they are present):
         - `(?x)-[:?t]->(?y)`
         - `(?x)-[?e :?t]->(?y)`
-    - Or instad of a **type variable**, a **fixed type** (after the edge variable or fixed edge if they are present):
+    - Or instead of a **type variable**, a **fixed type** (after the edge variable or fixed edge if they are present):
         - `(?x)-[:Type1]->(?y)`
         - `(?x)-[?c :Type2]->(?y)`
     - A set of properties (at the end)
@@ -171,7 +171,7 @@ Let's analyze line by line
     Then a **linear pattern** is a set of one or more **node patterns** linked by edges (TODO: or property paths):
     - `(?x :Person)-[:Knows]->(?y)<-[Knows]-(John)`
 
-    A set of one or more **linear patterns** (separeted by comma) forms a **simple graph pattern**
+    A set of one or more **linear patterns** (separated by comma) forms a **simple graph pattern**
     - `(?x :Person)-[:Knows]->(?y)<-[:Knows]-(John), (?y)-[:LivesIn]->(Chile)`
 
     Finally, a **graph pattern** is defined as follows:
@@ -193,7 +193,7 @@ Let's analyze line by line
 
     The operator precedence is as usual: `()` > `NOT` > `AND` > `OR`.
 
-- The next line is an ORDER BY clause. A query may not have a ORDER BY clause. You can specify how the order works with the keywords `ASC`/`ASCENDING` and `DESC`/`DESCENDING` after each element. If the order is not specified the default is `ASCENNDING`
+- The next line is an ORDER BY clause. A query may not have a ORDER BY clause. You can specify how the order works with the keywords `ASC`/`ASCENDING` and `DESC`/`DESCENDING` after each element. If the order is not specified the default is `ASCENDING`
 
 - The next line is a RETURN clause. Every query must have a RETURN clause. This clause specify which objects or object properties will be returned. Return clauses look like this:
     - `RETURN *`
@@ -210,10 +210,8 @@ Let's analyze line by line
 The command to create a new database looks like this:
 - `build/Release/bin/create_db [path/to/import_file] [path/to/new_database_folder]`
 
-If you want to import a big database you should to specify a custom buffer size with the option `-b`. The parameter tells how many pages the buffer will allocate. Pages have a size of 4KB and the default buffer size is 1GB.
-
-For instance, if you want to create a database into the folder `tests/dbs/example` using the example we provide in `tests/dbs/example-db.txt` having a 4GB buffer (4GB = 4KB * 1024 * 1024 and 1024 * 1024 = 1048576) you need to run:
-- `build/Release/bin/create_db tests/dbs/example-db.txt tests/dbs/example -b 1048576`
+For instance, if you want to create a database into the folder `tests/dbs/example` using the example we provide in `tests/dbs/example-db.txt` you need to run:
+- `build/Release/bin/create_db tests/dbs/example-db.txt tests/dbs/example`
 
 To delete a database just manually delete the created folder.
 
