@@ -26,6 +26,8 @@ public:
 
     virtual std::string to_string() const = 0;
 
+    virtual std::unique_ptr<IPath> invert() const = 0;
+
     // true if the path can be empty
     virtual bool nullable() const = 0;
 

@@ -32,6 +32,10 @@ public:
         return ret;
     }
 
+    std::unique_ptr<IPath> invert() const override {
+        return std::make_unique<PathAtom>(iri, !inverse);
+    }
+
     bool nullable() const override {
         return false;
     }

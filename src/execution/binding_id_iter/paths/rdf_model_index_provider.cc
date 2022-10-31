@@ -31,8 +31,6 @@ unique_ptr<PathIndexIter> RdfModelIndexProvider::get_btree_iterator(uint64_t typ
     max_ids[1] = node_id;
     min_ids[2] = 0;
     max_ids[2] = UINT64_MAX;
-    min_ids[3] = 0;
-    max_ids[3] = UINT64_MAX;
 
     // Get iter from correct B+Tree
     if (inverse) {

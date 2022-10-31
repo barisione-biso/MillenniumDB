@@ -14,7 +14,9 @@ using namespace std;
 SparqlPathPlan::SparqlPathPlan(Id subject, SPARQL::IPath& path, Id object) :
     subject (subject),
     path    (path),
-    object  (object) { }
+    object  (object),
+    subject_assigned(std::holds_alternative<ObjectId>(subject)),
+    object_assigned(std::holds_alternative<ObjectId>(object)) { }
 
 double SparqlPathPlan::estimate_cost() const {
     // TODO: find a better estimation
@@ -98,15 +100,13 @@ unique_ptr<BindingIdIter> SparqlPathPlan::get_binding_id_iter(ThreadInfo* thread
         }
     } else {
         if (object_assigned) {
-            // TODO: implement this
-            // auto inverted_path = path.invert();
-            // auto automaton     = inverted_path->get_rpq_automaton(str_to_object_id_f);
-            // return make_unique<Paths::AnyShortest::BFSIterEnum2>(thread_info,
-            //                                                      object,
-            //                                                      std::get<VarId>(subject),
-            //                                                      automaton,
-            //                                                      move(provider));
-            return nullptr;
+            auto inverted_path = path.invert();
+            auto automaton     = inverted_path->get_rpq_automaton(str_to_object_id_f);
+            return make_unique<Paths::AnyShortest::BFSIterEnum2>(thread_info,
+                                                                 object,
+                                                                 std::get<VarId>(subject),
+                                                                 automaton,
+                                                                 move(provider));
         }
         else {
             // TODO: implement this

@@ -40,6 +40,14 @@ public:
         return result;
     }
 
+    std::unique_ptr<IPath> invert() const override {
+        std::vector<std::unique_ptr<IPath>> invert_alternatives;
+        for (auto& alternative : alternatives) {
+            invert_alternatives.push_back(alternative->invert());
+        }
+        return std::make_unique<PathAlternatives>(move(invert_alternatives));
+    }
+
     bool nullable() const override {
         return is_nullable;
     }
