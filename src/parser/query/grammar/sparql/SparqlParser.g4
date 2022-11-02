@@ -371,6 +371,8 @@ propertyListPathNotEmptyList
 
 verbPath
     : path
+    // MDB extension
+    | (ANY_SHORTEST | ALL_SHORTEST) '(' path AS var ')'
     ;
     
 verbSimple

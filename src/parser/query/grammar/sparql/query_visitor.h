@@ -21,14 +21,20 @@
 
 namespace SPARQL {
 
+// TODO: Move this
+enum class PathSemantic {
+    ANY_SHORTEST,
+    ALL_SHORTEST,
+};
+
 class QueryVisitor : public SparqlParserBaseVisitor {
 private:
     std::vector<Var>      select_variables;
     std::vector<OpTriple> current_triples;
 
-    std::vector<Var>  order_by_items;
-    std::vector<bool> order_by_ascending;
-    std::unique_ptr<Var>  order_by_current_expr;
+    std::vector<Var>     order_by_items;
+    std::vector<bool>    order_by_ascending;
+    std::unique_ptr<Var> order_by_current_expr;
 
     SparqlElement current_sparql_element;
 
@@ -38,6 +44,9 @@ private:
     uint64_t offset = OpSelect::DEFAULT_OFFSET;
     
     std::unique_ptr<IPath> current_path;
+    uint64_t     anonymous_path_counter = 1;
+    PathSemantic current_path_semantic  = PathSemantic::ANY_SHORTEST;
+    Var          current_path_variable  = Var("__" + std::to_string(anonymous_path_counter));
 
     std::string base_iri;
     robin_hood::unordered_map<std::string, std::string> prefix_iris_map;
@@ -324,6 +333,32 @@ public:
     virtual antlrcpp::Any visitBlankNode(SparqlParser::BlankNodeContext* ctx) override {
         Var value(ctx->getText());
         current_sparql_element = SparqlElement(value);
+        return 0;
+    }
+
+    virtual antlrcpp::Any visitVerbPath(SparqlParser::VerbPathContext* ctx) override {
+        if (ctx->AS()) {
+            // Path semantic
+            if (ctx->ANY_SHORTEST()) {
+                current_path_semantic = PathSemantic::ANY_SHORTEST;
+            }
+            else if (ctx->ALL_SHORTEST()) {
+                current_path_semantic = PathSemantic::ANY_SHORTEST;
+            }
+            else {
+                throw QueryException("Unhandled path semantic");
+            }
+            // Path variable
+            current_path_variable = Var(ctx->var()->getText().substr(1));
+        } else {
+            current_path_semantic = PathSemantic::ANY_SHORTEST;
+            // This variable name is imposible to be mentioned:
+            // 1) As a SPARQL variable (the grammar does not allow it)
+            // 2) As a blank node (they start with _:)
+            current_path_variable = Var("__" + std::to_string(anonymous_path_counter));
+            anonymous_path_counter++;
+        }
+        visit(ctx->path());
         return 0;
     }
 

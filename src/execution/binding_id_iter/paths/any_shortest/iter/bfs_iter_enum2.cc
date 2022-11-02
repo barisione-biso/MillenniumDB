@@ -83,7 +83,6 @@ present in the database.
 
 #include "base/ids/var_id.h"
 #include "execution/binding_id_iter/paths/path_manager.h"
-#include "query_optimizer/quad_model/quad_model.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/index/bplus_tree/bplus_tree_leaf.h"
 

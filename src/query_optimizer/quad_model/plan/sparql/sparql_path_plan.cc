@@ -110,15 +110,6 @@ unique_ptr<BindingIdIter> SparqlPathPlan::get_binding_id_iter(ThreadInfo* thread
         }
         else {
             // TODO: implement this
-            // if (path.nullable()) {
-            //     throw QuerySemanticException("Nullable property paths must have at least 1 node fixed");
-            // }
-            // auto automaton = path.get_rpq_automaton(str_to_object_id_f);
-            // return make_unique<Paths::AnyShortest::UnfixedComposite>(thread_info,
-            //                                                             path_var,
-            //                                                             std::get<VarId>(to),
-            //                                                             std::get<VarId>(from),
-            //                                                             automaton);
             return nullptr;
         }
     }

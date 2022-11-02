@@ -51,8 +51,8 @@ public:
 
     inline bool is_bnode() const {
         // Blank nodes are treated as variables.
-        // To identify them, we check if the first character is '_'.
-        return std::holds_alternative<Var>(value) && to_var().name[0] == '_';
+        // To identify them, we check if the prefix is "_:".
+        return std::holds_alternative<Var>(value) && (to_var().name.find("_:") == 0);
     }
 
     inline Var to_var() const {
