@@ -58,13 +58,13 @@ void OptimizeOptionalTree::visit(OpOptional& op_optional) {
     }
 }
 
-void OptimizeOptionalTree::visit(OpTriples& op_triples) {
-    if (op_triples.triples.empty()) {
-        delete_current = true;
-    }
-    for (auto& var : op_triples.get_vars()) {
-        global_vars.insert(var);
-    }
+void OptimizeOptionalTree::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
+    // if (op_basic_graph_pattern.triples.empty()) {
+    //     delete_current = true;
+    // }
+    // for (auto& var : op_basic_graph_pattern.get_vars()) {
+    //     global_vars.insert(var);
+    // }
 }
 
 void OptimizeOptionalTree::visit(OpSelect& op_select) {

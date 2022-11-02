@@ -9,9 +9,5 @@ namespace SPARQL {
 class CheckVarNames : public OpVisitor {
 public:
     void visit(OpSelect&)   override;
-    void visit(OpOptional&) override { };
-    void visit(OpTriples&)  override { };
-    void visit(OpWhere&)    override { };
-    void visit(OpOrderBy&)  override { };
 };
 } // namespace SPARQL

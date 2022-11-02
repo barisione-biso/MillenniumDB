@@ -21,16 +21,11 @@
 
 namespace SPARQL {
 
-// TODO: Move this
-enum class PathSemantic {
-    ANY_SHORTEST,
-    ALL_SHORTEST,
-};
-
 class QueryVisitor : public SparqlParserBaseVisitor {
 private:
     std::vector<Var>      select_variables;
     std::vector<OpTriple> current_triples;
+    std::vector<OpPath>   current_paths;
 
     std::vector<Var>     order_by_items;
     std::vector<bool>    order_by_ascending;
@@ -170,7 +165,7 @@ public:
                 visit(ggpsl_item->triplesBlock());
             }
         }
-        auto parent = std::make_unique<OpTriples>(std::move(current_triples));
+        auto parent = std::make_unique<OpBasicGraphPattern>(std::move(current_triples), std::move(current_paths));
         // Visit the optional patterns
         std::vector<std::unique_ptr<Op>> optional_children;
         for (auto& ggpsl_item : ggpsl) {
@@ -227,7 +222,18 @@ public:
         for (auto& olp_item : olp->objectPath()) {
             visit(olp_item);
             object = std::move(current_sparql_element);
-            current_triples.emplace_back(subject.duplicate(), predicate.duplicate(), object.duplicate());
+            if (predicate.is_path()) {
+                current_paths.push_back(OpPath(current_path_variable,
+                                               subject.duplicate(),
+                                               object.duplicate(),
+                                               current_path_semantic,
+                                               std::move(current_path)));
+            }
+            else {
+                current_triples.emplace_back(subject.duplicate(),
+                                             predicate.duplicate(),
+                                             object.duplicate());
+            }
         }
         // Rest predicates and objects
         for (auto& plpnel_item : plpne->propertyListPathNotEmptyList()) {
@@ -240,7 +246,18 @@ public:
             for (auto& o_item : plpnel_item->objectList()->object()) {
                 visit(o_item);
                 object = std::move(current_sparql_element);
-                current_triples.emplace_back(subject.duplicate(), predicate.duplicate(), object.duplicate());
+                if (predicate.is_path()) {
+                    current_paths.emplace_back(current_path_variable,
+                                               subject.duplicate(),
+                                               object.duplicate(),
+                                               current_path_semantic,
+                                               std::move(current_path));
+                }
+                else {
+                    current_triples.emplace_back(subject.duplicate(),
+                                                 predicate.duplicate(),
+                                                 object.duplicate());
+                }
             }
         }
         return 0;
@@ -337,20 +354,37 @@ public:
     }
 
     virtual antlrcpp::Any visitVerbPath(SparqlParser::VerbPathContext* ctx) override {
+        // Set current_path
+        visit(ctx->path());
+
+        // MillenniumDB's path extension
         if (ctx->AS()) {
             // Path semantic
             if (ctx->ANY_SHORTEST()) {
                 current_path_semantic = PathSemantic::ANY_SHORTEST;
             }
             else if (ctx->ALL_SHORTEST()) {
-                current_path_semantic = PathSemantic::ANY_SHORTEST;
+                current_path_semantic = PathSemantic::ALL_SHORTEST;
             }
             else {
                 throw QueryException("Unhandled path semantic");
             }
             // Path variable
             current_path_variable = Var(ctx->var()->getText().substr(1));
-        } else {
+        } 
+        // Default SPARQL path
+        else {
+            // Try to simplify the path
+            if (current_path->type() == PathType::PATH_ATOM) {
+                // If the path is an Atom
+                PathAtom* tmp = dynamic_cast<PathAtom*>(current_path.get());
+                if (!tmp->inverse) {
+                    // And it is not inverted, it can be simplified as an Iri
+                    Iri value(tmp->iri);
+                    current_sparql_element = SparqlElement(value);
+                    return 0;
+                }
+            }
             current_path_semantic = PathSemantic::ANY_SHORTEST;
             // This variable name is imposible to be mentioned:
             // 1) As a SPARQL variable (the grammar does not allow it)
@@ -358,24 +392,13 @@ public:
             current_path_variable = Var("__" + std::to_string(anonymous_path_counter));
             anonymous_path_counter++;
         }
-        visit(ctx->path());
+        current_sparql_element = SparqlElement(std::move(current_path));
         return 0;
     }
 
     virtual antlrcpp::Any visitPath(SparqlParser::PathContext* ctx) override {
         current_path_inverse = false;
         visit(ctx->pathAlternative());
-        if (current_path->type() == PathType::PATH_ATOM) {
-            // If the path is an Atom
-            PathAtom* tmp = dynamic_cast<PathAtom*>(current_path.get());
-            if (!tmp->inverse) {
-                // And it is not inverted, it can be simplified as an Iri
-                Iri value(tmp->iri);
-                current_sparql_element = SparqlElement(value);
-                return 0;
-            }
-        }
-        current_sparql_element = SparqlElement(std::move(current_path));
         return 0;
     }
 

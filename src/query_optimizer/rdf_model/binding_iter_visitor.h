@@ -43,7 +43,5 @@ public:
     void visit(OpOrderBy&) override;
     void visit(OpWhere&) override;
     // BindingIdIterVisitor manages these ops
-    void visit(OpTriples&) override { };
-    void visit(OpOptional&) override { };
 };
 } // namespace SPARQL

@@ -30,12 +30,8 @@ public:
 
     VarId get_var_id(const Var& var) const;
 
-    void visit(OpTriples&) override;
-    void visit(OpOptional&) override;
-    // BindingIdIterVisitor manages these ops
-    void visit(OpSelect&) override { };
-    void visit(OpOrderBy&) override { };
-    void visit(OpWhere&) override { };
+    void visit(OpBasicGraphPattern&) override;
+    void visit(OpOptional&)          override;
 
 private:
     Id get_id(const SparqlElement&) const;

@@ -24,21 +24,20 @@ VarId BindingIdIterVisitor::get_var_id(const Var& var) const {
     }
 }
 
-void BindingIdIterVisitor::visit(OpTriples& op_triples) {
+void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
     vector<unique_ptr<Plan>> base_plans;
 
-    for (auto& triple : op_triples.triples) {
-        if (!triple.predicate.is_path()) {
-            auto subject_id   = get_id(triple.subject);
-            auto predicate_id = get_id(triple.predicate);
-            auto object_id    = get_id(triple.object);
-            base_plans.push_back(make_unique<TriplePlan>(subject_id, predicate_id, object_id));
-        } else {
-            auto subject_id   = get_id(triple.subject);
-            auto path = std::get<std::unique_ptr<SPARQL::IPath>>(triple.predicate.value).get();
-            auto object_id    = get_id(triple.object);
-            base_plans.push_back(make_unique<SparqlPathPlan>(subject_id, *path, object_id));
-        }
+    for (auto& op_triple : op_basic_graph_pattern.triples) {
+        auto subject_id = get_id(op_triple.subject);
+        auto predicate_id = get_id(op_triple.predicate);
+        auto object_id = get_id(op_triple.object);
+        base_plans.push_back(make_unique<TriplePlan>(subject_id, predicate_id, object_id));
+    }
+    for (auto& op_path : op_basic_graph_pattern.paths) {
+        auto subject_id = get_id(op_path.subject);
+        auto path = op_path.path.get();
+        auto object_id = get_id(op_path.object);
+        base_plans.push_back(make_unique<SparqlPathPlan>(subject_id, *path, object_id));
     }
 
     assert(tmp == nullptr);
