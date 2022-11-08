@@ -90,4 +90,10 @@
     "python.linting.enabled": true,
     "cmake.configureOnOpen": true,
     "C_Cpp.dimInactiveRegions": true,
+    "cSpell.words": [
+        "antlr",
+        "Kleene",
+        "Serd",
+        "Sparql"
+    ],
 }

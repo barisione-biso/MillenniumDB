@@ -296,7 +296,6 @@ void QuadModel::exec_inserts(const MDB::OpInsert& op_insert) {
 
         edge_table->append_record(Record<3>({from.id, to.id, type.id}));
 
-        catalog().connections_count++;
         catalog().type2total_count[type.id]++;
         catalog().distinct_type = catalog().type2total_count.size();
 

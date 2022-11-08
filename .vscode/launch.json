@@ -8,19 +8,14 @@
             "program": "${workspaceFolder}/build/Debug/bin/server",
             "args": [
                 "-d",
-                "${workspaceFolder}/tests/dbs/example"
+                // "${workspaceFolder}/tests/dbs/example"
+                "${workspaceFolder}/tests/dbs/diamond_10"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "windows": {
-                "miDebuggerPath": "C:\\tools\\msys64\\mingw64\\bin\\gdb.exe",
-            },
-            "linux": {
-                "miDebuggerPath": "/usr/bin/gdb",
-            },
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -42,12 +37,6 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "windows": {
-                "miDebuggerPath": "C:\\tools\\msys64\\mingw64\\bin\\gdb.exe",
-            },
-            "linux": {
-                "miDebuggerPath": "/usr/bin/gdb",
-            },
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -72,12 +61,6 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "windows": {
-                "miDebuggerPath": "C:\\tools\\msys64\\mingw64\\bin\\gdb.exe",
-            },
-            "linux": {
-                "miDebuggerPath": "/usr/bin/gdb",
-            },
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -99,12 +82,6 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "windows": {
-                "miDebuggerPath": "C:\\tools\\msys64\\mingw64\\bin\\gdb.exe",
-            },
-            "linux": {
-                "miDebuggerPath": "/usr/bin/gdb",
-            },
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -124,12 +101,6 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "windows": {
-                "miDebuggerPath": "C:\\tools\\msys64\\mingw64\\bin\\gdb.exe",
-            },
-            "linux": {
-                "miDebuggerPath": "/usr/bin/gdb",
-            },
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
