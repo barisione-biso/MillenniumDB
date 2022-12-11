@@ -213,7 +213,8 @@ The command to create a new database looks like this:
 If you want to import a big database you should to specify a custom buffer size with the option `-b`. The parameter tells how many pages the buffer will allocate. Pages have a size of 4KB and the default buffer size is 1GB.
 
 For instance, if you want to create a database into the folder `tests/dbs/example` using the example we provide in `tests/dbs/example-db.txt` having a 4GB buffer (4GB = 4KB * 1024 * 1024 and 1024 * 1024 = 1048576) you need to run:
-- `build/Release/bin/create_db tests/dbs/example-db.txt tests/dbs/example -b 1048576`
+- `build/Release/bin/create_db tests/dbs/example-db.txt tests/dbs/example -b 1048576` (OLD COMMAND)
+- `build/Release/bin/create_db tests/dbs/example-db.txt tests/dbs/example` (CURRENT COMMAND)
 
 To delete a database just manually delete the created folder.
 
