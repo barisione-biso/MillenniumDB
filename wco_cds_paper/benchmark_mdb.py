@@ -58,7 +58,7 @@ def execute_query(query, out, pid):
     with open(QUERY_TMP, "w") as query_file:
         query_file.write(query)
 
-    start_time = time.time()
+    start_time = time.time_ns()
     with open(RESULTS_TMP, "w") as results_file, \
          open(QUERY_TMP, "r") as query_file:
         query_execution = subprocess.Popen(
@@ -68,7 +68,8 @@ def execute_query(query, out, pid):
             stderr=subprocess.DEVNULL,
         )
         exit_code = query_execution.wait()
-        elapsed_time = int((time.time() - start_time) * 1000)
+        #elapsed_time = int((time.time() - start_time) * 1000)
+        elapsed_time = float((time.time_ns() - start_time)/1000000000)
 
     p = subprocess.Popen(['wc', '-l', RESULTS_TMP], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     result, _ = p.communicate()
