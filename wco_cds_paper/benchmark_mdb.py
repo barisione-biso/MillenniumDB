@@ -10,15 +10,22 @@ PORT = 8080
 # Maximum time in seconds that the server will wait for a query
 TIMEOUT = 60
 
+print("\nArguments passed:", end = " ")
+n = len(sys.argv)
+for i in range(1, n):
+    print(sys.argv[i], end = " ")
+
 # Assume that the script is run from the root directory
-MDB_DIR = '/home/fabrizio/dcc_uchile/git_projects/MillenniumDB-Dev' # TODO: cambiar aca, donde tienes la carpeta de MDB
-DBS_FOLDER = os.path.join(MDB_DIR, "tests/dbs/wikipedia_db") # TODO: cambiar aca, por la carpeta de la BD (relativo a MDB_DIR)
+MDB_DIR = sys.argv[1] # TODO: cambiar aca, donde tienes la carpeta de MDB
+DBS_FOLDER = os.path.join(MDB_DIR, sys.argv[2]) # TODO: cambiar aca, por la carpeta de la BD (relativo a MDB_DIR)
 EXECUTABLES_DIR   = os.path.join(MDB_DIR, "build/Release/bin")
 SERVER_EXECUTABLE = os.path.join(EXECUTABLES_DIR, "server")
 QUERY_EXECUTABLE  = os.path.join(EXECUTABLES_DIR, "query")
 
 RESULTS_TMP = 'result.tmp'
 QUERY_TMP = 'query.tmp'
+
+force_cache_reloading = sys.argv[4]
 
 def start_server(db_dir):
     print("starting server...")
@@ -71,6 +78,9 @@ def execute_query(query, out, pid):
         #elapsed_time = int((time.time() - start_time) * 1000)
         elapsed_time = float((time.time_ns() - start_time)/1000000000)
 
+        if force_cache_reloading == "True":
+            os.system("touch "+DBS_FOLDER+"/*")
+
     p = subprocess.Popen(['wc', '-l', RESULTS_TMP], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     result, _ = p.communicate()
     results_count = int(result.strip().split()[0]) - 6 # 1 line from header + 2 for separators + 3 for stats
@@ -91,7 +101,7 @@ def execute_query(query, out, pid):
 
 if __name__ == "__main__":
 
-    query_file = open('output_queries.txt', 'r')
+    query_file = open(sys.argv[3], 'r')
     queries = query_file.readlines()
     server_process = start_server(f'{DBS_FOLDER}')
     with open(f'benchmark_results.tsv', 'w') as results_file:
