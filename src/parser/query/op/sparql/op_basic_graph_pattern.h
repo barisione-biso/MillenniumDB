@@ -36,15 +36,15 @@ public:
         os << "OpBasicGraphPattern(\n";
         for (auto& triple : triples) {
             os << std::string(indent + 2, ' ');
-            os << triple << '\n';
+            os << triple;
         }
         for (auto& path : paths) {
             os << std::string(indent + 2, ' ');
-            os << path << '\n';
+            os << path;
         }
         os << std::string(indent, ' ');
         os << ")\n";
         return os;
-    };
+    }
 };
 } // namespace SPARQL

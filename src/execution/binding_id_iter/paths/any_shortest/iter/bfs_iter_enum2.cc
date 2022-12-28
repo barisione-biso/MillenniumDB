@@ -90,13 +90,13 @@ using namespace std;
 using namespace Paths::AnyShortest;
 
 BFSIterEnum2::BFSIterEnum2(ThreadInfo*               thread_info,
-                        //    VarId                     path_var,
+                           VarId                     path_var,
                            Id                        start,
                            VarId                     end,
                            RPQAutomaton              automaton,
                            unique_ptr<PathIndexProvider> provider) :
     thread_info (thread_info),
-    // path_var    (path_var),
+    path_var    (path_var),
     start       (start),
     end         (end),
     automaton   (automaton),
@@ -135,8 +135,8 @@ bool BFSIterEnum2::next() {
         }
 
         if (automaton.start_is_final) {
-            // auto path_id = path_manager.set_path(current_state, path_var);
-            // parent_binding->add(path_var, path_id);
+            auto path_id = path_manager.set_path(current_state, path_var);
+            parent_binding->add(path_var, path_id);
             parent_binding->add(end, current_state->node_id);
             results_found++;
             return true;
@@ -153,8 +153,8 @@ bool BFSIterEnum2::next() {
 
             if (state_reached->automaton_state == automaton.get_final_state()) {
                 // set binding;
-                // auto path_id = path_manager.set_path(state_reached.operator->(), path_var);
-                // parent_binding->add(path_var, path_id);
+                auto path_id = path_manager.set_path(state_reached.operator->(), path_var);
+                parent_binding->add(path_var, path_id);
                 parent_binding->add(end, state_reached->node_id);
                 results_found++;
                 return true;

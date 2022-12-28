@@ -243,29 +243,21 @@ public:
 
     virtual antlrcpp::Any visitNil(SparqlParser::NilContext *context) = 0;
 
-    virtual antlrcpp::Any visitUnarySignedLiteralExpression(SparqlParser::UnarySignedLiteralExpressionContext *context) = 0;
+    virtual antlrcpp::Any visitExpression(SparqlParser::ExpressionContext *context) = 0;
 
     virtual antlrcpp::Any visitConditionalOrExpression(SparqlParser::ConditionalOrExpressionContext *context) = 0;
 
-    virtual antlrcpp::Any visitAdditiveExpression(SparqlParser::AdditiveExpressionContext *context) = 0;
-
-    virtual antlrcpp::Any visitUnaryAdditiveExpression(SparqlParser::UnaryAdditiveExpressionContext *context) = 0;
+    virtual antlrcpp::Any visitConditionalAndExpression(SparqlParser::ConditionalAndExpressionContext *context) = 0;
 
     virtual antlrcpp::Any visitRelationalExpression(SparqlParser::RelationalExpressionContext *context) = 0;
 
-    virtual antlrcpp::Any visitRelationalSetExpression(SparqlParser::RelationalSetExpressionContext *context) = 0;
+    virtual antlrcpp::Any visitAdditiveExpression(SparqlParser::AdditiveExpressionContext *context) = 0;
 
-    virtual antlrcpp::Any visitUnaryMultiplicativeExpression(SparqlParser::UnaryMultiplicativeExpressionContext *context) = 0;
+    virtual antlrcpp::Any visitRhsAdditiveExpression(SparqlParser::RhsAdditiveExpressionContext *context) = 0;
 
-    virtual antlrcpp::Any visitBaseExpression(SparqlParser::BaseExpressionContext *context) = 0;
+    virtual antlrcpp::Any visitRhsAdditiveExpressionSub(SparqlParser::RhsAdditiveExpressionSubContext *context) = 0;
 
     virtual antlrcpp::Any visitMultiplicativeExpression(SparqlParser::MultiplicativeExpressionContext *context) = 0;
-
-    virtual antlrcpp::Any visitConditionalAndExpression(SparqlParser::ConditionalAndExpressionContext *context) = 0;
-
-    virtual antlrcpp::Any visitUnaryNegationExpression(SparqlParser::UnaryNegationExpressionContext *context) = 0;
-
-    virtual antlrcpp::Any visitUnaryLiteralExpression(SparqlParser::UnaryLiteralExpressionContext *context) = 0;
 
     virtual antlrcpp::Any visitUnaryExpression(SparqlParser::UnaryExpressionContext *context) = 0;
 
@@ -285,7 +277,7 @@ public:
 
     virtual antlrcpp::Any visitAggregate(SparqlParser::AggregateContext *context) = 0;
 
-    virtual antlrcpp::Any visitIriRefOrFunction(SparqlParser::IriRefOrFunctionContext *context) = 0;
+    virtual antlrcpp::Any visitIriOrFunction(SparqlParser::IriOrFunctionContext *context) = 0;
 
     virtual antlrcpp::Any visitRdfLiteral(SparqlParser::RdfLiteralContext *context) = 0;
 

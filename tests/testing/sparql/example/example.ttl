@@ -156,7 +156,7 @@ dt:s dt:p "2022-09-18T13:30:00Z"^^xsd:dateTime,
 @prefix decinl: <http://www.decinl.com/> .
 decinl:s decinl:p "-.100"^^xsd:decimal,
                   "0.0"^^xsd:decimal,
-                  "+100"^^xsd:decimal,
+                  "+100"^^xsd:decimal .
 # 8.2.2. External
 @prefix decext: <http://www.decext.com/> .
 decext:s decext:p "-123456789123456789123456789123456789.123456789123456789123456789123456789"^^xsd:decimal,
@@ -168,6 +168,37 @@ decext:s decext:p "-123456789123456789123456789123456789.12345678912345678912345
 bool:s bool:p "true"^^xsd:boolean,
               "false"^^xsd:boolean .
 
+# 8.4. Paths
+# src=https://www.oxfordsemantic.tech/fundamentals/what-is-a-property-path
+@prefix path: <http://www.path.com/> .
+# 8.4.1. Path sequence
+path:Jane path:knows path:John .
+path:Jane path:knows path:Mary .
+path:Jane path:knows path:Vicente .
+
+path:John    path:livesIn path:London .
+path:Mary    path:livesIn path:Spain .
+path:Vicente path:livesIn path:Chile .
+# 8.4.2. Path repetition
+path:Cain       path:hasParent path:Adam .
+path:Enoch      path:hasParent path:Cain .
+path:Irad       path:hasParent path:Enoch .
+path:Mehujael   path:hasParent path:Irad .
+path:Methushael path:hasParent path:Mehujael .
+path:Lamech     path:hasParent path:Methushael .
+path:TubalCain  path:hasParent path:Lamech .
+# 8.4.3. Path alternative
+path:NikeBlazers      path:ItemType path:Product .
+path:ConverseAllStars path:ItemType path:Product .
+path:AdidasSuperStar  path:ItemType path:Product .
+path:VansOldSkool     path:ItemType path:Product .
+path:ReebokClassic    path:ItemType path:Product .
+
+path:NikeBlazers      path:hasColor     path:Black .
+path:ConverseAllStars path:hasStyle     path:Vintage .
+path:AdidasSuperStar  path:hasCategory  path:Classic .
+path:VansOldSkool     path:hasColor     path:White .
+path:ReebokClassic    path:hasCategory  path:Classic .
 
 # TODO: Integer
 # TODO: Blank nodes

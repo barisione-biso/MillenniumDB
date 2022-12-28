@@ -6,6 +6,7 @@
 #include "base/graph_object/anonymous_node.h"
 #include "base/graph_object/edge.h"
 #include "execution/graph_object/graph_object_factory.h"
+#include "execution/binding_id_iter/paths/any_shortest/search_state_printer.h"
 #include "execution/binding_id_iter/paths/path_manager.h"
 #include "execution/graph_object/graph_object_manager.h"
 #include "query_optimizer/quad_model/binding_iter_visitor.h"
@@ -63,6 +64,7 @@ QuadModel::QuadModel(const std::string& db_folder,
     GraphObject::graph_object_multiply = GraphObjectManager::multiply;
     GraphObject::graph_object_divide   = GraphObjectManager::divide;
     GraphObject::graph_object_modulo   = GraphObjectManager::modulo;
+    PathManager::path_print            = SearchStatePrinter::get_path_quad_model;
 
     nodes = make_unique<BPlusTree<1>>("nodes");
     edge_table = make_unique<RandomAccessTable<3>>("edges.table");

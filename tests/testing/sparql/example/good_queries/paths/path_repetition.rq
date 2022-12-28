@@ -1,0 +1,6 @@
+# Get all the ancnestor of Tubal-Cain
+PREFIX path: <http://www.path.com/>
+SELECT ?ancestor ?path
+WHERE {
+    path:TubalCain ANY_SHORTEST(path:hasParent+ AS ?path) ?ancestor .
+}

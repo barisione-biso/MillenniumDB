@@ -35,7 +35,7 @@ public:
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent = 0) const override {
-        return os << std::string(' ', indent) << '(' << *expr << " IS " << (negation ? "NOT " : "") << get_type_name() <<  ')';
+        return os << std::string(indent, ' ') << '(' << *expr << " IS " << (negation ? "NOT " : "") << get_type_name() <<  ')';
     }
 
 private:

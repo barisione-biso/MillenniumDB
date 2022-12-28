@@ -5,6 +5,10 @@
 
 class Decimal {
 public:
+    std::string str;
+
+    Decimal(const std::string& str) : str (normalize(str)) { }
+
     static std::string normalize(const std::string& str) {
         // Normalized format: (0|[1-9][0-9]*).(0|[0-9]*[1-9])
         std::stringstream ss;
@@ -43,10 +47,6 @@ public:
                 ss << str.substr(start, end - start + 1);
             }
         }
-
         return ss.str();
     }
-    std::string str;
-
-    Decimal(const std::string str) : str(str) { }
 };

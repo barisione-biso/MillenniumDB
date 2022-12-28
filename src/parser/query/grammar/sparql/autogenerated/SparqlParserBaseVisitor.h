@@ -463,7 +463,7 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitUnarySignedLiteralExpression(SparqlParser::UnarySignedLiteralExpressionContext *ctx) override {
+  virtual antlrcpp::Any visitExpression(SparqlParser::ExpressionContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -471,11 +471,7 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitAdditiveExpression(SparqlParser::AdditiveExpressionContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitUnaryAdditiveExpression(SparqlParser::UnaryAdditiveExpressionContext *ctx) override {
+  virtual antlrcpp::Any visitConditionalAndExpression(SparqlParser::ConditionalAndExpressionContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -483,31 +479,19 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitRelationalSetExpression(SparqlParser::RelationalSetExpressionContext *ctx) override {
+  virtual antlrcpp::Any visitAdditiveExpression(SparqlParser::AdditiveExpressionContext *ctx) override {
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitUnaryMultiplicativeExpression(SparqlParser::UnaryMultiplicativeExpressionContext *ctx) override {
+  virtual antlrcpp::Any visitRhsAdditiveExpression(SparqlParser::RhsAdditiveExpressionContext *ctx) override {
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitBaseExpression(SparqlParser::BaseExpressionContext *ctx) override {
+  virtual antlrcpp::Any visitRhsAdditiveExpressionSub(SparqlParser::RhsAdditiveExpressionSubContext *ctx) override {
     return visitChildren(ctx);
   }
 
   virtual antlrcpp::Any visitMultiplicativeExpression(SparqlParser::MultiplicativeExpressionContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitConditionalAndExpression(SparqlParser::ConditionalAndExpressionContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitUnaryNegationExpression(SparqlParser::UnaryNegationExpressionContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitUnaryLiteralExpression(SparqlParser::UnaryLiteralExpressionContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -547,7 +531,7 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitIriRefOrFunction(SparqlParser::IriRefOrFunctionContext *ctx) override {
+  virtual antlrcpp::Any visitIriOrFunction(SparqlParser::IriOrFunctionContext *ctx) override {
     return visitChildren(ctx);
   }
 

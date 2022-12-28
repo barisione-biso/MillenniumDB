@@ -1,6 +1,7 @@
 #include "binding_iter_visitor.h"
 
 #include "execution/binding_id_iter/distinct_id_hash.h"
+#include "execution/binding_id_iter/paths/path_manager.h"
 #include "execution/binding_iter/distinct_hash.h"
 #include "execution/binding_iter/sparql/select.h"
 #include "execution/binding_iter/sparql/order_by.h"
@@ -71,6 +72,9 @@ void BindingIterVisitor::visit(OpWhere& op_where) {
     unique_ptr<BindingIdIter> binding_id_iter_current_root = move(id_visitor.tmp);
 
     const auto binding_size = var2var_id.size();
+
+    // TODO: set need_materialize_paths if needed, for now it is always false
+    path_manager.begin(binding_size, false);
 
     // TODO: Check aggs.size() == 0 when implemented
     if (distinct_into_id) {

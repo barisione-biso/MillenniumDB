@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <memory>
 #include <string>
 
@@ -33,7 +34,9 @@ public:
         subject  (std::move(_subject)),
         object   (std::move(_object)),
         semantic (_semantic),
-        path     (std::move(_path)) { }
+        path     (std::move(_path)) {
+            assert(path != nullptr);
+        }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);

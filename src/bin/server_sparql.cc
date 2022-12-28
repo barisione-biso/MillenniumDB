@@ -1,38 +1,30 @@
-/*
- * server is a executable that listens for tcp conections asking for queries,
- * and it send the results to the client.
- *
- * There are 5 methods:
- *
- * - main: parses the program options (e.g: buffer size, port, database folder).
- *   Then it creates the proper GraphModel and calls the method `server`.
- *
- * - server: first it starts the server, then it launches a new thread that executes
- *   the method `execute_timeouts` and then it waits for new TCP connections in an
- *   infinite loop.
- *   When a connection is established, it generates a ThreadKey and put it into
- *   `running_threads` and `running_threads_queue`. Then calls the `session` method
- *   in a different thread.
- *
- * - session: read a query from the client, it parses the query, getting a logical
- *   plan and then a physical plan. Then it enumerates all results from the phisical plan,
- *   sending them to the client via TcpBuffer. It removes the ThreadKey from
- *   `running_threads` before ending.
- *
- * - execute_timeouts: it checks periodically the head of `running_threads_queue` to see
- *   if timeout should be thrown. If a timeout needs to be thrown, it will mark a boolean
- *   attribute and the physical plan is the responsable to check that attribute.
- */
+/******************************************************************************
+Server is the executable that listens for queries from a client and sends back
+the results.
+
+The communication is via TCP. The server expects two messages from the client,
+first message contains the query length, the other contains the query.
+The response from the server will be in blocks of fixed size. The last block
+is marked so the client knows when to stop listening.
+
+Server can execute multiple read-only queries at the same time, but queries
+that modify the database are executed isolated. The maximum of threads
+executing at the same time is a parameter received when the server starts.
+Each query is executed in its own thread and we have two additional threads,
+one that listens for new TCP connections and launches a new query thread.
+The other thread is periodically marking queries as timed out.
+Marking a query as timed out won't stop it immediately, but long operations
+should check regularly if the query timed out, it is their responsibility to
+stop the execution throwing a timeout exception.
+******************************************************************************/
 
 #include <chrono>
 #include <fstream>
-#include <iostream>
-#include <iterator>
 #include <queue>
 #include <memory>
 #include <mutex>
-#include <ostream>
 #include <random>
+#include <shared_mutex>
 #include <thread>
 #include <unordered_map>
 
@@ -46,18 +38,21 @@
 #include "parser/query/sparql_query_parser.h"
 #include "query_optimizer/rdf_model/rdf_model.h"
 #include "storage/buffer_manager.h"
-#include "storage/file_manager.h"
 #include "storage/filesystem.h"
 #include "third_party/cxxopts/cxxopts.h"
 
-using namespace std;
 using namespace SPARQL;
+using namespace std;
 using boost::asio::ip::tcp;
 
+// Threads must be ordered by timeout inside the queue
 std::queue<std::shared_ptr<ThreadInfo>> running_threads_queue;
 std::mutex running_threads_queue_mutex;
 
+std::shared_mutex execution_mutex;
+
 bool shutdown_server = false;
+
 
 void execute_query(ostream& os, unique_ptr<BindingIter> physical_plan) {
     uint64_t result_count = 0;
@@ -95,6 +90,7 @@ void execute_query(ostream& os, unique_ptr<BindingIter> physical_plan) {
 }
 
 
+// Receives the query from the client, parses it into a physical plan
 void session(chrono::seconds timeout_duration, tcp::socket sock) {
     try {
         unsigned char query_size_b[CommunicationProtocol::BYTES_FOR_QUERY_LENGTH];
@@ -104,47 +100,53 @@ void session(chrono::seconds timeout_duration, tcp::socket sock) {
         for (int i = 0, offset = 0; i < CommunicationProtocol::BYTES_FOR_QUERY_LENGTH; i++, offset += 8) {
             query_size += query_size_b[i] << offset;
         }
-        std::string query;
+        string query;
         query.resize(query_size);
         boost::asio::read(sock, boost::asio::buffer(query.data(), query_size));
         cout << "---------------------------------------\n";
         cout << " Query received:\n";
         cout << "---------------------------------------\n";
         cout << query << "\n";
-        cout << "---------------------------------------\n";
+        cout << "---------------------------------------" << endl;
 
         TcpBuffer tcp_buffer = TcpBuffer(sock);
-        std::ostream os(&tcp_buffer);
+        ostream os(&tcp_buffer);
 
         // without this line ConnectionException won't be caught properly
-        os.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        os.exceptions(ifstream::failbit | ifstream::badbit);
 
-        chrono::duration<float, std::milli> parser_duration;
-        chrono::duration<float, std::milli> optimizer_duration;
-
-        unique_ptr<BindingIter> physical_plan;
-
+        chrono::duration<float, std::milli> parser_duration = 0ms;
+        chrono::duration<float, std::milli> optimizer_duration = 0ms;
         try {
+            // Create logical plan
             antlr4::MyErrorListener error_listener;
             auto start_parser = chrono::system_clock::now();
             auto logical_plan = QueryParser::get_query_plan(query, &error_listener);
             parser_duration = chrono::system_clock::now() - start_parser;
 
-            auto thread_info = std::make_shared<ThreadInfo>();
-            auto start_optimizer = chrono::system_clock::now();
-            physical_plan = rdf_model.exec(*logical_plan, thread_info.get());
-            optimizer_duration = chrono::system_clock::now() - start_optimizer;
+            if (logical_plan->read_only()) {
+                std::shared_lock s_lock(execution_mutex);
 
-            {
-                // TODO: stablish private buffer pos? what happens if there is no available private buffer?
-                thread_info->timeout = chrono::system_clock::now() + timeout_duration;
-                std::lock_guard<std::mutex> guard(running_threads_queue_mutex);
-                running_threads_queue.push(thread_info);
+                auto thread_info = std::make_shared<ThreadInfo>();
+
+                auto start_optimizer = chrono::system_clock::now();
+                auto physical_plan = rdf_model.exec(*logical_plan, thread_info.get());
+                optimizer_duration = chrono::system_clock::now() - start_optimizer;
+
+                {
+                    // TODO: stablish private buffer pos? what happens if there is no available private buffer?
+                    thread_info->timeout = chrono::system_clock::now() + timeout_duration;
+                    std::lock_guard<std::mutex> guard(running_threads_queue_mutex);
+                    running_threads_queue.push(thread_info);
+                }
+
+                execute_query(os, move(physical_plan));
+                os << "Optimizer time: " << optimizer_duration.count() << " ms.\n";
+                thread_info->finished = true;
+            } else {
+                std::unique_lock u_lock(execution_mutex);
+                // rdf_model.exec_inserts(*reinterpret_cast<OpInsert*>(logical_plan.get()));
             }
-
-            execute_query(os, move(physical_plan));
-            os << "Optimizer time: " << optimizer_duration.count() << " ms.\n";
-            thread_info->finished = true;
             tcp_buffer.set_status(CommunicationProtocol::StatusCodes::success);
         }
         catch (const QueryException& e) {
@@ -160,8 +162,8 @@ void session(chrono::seconds timeout_duration, tcp::socket sock) {
             tcp_buffer.set_status(CommunicationProtocol::StatusCodes::logic_error);
         }
         catch (const InterruptedException& e) {
-            os << "Query Parser time: " << parser_duration.count() << " ms. "
-               << "Optimizer time: " << optimizer_duration.count() << "ms." << endl;
+            os << "Query Parser time: " << parser_duration.count() << " ms. \n"
+               << "Optimizer time: " << optimizer_duration.count() << " ms." << endl;
             tcp_buffer.set_status(CommunicationProtocol::StatusCodes::timeout);
         }
     }
@@ -247,6 +249,10 @@ int main(int argc, char **argv) {
     int private_buffer_size;
     int max_threads;
     string db_folder;
+
+    ios_base::sync_with_stdio(false);
+
+    // TODO: We would like to receive shared and private buffer param in MB or GB
     try {
         // Parse arguments
         cxxopts::Options options("server", "MillenniumDB server");
@@ -268,7 +274,7 @@ int main(int argc, char **argv) {
         auto result = options.parse(argc, argv);
 
         if (result.count("help")) {
-            std::cout << options.help() << std::endl;
+            cout << options.help() << endl;
             exit(0);
         }
 
@@ -278,23 +284,23 @@ int main(int argc, char **argv) {
             return 1;
         }
 
-        if (port < 0) {
-            cerr << "Port cannot be a negative number.\n";
+        if (port <= 0) {
+            cerr << "Port must be a positive number.\n";
             return 1;
         }
 
-        if (seconds_timeout < 0) {
-            cerr << "Timeout cannot be a negative number.\n";
+        if (seconds_timeout <= 0) {
+            cerr << "Timeout must be a positive number.\n";
             return 1;
         }
 
-        if (shared_buffer_size < 0) {
-            cerr << "Buffer size cannot be a negative number.\n";
+        if (shared_buffer_size <= 0) {
+            cerr << "Buffer size must be a positive number.\n";
             return 1;
         }
 
-        if (private_buffer_size < 0) {
-            cerr << "Private buffer size cannot be a negative number.\n";
+        if (private_buffer_size <= 0) {
+            cerr << "Private buffer size must be a positive number.\n";
             return 1;
         }
 
@@ -307,12 +313,13 @@ int main(int argc, char **argv) {
         }
 
         // Initialize model
-        auto model_destroyer = RdfModel::init(db_folder, shared_buffer_size, private_buffer_size, max_threads);
-
         cout << "Initializing server...\n";
+
+        auto model_destroyer = RdfModel::init(db_folder, shared_buffer_size, private_buffer_size, max_threads);
         rdf_model.catalog().print();
 
-        server(port, std::chrono::seconds(seconds_timeout));
+        server(port, chrono::seconds(seconds_timeout));
+        cout << "\nServer shutting down\n";
     }
     catch (exception& e) {
         cerr << "Exception: " << e.what() << "\n";

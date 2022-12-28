@@ -201,6 +201,154 @@ struct GraphObjectManager {
                       << *GraphObjectInterpreter::get<DecimalTmp>(graph_obj).str
                       << "\"^^<http://www.w3.org/2001/XMLSchema#decimal>";
         }
+        case GraphObjectType::PATH: {
+            auto path = GraphObjectInterpreter::get<Path>(graph_obj);
+            path.path_printer->print(os, path.path_id);
+            return os;
+        }
+        default:
+            throw LogicException("Unmanaged case");
+        }
+    }
+
+    static std::ostream& print_rdf_compressed(std::ostream& os, const GraphObject& graph_obj) {
+        switch (graph_obj.type) {
+        case GraphObjectType::STR_INLINED:
+            return os << '"' << GraphObjectInterpreter::get<StringInlined>(graph_obj).id << '"';
+        case GraphObjectType::STR_EXTERNAL:
+            os << '"';
+            string_manager.print(os, GraphObjectInterpreter::get<StringExternal>(graph_obj).external_id);
+            return os << '"';
+        case GraphObjectType::STR_TMP:
+            return os << '"' << *GraphObjectInterpreter::get<StringTmp>(graph_obj).str << '"';
+        case GraphObjectType::ANON:
+            return os << "_:b" << GraphObjectInterpreter::get<AnonymousNode>(graph_obj).id;
+        case GraphObjectType::NULL_OBJ:
+            return os;
+        case GraphObjectType::NOT_FOUND:
+            return os << "NotFoundObj";
+        case GraphObjectType::BOOL:
+            return os << '"' << (GraphObjectInterpreter::get<bool>(graph_obj) ? "true" : "false") << "\"^^xsd:boolean";
+        case GraphObjectType::IRI_INLINED: {
+            auto iri_inl = GraphObjectInterpreter::get<IriInlined>(graph_obj);
+
+            if (iri_inl.prefix_id != 0) {
+                // Print using alias from prefixes file
+                return os << rdf_model.catalog().aliases[iri_inl.prefix_id]
+                          << ':'
+                          << iri_inl.id;
+            }
+            else {
+                return os << '<'
+                          << iri_inl.id
+                          << '>';
+            }
+        }
+        case GraphObjectType::IRI_EXTERNAL: {
+            auto iri_ext = GraphObjectInterpreter::get<IriExternal>(graph_obj);
+
+            uint8_t prefix_id = (iri_ext.external_id & 0x00FF'0000'0000'0000UL) >> 48;
+            uint64_t iri_id = iri_ext.external_id & 0x0000'FFFF'FFFF'FFFFUL;
+
+            if (prefix_id != 0) {
+                // Print using alias from prefixes file
+                os << rdf_model.catalog().aliases[prefix_id]
+                   << ':';
+                string_manager.print(os, iri_id);
+                return os;
+            }
+            else {
+                os << '<';
+                string_manager.print(os, iri_id);
+                return os << '>';
+            }
+        }
+        case GraphObjectType::IRI_TMP:
+            return os << '<'
+                      << *GraphObjectInterpreter::get<IriTmp>(graph_obj).str
+                      << '>';
+        case GraphObjectType::LITERAL_DATATYPE_INLINED: {
+            auto ld_inl = GraphObjectInterpreter::get<LiteralDatatypeInlined>(graph_obj);
+
+            return os << '"' 
+                      << ld_inl.id
+                      << "\"^^<"
+                      << rdf_model.catalog().datatypes[ld_inl.datatype_id]
+                      << '>';
+        }
+        case GraphObjectType::LITERAL_DATATYPE_EXTERNAL: {
+            auto ld_ext = GraphObjectInterpreter::get<LiteralDatatypeExternal>(graph_obj);
+
+            uint16_t datatype_id = (ld_ext.external_id & 0x00FF'FF00'0000'0000UL) >> 40;
+            uint64_t str_id      = ld_ext.external_id & 0x0000'00FF'FFFF'FFFFUL;
+
+            os << '"';
+            string_manager.print(os, str_id);
+            return os << "\"^^<"
+                      << rdf_model.catalog().datatypes[datatype_id]
+                      << '>';
+        }
+        case GraphObjectType::LITERAL_DATATYPE_TMP: {
+            auto ld_tmp = GraphObjectInterpreter::get<LiteralDatatypeTmp>(graph_obj);
+
+            return os << '"' 
+                      << ld_tmp.ld->str
+                      << "\"^^<"
+                      << ld_tmp.ld->datatype
+                      << '>';
+        }
+        case GraphObjectType::LITERAL_LANGUAGE_INLINED: {
+            auto ll_inl = GraphObjectInterpreter::get<LiteralLanguageInlined>(graph_obj);
+
+            return os << '"' 
+                      << ll_inl.id
+                      << "\"@"
+                      << rdf_model.catalog().languages[ll_inl.language_id];
+        }
+        case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL: {
+            auto ll_ext = GraphObjectInterpreter::get<LiteralLanguageExternal>(graph_obj);
+
+            uint16_t language_id = (ll_ext.external_id & 0x00FF'FF00'0000'0000UL) >> 40;
+            uint64_t str_id      = ll_ext.external_id & 0x0000'00FF'FFFF'FFFFUL;
+
+            os << '"';
+            string_manager.print(os, str_id);
+            return os << "\"@"
+                      << rdf_model.catalog().languages[language_id];
+        }
+        case GraphObjectType::LITERAL_LANGUAGE_TMP: {
+            auto ll_tmp = GraphObjectInterpreter::get<LiteralLanguageTmp>(graph_obj);
+
+            return os << '"' 
+                      << ll_tmp.ll->str
+                      << "\"@"
+                      << ll_tmp.ll->language;
+        }
+        case GraphObjectType::DATETIME: {
+            return os << '"'
+                      << GraphObjectInterpreter::get<DateTime>(graph_obj).get_value_string()
+                      << "\"^^xsd:dateTime";
+        }
+        case GraphObjectType::DECIMAL_INLINED: {
+            return os << '"'
+                      << GraphObjectInterpreter::get<DecimalInlined>(graph_obj).get_value_string()
+                      << "\"^^xsd:decimal";
+        }
+        case GraphObjectType::DECIMAL_EXTERNAL: {
+            os << '"';
+            string_manager.print(os, GraphObjectInterpreter::get<DecimalExternal>(graph_obj).external_id);
+            return os << "\"^^xsd:decimal";
+        }
+        case GraphObjectType::DECIMAL_TMP: {
+            return os << '"'
+                      << *GraphObjectInterpreter::get<DecimalTmp>(graph_obj).str
+                      << "\"^^xsd:decimal";
+        }
+        case GraphObjectType::PATH: {
+            auto path = GraphObjectInterpreter::get<Path>(graph_obj);
+            path.path_printer->print(os, path.path_id);
+            return os;
+        }
         default:
             throw LogicException("Unmanaged case");
         }

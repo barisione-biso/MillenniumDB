@@ -15,6 +15,8 @@ public:
            uint64_t                             limit,
            uint64_t                             offset);
 
+    ~Select();
+
     void begin(std::ostream&) override;
 
     bool next() override;

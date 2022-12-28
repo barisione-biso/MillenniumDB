@@ -26,6 +26,6 @@ public:
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent = 0) const override {
-        return os << std::string(' ', indent) << aggregate_func << '(' << inside_var << ')';
+        return os << std::string(indent, ' ') << aggregate_func << '(' << inside_var << ')';
     }
 };

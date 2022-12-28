@@ -64,8 +64,49 @@ double TriplePlan::estimate_output_size() const {
     // Avoid division by zero
     if (distinct_subjects == 0 || distinct_predicates == 0 || distinct_objects == 0) {
         return 0.0;
-        // All elements assigned
-    } else if (subject_assigned && predicate_assigned && object_assigned) {
+    }
+
+    // Check for special cases
+    if (subject == object) {
+        if (subject == predicate) {
+            // S == P == O
+            if (std::holds_alternative<VarId>(subject)) {
+                return rdf_model.catalog().equal_spo_count;
+            } else {
+                if (subject_assigned) {
+                    return rdf_model.catalog().equal_spo_count /
+                           std::max<double>(distinct_subjects, std::max<double>(distinct_predicates, distinct_objects));
+                } else {
+                    return 1.0;
+                }
+            }
+        } else {
+            // S == O
+            if (std::holds_alternative<VarId>(predicate)) {
+                return rdf_model.catalog().equal_so_count;
+            } else {
+                return rdf_model.catalog().equal_so_count / distinct_predicates;
+            }
+        }
+    } else if (subject == predicate) {
+        // S == P
+        if (std::holds_alternative<VarId>(object)) {
+            return rdf_model.catalog().equal_sp_count;
+        } else {
+            return rdf_model.catalog().equal_sp_count / distinct_objects;
+        }
+
+    } else if (predicate == object) {
+        // P == O
+        if (std::holds_alternative<VarId>(subject)) {
+            return rdf_model.catalog().equal_po_count;
+        } else {
+            return rdf_model.catalog().equal_po_count / distinct_subjects;
+        }
+    }
+
+    // All elements assigned
+    if (subject_assigned && predicate_assigned && object_assigned) {
         double predicate_count =
           static_cast<double>(rdf_model.catalog().predicate2total_count[std::get<ObjectId>(predicate).id]);
         return predicate_count / (distinct_subjects * distinct_objects);
@@ -242,8 +283,8 @@ bool TriplePlan::get_leapfrog_iter(ThreadInfo*                       thread_info
                                    uint_fast32_t&                    enumeration_level) const
 {
     // TODO: support special cases
-    if (   (std::holds_alternative<VarId>(subject)  && subject   == predicate)
-        || (std::holds_alternative<VarId>(subject)  && subject   == object)
+    if (   (std::holds_alternative<VarId>(subject)   && subject   == predicate)
+        || (std::holds_alternative<VarId>(subject)   && subject   == object)
         || (std::holds_alternative<VarId>(predicate) && predicate == object))
     {
         return false;

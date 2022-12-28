@@ -1,18 +1,21 @@
 #pragma once
 
 #include "base/query/sparql/path.h"
+#include "parser/query/op/sparql/op_path.h"
 #include "query_optimizer/quad_model/plan/plan.h"
 
 class SparqlPathPlan : public Plan {
 public:
-    SparqlPathPlan(Id subject, SPARQL::IPath& path, Id object);
+    SparqlPathPlan(VarId path_var, Id subject, SPARQL::IPath& path, Id object, PathSemantic path_semantic);
 
     SparqlPathPlan(const SparqlPathPlan& other) :
+        path_var           (other.path_var),
         subject            (other.subject),
         path               (other.path),
         object             (other.object),
         subject_assigned   (other.subject_assigned),
-        object_assigned    (other.object_assigned) { }
+        object_assigned    (other.object_assigned),
+        path_semantic      (other.path_semantic) { }
 
     std::unique_ptr<Plan> duplicate() const override {
         return std::make_unique<SparqlPathPlan>(*this);
@@ -34,10 +37,13 @@ public:
     void print(std::ostream& os, int indent, const std::vector<std::string>& var_names) const override;
 
 private:
+    VarId path_var;
     Id subject;
     SPARQL::IPath& path;
     Id object;
 
     bool subject_assigned;
     bool object_assigned;
+
+    PathSemantic path_semantic;
 };

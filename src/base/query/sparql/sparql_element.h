@@ -60,6 +60,11 @@ public:
         return std::get<Var>(value);
     }
 
+    inline std::unique_ptr<SPARQL::IPath> to_path() const {
+        assert(is_path());
+        return std::get<std::unique_ptr<SPARQL::IPath>>(value)->duplicate();
+    }
+
     inline std::string to_string() const {
         return std::visit(SparqlElementToString(), value);
     }

@@ -14,7 +14,7 @@ colorama.init(autoreset=True)
 # Assume that the script is run from the root directory
 WORKING_DIR = os.getcwd()
 # Executables paths
-EXECUTABLES_DIR           = os.path.join(WORKING_DIR, "build/Release/bin")
+EXECUTABLES_DIR           = os.path.join(WORKING_DIR,     "build/Release/bin")
 CREATE_DB_EXECUTABLE      = os.path.join(EXECUTABLES_DIR, "create_db_sparql")
 SERVER_EXECUTABLE         = os.path.join(EXECUTABLES_DIR, "server_sparql")
 QUERY_EXECUTABLE          = os.path.join(EXECUTABLES_DIR, "query")
@@ -104,10 +104,11 @@ def kill_server(server_process):
     server_process.wait()
     print_log(f"KILL_SERVER()", type="end")
 
+def query_bad(query_file, server_process):
+    if server_process.poll() is not None:
+        print_log("Server process has terminated unexpectedly!", type="error")
+        sys.exit(1)
 
-def query_bad(query_file):
-    # TODO: CHECK IF SERVER IS RUNNING
-    # TODO: HANDLE PROGRAM CRASHING
     with open(RESULTS_TMP_FILE, "w") as rtf, open(query_file, "r") as qf:
         query_process = subprocess.Popen(
             [QUERY_EXECUTABLE],
@@ -119,9 +120,11 @@ def query_bad(query_file):
     return exit_code
 
 
-def query_good(query_file):
-    # TODO: CHECK IF SERVER IS RUNNING
-    # TODO: HANDLE PROGRAM CRASHING
+def query_good(query_file, server_process):
+    if server_process.poll() is not None:
+        print_log("Server process has terminated unexpectedly!", type="error")
+        sys.exit(1)
+
     with open(RESULTS_TMP_FILE, "w") as rtf, open(query_file, "r") as qf:
         query_process = subprocess.Popen(
             [QUERY_EXECUTABLE],
@@ -139,7 +142,7 @@ def query_good(query_file):
     return rtf_set == erf_set
 
 
-def execute_bad_queries(bad_queries_dir):
+def execute_bad_queries(bad_queries_dir, server_process):
     count_ok    = 0
     count_error = 0
     print_log("BAD QUERIES", type="begin")
@@ -149,7 +152,7 @@ def execute_bad_queries(bad_queries_dir):
         to_find = os.path.join(query_category_dir, "*")
         for query_file in glob.glob(to_find):
             query_name = os.path.basename(query_file)
-            exit_code = query_bad(query_file)
+            exit_code = query_bad(query_file, server_process)
             if exit_code == 0:
                 print_log(f"\"{query_category_name}/{query_name}\"", type="error")
                 count_error += 1
@@ -160,7 +163,7 @@ def execute_bad_queries(bad_queries_dir):
     return (count_ok, count_error)
 
 
-def execute_good_queries(good_queries_dir):
+def execute_good_queries(good_queries_dir, server_process):
     count_ok    = 0
     count_error = 0
     print_log("GOOD QUERIES", type="begin")
@@ -170,7 +173,7 @@ def execute_good_queries(good_queries_dir):
         to_find = os.path.join(query_category_dir, "*.rq")
         for query_file in glob.glob(to_find):
             query_name = os.path.basename(query_file)
-            is_correct = query_good(query_file)
+            is_correct = query_good(query_file, server_process)
             if is_correct:
                 print_log(f"\"{query_category_name}/{query_name}\"", type="ok")
                 count_ok += 1
@@ -211,15 +214,15 @@ def execute_queries():
         server_process = start_server(db_dir)
 
         bad_queries_dir  = os.path.join(test_dir, "bad_queries")
-        count_ok_bad, count_error_bad = execute_bad_queries(bad_queries_dir)
+        count_ok_bad, count_error_bad = execute_bad_queries(bad_queries_dir, server_process)
         total_count_ok    += count_ok_bad
         total_count_error += count_error_bad
 
         good_queries_dir = os.path.join(test_dir, "good_queries")
-        count_ok_good, count_error_good = execute_good_queries(good_queries_dir)
+        count_ok_good, count_error_good = execute_good_queries(good_queries_dir, server_process)
         total_count_ok    += count_ok_good
         total_count_error += count_error_good
-
+        
         kill_server(server_process)
 
         test_total_ok    = count_ok_bad + count_ok_good

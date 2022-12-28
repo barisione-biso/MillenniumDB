@@ -9,6 +9,8 @@ static typename std::aligned_storage<sizeof(PathManager), alignof(PathManager)>:
 // global object
 PathManager& path_manager = reinterpret_cast<PathManager&>(path_manager_buf);
 
+void (*PathManager::path_print) (std::ostream&, const Paths::AnyShortest::SearchState*);
+
 PathManager::PathManager(uint_fast32_t max_threads) {
     for (uint64_t i = 0; i < max_threads; i++) {
         std::vector<robin_hood::unordered_node_set<Paths::AnyShortest::SearchState>> materialized_path_states;
@@ -197,7 +199,8 @@ void PathManager::print(std::ostream& os, uint64_t path_id) const {
     switch (path_type) {
     case SEARCH_STATE_MASK: {
         auto current_state = reinterpret_cast<const Paths::AnyShortest::SearchState*>(paths[index][path_id & PATH_INDEX_MASK]);
-        current_state->get_path(os);
+        // current_state->get_path(os);
+        path_print(os, current_state);
         break;
     }
     case ALL_STATE_MASK: {

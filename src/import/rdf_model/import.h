@@ -186,6 +186,8 @@ private:
 
     robin_hood::unordered_map<std::string, uint64_t> blank_ids_map;
 
+    // IRI aliases (configuration file)
+    std::vector<std::string> aliases;
     // IRI prefixes (configuration file)
     std::vector<std::string> prefixes;
 
@@ -327,7 +329,7 @@ private:
     uint64_t get_iri_id(const char* str, size_t str_len) {
         // If a prefix matches the IRI, store just the suffix and a pointer to the prefix
         uint64_t prefix_id = 0;
-        for (size_t i = 0; i < prefixes.size(); ++i) {
+        for (size_t i = 1; i < prefixes.size(); ++i) {
             if (strncmp(str, prefixes[i].c_str(), prefixes[i].size()) == 0) {
                 str += prefixes[i].size();
                 str_len -= prefixes[i].size();

@@ -31,6 +31,7 @@ public:
     VarId get_var_id(const Var& var) const;
 
     void visit(OpBasicGraphPattern&) override;
+    void visit(OpFilter&)            override;
     void visit(OpOptional&)          override;
 
 private:

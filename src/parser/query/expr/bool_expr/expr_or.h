@@ -27,7 +27,7 @@ public:
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent = 0) const override {
-        os << std::string(' ', indent)
+        os << std::string(indent, ' ')
            << '(' << *or_list[0];
         for (std::size_t i = 1; i < or_list.size(); i++) {
             os << " OR " << *or_list[i];

@@ -9,6 +9,7 @@
 #include "base/graph_object/edge.h"
 #include "base/graph_object/path.h"
 #include "base/path_printer.h"
+#include "execution/binding_id_iter/paths/any_shortest/search_state_printer.h"
 #include "execution/binding_id_iter/paths/path_manager.h"
 #include "execution/graph_object/graph_object_manager.h"
 #include "query_optimizer/rdf_model/binding_iter_visitor.h"
@@ -61,6 +62,7 @@ RdfModel::RdfModel(const std::string& db_folder,
     GraphObject::graph_object_multiply = GraphObjectManager::multiply;
     GraphObject::graph_object_divide   = GraphObjectManager::divide;
     GraphObject::graph_object_modulo   = GraphObjectManager::modulo;
+    PathManager::path_print            = SearchStatePrinter::get_path_rdf_model;
 
     spo = make_unique<BPlusTree<3>>("spo");
     pos = make_unique<BPlusTree<3>>("pos");

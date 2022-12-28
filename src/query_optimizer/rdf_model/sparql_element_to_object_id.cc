@@ -36,7 +36,7 @@ ObjectId SparqlElementToObjectId::operator()(const Iri& iri) {
     auto& prefixes = rdf_model.catalog().prefixes;
     std::string str = iri.name;
     uint8_t prefix_id = 0;
-    for (size_t i = 0; i < prefixes.size(); ++i) {
+    for (size_t i = 1; i < prefixes.size(); ++i) {
         if (str.compare(0, prefixes[i].size(), prefixes[i]) == 0) {
             str = str.substr(prefixes[i].size(), str.size() - prefixes[i].size());
             prefix_id = i;

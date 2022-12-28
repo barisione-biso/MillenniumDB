@@ -78,14 +78,16 @@ public:
     RuleBlankNodePropertyList = 99, RuleTriplesNodePath = 100, RuleBlankNodePropertyListPath = 101, 
     RuleCollection = 102, RuleCollectionPath = 103, RuleGraphNode = 104, 
     RuleGraphNodePath = 105, RuleVarOrTerm = 106, RuleVarOrIRI = 107, RuleVar = 108, 
-    RuleGraphTerm = 109, RuleNil = 110, RuleExpression = 111, RuleUnaryLiteralExpression = 112, 
-    RuleUnaryExpression = 113, RulePrimaryExpression = 114, RuleBuiltInCall = 115, 
-    RuleRegexExpression = 116, RuleSubStringExpression = 117, RuleStrReplaceExpression = 118, 
-    RuleExistsFunction = 119, RuleNotExistsFunction = 120, RuleAggregate = 121, 
-    RuleIriRefOrFunction = 122, RuleRdfLiteral = 123, RuleNumericLiteral = 124, 
-    RuleNumericLiteralUnsigned = 125, RuleNumericLiteralPositive = 126, 
-    RuleNumericLiteralNegative = 127, RuleBooleanLiteral = 128, RuleString = 129, 
-    RuleIri = 130, RulePrefixedName = 131, RuleBlankNode = 132, RuleAnon = 133
+    RuleGraphTerm = 109, RuleNil = 110, RuleExpression = 111, RuleConditionalOrExpression = 112, 
+    RuleConditionalAndExpression = 113, RuleRelationalExpression = 114, 
+    RuleAdditiveExpression = 115, RuleRhsAdditiveExpression = 116, RuleRhsAdditiveExpressionSub = 117, 
+    RuleMultiplicativeExpression = 118, RuleUnaryExpression = 119, RulePrimaryExpression = 120, 
+    RuleBuiltInCall = 121, RuleRegexExpression = 122, RuleSubStringExpression = 123, 
+    RuleStrReplaceExpression = 124, RuleExistsFunction = 125, RuleNotExistsFunction = 126, 
+    RuleAggregate = 127, RuleIriOrFunction = 128, RuleRdfLiteral = 129, 
+    RuleNumericLiteral = 130, RuleNumericLiteralUnsigned = 131, RuleNumericLiteralPositive = 132, 
+    RuleNumericLiteralNegative = 133, RuleBooleanLiteral = 134, RuleString = 135, 
+    RuleIri = 136, RulePrefixedName = 137, RuleBlankNode = 138, RuleAnon = 139
   };
 
   explicit SparqlParser(antlr4::TokenStream *input);
@@ -210,7 +212,13 @@ public:
   class GraphTermContext;
   class NilContext;
   class ExpressionContext;
-  class UnaryLiteralExpressionContext;
+  class ConditionalOrExpressionContext;
+  class ConditionalAndExpressionContext;
+  class RelationalExpressionContext;
+  class AdditiveExpressionContext;
+  class RhsAdditiveExpressionContext;
+  class RhsAdditiveExpressionSubContext;
+  class MultiplicativeExpressionContext;
   class UnaryExpressionContext;
   class PrimaryExpressionContext;
   class BuiltInCallContext;
@@ -220,7 +228,7 @@ public:
   class ExistsFunctionContext;
   class NotExistsFunctionContext;
   class AggregateContext;
-  class IriRefOrFunctionContext;
+  class IriOrFunctionContext;
   class RdfLiteralContext;
   class NumericLiteralContext;
   class NumericLiteralUnsignedContext;
@@ -2002,167 +2010,150 @@ public:
   class  ExpressionContext : public antlr4::ParserRuleContext {
   public:
     ExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-   
-    ExpressionContext() = default;
-    void copyFrom(ExpressionContext *context);
-    using antlr4::ParserRuleContext::copyFrom;
-
     virtual size_t getRuleIndex() const override;
+    ConditionalOrExpressionContext *conditionalOrExpression();
 
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
 
-  class  UnarySignedLiteralExpressionContext : public ExpressionContext {
-  public:
-    UnarySignedLiteralExpressionContext(ExpressionContext *ctx);
+  ExpressionContext* expression();
 
-    ExpressionContext *expression();
-    UnaryLiteralExpressionContext *unaryLiteralExpression();
+  class  ConditionalOrExpressionContext : public antlr4::ParserRuleContext {
+  public:
+    ConditionalOrExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<ConditionalAndExpressionContext *> conditionalAndExpression();
+    ConditionalAndExpressionContext* conditionalAndExpression(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> OR();
+    antlr4::tree::TerminalNode* OR(size_t i);
+
 
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
   };
 
-  class  ConditionalOrExpressionContext : public ExpressionContext {
-  public:
-    ConditionalOrExpressionContext(ExpressionContext *ctx);
+  ConditionalOrExpressionContext* conditionalOrExpression();
 
-    std::vector<ExpressionContext *> expression();
-    ExpressionContext* expression(size_t i);
-    antlr4::tree::TerminalNode *OR();
+  class  ConditionalAndExpressionContext : public antlr4::ParserRuleContext {
+  public:
+    ConditionalAndExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<RelationalExpressionContext *> relationalExpression();
+    RelationalExpressionContext* relationalExpression(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> AND();
+    antlr4::tree::TerminalNode* AND(size_t i);
+
 
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
   };
 
-  class  AdditiveExpressionContext : public ExpressionContext {
-  public:
-    AdditiveExpressionContext(ExpressionContext *ctx);
+  ConditionalAndExpressionContext* conditionalAndExpression();
 
+  class  RelationalExpressionContext : public antlr4::ParserRuleContext {
+  public:
     antlr4::Token *op = nullptr;
-    std::vector<ExpressionContext *> expression();
-    ExpressionContext* expression(size_t i);
-    antlr4::tree::TerminalNode *PLUS_SIGN();
-    antlr4::tree::TerminalNode *MINUS_SIGN();
-
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  UnaryAdditiveExpressionContext : public ExpressionContext {
-  public:
-    UnaryAdditiveExpressionContext(ExpressionContext *ctx);
-
-    antlr4::Token *op = nullptr;
-    ExpressionContext *expression();
-    antlr4::tree::TerminalNode *PLUS_SIGN();
-    antlr4::tree::TerminalNode *MINUS_SIGN();
-
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  RelationalExpressionContext : public ExpressionContext {
-  public:
-    RelationalExpressionContext(ExpressionContext *ctx);
-
-    antlr4::Token *op = nullptr;
-    std::vector<ExpressionContext *> expression();
-    ExpressionContext* expression(size_t i);
+    RelationalExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<AdditiveExpressionContext *> additiveExpression();
+    AdditiveExpressionContext* additiveExpression(size_t i);
     antlr4::tree::TerminalNode *EQUAL();
     antlr4::tree::TerminalNode *NOT_EQUAL();
     antlr4::tree::TerminalNode *LESS();
     antlr4::tree::TerminalNode *GREATER();
     antlr4::tree::TerminalNode *LESS_EQUAL();
     antlr4::tree::TerminalNode *GREATER_EQUAL();
-
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  RelationalSetExpressionContext : public ExpressionContext {
-  public:
-    RelationalSetExpressionContext(ExpressionContext *ctx);
-
-    ExpressionContext *expression();
     antlr4::tree::TerminalNode *IN();
     antlr4::tree::TerminalNode *OPEN_BRACE();
     antlr4::tree::TerminalNode *CLOSE_BRACE();
     antlr4::tree::TerminalNode *NOT();
     ExpressionListContext *expressionList();
 
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  UnaryMultiplicativeExpressionContext : public ExpressionContext {
-  public:
-    UnaryMultiplicativeExpressionContext(ExpressionContext *ctx);
-
-    antlr4::Token *op = nullptr;
-    ExpressionContext *expression();
-    antlr4::tree::TerminalNode *ASTERISK();
-    antlr4::tree::TerminalNode *DIVIDE();
 
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
   };
 
-  class  BaseExpressionContext : public ExpressionContext {
+  RelationalExpressionContext* relationalExpression();
+
+  class  AdditiveExpressionContext : public antlr4::ParserRuleContext {
   public:
-    BaseExpressionContext(ExpressionContext *ctx);
-
-    PrimaryExpressionContext *primaryExpression();
-
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  MultiplicativeExpressionContext : public ExpressionContext {
-  public:
-    MultiplicativeExpressionContext(ExpressionContext *ctx);
-
-    antlr4::Token *op = nullptr;
-    std::vector<ExpressionContext *> expression();
-    ExpressionContext* expression(size_t i);
-    antlr4::tree::TerminalNode *ASTERISK();
-    antlr4::tree::TerminalNode *DIVIDE();
-
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  ConditionalAndExpressionContext : public ExpressionContext {
-  public:
-    ConditionalAndExpressionContext(ExpressionContext *ctx);
-
-    std::vector<ExpressionContext *> expression();
-    ExpressionContext* expression(size_t i);
-    antlr4::tree::TerminalNode *AND();
-
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  UnaryNegationExpressionContext : public ExpressionContext {
-  public:
-    UnaryNegationExpressionContext(ExpressionContext *ctx);
-
-    antlr4::tree::TerminalNode *NEGATION();
-    ExpressionContext *expression();
-
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  ExpressionContext* expression();
-  ExpressionContext* expression(int precedence);
-  class  UnaryLiteralExpressionContext : public antlr4::ParserRuleContext {
-  public:
-    antlr4::Token *op = nullptr;
-    UnaryLiteralExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    AdditiveExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    NumericLiteralPositiveContext *numericLiteralPositive();
-    NumericLiteralNegativeContext *numericLiteralNegative();
-    UnaryExpressionContext *unaryExpression();
-    antlr4::tree::TerminalNode *ASTERISK();
-    antlr4::tree::TerminalNode *DIVIDE();
+    MultiplicativeExpressionContext *multiplicativeExpression();
+    std::vector<RhsAdditiveExpressionContext *> rhsAdditiveExpression();
+    RhsAdditiveExpressionContext* rhsAdditiveExpression(size_t i);
 
 
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
 
-  UnaryLiteralExpressionContext* unaryLiteralExpression();
+  AdditiveExpressionContext* additiveExpression();
+
+  class  RhsAdditiveExpressionContext : public antlr4::ParserRuleContext {
+  public:
+    antlr4::Token *s155 = nullptr;
+    std::vector<antlr4::Token *> op;
+    antlr4::Token *s159 = nullptr;
+    antlr4::Token *_tset1928 = nullptr;
+    RhsAdditiveExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    RhsAdditiveExpressionSubContext *rhsAdditiveExpressionSub();
+    std::vector<UnaryExpressionContext *> unaryExpression();
+    UnaryExpressionContext* unaryExpression(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> ASTERISK();
+    antlr4::tree::TerminalNode* ASTERISK(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> DIVIDE();
+    antlr4::tree::TerminalNode* DIVIDE(size_t i);
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  RhsAdditiveExpressionContext* rhsAdditiveExpression();
+
+  class  RhsAdditiveExpressionSubContext : public antlr4::ParserRuleContext {
+  public:
+    RhsAdditiveExpressionSubContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    MultiplicativeExpressionContext *multiplicativeExpression();
+    antlr4::tree::TerminalNode *PLUS_SIGN();
+    antlr4::tree::TerminalNode *MINUS_SIGN();
+    NumericLiteralPositiveContext *numericLiteralPositive();
+    NumericLiteralNegativeContext *numericLiteralNegative();
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  RhsAdditiveExpressionSubContext* rhsAdditiveExpressionSub();
+
+  class  MultiplicativeExpressionContext : public antlr4::ParserRuleContext {
+  public:
+    antlr4::Token *s155 = nullptr;
+    std::vector<antlr4::Token *> op;
+    antlr4::Token *s159 = nullptr;
+    antlr4::Token *_tset1971 = nullptr;
+    MultiplicativeExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<UnaryExpressionContext *> unaryExpression();
+    UnaryExpressionContext* unaryExpression(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> ASTERISK();
+    antlr4::tree::TerminalNode* ASTERISK(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> DIVIDE();
+    antlr4::tree::TerminalNode* DIVIDE(size_t i);
+
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  MultiplicativeExpressionContext* multiplicativeExpression();
 
   class  UnaryExpressionContext : public antlr4::ParserRuleContext {
   public:
@@ -2189,7 +2180,7 @@ public:
     ExpressionContext *expression();
     antlr4::tree::TerminalNode *CLOSE_BRACE();
     BuiltInCallContext *builtInCall();
-    IriRefOrFunctionContext *iriRefOrFunction();
+    IriOrFunctionContext *iriOrFunction();
     RdfLiteralContext *rdfLiteral();
     NumericLiteralContext *numericLiteral();
     BooleanLiteralContext *booleanLiteral();
@@ -2391,9 +2382,9 @@ public:
 
   AggregateContext* aggregate();
 
-  class  IriRefOrFunctionContext : public antlr4::ParserRuleContext {
+  class  IriOrFunctionContext : public antlr4::ParserRuleContext {
   public:
-    IriRefOrFunctionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    IriOrFunctionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     IriContext *iri();
     ArgListContext *argList();
@@ -2403,7 +2394,7 @@ public:
    
   };
 
-  IriRefOrFunctionContext* iriRefOrFunction();
+  IriOrFunctionContext* iriOrFunction();
 
   class  RdfLiteralContext : public antlr4::ParserRuleContext {
   public:
@@ -2567,9 +2558,6 @@ public:
 
   AnonContext* anon();
 
-
-  virtual bool sempred(antlr4::RuleContext *_localctx, size_t ruleIndex, size_t predicateIndex) override;
-  bool expressionSempred(ExpressionContext *_localctx, size_t predicateIndex);
 
 private:
   static std::vector<antlr4::dfa::DFA> _decisionToDFA;

@@ -1,5 +1,7 @@
 #include "rdf_catalog.h"
 
+#include "storage/catalog/catalog_version.h"
+
 using namespace std;
 
 RdfCatalog::RdfCatalog(const std::string& filename) : Catalog(filename) {
@@ -17,6 +19,10 @@ RdfCatalog::RdfCatalog(const std::string& filename) : Catalog(filename) {
         equal_po_count  = 0;
     } else {
         start_io();
+        auto version = read_uint64();
+        if (version != CatalogVersion::RDF) {
+            throw runtime_error("RdfCatalog: wrong version");
+        }
         blank_nodes_count = read_uint64();
         triples_count     = read_uint64();
 
@@ -29,6 +35,7 @@ RdfCatalog::RdfCatalog(const std::string& filename) : Catalog(filename) {
         equal_so_count  = read_uint64();
         equal_po_count  = read_uint64();
 
+        aliases   = read_strvec();
         prefixes  = read_strvec();
         datatypes = read_strvec();
         languages = read_strvec();
@@ -45,6 +52,8 @@ RdfCatalog::RdfCatalog(const std::string& filename) : Catalog(filename) {
 void RdfCatalog::save_changes() {
     start_io();
 
+    write_uint64(CatalogVersion::RDF);
+
     write_uint64(blank_nodes_count);
     write_uint64(triples_count);
 
@@ -57,6 +66,7 @@ void RdfCatalog::save_changes() {
     write_uint64(equal_so_count);
     write_uint64(equal_po_count);
 
+    write_strvec(aliases);
     write_strvec(prefixes);
     write_strvec(datatypes);
     write_strvec(languages);

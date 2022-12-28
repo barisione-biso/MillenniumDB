@@ -16,13 +16,14 @@ Examples of patterns with non scoped blank nodes:
 */
 class CheckScopedBlankNodes : public OpVisitor {
 private:
-    std::set<Var> mentioned_bnodes;
+    std::set<Var> mentioned_blank_nodes;
 
 public:
+    void visit(OpBasicGraphPattern&) override;
+    void visit(OpFilter&)            override;
+    void visit(OpOptional&)          override;
+    void visit(OpOrderBy&)           override;
     void visit(OpSelect&)            override;
     void visit(OpWhere&)             override;
-    void visit(OpOptional&)          override;
-    void visit(OpBasicGraphPattern&) override;
-    void visit(OpOrderBy&)           override;
 };
 } // namespace SPARQL

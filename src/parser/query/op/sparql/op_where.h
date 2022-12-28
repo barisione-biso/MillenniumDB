@@ -22,6 +22,6 @@ public:
         os << std::string(indent, ' ');
         os << "OpWhere()\n";
         return op->print_to_ostream(os, indent + 2);
-    };
+    }
 };
 } // namespace SPARQL

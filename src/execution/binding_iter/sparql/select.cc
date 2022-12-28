@@ -1,5 +1,7 @@
 #include "select.h"
 
+#include "execution/binding_id_iter/paths/path_manager.h"
+
 using namespace std;
 using namespace SPARQL;
 
@@ -11,6 +13,13 @@ Select::Select(std::unique_ptr<BindingIter>         child_iter,
     projection_vars    (move(projection_vars)),
     limit              (limit),
     offset             (offset) { }
+
+Select::~Select() {
+    // TODO: We always have the Select operator as the root of our physical query plans.
+    // If that changes we might need to call path_manager.clear() somewhere else
+    // (it needs to be called always at the destruction of the query and only once)
+    path_manager.clear();
+}
 
 void Select::begin(std::ostream& _os) {
     os = &_os;
