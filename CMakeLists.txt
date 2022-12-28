@@ -51,7 +51,6 @@ set(TEST_TARGETS
     # parse_sparql
     # create_bpt
     # check_bpts
-    # check_extendible_hash
     # execute_query
 )
 
