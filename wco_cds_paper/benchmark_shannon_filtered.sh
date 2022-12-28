@@ -1,1 +1,0 @@
-python3 benchmark_mdb.py '/home/fabrizio/MillenniumDB-Dev' 'tests/dbs/wikipedia_db' 'output_queries_wikidata_filtered.txt' 'False'

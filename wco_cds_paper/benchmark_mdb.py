@@ -104,7 +104,7 @@ if __name__ == "__main__":
     query_file = open(sys.argv[3], 'r')
     queries = query_file.readlines()
     server_process = start_server(f'{DBS_FOLDER}')
-    with open(f'benchmark_results.tsv', 'w') as results_file:
+    with open(sys.argv[5], 'w') as results_file:
         results_file.write('query\tresults\tstatus\ttime\tmax_mem[kB]\n')
         for query in queries:
             print(query.strip('\n'))

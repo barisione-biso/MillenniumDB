@@ -1,1 +1,1 @@
-python3 benchmark_mdb.py '/home/fabrizio/dcc_uchile/git_projects/MillenniumDB-Dev' 'tests/dbs/wikipedia_db' 'output_queries.txt' 'True'
+python3 benchmark_mdb.py '../MillenniumDB-Dev' 'tests/dbs/wikipedia_db' 'output_queries.txt' 'True' 'benchmark_results.tsv'
