@@ -4,12 +4,12 @@
 
 #include "execution/binding_id_iter/optional_node.h"
 #include "execution/binding_id_iter/filter.h"
+#include "query_optimizer/plan/join_order/greedy_optimizer.h"
+#include "query_optimizer/plan/join_order/leapfrog_optimizer.h"
 #include "query_optimizer/rdf_model/expr/expr_to_binding_id_expr.h"
 #include "query_optimizer/rdf_model/rdf_model.h"
-#include "query_optimizer/quad_model/join_order/greedy_optimizer.h"
-#include "query_optimizer/quad_model/join_order/leapfrog_optimizer.h"
-#include "query_optimizer/quad_model/plan/sparql/triple_plan.h"
-#include "query_optimizer/quad_model/plan/sparql/sparql_path_plan.h"
+#include "query_optimizer/rdf_model/plan/triple_plan.h"
+#include "query_optimizer/rdf_model/plan/path_plan.h"
 
 using namespace std;
 using namespace SPARQL;
@@ -42,7 +42,7 @@ void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
         auto subject_id = get_id(op_path.subject);
         auto path = op_path.path.get();
         auto object_id = get_id(op_path.object);
-        base_plans.push_back(make_unique<SparqlPathPlan>(path_var, subject_id, *path, object_id, op_path.semantic));
+        base_plans.push_back(make_unique<SPARQL::PathPlan>(path_var, subject_id, *path, object_id, op_path.semantic));
     }
 
     assert(tmp == nullptr);

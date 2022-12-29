@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "base/binding/binding_id_iter.h"
-#include "query_optimizer/quad_model/plan/plan.h"
+#include "query_optimizer/plan/plan.h"
 
 class SelingerOptimizer {
 public:

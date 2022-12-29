@@ -1,7 +1,8 @@
 #pragma once
 
-#include "query_optimizer/quad_model/plan/plan.h"
+#include "query_optimizer/plan/plan.h"
 
+namespace SPARQL {
 class TriplePlan : public Plan {
 public:
     TriplePlan(Id subject, Id predicate, Id object);
@@ -42,3 +43,4 @@ private:
     bool predicate_assigned;
     bool object_assigned;
 };
+} // namespace SPARQL

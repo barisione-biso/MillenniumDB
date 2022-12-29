@@ -1,6 +1,6 @@
 #pragma once
 
-#include "query_optimizer/quad_model/plan/plan.h"
+#include "query_optimizer/plan/plan.h"
 
 class PropertyPlan : public Plan {
 public:

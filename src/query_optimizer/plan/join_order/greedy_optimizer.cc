@@ -3,7 +3,7 @@
 #include <iostream>
 #include <limits>
 
-#include "query_optimizer/quad_model/plan/join/index_nested_loop_plan.h"
+#include "query_optimizer/plan/join/index_nested_loop_plan.h"
 
 using namespace std;
 

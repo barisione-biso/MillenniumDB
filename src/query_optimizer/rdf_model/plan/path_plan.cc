@@ -1,6 +1,4 @@
-#include "sparql_path_plan.h"
-
-#include <variant>
+#include "path_plan.h"
 
 #include "base/exceptions.h"
 #include "base/query/sparql/sparql_element.h"
@@ -12,8 +10,9 @@
 #include "execution/binding_id_iter/paths/rdf_model_index_provider.h"
 
 using namespace std;
+using namespace SPARQL;
 
-SparqlPathPlan::SparqlPathPlan(VarId path_var, Id subject, SPARQL::IPath& path, Id object, PathSemantic path_semantic) :
+PathPlan::PathPlan(VarId path_var, Id subject, SPARQL::IPath& path, Id object, PathSemantic path_semantic) :
     path_var         (path_var),
     subject          (subject),
     path             (path),
@@ -22,7 +21,7 @@ SparqlPathPlan::SparqlPathPlan(VarId path_var, Id subject, SPARQL::IPath& path, 
     object_assigned  (std::holds_alternative<ObjectId>(object)),
     path_semantic    (path_semantic) { }
 
-double SparqlPathPlan::estimate_cost() const {
+double PathPlan::estimate_cost() const {
     // TODO: find a better estimation
     if (!subject_assigned && !object_assigned) {
         return std::numeric_limits<double>::max();
@@ -31,11 +30,11 @@ double SparqlPathPlan::estimate_cost() const {
 }
 
 
-void SparqlPathPlan::print(std::ostream& os, int indent, const std::vector<std::string>& var_names) const {
+void PathPlan::print(std::ostream& os, int indent, const std::vector<std::string>& var_names) const {
     for (int i = 0; i < indent; ++i) {
         os << ' ';
     }
-    os << "SparqlPathPlan(";
+    os << "PathPlan(";
     if (std::holds_alternative<ObjectId>(subject)) {
         os << "subject: " << rdf_model.get_graph_object(std::get<ObjectId>(subject));
     } else {
@@ -57,14 +56,14 @@ void SparqlPathPlan::print(std::ostream& os, int indent, const std::vector<std::
 }
 
 
-double SparqlPathPlan::estimate_output_size() const {
+double PathPlan::estimate_output_size() const {
     // TODO: find a better estimation
     const auto total_triples = static_cast<double>(rdf_model.catalog().triples_count);
     return total_triples * total_triples;
 }
 
 
-std::set<VarId> SparqlPathPlan::get_vars() const {
+std::set<VarId> PathPlan::get_vars() const {
     std::set<VarId> result;
     if (std::holds_alternative<VarId>(subject) && !subject_assigned) {
         result.insert(std::get<VarId>(subject));
@@ -77,19 +76,19 @@ std::set<VarId> SparqlPathPlan::get_vars() const {
 }
 
 
-void SparqlPathPlan::set_input_vars(const std::set<VarId>& input_vars) {
+void PathPlan::set_input_vars(const std::set<VarId>& input_vars) {
     set_input_var(input_vars, subject, &subject_assigned);
     set_input_var(input_vars, object,  &object_assigned);
 }
 
 
-unique_ptr<BindingIdIter> SparqlPathPlan::get_binding_id_iter(ThreadInfo* thread_info) const {
+unique_ptr<BindingIdIter> PathPlan::get_binding_id_iter(ThreadInfo* thread_info) const {
     std::function<ObjectId(const std::string&)> str_to_object_id_f = [](const std::string& str) {
         return rdf_model.get_object_id(SparqlElement(Iri(str)));
     };
-    
+
     if (path_semantic != PathSemantic::ANY_SHORTEST) {
-        throw QueryException("SparqlPathPlan::get_binding_id_iter: path_semantic != PathSemantic::ANY");
+        throw QueryException("PathPlan::get_binding_id_iter: path_semantic != PathSemantic::ANY");
     }
 
     auto provider = make_unique<Paths::RdfModelIndexProvider>(&thread_info->interruption_requested);

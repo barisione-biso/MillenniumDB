@@ -7,6 +7,7 @@
 #include "query_optimizer/rdf_model/rdf_model.h"
 
 using namespace std;
+using namespace SPARQL;
 
 TriplePlan::TriplePlan(Id subject, Id predicate, Id object) :
     subject            (subject),
