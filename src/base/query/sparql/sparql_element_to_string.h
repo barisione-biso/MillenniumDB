@@ -3,6 +3,7 @@
 #include <string>
 
 #include "execution/graph_object/graph_object_manager.h"
+#include "parser/query/paths/path.h"
 
 struct SparqlElementToString {
     std::string operator()(const Var& v) {
@@ -38,7 +39,7 @@ struct SparqlElementToString {
         return b ? "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>" : "\"false\"^^<http://www.w3.org/2001/XMLSchema#boolean>";
     }
 
-    std::string operator()(const std::unique_ptr<SPARQL::IPath>& path) {
+    std::string operator()(const std::unique_ptr<IPath>& path) {
         return path.get()->to_string();
     }
 };

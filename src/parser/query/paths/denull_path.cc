@@ -7,6 +7,7 @@
 #include "parser/query/paths/path_atom.h"
 #include "parser/query/paths/path_check.h"
 #include "parser/query/paths/path_kleene_star.h"
+#include "parser/query/paths/path_negated_set.h"
 #include "parser/query/paths/path_optional.h"
 #include "parser/query/paths/path_sequence.h"
 
@@ -108,6 +109,11 @@ unique_ptr<IPath> PathDenull::denull(unique_ptr<PathSequence> path_sequence) {
         new_alternatives.push_back(denull(move(path_sequence->sequence.at(i))));
     }
     return make_unique<PathAlternatives>(move(new_alternatives));
+}
+
+
+unique_ptr<IPath> PathDenull::denull(unique_ptr<PathNegatedSet> negated_set) {
+    return negated_set;
 }
 
 

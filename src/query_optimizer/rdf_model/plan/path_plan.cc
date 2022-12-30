@@ -2,7 +2,6 @@
 
 #include "base/exceptions.h"
 #include "base/query/sparql/sparql_element.h"
-#include "base/query/sparql/path.h"
 #include "query_optimizer/rdf_model/rdf_model.h"
 #include "execution/binding_id_iter/paths/any_shortest/iter/bfs_iter_enum2.h"
 #include "execution/binding_id_iter/paths/any_shortest/simple/bfs_check2.h"
@@ -12,7 +11,7 @@
 using namespace std;
 using namespace SPARQL;
 
-PathPlan::PathPlan(VarId path_var, Id subject, SPARQL::IPath& path, Id object, PathSemantic path_semantic) :
+PathPlan::PathPlan(VarId path_var, Id subject, IPath& path, Id object, PathSemantic path_semantic) :
     path_var         (path_var),
     subject          (subject),
     path             (path),

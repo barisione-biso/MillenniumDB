@@ -168,6 +168,6 @@ ObjectId SparqlElementToObjectId::operator()(bool b) {
     return ObjectId(ObjectId::MASK_BOOL | (b ? 0x01 : 0x00));
 }
 
-ObjectId SparqlElementToObjectId::operator()(const std::unique_ptr<SPARQL::IPath>&) {
+ObjectId SparqlElementToObjectId::operator()(const std::unique_ptr<IPath>&) {
     throw LogicException("IPath cannot be converted into ObjectId");
 }

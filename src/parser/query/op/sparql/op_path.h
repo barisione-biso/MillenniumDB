@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 
-#include "base/query/sparql/path.h"
 #include "base/query/sparql/sparql_element.h"
 #include "parser/query/op/op.h"
 

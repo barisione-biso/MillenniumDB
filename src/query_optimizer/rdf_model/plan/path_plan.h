@@ -1,13 +1,12 @@
 #pragma once
 
-#include "base/query/sparql/path.h"
 #include "parser/query/op/sparql/op_path.h"
 #include "query_optimizer/plan/plan.h"
 
 namespace SPARQL {
 class PathPlan : public Plan {
 public:
-    PathPlan(VarId path_var, Id subject, SPARQL::IPath& path, Id object, PathSemantic path_semantic);
+    PathPlan(VarId path_var, Id subject, IPath& path, Id object, PathSemantic path_semantic);
 
     PathPlan(const PathPlan& other) :
         path_var           (other.path_var),
@@ -40,7 +39,7 @@ public:
 private:
     VarId path_var;
     Id subject;
-    SPARQL::IPath& path;
+    IPath& path;
     Id object;
 
     bool subject_assigned;

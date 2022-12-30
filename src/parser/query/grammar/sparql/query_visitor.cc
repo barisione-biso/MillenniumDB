@@ -3,6 +3,12 @@
 #include "base/exceptions.h"
 #include "parser/query/expr/sparql_exprs.h"
 #include "parser/query/op/sparql/ops.h"
+#include "parser/query/paths/path_alternatives.h"
+#include "parser/query/paths/path_sequence.h"
+#include "parser/query/paths/path_atom.h"
+#include "parser/query/paths/path_kleene_star.h"
+#include "parser/query/paths/path_optional.h"
+#include "parser/query/paths/path_negated_set.h"
 
 using namespace SPARQL;
 using antlrcpp::Any;
@@ -1184,7 +1190,7 @@ Any QueryVisitor::visitVerbPath(SparqlParser::VerbPathContext* ctx) {
             PathAtom* tmp = dynamic_cast<PathAtom*>(current_path.get());
             if (!tmp->inverse) {
                 // And it is not inverted, it can be simplified as an Iri
-                current_sparql_element = SparqlElement(Iri(tmp->iri));
+                current_sparql_element = SparqlElement(Iri(tmp->atom));
                 return 0;
             }
         }

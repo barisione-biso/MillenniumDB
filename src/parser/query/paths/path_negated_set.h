@@ -3,10 +3,8 @@
 #include <memory>
 #include <vector>
 
-#include "base/query/sparql/path.h"
-#include "base/query/sparql/path_atom.h"
-
-namespace SPARQL {
+#include "parser/query/paths/path.h"
+#include "parser/query/paths/path_atom.h"
 
 class PathNegatedSet : public IPath {
 public:
@@ -39,6 +37,16 @@ public:
         return result;
     }
 
+    std::ostream& print_to_ostream(std::ostream& os, int indent = 0) const override {
+        os << std::string(indent, ' ');
+        os << "PathNegatedSet(";
+        for (const auto& atom : negated_set) {
+            os << atom.atom << "|";
+        }
+        os << ")\n";
+        return os;
+    }
+
     std::unique_ptr<IPath> invert() const override {
         // TODO: implement this
         throw std::runtime_error("PathNegatedSet::invert() not implemented");
@@ -52,5 +60,9 @@ public:
         // TODO: implement this
         throw std::runtime_error("PathNegatedSet::get_rpq_base_automaton() not implemented");
     }
+
+    RDPQAutomaton get_rdpq_base_automaton() const override {
+        // TODO: implement this
+        throw std::runtime_error("PathNegatedSet::get_rpq_base_automaton() not implemented");
+    }
 };
-} // namespace SPARQL

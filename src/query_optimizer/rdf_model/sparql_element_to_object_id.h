@@ -16,7 +16,7 @@ struct SparqlElementToObjectId {
     ObjectId operator()(DateTime);
     ObjectId operator()(Decimal);
     ObjectId operator()(bool);
-    ObjectId operator()(const std::unique_ptr<SPARQL::IPath>&);
+    ObjectId operator()(const std::unique_ptr<IPath>&);
     // ObjectId operator()(int64_t);
     // ObjectId operator()(float);
 
