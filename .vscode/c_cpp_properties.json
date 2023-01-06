@@ -26,6 +26,7 @@
             "includePath": [
                 "${workspaceFolder}/src/",
                 "${workspaceFolder}/third_party/antlr4-runtime-4.9.3/runtime/src",
+                "${workspaceFolder}/third_party/boost_1_81/include",
                 "/usr/include/"
             ],
             "defines": []

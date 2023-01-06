@@ -18,13 +18,11 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -pedantic -O0 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -pedantic -O3 -g0 \
 -pthread -march=native -funroll-loops")
 
-find_package(Boost 1.71.0 REQUIRED)
-
-include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/antlr4-runtime-4.9.3)
 include_directories(${CMAKE_SOURCE_DIR}/third_party/antlr4-runtime-4.9.3/runtime/src)
+include_directories(${CMAKE_SOURCE_DIR}/third_party/boost_1_81/include)
 
 file(GLOB_RECURSE SRCS src/*.cc)
 

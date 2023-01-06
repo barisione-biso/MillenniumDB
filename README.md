@@ -39,22 +39,34 @@ ___
 MillenniumDB should be able to be built in any x86-64 linux distribution.
 If you work on windows, you can use Windows Subsystem for Linux (WSL).
 
-1. Install prerequisites to compile:
+1. Install prerequisites to compile c++:
 
-    - Boost Library version 1.71.0 or newer
     - Gcc version 8.1 or newer
-    - Cmake version 3.10 or newer
+    - Cmake version 3.12 or newer
 
     For distributions based on **Ubuntu 20.04 or newer** this can be done by running:
     - `sudo apt update`
-    - `sudo apt install git g++ cmake libboost-all-dev`
+    - `sudo apt install git g++ cmake`
 
      Other linux distributions may need to install the prerequisites differently. Some distributions might have repositories with too old versions and the project won't compile, in that case you'll need to manually install the appropriate versions.
 
-2. Clone this repository and enter to the 'MillenniumDB' folder:
+2. Clone this repository and enter to the 'MillenniumDB' folder. Set `MDB_HOME` as the project root folder directory.
+    - `git clone git@github.com:MillenniumDB/MillenniumDB-Dev.git`
+    - `cd MillenniumDB-Dev`
+    - `export MDB_HOME=$(pwd)`
 
-3. Build the project:
-    - `cmake -Bbuild/Release -DCMAKE_BUILD_TYPE=Release && cmake --build build/Release/`
+3. Install the Boost Library version 1.81.0
+    - Download the file `boost_1_81_0.tar.gz` from `https://www.boost.org/users/history/version_1_81_0.html` and extract it.
+        - `tar -xf boost_1_81_0.tar.gz`
+    - Enter the boost directory
+        - `cd boost_1_81_0/`
+
+    - `./bootstrap.sh --prefix=$MDB_HOME/third_party/boost_1_81`
+    - `./b2 --prefix=$MDB_HOME/third_party/boost_1_81`
+    - `./b2 install`
+
+4. Build the project:
+    - `cmake -B build/Release -D CMAKE_BUILD_TYPE=Release && cmake --build build/Release/`
 
 # Data model
 Our data model is similar to the known *labeled property graph* model. In simplified terms we could say that edges were extended such that the source or destination may be another edge. To be more precise, below is the full specification.
