@@ -7,6 +7,8 @@
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_and.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_or.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_not.h"
+#include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_unary_minus.h"
+#include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_unary_plus.h"
 #include "query_optimizer/rdf_model/sparql_element_to_object_id.h"
 #include "parser/query/expr/sparql_exprs.h"
 
@@ -48,6 +50,27 @@ void Expr2BindingIdExpr::visit(ExprNotEqual& expr_not_equal) {
     current_binding_id_expr = make_unique<BindingIdExprNotEquals>(move(lhs), move(rhs));
 }
 
+void Expr2BindingIdExpr::visit(ExprNot& expr_not) {
+    expr_not.expr->accept_visitor(*this);
+    auto expr = move(current_binding_id_expr);
+
+    current_binding_id_expr = make_unique<BindingIdExprNot>(move(expr));
+}
+
+void Expr2BindingIdExpr::visit(ExprUnaryMinus& expr_unary_minus) {
+    expr_unary_minus.expr->accept_visitor(*this);
+    auto expr = move(current_binding_id_expr);
+
+    current_binding_id_expr = make_unique<BindingIdExprUnaryMinus>(move(expr));
+}
+
+void Expr2BindingIdExpr::visit(ExprUnaryPlus& expr_unary_plus) {
+    expr_unary_plus.expr->accept_visitor(*this);
+    auto expr = move(current_binding_id_expr);
+
+    current_binding_id_expr = make_unique<BindingIdExprUnaryPlus>(move(expr));
+}
+
 void Expr2BindingIdExpr::visit(ExprAnd& expr_and) {
     expr_and.lhs->accept_visitor(*this);
     auto lhs = move(current_binding_id_expr);
@@ -66,11 +89,4 @@ void Expr2BindingIdExpr::visit(ExprOr& expr_or) {
     auto rhs = move(current_binding_id_expr);
 
     current_binding_id_expr = make_unique<BindingIdExprOr>(move(lhs), move(rhs));
-}
-
-void Expr2BindingIdExpr::visit(ExprNot& expr_not) {
-    expr_not.expr->accept_visitor(*this);
-    auto expr = move(current_binding_id_expr);
-
-    current_binding_id_expr = make_unique<BindingIdExprNot>(move(expr));
 }
