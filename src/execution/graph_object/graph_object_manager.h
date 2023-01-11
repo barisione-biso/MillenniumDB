@@ -79,7 +79,7 @@ struct GraphObjectManager {
             return os;
         }
         default:
-            throw LogicException("Unmanaged case");
+            throw LogicException("Unmanaged case print");
         }
     }
 
@@ -206,8 +206,18 @@ struct GraphObjectManager {
             path.path_printer->print(os, path.path_id);
             return os;
         }
+        case GraphObjectType::INT: {
+            return os << '"'
+                      << GraphObjectInterpreter::get<int64_t>(graph_obj)
+                      << "\"^^<http://www.w3.org/2001/XMLSchema#integer>";
+        }
+        case GraphObjectType::FLOAT: {
+            return os << '"'
+                      << GraphObjectInterpreter::get<float>(graph_obj)
+                      << "\"^^<http://www.w3.org/2001/XMLSchema#float>";
+        }
         default:
-            throw LogicException("Unmanaged case");
+            throw LogicException("Unmanaged case print_rdf");
         }
     }
 
@@ -349,8 +359,18 @@ struct GraphObjectManager {
             path.path_printer->print(os, path.path_id);
             return os;
         }
+        case GraphObjectType::INT: {
+            return os << '"'
+                      << GraphObjectInterpreter::get<int64_t>(graph_obj)
+                      << "\"^^xsd:integer";
+        }
+        case GraphObjectType::FLOAT: {
+            return os << '"'
+                      << GraphObjectInterpreter::get<float>(graph_obj)
+                      << "\"^^xsd:float";
+        }
         default:
-            throw LogicException("Unmanaged case");
+            throw LogicException("Unmanaged case print_rdf_compressed");
         }
     }
 
@@ -479,7 +499,7 @@ struct GraphObjectManager {
             case GraphObjectType::PATH:
                 return GraphObjectInterpreter::get<Path>(lhs).path_id - GraphObjectInterpreter::get<Path>(rhs).path_id;
             default:
-                throw LogicException("Unmanaged case");
+                throw LogicException("Unmanaged case compare");
             }
         } else {
             return (lhs.type < rhs.type) ? -1 : 1;
@@ -821,7 +841,7 @@ struct GraphObjectManager {
                 }
             }
             default:
-                throw LogicException("Unmanaged case");
+                throw LogicException("Unmanaged case compare_rdf");
             }
         }
         else {

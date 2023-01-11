@@ -1,5 +1,7 @@
 #include "filter.h"
 
+#include "base/ids/object_id_conversions.h"
+
 void Filter::begin(BindingId& _parent_binding) {
     parent_binding = &_parent_binding;
     child->begin(_parent_binding);
@@ -11,7 +13,7 @@ bool Filter::next() {
         bool pass_filters = true;
         for (auto& filter : filters) {
             auto evaluation = filter->eval(*parent_binding);
-            if (evaluation.id != (ObjectId::MASK_BOOL | 1UL)) { // TODO: write more elegant
+            if (Conversions::to_boolean(evaluation).id != ObjectId::BOOL_TRUE) { // TODO: write more elegant
                 pass_filters = false;
                 break;
             }

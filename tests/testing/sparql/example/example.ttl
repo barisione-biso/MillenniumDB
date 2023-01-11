@@ -200,5 +200,23 @@ path:AdidasSuperStar  path:hasCategory  path:Classic .
 path:VansOldSkool     path:hasColor     path:White .
 path:ReebokClassic    path:hasCategory  path:Classic .
 
-# TODO: Integer
+# 9. Integer
+@prefix num: <http://www.integer.com/> .
+num:s num:p "-20"^^xsd:nonPositiveInteger,
+            "-10"^^xsd:negativeInteger .
+
+num:s num:p "-1"^^xsd:integer,
+            "1"^^xsd:long,
+            "2"^^xsd:int,
+            "3"^^xsd:short,
+            "4"^^xsd:byte .
+
+num:s num:p "10"^^xsd:nonNegativeInteger,
+            "20"^^xsd:unsignedLong,
+            "30"^^xsd:unsignedInt,
+            "40"^^xsd:unsignedShort .
+# 10. Float
+num:s num:p "-1.0"^^xsd:float,
+            "7.5e5"^^xsd:double .
+
 # TODO: Blank nodes

@@ -1,4 +1,4 @@
 SELECT ?s ?p
 WHERE {
-    ?s ?p 100 .
+    ?s ?p "100"^^xsd:decimal .
 }

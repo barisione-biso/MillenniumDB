@@ -17,8 +17,8 @@ struct SparqlElementToObjectId {
     ObjectId operator()(Decimal);
     ObjectId operator()(bool);
     ObjectId operator()(const std::unique_ptr<IPath>&);
-    // ObjectId operator()(int64_t);
-    // ObjectId operator()(float);
+    ObjectId operator()(int64_t);
+    ObjectId operator()(float);
 
 private:
     bool create_if_not_exists;

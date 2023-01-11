@@ -18,9 +18,9 @@ public:
         auto rhs_value = rhs->eval(binding_id);
 
         if (lhs_value == rhs_value) {
-            return ObjectId(ObjectId::MASK_BOOL|1UL);
+            return ObjectId(ObjectId::BOOL_TRUE);
         } else {
-            return ObjectId(ObjectId::MASK_BOOL|0UL);
+            return ObjectId(ObjectId::BOOL_FALSE);
         }
     }
 };

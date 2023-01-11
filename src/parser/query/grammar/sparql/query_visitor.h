@@ -58,8 +58,6 @@ private:
     std::string iriCtxToString(SparqlParser::IriContext*);
     std::string stringCtxToString(SparqlParser::StringContext*);
 public:
-    QueryVisitor();
-
     std::unique_ptr<Op> current_op;
     virtual antlrcpp::Any visitQuery(SparqlParser::QueryContext*) override;
 
@@ -67,6 +65,7 @@ public:
     virtual antlrcpp::Any visitDescribeQuery(SparqlParser::DescribeQueryContext*) override;
     virtual antlrcpp::Any visitAskQuery(SparqlParser::AskQueryContext*) override;
     virtual antlrcpp::Any visitUpdateCommand(SparqlParser::UpdateCommandContext*) override;
+    virtual antlrcpp::Any visitPrologue(SparqlParser::PrologueContext*) override;
     virtual antlrcpp::Any visitBaseDecl(SparqlParser::BaseDeclContext*) override;
     virtual antlrcpp::Any visitPrefixDecl(SparqlParser::PrefixDeclContext*) override;
     virtual antlrcpp::Any visitSolutionModifier(SparqlParser::SolutionModifierContext*) override;

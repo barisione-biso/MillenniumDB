@@ -13,10 +13,6 @@
 using namespace SPARQL;
 using antlrcpp::Any;
 
-QueryVisitor::QueryVisitor() {
-    prefix_iris_map.insert({"xsd", "http://www.w3.org/2001/XMLSchema#"});
-}
-
 Any QueryVisitor::visitConstructQuery(SparqlParser::ConstructQueryContext*) {
     throw NotSupportedException("Construct query");
 }
@@ -38,6 +34,14 @@ Any QueryVisitor::visitQuery(SparqlParser::QueryContext* ctx) {
     visitChildren(ctx);
     if (current_op == nullptr) {
         throw QueryParsingException("Empty query");
+    }
+    return 0;
+}
+
+Any QueryVisitor::visitPrologue(SparqlParser::PrologueContext* ctx) {
+    visitChildren(ctx);
+    if (!prefix_iris_map.contains("xsd")) {
+        prefix_iris_map.insert({"xsd", "http://www.w3.org/2001/XMLSchema#"});
     }
     return 0;
 }
@@ -310,38 +314,11 @@ Any QueryVisitor::visitPrimaryExpression(SparqlParser::PrimaryExpressionContext*
             ));
         }
     } else if (ctx->rdfLiteral()) {
-        auto literal_str_with_quotes = ctx->rdfLiteral()->string()->getText();
-        auto literal_str = literal_str_with_quotes.substr(1, literal_str_with_quotes.size() - 2);
-        if (ctx->rdfLiteral()->LANGTAG()) {
-            // string with language
-            current_expr = std::make_unique<ExprTerm>(SparqlElement(
-                LiteralLanguage(literal_str, ctx->rdfLiteral()->LANGTAG()->getText().substr(1))
-            ));
-        } else if (ctx->rdfLiteral()->iri()) {
-            // string with datatype
-            auto datatype = iriCtxToString(ctx->rdfLiteral()->iri());
-
-            if (datatype == "http://www.w3.org/2001/XMLSchema#string") {
-                current_expr = std::make_unique<ExprTerm>(SparqlElement(
-                    Literal(literal_str)
-                ));
-            // TODO: detect more supported datatypes
-            } else {
-                current_expr = std::make_unique<ExprTerm>(SparqlElement(
-                    LiteralDatatype(literal_str, datatype)
-                ));
-            }
-        } else {
-            // string simple
-            current_expr = std::make_unique<ExprTerm>(SparqlElement(
-                Literal(literal_str)
-            ));
-        }
+        visit(ctx->rdfLiteral());
+        current_expr = std::make_unique<ExprTerm>(std::move(current_sparql_element));
     } else if (ctx->numericLiteral()) {
-        // TODO: detect if it is int, float or decimal?
-        current_expr = std::make_unique<ExprTerm>(SparqlElement(
-            Decimal(ctx->numericLiteral()->getText())
-        ));
+        visit(ctx->numericLiteral());
+        current_expr = std::make_unique<ExprTerm>(std::move(current_sparql_element));
     } else if (ctx->booleanLiteral()) {
         current_expr = std::make_unique<ExprTerm>(SparqlElement(
             ctx->booleanLiteral()->TRUE() != nullptr
@@ -391,14 +368,12 @@ Any QueryVisitor::visitAdditiveExpression(SparqlParser::AdditiveExpressionContex
         bool minus = false;
         std::unique_ptr<Expr> multiplicative_rhs;
         if (current_additive_sub_expr->numericLiteralPositive()) {
-            multiplicative_rhs = std::make_unique<ExprTerm>(SparqlElement(
-                Decimal(current_additive_sub_expr->numericLiteralPositive()->getText().substr(1))
-            ));
+            visit(current_additive_sub_expr->numericLiteralPositive());
+            multiplicative_rhs = std::make_unique<ExprTerm>(std::move(current_sparql_element));
         } else if (current_additive_sub_expr->numericLiteralNegative()) {
             minus = true;
-            multiplicative_rhs = std::make_unique<ExprTerm>(SparqlElement(
-                Decimal(current_additive_sub_expr->numericLiteralNegative()->getText().substr(1))
-            ));
+            visit(current_additive_sub_expr->numericLiteralNegative());
+            multiplicative_rhs = std::make_unique<ExprTerm>(std::move(current_sparql_element));
         } else if (current_additive_sub_expr->PLUS_SIGN()) {
             visit(current_additive_sub_expr->multiplicativeExpression());
             assert(current_expr != nullptr);
@@ -1084,7 +1059,7 @@ Any QueryVisitor::visitRdfLiteral(SparqlParser::RdfLiteralContext* ctx) {
     std::string str = stringCtxToString(ctx->string());
     if (ctx->iri()) {
         std::string iri = iriCtxToString(ctx->iri());
-        // xsd:dateTime
+        // DateTime: xsd:dateTime
         if (iri == "http://www.w3.org/2001/XMLSchema#dateTime") {
             uint64_t datetime_id = DateTime::get_datetime_id(str.c_str());
             if (datetime_id == DateTime::INVALID_ID) {
@@ -1092,9 +1067,38 @@ Any QueryVisitor::visitRdfLiteral(SparqlParser::RdfLiteralContext* ctx) {
             }
             current_sparql_element = SparqlElement(DateTime(datetime_id));
         }
-        // xsd:decimal
+        // String: xsd:string
+        else if (iri == "http://www.w3.org/2001/XMLSchema#string") {
+            current_sparql_element = SparqlElement(Literal(str));
+        }
+        // Decimal: xsd:decimal
         else if (iri == "http://www.w3.org/2001/XMLSchema#decimal") {
             current_sparql_element = SparqlElement(Decimal(str));
+        }
+        // Float: xsd:float and xsd:double (double precision is not guaranteed)
+        else if (iri == "http://www.w3.org/2001/XMLSchema#float" || iri == "http://www.w3.org/2001/XMLSchema#double") {
+            current_sparql_element = SparqlElement(std::stof(str));
+        }
+        // Signed Integer: xsd:integer, xsd:long, xsd:int, xsd:short and xsd:byte
+        else if (iri == "http://www.w3.org/2001/XMLSchema#integer"
+                 || iri == "http://www.w3.org/2001/XMLSchema#long"
+                 || iri == "http://www.w3.org/2001/XMLSchema#int"
+                 || iri == "http://www.w3.org/2001/XMLSchema#short"
+                 || iri == "http://www.w3.org/2001/XMLSchema#byte") {
+            current_sparql_element = SparqlElement(int64_t(std::stoll(str)));
+        }
+        // Negative Integer: xsd:nonPositiveInteger, xsd:negativeInteger
+        else if (iri == "http://www.w3.org/2001/XMLSchema#nonPositiveInteger"
+                 || iri == "http://www.w3.org/2001/XMLSchema#negativeInteger") {
+            current_sparql_element = SparqlElement(int64_t(std::stoll(str)));
+        }
+        // Positive Integer: xsd:nonNegativeInteger, xsd:unsignedLong, xsd:unsignedInt, xsd:unsignedShort,
+        // xsd:unsignedByte
+        else if (iri == "http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+                 || iri == "http://www.w3.org/2001/XMLSchema#unsignedLong"
+                 || iri == "http://www.w3.org/2001/XMLSchema#unsignedInt"
+                 || iri == "http://www.w3.org/2001/XMLSchema#unsignedShort") {
+            current_sparql_element = SparqlElement(int64_t(std::stoll(str)));
         }
         // xsd:boolean
         else if (iri == "http://www.w3.org/2001/XMLSchema#boolean") {
@@ -1122,19 +1126,52 @@ Any QueryVisitor::visitRdfLiteral(SparqlParser::RdfLiteralContext* ctx) {
 
 
 Any QueryVisitor::visitNumericLiteralUnsigned(SparqlParser::NumericLiteralUnsignedContext* ctx) {
-    current_sparql_element = SparqlElement(Decimal(ctx->getText()));
+    if (ctx->INTEGER()) {
+        try {
+            current_sparql_element = SparqlElement(int64_t(stoll(ctx->getText())));
+        } catch (std::out_of_range& e) {
+            current_sparql_element = SparqlElement(Decimal(ctx->getText()));
+        }
+    } else if (ctx->DECIMAL()) {
+        current_sparql_element = SparqlElement(Decimal(ctx->getText()));
+    } else {
+        // Float
+        current_sparql_element = SparqlElement(std::stof(ctx->getText()));
+    }
     return 0;
 }
 
 
 Any QueryVisitor::visitNumericLiteralPositive(SparqlParser::NumericLiteralPositiveContext* ctx) {
-    current_sparql_element = SparqlElement(Decimal(ctx->getText()));
+    if (ctx->INTEGER_POSITIVE()) {
+        try {
+            current_sparql_element = SparqlElement(int64_t(stoll(ctx->getText())));
+        } catch (std::out_of_range& e) {
+            current_sparql_element = SparqlElement(Decimal(ctx->getText()));
+        }
+    } else if (ctx->DECIMAL_POSITIVE()) {
+        current_sparql_element = SparqlElement(Decimal(ctx->getText()));
+    } else {
+        // Float
+        current_sparql_element = SparqlElement(std::stof(ctx->getText()));
+    }
     return 0;
 }
 
 
 Any QueryVisitor::visitNumericLiteralNegative(SparqlParser::NumericLiteralNegativeContext* ctx) {
-    current_sparql_element = SparqlElement(Decimal(ctx->getText()));
+    if (ctx->INTEGER_NEGATIVE()) {
+        try {
+            current_sparql_element = SparqlElement(int64_t(stoll(ctx->getText())));
+        } catch (std::out_of_range& e) {
+            current_sparql_element = SparqlElement(Decimal(ctx->getText()));
+        }
+    } else if (ctx->DECIMAL_NEGATIVE()) {
+        current_sparql_element = SparqlElement(Decimal(ctx->getText()));
+    } else {
+        // Float
+        current_sparql_element = SparqlElement(std::stof(ctx->getText()));
+    }
     return 0;
 }
 

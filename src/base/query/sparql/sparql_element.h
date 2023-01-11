@@ -17,7 +17,7 @@
 class SparqlElement {
 public:
     // TODO: implement, replace literal with string?
-    std::variant<Var, Iri, Literal, LiteralDatatype, LiteralLanguage, DateTime, Decimal, bool, std::unique_ptr<IPath>> value;
+    std::variant<Var, Iri, Literal, LiteralDatatype, LiteralLanguage, DateTime, Decimal, bool, std::unique_ptr<IPath>, int64_t, float> value;
 
     SparqlElement() : value(false) { }
 
@@ -38,6 +38,10 @@ public:
     explicit SparqlElement(bool b) : value(b) { }
 
     SparqlElement(std::unique_ptr<IPath> path) : value(std::move(path)) { }
+
+    explicit SparqlElement(int64_t i) : value(i) { }
+
+    explicit SparqlElement(float f) : value(f) { }
 
     SparqlElement duplicate() const;
 

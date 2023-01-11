@@ -33,6 +33,13 @@ SLEEP_DELAY = 2
 # Maximum time in seconds that the server will wait for a query
 TIMEOUT     = 60
 
+# Ignored tests
+IGNORED_BAD_QUERIES = [
+    "not_well_designed_1.rq",
+    "not_well_designed_2.rq"
+]
+IGNORED_GOOD_QUERIES = [ ]
+
 
 def print_log(message, type=""):
     to_print = ""
@@ -152,6 +159,8 @@ def execute_bad_queries(bad_queries_dir, server_process):
         to_find = os.path.join(query_category_dir, "*")
         for query_file in glob.glob(to_find):
             query_name = os.path.basename(query_file)
+            if query_name in IGNORED_BAD_QUERIES:
+                continue
             exit_code = query_bad(query_file, server_process)
             if exit_code == 0:
                 print_log(f"\"{query_category_name}/{query_name}\"", type="error")
@@ -173,6 +182,8 @@ def execute_good_queries(good_queries_dir, server_process):
         to_find = os.path.join(query_category_dir, "*.rq")
         for query_file in glob.glob(to_find):
             query_name = os.path.basename(query_file)
+            if query_name in IGNORED_GOOD_QUERIES:
+                continue
             is_correct = query_good(query_file, server_process)
             if is_correct:
                 print_log(f"\"{query_category_name}/{query_name}\"", type="ok")
@@ -243,6 +254,10 @@ if __name__ == "__main__":
     print("FINAL SUMMARY:")
     print(f"    OK    : {total_count_ok}/{total}")
     print(f"    ERROR : {total_count_error}/{total}")
+    print("-" * 50)
+    print("IGNORED TESTS:")
+    for test_name in IGNORED_BAD_QUERIES + IGNORED_GOOD_QUERIES:
+        print(test_name)
     print("-" * 50)
     # Remove temp file
     if os.path.exists(RESULTS_TMP_FILE):

@@ -25,15 +25,15 @@ public:
     void visit(SPARQL::ExprEqual&)          override;
     void visit(SPARQL::ExprNotEqual&)       override;
 
-    // void visit(SPARQL::ExprNot&)            override;
+    void visit(SPARQL::ExprNot&)            override;
     // void visit(SPARQL::ExprUnaryMinus&)     override;
     // void visit(SPARQL::ExprUnaryPlus&)      override;
     // void visit(SPARQL::ExprMultiplication&) override;
     // void visit(SPARQL::ExprDivision&)       override;
     // void visit(SPARQL::ExprAddition&)       override;
     // void visit(SPARQL::ExprSubtraction&)    override;
-    // void visit(SPARQL::ExprAnd&)            override;
-    // void visit(SPARQL::ExprOr&)             override;
+    void visit(SPARQL::ExprAnd&)            override;
+    void visit(SPARQL::ExprOr&)             override;
     // void visit(SPARQL::ExprLess&)           override;
     // void visit(SPARQL::ExprGreater&)        override;
     // void visit(SPARQL::ExprLessOrEqual&)    override;

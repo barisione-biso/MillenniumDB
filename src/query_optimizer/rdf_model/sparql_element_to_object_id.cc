@@ -171,3 +171,36 @@ ObjectId SparqlElementToObjectId::operator()(bool b) {
 ObjectId SparqlElementToObjectId::operator()(const std::unique_ptr<IPath>&) {
     throw LogicException("IPath cannot be converted into ObjectId");
 }
+
+ObjectId SparqlElementToObjectId::operator()(int64_t i) {
+    // If the integer uses more than 56 bits, it must be converted into Decimal Extern (overflow)
+    if (i < -0x00FF'FFFF'FFFF'FFFF || i > 0x00FF'FFFF'FFFF'FFFF) {
+        uint64_t external_id = string_manager.get_str_id(Decimal::normalize(std::to_string(i)), create_if_not_exists);
+        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
+            return ObjectId::get_not_found();
+        } else {
+            return ObjectId(external_id | ObjectId::MASK_DECIMAL_EXTERN);
+        }
+    } else if (i < 0) {
+        i *= -1;
+        i = (~i) & 0x00FF'FFFF'FFFF'FFFFUL;
+        return ObjectId(i | ObjectId::MASK_NEGATIVE_INT);
+    } else {
+        return ObjectId(i | ObjectId::MASK_POSITIVE_INT);
+    }
+}
+
+ObjectId SparqlElementToObjectId::operator()(float f) {
+    static_assert(sizeof(f) == 4);
+    unsigned char bytes[sizeof(f)];
+    memcpy(bytes, &f, sizeof(f));
+
+    uint64_t res = 0;
+    int shift_size = 0;
+    for (std::size_t i = 0; i < sizeof(bytes); ++i) {
+        uint64_t byte = bytes[i];
+        res |= byte << shift_size;
+        shift_size += 8;
+    }
+    return ObjectId(ObjectId::MASK_FLOAT | res);
+}

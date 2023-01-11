@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <type_traits>
 
+#include "base/exceptions.h"
+
 enum class RDF_MASK {
     IRI_INLINED             = 0x02,
     IRI_EXTERN              = 0x03,
@@ -52,6 +54,9 @@ public:
 
     static constexpr uint64_t NULL_OBJECT_ID      = 0;
     static constexpr uint64_t OBJECT_ID_NOT_FOUND = UINT64_MAX;
+
+    static constexpr uint64_t BOOL_FALSE = MASK_BOOL | 0UL;
+    static constexpr uint64_t BOOL_TRUE  = MASK_BOOL | 1UL;
 
     uint64_t id;
 

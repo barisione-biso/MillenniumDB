@@ -42,4 +42,12 @@ struct SparqlElementToString {
     std::string operator()(const std::unique_ptr<IPath>& path) {
         return path.get()->to_string();
     }
+
+    std::string operator()(int64_t i) {
+        return '"' + std::to_string(i) + "\"^^<http://www.w3.org/2001/XMLSchema#integer>";
+    }
+
+    std::string operator()(float f) {
+        return '"' + std::to_string(f) + "\"^^<http://www.w3.org/2001/XMLSchema#float>";
+    }
 };
