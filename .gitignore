@@ -80,3 +80,6 @@ db/*
 
 .antlr
 third_party/boost_1_81
+
+# Python virtual environment
+.venv
