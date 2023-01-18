@@ -18,6 +18,10 @@ enum class RDF_MASK {
     ANON                    = 0x10,
     DATETIME                = 0x13,
     DECIMAL                 = 0x14,
+    IRI_TMP                 = 0x16,
+    STRING_TMP2             = 0x17,
+    STRING_DATATYPE_TMP2    = 0x18,
+    STRING_LANG_TMP2        = 0x19,
 };
 
 class ObjectId {
@@ -49,6 +53,10 @@ public:
     static constexpr uint64_t MASK_DATETIME                = 0x13'00000000000000UL;
     static constexpr uint64_t MASK_DECIMAL_INLINED         = 0x14'00000000000000UL;
     static constexpr uint64_t MASK_DECIMAL_EXTERN          = 0x15'00000000000000UL;
+    static constexpr uint64_t MASK_IRI_TMP                 = 0x16'00000000000000UL;
+    static constexpr uint64_t MASK_STRING_TMP2             = 0x17'00000000000000UL;
+    static constexpr uint64_t MASK_STRING_DATATYPE_TMP2    = 0x18'00000000000000UL;
+    static constexpr uint64_t MASK_STRING_LANG_TMP2        = 0x19'00000000000000UL;
 
     static_assert(MASK_NEGATIVE_INT < MASK_POSITIVE_INT, "Integers won't be ordered properly in the B+Tree.");
 

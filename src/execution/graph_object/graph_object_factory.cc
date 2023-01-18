@@ -10,19 +10,24 @@
 #include "base/graph_object/iri_external.h"
 #include "base/graph_object/iri_inlined.h"
 #include "base/graph_object/iri_tmp.h"
+#include "base/graph_object/iri_tmp2.h"
 #include "base/graph_object/literal_datatype_external.h"
 #include "base/graph_object/literal_datatype_inlined.h"
 #include "base/graph_object/literal_datatype_tmp.h"
+#include "base/graph_object/literal_datatype_tmp2.h"
 #include "base/graph_object/literal_language_external.h"
 #include "base/graph_object/literal_language_inlined.h"
 #include "base/graph_object/literal_language_tmp.h"
+#include "base/graph_object/literal_language_tmp2.h"
 #include "base/graph_object/not_found_object.h"
 #include "base/graph_object/null_graph_object.h"
 #include "base/graph_object/path.h"
 #include "base/graph_object/string_external.h"
 #include "base/graph_object/string_inlined.h"
 #include "base/graph_object/string_tmp.h"
+#include "base/graph_object/string_tmp2.h"
 #include "execution/graph_object/graph_object_types.h"
+
 
 union GraphObjectUnion {
     friend class GraphObjectFactory;
@@ -50,6 +55,11 @@ union GraphObjectUnion {
     DecimalInlined          decimal_inlined;
     DecimalExternal         decimal_external;
     DecimalTmp              decimal_tmp;
+    IriTmp2                 iri_tmp2;
+    StringTmp2              str_tmp2;
+    LiteralDatatypeTmp2     ld_tmp2;
+    LiteralLanguageTmp2     ll_tmp2;
+
 
 private:
     GraphObjectUnion(Edge n) : edge(n) { }
@@ -73,6 +83,10 @@ private:
     GraphObjectUnion(DecimalInlined n) : decimal_inlined(n) { }
     GraphObjectUnion(DecimalExternal n) : decimal_external(n) { }
     GraphObjectUnion(DecimalTmp n) : decimal_tmp(n) { }
+    GraphObjectUnion(IriTmp2 n) : iri_tmp2(n) { }
+    GraphObjectUnion(StringTmp2 n) : str_tmp2(n) { }
+    GraphObjectUnion(LiteralDatatypeTmp2 n) : ld_tmp2(n) { }
+    GraphObjectUnion(LiteralLanguageTmp2 n) : ll_tmp2(n) { }
     // TODO: implement what to do with sparql paths?? they shouldn't be transformed to GraphObject
 };
 
@@ -171,6 +185,23 @@ GraphObject GraphObjectFactory::make_decimal_external(uint64_t external_id) {
 GraphObject GraphObjectFactory::make_decimal_inlined(uint64_t decimal_id) {
     return GraphObject(GraphObjectUnion(DecimalInlined(decimal_id)).i, GraphObjectType::DECIMAL_INLINED);
 }
+
+GraphObject GraphObjectFactory::make_iri_tmp2(uint64_t temporal_id) {
+    return GraphObject(GraphObjectUnion(IriTmp2(temporal_id)).i, GraphObjectType::IRI_TMP2);
+}
+
+GraphObject GraphObjectFactory::make_string_tmp2(uint64_t temporal_id) {
+    return GraphObject(GraphObjectUnion(StringTmp2(temporal_id)).i, GraphObjectType::STR_TMP2);
+}
+
+GraphObject GraphObjectFactory::make_literal_datatype_tmp2(uint64_t temporal_id) {
+    return GraphObject(GraphObjectUnion(LiteralDatatypeTmp2(temporal_id)).i, GraphObjectType::LITERAL_DATATYPE_TMP2);
+}
+
+GraphObject GraphObjectFactory::make_literal_language_tmp2(uint64_t temporal_id) {
+    return GraphObject(GraphObjectUnion(LiteralLanguageTmp2(temporal_id)).i, GraphObjectType::LITERAL_LANGUAGE_TMP2);
+}
+
 
 template<>
 Edge GraphObjectInterpreter::get<Edge>(const GraphObject graph_object) {
@@ -280,4 +311,24 @@ DecimalExternal GraphObjectInterpreter::get<DecimalExternal>(const GraphObject g
 template<>
 DecimalTmp GraphObjectInterpreter::get<DecimalTmp>(const GraphObject graph_object) {
     return GraphObjectUnion(int64_t(graph_object.encoded_value)).decimal_tmp;
+}
+
+template<>
+IriTmp2 GraphObjectInterpreter::get<IriTmp2>(const GraphObject graph_object) {
+    return GraphObjectUnion(int64_t(graph_object.encoded_value)).iri_tmp2;
+}
+
+template<>
+StringTmp2 GraphObjectInterpreter::get<StringTmp2>(const GraphObject graph_object) {
+    return GraphObjectUnion(int64_t(graph_object.encoded_value)).str_tmp2;
+}
+
+template<>
+LiteralLanguageTmp2 GraphObjectInterpreter::get<LiteralLanguageTmp2>(const GraphObject graph_object) {
+    return GraphObjectUnion(int64_t(graph_object.encoded_value)).ll_tmp2;
+}
+
+template<>
+LiteralDatatypeTmp2 GraphObjectInterpreter::get<LiteralDatatypeTmp2>(const GraphObject graph_object) {
+    return GraphObjectUnion(int64_t(graph_object.encoded_value)).ld_tmp2;
 }

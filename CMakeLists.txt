@@ -23,6 +23,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/antlr4-runtime-4.9.3)
 include_directories(${CMAKE_SOURCE_DIR}/third_party/antlr4-runtime-4.9.3/runtime/src)
 include_directories(${CMAKE_SOURCE_DIR}/third_party/boost_1_81/include)
+link_directories(${CMAKE_SOURCE_DIR}/third_party/boost_1_81/lib)
 
 file(GLOB_RECURSE SRCS src/*.cc)
 
@@ -37,6 +38,8 @@ set(BUILD_TARGETS
     create_db
     create_db_sparql
     query
+    server_sparql2
+    service
 )
 
 set(TEST_TARGETS
@@ -45,11 +48,11 @@ set(TEST_TARGETS
     compare_decimal_both_inl
     compare_decimal_inl_ext
     normalize_decimal
-    playground
+    # playground
     # parse_sparql
     # create_bpt
     # check_bpts
-    # execute_query
+    execute_query
 )
 
 foreach(target ${BUILD_TARGETS})
@@ -58,6 +61,8 @@ foreach(target ${BUILD_TARGETS})
         millenniumdb
         antlr4_cpp_runtime
         stdc++fs
+        ssl
+        crypto
     )
 endforeach(target)
 

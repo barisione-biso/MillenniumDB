@@ -31,4 +31,9 @@ public:
     static GraphObject make_decimal_external(uint64_t external_id);
     static GraphObject make_decimal_inlined(uint64_t decimal_id);
     // static GraphObject make_decimal_tmp(const std::string& str);
+    static GraphObject make_iri_tmp2(uint64_t temporal_id);
+    static GraphObject make_string_tmp2(uint64_t temporal_id);
+    static GraphObject make_literal_datatype_tmp2(uint64_t temporal_id);
+    static GraphObject make_literal_language_tmp2(uint64_t temporal_id);
+
 };

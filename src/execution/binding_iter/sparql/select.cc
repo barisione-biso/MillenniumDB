@@ -27,16 +27,17 @@ void Select::begin(std::ostream& _os) {
     auto it = projection_vars.cbegin();
     if (it != projection_vars.cend()) {
         auto& var_varid_pair = *it;
-        (*os) << var_varid_pair.first;
+        // Only on csv
+        //(*os) << var_varid_pair.first;
         ++it;
     }
     while (it != projection_vars.cend()) {
         auto& var_varid_pair = *it;
-        (*os) << "," << var_varid_pair.first;
+        // Only on csv
+        //(*os) << "," << var_varid_pair.first;
         ++it;
     }
-    (*os) << '\n'
-          << "---------------------------------------\n";
+    //(*os) << '\n'
 
     child_iter->begin(_os);
 }
@@ -50,19 +51,31 @@ bool Select::next() {
             return false;
         }
     }
+    // json format
+    (*os) << "{";
     if (count < limit && child_iter->next()) {
         auto it = projection_vars.cbegin();
 
         if (it != projection_vars.cend()) {
             auto& var_varid_pair = *it;
+            // json format
+            //(*os) << "\"" << var_varid_pair.first << "\": \"" <<
+            //      (*child_iter)[var_varid_pair.second] << "\"";
+            // csv format
             (*os) << (*child_iter)[var_varid_pair.second];
             ++it;
         }
         while (it != projection_vars.cend()) {
             auto& var_varid_pair = *it;
+            // json format
+            //(*os) << "," << "\"" << var_varid_pair.first << "\": \"" <<
+            //       (*child_iter)[var_varid_pair.second] << "\"";
+            // csv format
             (*os) << "," << (*child_iter)[var_varid_pair.second];
             ++it;
         }
+        // (*os) << "}";
+        // CSV format
         (*os) << "\n";
         count++;
         return true;

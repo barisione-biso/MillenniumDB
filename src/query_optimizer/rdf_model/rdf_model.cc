@@ -18,6 +18,7 @@
 #include "storage/file_manager.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/string_manager.h"
+#include "storage/temporal_manager.h"
 
 using namespace std;
 
@@ -49,6 +50,7 @@ RdfModel::RdfModel(const std::string& db_folder,
     BufferManager::init(shared_buffer_pool_size, private_buffer_pool_size, max_threads);
     PathManager::init(max_threads);
     StringManager::init();
+    TemporalManager::init();
 
     new (&catalog())       RdfCatalog("catalog.dat"); // placement new
 
@@ -260,6 +262,22 @@ GraphObject RdfModel::get_graph_object(ObjectId object_id) const {
 
         case ObjectId::MASK_DECIMAL_INLINED: {
             return GraphObjectFactory::make_decimal_inlined(unmasked_id);
+        }
+
+        case ObjectId::MASK_IRI_TMP: {
+            return GraphObjectFactory::make_iri_tmp2(unmasked_id);
+        }
+
+        case ObjectId::MASK_STRING_TMP2: {
+            return GraphObjectFactory::make_string_tmp2(unmasked_id);
+        }
+
+        case ObjectId::MASK_STRING_DATATYPE_TMP2: {
+            return GraphObjectFactory::make_literal_datatype_tmp2(unmasked_id);
+        }
+
+        case ObjectId::MASK_STRING_LANG_TMP2: {
+            return GraphObjectFactory::make_literal_language_tmp2(unmasked_id);
         }
 
         default: {

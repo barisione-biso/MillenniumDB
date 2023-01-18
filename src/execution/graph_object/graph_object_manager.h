@@ -29,7 +29,12 @@
 #include "execution/graph_object/graph_object_factory.h"
 #include "execution/graph_object/graph_object_types.h"
 #include "storage/string_manager.h"
+#include "storage/temporal_manager.h"
 #include "query_optimizer/rdf_model/rdf_model.h"
+#include "base/graph_object/iri_tmp2.h"
+#include "base/graph_object/string_tmp2.h"
+#include "base/graph_object/literal_datatype_tmp2.h"
+#include "base/graph_object/literal_language_tmp2.h"
 
 // Types that can be saved both inline and external
 enum SPARQL_COMPLEX_TYPES {
@@ -106,7 +111,7 @@ struct GraphObjectManager {
 
             return os << '<'
                       << rdf_model.catalog().prefixes[iri_inl.prefix_id]
-                      << iri_inl.id 
+                      << iri_inl.id
                       << '>';
         }
         case GraphObjectType::IRI_EXTERNAL: {
@@ -126,29 +131,25 @@ struct GraphObjectManager {
                       << '>';
         case GraphObjectType::LITERAL_DATATYPE_INLINED: {
             auto ld_inl = GraphObjectInterpreter::get<LiteralDatatypeInlined>(graph_obj);
-
-            return os << '"' 
-                      << ld_inl.id
-                      << "\"^^<"
-                      << rdf_model.catalog().datatypes[ld_inl.datatype_id]
-                      << '>';
+            os << '"'
+               << ld_inl.id;
+            print_datatype_rdf(os, ld_inl.datatype_id);
+            return os;
         }
         case GraphObjectType::LITERAL_DATATYPE_EXTERNAL: {
             auto ld_ext = GraphObjectInterpreter::get<LiteralDatatypeExternal>(graph_obj);
-
-            uint16_t datatype_id = (ld_ext.external_id & 0x00FF'FF00'0000'0000UL) >> 40;
-            uint64_t str_id      = ld_ext.external_id & 0x0000'00FF'FFFF'FFFFUL;
+            uint64_t str_id = ld_ext.external_id & 0x0000'00FF'FFFF'FFFFUL;
+            uint64_t datatype_id = (ld_ext.external_id & 0x00FF'FF00'0000'0000UL) >> 40;
 
             os << '"';
             string_manager.print(os, str_id);
-            return os << "\"^^<"
-                      << rdf_model.catalog().datatypes[datatype_id]
-                      << '>';
+            print_datatype_rdf(os, datatype_id);
+            return os;
         }
         case GraphObjectType::LITERAL_DATATYPE_TMP: {
             auto ld_tmp = GraphObjectInterpreter::get<LiteralDatatypeTmp>(graph_obj);
 
-            return os << '"' 
+            return os << '"'
                       << ld_tmp.ld->str
                       << "\"^^<"
                       << ld_tmp.ld->datatype
@@ -156,27 +157,24 @@ struct GraphObjectManager {
         }
         case GraphObjectType::LITERAL_LANGUAGE_INLINED: {
             auto ll_inl = GraphObjectInterpreter::get<LiteralLanguageInlined>(graph_obj);
-
-            return os << '"' 
-                      << ll_inl.id
-                      << "\"@"
-                      << rdf_model.catalog().languages[ll_inl.language_id];
+            os << '"'
+               << ll_inl.id;
+            print_language_rdf(os, ll_inl.language_id);
+            return os;
         }
         case GraphObjectType::LITERAL_LANGUAGE_EXTERNAL: {
             auto ll_ext = GraphObjectInterpreter::get<LiteralLanguageExternal>(graph_obj);
-
-            uint16_t language_id = (ll_ext.external_id & 0x00FF'FF00'0000'0000UL) >> 40;
-            uint64_t str_id      = ll_ext.external_id & 0x0000'00FF'FFFF'FFFFUL;
-
+            uint64_t str_id = ll_ext.external_id & 0x0000'00FF'FFFF'FFFFUL;
+            uint64_t language_id = (ll_ext.external_id & 0x00FF'FF00'0000'0000UL) >> 40;
             os << '"';
             string_manager.print(os, str_id);
-            return os << "\"@"
-                      << rdf_model.catalog().languages[language_id];
+            print_language_rdf(os, language_id);
+            return os;
         }
         case GraphObjectType::LITERAL_LANGUAGE_TMP: {
             auto ll_tmp = GraphObjectInterpreter::get<LiteralLanguageTmp>(graph_obj);
 
-            return os << '"' 
+            return os << '"'
                       << ll_tmp.ll->str
                       << "\"@"
                       << ll_tmp.ll->language;
@@ -184,7 +182,7 @@ struct GraphObjectManager {
         case GraphObjectType::DATETIME: {
             return os << '"'
                       << GraphObjectInterpreter::get<DateTime>(graph_obj).get_value_string()
-                      << "\"^^<http://www.w3.org/2001/XMLSchema#dateTime>";            
+                      << "\"^^<http://www.w3.org/2001/XMLSchema#dateTime>";
         }
         case GraphObjectType::DECIMAL_INLINED: {
             return os << '"'
@@ -200,6 +198,42 @@ struct GraphObjectManager {
             return os << '"'
                       << *GraphObjectInterpreter::get<DecimalTmp>(graph_obj).str
                       << "\"^^<http://www.w3.org/2001/XMLSchema#decimal>";
+        }
+        case GraphObjectType::IRI_TMP2: {
+            auto iri_tmp = GraphObjectInterpreter::get<IriTmp2>(graph_obj);
+
+            uint8_t prefix_id = (iri_tmp.temporal_id & 0x00FF'0000'0000'0000UL) >> 48;
+            uint64_t iri_id = iri_tmp.temporal_id & 0x0000'FFFF'FFFF'FFFFUL;
+
+            os << '<'
+               << rdf_model.catalog().prefixes[prefix_id];
+            temporal_manager.print_str(os, iri_id); // gets string from id
+            return os << '>';
+        }
+        case GraphObjectType::STR_TMP2: {
+            auto string_tmp = GraphObjectInterpreter::get<StringTmp2>(graph_obj);
+            os << '"';
+            temporal_manager.print_str(os, string_tmp.temporal_id); // gets string from id
+            return os << '"';
+        }
+        case GraphObjectType::LITERAL_DATATYPE_TMP2: {
+            auto ld_tmp = GraphObjectInterpreter::get<LiteralDatatypeTmp2>(graph_obj);
+            uint64_t str_id = ld_tmp.temporal_id & 0x0000'00FF'FFFF'FFFFUL;
+            uint64_t datatype_id = (ld_tmp.temporal_id & 0x00FF'FF00'0000'0000UL) >> 40;
+
+            os << '"';
+            temporal_manager.print_str(os, str_id);
+            print_datatype_rdf(os, datatype_id);
+            return os;
+        }
+        case GraphObjectType::LITERAL_LANGUAGE_TMP2: {
+            auto ll_temp = GraphObjectInterpreter::get<LiteralLanguageTmp2>(graph_obj);
+            uint64_t str_id = ll_temp.temporal_id & 0x0000'00FF'FFFF'FFFFUL;
+            uint64_t language_id = (ll_temp.temporal_id & 0x00FF'FF00'0000'0000UL) >> 40;
+            os << '"';
+            temporal_manager.print_str(os, str_id);
+            print_language_rdf(os, language_id);
+            return os;
         }
         case GraphObjectType::PATH: {
             auto path = GraphObjectInterpreter::get<Path>(graph_obj);
@@ -280,7 +314,7 @@ struct GraphObjectManager {
         case GraphObjectType::LITERAL_DATATYPE_INLINED: {
             auto ld_inl = GraphObjectInterpreter::get<LiteralDatatypeInlined>(graph_obj);
 
-            return os << '"' 
+            return os << '"'
                       << ld_inl.id
                       << "\"^^<"
                       << rdf_model.catalog().datatypes[ld_inl.datatype_id]
@@ -301,7 +335,7 @@ struct GraphObjectManager {
         case GraphObjectType::LITERAL_DATATYPE_TMP: {
             auto ld_tmp = GraphObjectInterpreter::get<LiteralDatatypeTmp>(graph_obj);
 
-            return os << '"' 
+            return os << '"'
                       << ld_tmp.ld->str
                       << "\"^^<"
                       << ld_tmp.ld->datatype
@@ -310,7 +344,7 @@ struct GraphObjectManager {
         case GraphObjectType::LITERAL_LANGUAGE_INLINED: {
             auto ll_inl = GraphObjectInterpreter::get<LiteralLanguageInlined>(graph_obj);
 
-            return os << '"' 
+            return os << '"'
                       << ll_inl.id
                       << "\"@"
                       << rdf_model.catalog().languages[ll_inl.language_id];
@@ -329,7 +363,7 @@ struct GraphObjectManager {
         case GraphObjectType::LITERAL_LANGUAGE_TMP: {
             auto ll_tmp = GraphObjectInterpreter::get<LiteralLanguageTmp>(graph_obj);
 
-            return os << '"' 
+            return os << '"'
                       << ll_tmp.ll->str
                       << "\"@"
                       << ll_tmp.ll->language;
@@ -512,7 +546,7 @@ struct GraphObjectManager {
     static int compare_rdf(const GraphObject& lhs, const GraphObject& rhs) {
         if (lhs.type == rhs.type && lhs.encoded_value == rhs.encoded_value)
             return 0;
-        
+
         auto lhs_complex_type = SPARQL_COMPLEX_TYPES::NONE;
         auto rhs_complex_type = SPARQL_COMPLEX_TYPES::NONE;
 
@@ -947,5 +981,20 @@ struct GraphObjectManager {
                                                 % GraphObjectInterpreter::get<int64_t>(rhs));
         }
         return GraphObjectFactory::make_null();
+    }
+
+    static void print_datatype_rdf(std::ostream& os, uint64_t datatype_id){
+        uint64_t tmp_mask = 0x8000; // 1000 0000 0000 0000
+        os << "\"^^<";
+        if ((datatype_id & tmp_mask) == 0) os << rdf_model.catalog().datatypes[datatype_id];
+        else temporal_manager.print_dtt(os, (datatype_id & 0x7FFF)); // 0111 1111 1111 1111
+        os << '>';
+    }
+
+    static void print_language_rdf(std::ostream& os, uint64_t language_id){
+        uint64_t tmp_mask = 0x8000; // 1000 0000 0000 0000
+        os << "\"@";
+        if ((language_id & tmp_mask) == 0) os << rdf_model.catalog().languages[language_id];
+        else temporal_manager.print_lan(os, (language_id & 0x7FFF)); // 0111 1111 1111 1111
     }
 };
