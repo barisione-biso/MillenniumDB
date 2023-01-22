@@ -35,6 +35,7 @@ add_library(millenniumdb STATIC ${sources})
 set(BUILD_TARGETS
     server
     server_sparql
+    server_sparql2
     create_db
     create_db_sparql
     query

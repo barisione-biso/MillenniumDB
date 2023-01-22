@@ -56,7 +56,7 @@ RdfModel::RdfModel(const std::string& db_folder,
 
     Path::path_printer = &path_manager;
 
-    GraphObject::graph_object_print    = GraphObjectManager::print_rdf;
+    GraphObject::graph_object_print    = GraphObjectManager::print_rdf_json;
     GraphObject::graph_object_eq       = GraphObjectManager::equal;
     GraphObject::graph_object_cmp      = GraphObjectManager::compare_rdf;
     GraphObject::graph_object_sum      = GraphObjectManager::sum;

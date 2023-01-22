@@ -23,63 +23,48 @@ Select::~Select() {
 
 void Select::begin(std::ostream& _os) {
     os = &_os;
+    child_iter->begin(_os);
+
     // print header
+    (*os) << "{\"head\":{\"vars\":[";
     auto it = projection_vars.cbegin();
     if (it != projection_vars.cend()) {
-        auto& var_varid_pair = *it;
-        // Only on csv
-        //(*os) << var_varid_pair.first;
-        ++it;
+        (*os) << '"' << it->first << '"';
     }
-    while (it != projection_vars.cend()) {
-        auto& var_varid_pair = *it;
-        // Only on csv
-        //(*os) << "," << var_varid_pair.first;
-        ++it;
+    while (++it != projection_vars.cend()) {
+        (*os) << ",\"" << it->first << '"';
     }
-    //(*os) << '\n'
-
-    child_iter->begin(_os);
+    (*os) << "]},\"results\":{\"bindings\": [";
 }
 
 bool Select::next() {
     while (offset > 0) {
         if (child_iter->next()) {
             --offset;
-        }
-        else {
+        } else {
             return false;
         }
     }
+
     // json format
-    (*os) << "{";
     if (count < limit && child_iter->next()) {
+        if (count > 0) {
+            (*os) << ',';
+        }
+        (*os) << "{";
         auto it = projection_vars.cbegin();
 
         if (it != projection_vars.cend()) {
-            auto& var_varid_pair = *it;
-            // json format
-            //(*os) << "\"" << var_varid_pair.first << "\": \"" <<
-            //      (*child_iter)[var_varid_pair.second] << "\"";
-            // csv format
-            (*os) << (*child_iter)[var_varid_pair.second];
-            ++it;
+            (*os) << "\"" << it->first << "\":" << (*child_iter)[it->second];
         }
-        while (it != projection_vars.cend()) {
-            auto& var_varid_pair = *it;
-            // json format
-            //(*os) << "," << "\"" << var_varid_pair.first << "\": \"" <<
-            //       (*child_iter)[var_varid_pair.second] << "\"";
-            // csv format
-            (*os) << "," << (*child_iter)[var_varid_pair.second];
-            ++it;
+        while (++it != projection_vars.cend()) {
+            (*os) << "," << "\"" << it->first << "\":" << (*child_iter)[it->second];
         }
-        // (*os) << "}";
-        // CSV format
-        (*os) << "\n";
+        (*os) << "}";
         count++;
         return true;
     } else {
+        (*os) << "]}}";
         return false;
     }
 }
