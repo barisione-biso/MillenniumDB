@@ -39,7 +39,6 @@ set(BUILD_TARGETS
     create_db
     create_db_sparql
     query
-    server_sparql2
     service
 )
 
