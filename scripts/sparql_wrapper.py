@@ -3,10 +3,10 @@ import multiprocessing
 import time
 
 def send_query(i):
-    query= 'SELECT * WHERE { ?s ?p ?o . } LIMIT 1000'
+    query= 'SELECT * WHERE { ?s ?p ?o . } LIMIT 500'
 
     try:
-        sparql_wrapper = SPARQLWrapper('http://localhost:8080/asd')
+        sparql_wrapper = SPARQLWrapper('http://localhost:8080/sparql')
 
         # sparql_wrapper.setMethod('POST')
         # sparql_wrapper.setRequestMethod('postdirectly')
@@ -16,10 +16,13 @@ def send_query(i):
 
         results = sparql_wrapper.query()
 
-        print(results)
-        # json_results = results.convert()
-        #     for _ in json_results["results"]["bindings"]:
-        #         count += 1
+        # print(results)
+        count = 0
+        json_results = results.convert()
+        print(json_results)
+        for _ in json_results["results"]["bindings"]:
+            count += 1
+        print("results:", count)
     except Exception as e:
         print(e)
     print(f'finished thread {i}')
