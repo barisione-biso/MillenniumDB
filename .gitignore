@@ -82,5 +82,7 @@ db/*
 
 third_party/boost_1_81
 
+.vscode/tasks.json
+
 # Python virtual environment
 .venv
