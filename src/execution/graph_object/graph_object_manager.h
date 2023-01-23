@@ -365,15 +365,29 @@ struct GraphObjectManager {
                       << GraphObjectInterpreter::get<DateTime>(graph_obj).get_value_string()
                       << "\",\"datatype\":\"http://www.w3.org/2001/XMLSchema#dateTime\"}";
         }
+        case GraphObjectType::INT: {
+            return os << "{\"type\":\"literal\",\"value\":\""
+                      << GraphObjectInterpreter::get<int64_t>(graph_obj)
+                      << "\",\"datatype\":\"http://www.w3.org/2001/XMLSchema#integer\"}";
+        }
+        case GraphObjectType::FLOAT: {
+            return os << "{\"type\":\"literal\",\"value\":\""
+                      << GraphObjectInterpreter::get<float>(graph_obj)
+                      << "\",\"datatype\":\"http://www.w3.org/2001/XMLSchema#float\"}";
+        }
         case GraphObjectType::DECIMAL_INLINED: {
             return os << "{\"type\":\"literal\",\"value\":\""
                       << GraphObjectInterpreter::get<DecimalInlined>(graph_obj).get_value_string()
                       << "\",\"datatype\":\"http://www.w3.org/2001/XMLSchema#decimal\"}";
         }
         case GraphObjectType::DECIMAL_EXTERNAL: {
-            os << "{\"type\":\"literal\",\"value\":\"";
-            string_manager.print(os, GraphObjectInterpreter::get<DecimalExternal>(graph_obj).external_id);
-            return os << "\",\"datatype\":\"http://www.w3.org/2001/XMLSchema#decimal\"}";
+            std::stringstream ss;
+            string_manager.print(ss, GraphObjectInterpreter::get<DecimalExternal>(graph_obj).external_id);
+            Decimal dec;
+            dec.from_external(ss.str());
+            return os << "{\"type\":\"literal\",\"value\":\""
+                      << dec
+                      << "\",\"datatype\":\"http://www.w3.org/2001/XMLSchema#decimal\"}";
         }
         case GraphObjectType::DECIMAL_TMP: {
             return os << "{\"type\":\"literal\",\"value\":\""
