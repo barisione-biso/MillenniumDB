@@ -150,9 +150,9 @@ ObjectId SparqlElementToObjectId::operator()(DateTime dt) {
 }
 
 ObjectId SparqlElementToObjectId::operator()(Decimal dec) {
-    uint64_t decimal_id = DecimalInlined::get_decimal_id(dec.str.c_str());
+    uint64_t decimal_id = DecimalInlined::get_decimal_id(dec.to_string().c_str());
     if (decimal_id == DecimalInlined::INVALID_ID) {
-        uint64_t external_id = string_manager.get_str_id(Decimal::normalize(dec.str), create_if_not_exists);
+        uint64_t external_id = string_manager.get_str_id(dec.to_external(), create_if_not_exists);
         if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
             return ObjectId::get_not_found();
         } else {
@@ -175,7 +175,7 @@ ObjectId SparqlElementToObjectId::operator()(const std::unique_ptr<IPath>&) {
 ObjectId SparqlElementToObjectId::operator()(int64_t i) {
     // If the integer uses more than 56 bits, it must be converted into Decimal Extern (overflow)
     if (i < -0x00FF'FFFF'FFFF'FFFF || i > 0x00FF'FFFF'FFFF'FFFF) {
-        uint64_t external_id = string_manager.get_str_id(Decimal::normalize(std::to_string(i)), create_if_not_exists);
+        uint64_t external_id = string_manager.get_str_id(Decimal(i).to_external(), create_if_not_exists);
         if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
             return ObjectId::get_not_found();
         } else {

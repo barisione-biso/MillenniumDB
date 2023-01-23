@@ -4,7 +4,7 @@
 
 using namespace SPARQL;
 
-void CheckWellDesigned::visit(OpOptional& op_optional) {
+void CheckWellDesigned::visit(OpOptional&) {
     // TODO: implement
     // auto local_vars = op_optional.op->get_vars();
 

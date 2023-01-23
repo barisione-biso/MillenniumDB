@@ -8,9 +8,10 @@ namespace SPARQL {
 class ExprIRI : public Expr {
 public:
     std::unique_ptr<Expr> expr;
+    std::string base_iri;
 
-    ExprIRI(std::unique_ptr<Expr> expr) :
-        expr (std::move(expr)) { }
+    ExprIRI(std::unique_ptr<Expr> expr, std::string base_iri) :
+        expr (std::move(expr)), base_iri (base_iri) { }
 
     void accept_visitor(ExprVisitor& visitor) override {
         visitor.visit(*this);

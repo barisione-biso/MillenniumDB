@@ -87,7 +87,11 @@
         "charconv": "cpp",
         "source_location": "cpp",
         "rope": "cpp",
-        "slist": "cpp"
+        "slist": "cpp",
+        "coroutine": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "span": "cpp"
     },
     "python.pythonPath": "/usr/bin/python3",
     "python.linting.pylintEnabled": true,
@@ -116,7 +120,7 @@
         "STRLANG",
         "STRSTARTS",
         "STRUUID",
-        "UCASE"
+        "UCASE",
         "Kleene",
         "Serd",
         "Sparql"

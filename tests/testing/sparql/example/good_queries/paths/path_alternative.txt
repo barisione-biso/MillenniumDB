@@ -7,5 +7,5 @@ product,attribute,path
 <http://www.path.com/ReebokClassic>,<http://www.path.com/Classic>,(path:ReebokClassic)-[path:hasCategory]->(path:Classic)
 ---------------------------------------
 Found 5 results.
-Execution time: 0.691 ms.
-Optimizer time: 6.5012 ms.
+Execution time: 0.012482 ms.
+Optimizer time: 0.083939 ms.

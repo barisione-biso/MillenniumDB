@@ -19,7 +19,7 @@ public:
     }
 
     virtual std::ostream& print_to_ostream(std::ostream& os, int indent = 0) const override {
-        return os << std::string(indent, ' ') << "NOW()";
+        return os << std::string(indent, ' ') << "RAND()";
     }
 };
 } // namespace SPARQL

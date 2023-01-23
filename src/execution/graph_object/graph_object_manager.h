@@ -1,8 +1,14 @@
 #pragma once
 
 #include <ostream>
+#include <sstream>
 
 #include "base/exceptions.h"
+#include "base/graph_object/iri_tmp2.h"
+#include "base/graph_object/string_tmp2.h"
+#include "base/graph_object/literal_datatype_tmp2.h"
+#include "base/graph_object/literal_language_tmp2.h"
+#include "base/query/sparql/decimal.h"
 #include "base/graph_object/anonymous_node.h"
 #include "base/graph_object/edge.h"
 #include "base/graph_object/graph_object.h"
@@ -31,10 +37,6 @@
 #include "storage/string_manager.h"
 #include "storage/temporal_manager.h"
 #include "query_optimizer/rdf_model/rdf_model.h"
-#include "base/graph_object/iri_tmp2.h"
-#include "base/graph_object/string_tmp2.h"
-#include "base/graph_object/literal_datatype_tmp2.h"
-#include "base/graph_object/literal_language_tmp2.h"
 
 // Types that can be saved both inline and external
 enum SPARQL_COMPLEX_TYPES {
@@ -191,7 +193,11 @@ struct GraphObjectManager {
         }
         case GraphObjectType::DECIMAL_EXTERNAL: {
             os << '"';
-            string_manager.print(os, GraphObjectInterpreter::get<DecimalExternal>(graph_obj).external_id);
+            std::stringstream ss;
+            string_manager.print(ss, GraphObjectInterpreter::get<DecimalExternal>(graph_obj).external_id);
+            Decimal dec;
+            dec.from_external(ss.str());
+            os << dec.to_string();
             return os << "\"^^<http://www.w3.org/2001/XMLSchema#decimal>";
         }
         case GraphObjectType::DECIMAL_TMP: {

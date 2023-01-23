@@ -31,7 +31,7 @@ struct SparqlElementToString {
     }
 
     std::string operator()(const Decimal& d) {
-        return d.str; // TODO: change?
+        return d.to_string(); // TODO: change?
         // return '"' + d.str + "\"^^<http://www.w3.org/2001/XMLSchema#decimal>";
     }
 

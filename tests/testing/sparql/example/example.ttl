@@ -217,4 +217,8 @@ num:s num:p "10"^^xsd:nonNegativeInteger,
 num:s num:p "-1.0"^^xsd:float,
             "7.5e5"^^xsd:double .
 
-# TODO: Blank nodes
+# Blank nodes
+@prefix bn: <http://www.blanknode.com/> .
+_:b1 bn:p1 bn:o1 .
+_:b2 bn:p2 bn:o2 .
+_:b3 bn:p3 bn:o3 .

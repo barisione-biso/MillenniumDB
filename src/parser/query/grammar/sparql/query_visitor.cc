@@ -514,11 +514,13 @@ Any QueryVisitor::visitBuiltInCall(SparqlParser::BuiltInCallContext* ctx) {
     }
     else if (ctx->IRI()) {
         visit(ctx->expression(0));
-        current_expr = std::make_unique<ExprIRI>(std::move(current_expr));
+        // IRI Nees to know the base IRI of the query
+        current_expr = std::make_unique<ExprIRI>(std::move(current_expr), base_iri);
     }
     else if (ctx->URI()) {
         visit(ctx->expression(0));
-        current_expr = std::make_unique<ExprURI>(std::move(current_expr));
+        // URI Nees to know the base IRI of the query
+        current_expr = std::make_unique<ExprURI>(std::move(current_expr), base_iri);
     }
     else if (ctx->BNODE()) {
         visit(ctx->expression(0));
@@ -1061,7 +1063,7 @@ Any QueryVisitor::visitRdfLiteral(SparqlParser::RdfLiteralContext* ctx) {
         std::string iri = iriCtxToString(ctx->iri());
         // DateTime: xsd:dateTime
         if (iri == "http://www.w3.org/2001/XMLSchema#dateTime") {
-            uint64_t datetime_id = DateTime::get_datetime_id(str.c_str());
+            uint64_t datetime_id = DateTime::get_datetime_id(str);
             if (datetime_id == DateTime::INVALID_ID) {
                 throw QueryException("Invalid datetime value: " + str);
             }

@@ -6,7 +6,7 @@
 using namespace std;
 using namespace SPARQL;
 
-void OptimizeOptionalTree::visit(OpOptional& op_optional) {
+void OptimizeOptionalTree::visit(OpOptional&) {
     // TODO:
     // op_optional.op->accept_visitor(*this);
     // bool current_move_children_up = false;

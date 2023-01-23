@@ -98,7 +98,7 @@ void BindingIdIterVisitor::visit(OpFilter& op_filter) {
 }
 
 
-void BindingIdIterVisitor::visit(OpOptional& op_optional) {
+void BindingIdIterVisitor::visit(OpOptional&) {
     // TODO:
     // op_optional.op->accept_visitor(*this);
     // unique_ptr<BindingIdIter> binding_id_iter = move(tmp);

@@ -35,7 +35,7 @@ int main() {
     };
 
     for (auto dec : tests) {
-        std::string norm = Decimal::normalize(dec.first);
+        std::string norm = Decimal(dec.first).to_string();
         if (norm != dec.second) {
             std::cout << "Error: " << dec.first << " -> " << norm << " != " << dec.second << std::endl;
             return 1;

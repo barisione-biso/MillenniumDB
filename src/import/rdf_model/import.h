@@ -281,7 +281,7 @@ private:
             uint64_t decimal_id = DecimalInlined::get_decimal_id(cchar);
             if (decimal_id == DecimalInlined::INVALID_ID) {
                 std::string str(cchar);
-                std::string normalized = Decimal::normalize(str);
+                std::string normalized = Decimal(str).to_external();
                 object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
             } else {
                 object_id = decimal_id | ObjectId::MASK_DECIMAL_INLINED;
@@ -315,7 +315,7 @@ private:
                 // If the integer uses more than 56 bits, it must be converted into Decimal Extern (overflow)
                 if (i < -0x00FF'FFFF'FFFF'FFFF || i > 0x00FF'FFFF'FFFF'FFFF) {
                     std::string str(cchar);
-                    std::string normalized = Decimal::normalize(str);
+                    std::string normalized = Decimal(str).to_external();
                     object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
                 } else if (i < 0) {
                     i *= -1;
@@ -326,7 +326,7 @@ private:
                 }
             } catch (const std::out_of_range& e) {
                 std::string str(cchar);
-                std::string normalized = Decimal::normalize(str);
+                std::string normalized = Decimal(str).to_external();
                 object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
             }
         }
@@ -338,7 +338,7 @@ private:
                 // If the integer uses more than 56 bits, it must be converted into Decimal Extern (overflow)
                 if (i < -0x00FF'FFFF'FFFF'FFFF) {
                     std::string str(cchar);
-                    std::string normalized = Decimal::normalize(str);
+                    std::string normalized = Decimal(str).to_external();
                     object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
                 } else {
                     i *= -1;
@@ -347,7 +347,7 @@ private:
                 }
             } catch (const std::out_of_range& e) {
                 std::string str(cchar);
-                std::string normalized = Decimal::normalize(str);
+                std::string normalized = Decimal(str).to_external();
                 object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
             }
         }
@@ -362,14 +362,14 @@ private:
                 // If the integer uses more than 56 bits, it must be converted into Decimal Extern (overflow)
                 if (i > 0x00FF'FFFF'FFFF'FFFF) {
                     std::string str(cchar);
-                    std::string normalized = Decimal::normalize(str);
+                    std::string normalized = Decimal(str).to_external();
                     object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
                 } else {
                     object_id = i | ObjectId::MASK_POSITIVE_INT;
                 }
             } catch (const std::out_of_range& e) {
                 std::string str(cchar);
-                std::string normalized = Decimal::normalize(str);
+                std::string normalized = Decimal(str).to_external();
                 object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
             }
         }

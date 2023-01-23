@@ -9,5 +9,5 @@ ancestor,path
 <http://www.path.com/Adam>,(path:TubalCain)-[path:hasParent]->(path:Lamech)-[path:hasParent]->(path:Methushael)-[path:hasParent]->(path:Mehujael)-[path:hasParent]->(path:Irad)-[path:hasParent]->(path:Enoch)-[path:hasParent]->(path:Cain)-[path:hasParent]->(path:Adam)
 ---------------------------------------
 Found 7 results.
-Execution time: 0.4146 ms.
-Optimizer time: 1.5447 ms.
+Execution time: 0.01442 ms.
+Optimizer time: 0.03812 ms.

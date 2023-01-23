@@ -18,6 +18,7 @@ In other case, the 56 bits are divided into:
 2. The month and year can't be zero.
 3. We do not check if the day is valid according the month and/or year.
 4. Currently, if the dates are the same, but the timezones are different, due the current implementation the order would be `NEGATIVE TIMEZONE > UTC > POSITIVE TIMEZONE`.
+5. If no timezone is present, it will be converted to UTC (timezone=Z)
 
 ## Comparison
 For comparing two dates (lhs < rhs) the algorithm does:

@@ -45,7 +45,7 @@ makefile_out
 # Testing
 tests/dbs/*.*
 tests/dbs/*
-tests/query_debug
+tests/query_debug.rq
 tests/manual_query_debug
 tests/outputs/*
 tests/testing_dbs/*

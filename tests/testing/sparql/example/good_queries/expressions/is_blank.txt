@@ -1,0 +1,9 @@
+o
+---------------------------------------
+<http://www.blanknode.com/o1>
+<http://www.blanknode.com/o2>
+<http://www.blanknode.com/o3>
+---------------------------------------
+Found 3 results.
+Execution time: 0.031704 ms.
+Optimizer time: 0.639598 ms.

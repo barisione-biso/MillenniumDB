@@ -7,9 +7,9 @@ class DateTime {
 public:
     static constexpr uint64_t INVALID_ID = UINT64_MAX;
 
-    static uint64_t get_datetime_id(const char* str) {
+    static uint64_t get_datetime_id(const std::string& str) {
         uint64_t ret = 0;
-        char* ptr    = const_cast<char*>(str);
+        char* ptr    = const_cast<char*>(str.c_str());
 
         int64_t year = strtoll(ptr, &ptr, 10);
         // Set sign bit
@@ -17,18 +17,18 @@ public:
             ret |= 1ULL << 55;
             year *= -1;
         }
-        // Handle big years with lower precision
+        // Handle big   s with lower precision
         if (year > 9'999) {
             // Set precision bit
             ret |= 1ULL << 54;
-            ret |= year / 100;
+            ret |= year;
         } else {
             // Handle full date
-            int64_t mon  = strtoull(ptr + 1, &ptr, 10);
-            int64_t day  = strtoull(ptr + 1, &ptr, 10);
-            int64_t hour = strtoull(ptr + 1, &ptr, 10);
-            int64_t min  = strtoull(ptr + 1, &ptr, 10);
-            int64_t sec  = strtoull(ptr + 1, &ptr, 10);
+            uint64_t mon  = strtoull(ptr + 1, &ptr, 10);
+            uint64_t day  = strtoull(ptr + 1, &ptr, 10);
+            uint64_t hour = strtoull(ptr + 1, &ptr, 10);
+            uint64_t min  = strtoull(ptr + 1, &ptr, 10);
+            uint64_t sec  = strtoull(ptr + 1, &ptr, 10);
             if (sec > 59 || min > 59 || hour > 23 || day > 31 || mon > 12) {
                 // invalid date
                 return INVALID_ID;
@@ -38,11 +38,11 @@ public:
                 strtoull(ptr + 1, &ptr, 10);
             }
             // Handle timezone
-            int64_t tz_sign = 0;
-            int64_t tz_hour = 0;
-            int64_t tz_min  = 0;
+            uint64_t tz_sign = 0;
+            int64_t  tz_hour = 0;
+            uint64_t tz_min  = 0;
             if (*ptr != 'Z') {
-                tz_hour = strtoull(ptr + 1, &ptr, 10);
+                tz_hour = strtoll(ptr, &ptr, 10);
                 tz_min  = strtoull(ptr + 1, &ptr, 10);
                 if (tz_hour < 0) {
                     tz_sign = 1;
@@ -56,8 +56,8 @@ public:
             // Set date
             uint64_t date = 0;
             date |= year;
-            date = (date << 4) | std::max(mon, int64_t(1));
-            date = (date << 5) | std::max(day, int64_t(1));
+            date = (date << 4) | std::max(mon, uint64_t(1));
+            date = (date << 5) | std::max(day, uint64_t(1));
             date = (date << 5) | hour;
             date = (date << 6) | min;
             date = (date << 6) | sec;
@@ -94,7 +94,7 @@ public:
             // Remove sign and precision bits
             datetime_id &= ~(3ULL << 54);
             ss << datetime_id
-                << "00-01-01T00:00:00Z";
+                << "-01-01T00:00:00Z";
         }
         else {
             uint64_t tz_min  = datetime_id & 0x3F;

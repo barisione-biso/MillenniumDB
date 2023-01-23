@@ -13,14 +13,17 @@ public:
         expr (std::move(expr)) { }
 
     ObjectId eval(const BindingId& binding_id) const override {
-        auto expr_value = expr->eval(binding_id);
+        auto expr_oid = expr->eval(binding_id);
         
-        ObjectId expr_bool = Conversions::to_boolean(expr_value);
+        ObjectId expr_bool = Conversions::to_boolean(expr_oid);
 
-        if (expr_bool.id == ObjectId::NULL_OBJECT_ID) {
-            return expr_bool;
-        } else {
-            return ObjectId(expr_bool.id | 1UL);
+        switch (expr_bool.id) {
+        case ObjectId::BOOL_TRUE:
+            return ObjectId(ObjectId::BOOL_FALSE);
+        case ObjectId::BOOL_FALSE:
+            return ObjectId(ObjectId::BOOL_TRUE);
+        default:
+            return ObjectId::get_null();
         }
     }
 };
