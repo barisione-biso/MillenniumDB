@@ -2,19 +2,15 @@
 
 #include <memory>
 
-#include <boost/locale.hpp>
-#include <boost/locale/generator.hpp>
-
 #include "base/ids/object_id_conversions.h"
 #include "execution/binding_id_iter/binding_id_expr/binding_id_expr.h"
 
 class BindingIdExprLCase : public BindingIdExpr {
 private:
     ObjectId pack_lcase(const std::string& str) const {
-        // std::locale loc   = boost::locale::generator()("en_US.UTF-8");
-        // std::string lcase = boost::locale::to_lower(str, loc);
-        // return Conversions::pack_string(lcase);
-        return ObjectId();
+        std::locale locale;
+        std::string lcase = std::tolower(str, locale);
+        return Conversions::pack_string(lcase);
     }
 
 public:

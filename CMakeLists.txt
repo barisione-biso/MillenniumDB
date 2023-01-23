@@ -61,8 +61,6 @@ foreach(target ${BUILD_TARGETS})
         millenniumdb
         antlr4_cpp_runtime
         stdc++fs
-        # boost_locale
-        # boost_system
         ssl
         crypto
     )
@@ -75,8 +73,6 @@ foreach(target ${TEST_TARGETS})
         millenniumdb
         antlr4_cpp_runtime
         stdc++fs
-        # boost_locale
-        # boost_system
     )
     add_test(NAME ${target} COMMAND $<TARGET_FILE:${target}>)
 endforeach(target)

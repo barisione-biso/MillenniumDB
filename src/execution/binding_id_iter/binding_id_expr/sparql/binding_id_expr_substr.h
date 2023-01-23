@@ -1,8 +1,7 @@
 #pragma once
 
+#include <codecvt>
 #include <memory>
-
-// #include <boost/locale.hpp>
 
 #include "base/ids/object_id_conversions.h"
 #include "execution/binding_id_iter/binding_id_expr/binding_id_expr.h"
@@ -18,14 +17,14 @@ private:
         // Fast path for empty strings
         if (str.empty() || start > str.size() || length == 0)
             return ObjectId(ObjectId::STRING_EMPTY);
-        // TODO: Inefficient?
         // Convert to wstring and get the substring
         // This considers the unicode multi-byte characters
-        // std::wstring wstr    = boost::locale::conv::to_utf<wchar_t>(str, "UTF-8");
-        // std::wstring subwstr = wstr.substr(start, length);
-        // std::string  substr  = boost::locale::conv::from_utf(subwstr, "UTF-8");
-        // return Conversions::pack_string(substr);
-        return ObjectId();
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> str_conv;
+
+        auto wstr = str_conv.from_bytes(str);
+        auto sub_wstr = wstr.substr(start, length);
+        auto sub_str  = str_conv.to_bytes(sub_wstr);
+        return Conversions::pack_string(sub_str);
     }
 
 public:
