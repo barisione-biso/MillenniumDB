@@ -17,7 +17,7 @@
         {
             "label": "Release Build",
             "type": "shell",
-            "command": "cmake --build build/Release/ -j 11",
+            "command": "cmake --build build/Release/",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -48,7 +48,7 @@
         {
             "label": "Debug Build",
             "type": "shell",
-            "command": "cmake --build build/Debug/ -j 11",
+            "command": "cmake --build build/Debug/",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
