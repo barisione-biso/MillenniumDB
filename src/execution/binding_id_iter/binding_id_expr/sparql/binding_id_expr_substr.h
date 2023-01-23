@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include <boost/locale.hpp>
+// #include <boost/locale.hpp>
 
 #include "base/ids/object_id_conversions.h"
 #include "execution/binding_id_iter/binding_id_expr/binding_id_expr.h"
@@ -21,10 +21,11 @@ private:
         // TODO: Inefficient?
         // Convert to wstring and get the substring
         // This considers the unicode multi-byte characters
-        std::wstring wstr    = boost::locale::conv::to_utf<wchar_t>(str, "UTF-8");
-        std::wstring subwstr = wstr.substr(start, length);
-        std::string  substr  = boost::locale::conv::from_utf(subwstr, "UTF-8");
-        return Conversions::pack_string(substr);
+        // std::wstring wstr    = boost::locale::conv::to_utf<wchar_t>(str, "UTF-8");
+        // std::wstring subwstr = wstr.substr(start, length);
+        // std::string  substr  = boost::locale::conv::from_utf(subwstr, "UTF-8");
+        // return Conversions::pack_string(substr);
+        return ObjectId();
     }
 
 public:
