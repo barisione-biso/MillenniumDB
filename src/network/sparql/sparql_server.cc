@@ -73,7 +73,7 @@ void SparqlServer::run(unsigned short port,
     threads.reserve(number_of_workers);
     for (auto i = 0; i < number_of_workers; ++i) {
         thread_info_vec.push_back(ThreadInfo()); // TODO: pass i as param
-        threads.emplace_back([&] {
+        threads.emplace_back([&, i] {
             {
                 std::lock_guard<std::mutex> guard(running_threads_queue_mutex);
                 thread_id_map.insert({std::this_thread::get_id(), i});
