@@ -46,7 +46,7 @@ If you work on windows, you can use Windows Subsystem for Linux (WSL).
 
     For distributions based on **Ubuntu 20.04 or newer** this can be done by running:
     - `sudo apt update`
-    - `sudo apt install git g++ cmake`
+    - `sudo apt install git g++ cmake libssl-dev`
 
      Other linux distributions may need to install the prerequisites differently. Some distributions might have repositories with too old versions and the project won't compile, in that case you'll need to manually install the appropriate versions.
 
