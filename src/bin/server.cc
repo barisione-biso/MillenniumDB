@@ -21,6 +21,7 @@ stop the execution throwing a timeout exception.
 #include <chrono>
 #include <fstream>
 #include <queue>
+#include <locale>
 #include <memory>
 #include <mutex>
 #include <random>
@@ -111,6 +112,7 @@ void session(chrono::seconds timeout_duration, tcp::socket sock) {
 
         TcpBuffer tcp_buffer = TcpBuffer(sock);
         ostream os(&tcp_buffer);
+        os.imbue(std::locale(""));
 
         // without this line ConnectionException won't be caught properly
         os.exceptions(ifstream::failbit | ifstream::badbit);
@@ -250,6 +252,11 @@ int main(int argc, char **argv) {
     int max_threads;
     string db_folder;
 
+    try {
+        std::locale::global(std::locale("en_US.UTF-8"));
+    } catch (std::runtime_error&) {
+        std::cerr << "Could not set locale to 'en_US.UTF-8'." << std::endl;
+    }
     ios_base::sync_with_stdio(false);
 
     // TODO: We would like to receive shared and private buffer param in MB or GB

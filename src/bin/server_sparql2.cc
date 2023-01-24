@@ -19,11 +19,13 @@ int main(int argc, char* argv[]) {
 
     ios_base::sync_with_stdio(false);
 
-    try{
+    try {
         std::locale::global(std::locale("en_US.UTF-8"));
     } catch (std::runtime_error&) {
         std::cerr << "Could not set locale to 'en_US.UTF-8'." << std::endl;
     }
+    uint64_t tz_min = 1234;
+    std::cout << tz_min << std::endl;
 
     try {
         // Parse arguments

@@ -1,5 +1,7 @@
 #include "session.h"
 
+#include <locale>
+
 #include "base/exceptions.h"
 #include "parser/query/grammar/error_listener.h"
 #include "parser/query/sparql_query_parser.h"
@@ -142,6 +144,7 @@ void Session::on_read(beast::error_code ec, std::size_t /*bytes_transferred*/) {
 
     HttpBuffer http_buffer(stream.socket());
     std::ostream os(&http_buffer);
+    os.imbue(std::locale(""));
 
     if (req.target().rfind("/sparql", 0) == std::string::npos) {
          os << "HTTP/1.1 404 Not Found\r\n"
