@@ -1,5 +1,4 @@
 #include <iostream>
-#include <locale>
 
 #include "network/sparql/sparql_server.h"
 #include "query_optimizer/rdf_model/rdf_model.h"
@@ -19,14 +18,11 @@ int main(int argc, char* argv[]) {
 
     ios_base::sync_with_stdio(false);
 
-    try {
-        std::locale::global(std::locale("en_US.UTF-8"));
-    } catch (std::runtime_error&) {
-        std::cerr << "Could not set locale to 'en_US.UTF-8'." << std::endl;
-    }
-    uint64_t tz_min = 1234;
-    std::cout << tz_min << std::endl;
-
+    // try {
+    //     std::locale::global(std::locale("en_US.UTF-8"));
+    // } catch (std::runtime_error&) {
+    //     std::cerr << "Could not set locale to 'en_US.UTF-8'." << std::endl;
+    // }
     try {
         // Parse arguments
         cxxopts::Options options("server", "MillenniumDB server");

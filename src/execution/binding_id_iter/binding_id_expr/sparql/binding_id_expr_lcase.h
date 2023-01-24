@@ -10,14 +10,12 @@
 class BindingIdExprLCase : public BindingIdExpr {
 private:
     ObjectId pack_lcase(const std::string& str) const {
-        std::locale locale;
+        std::locale locale("en_US.UTF-8"); // TODO: local computer may not have this locale
         std::wstring_convert<std::codecvt_utf8<wchar_t>> str_conv;
         auto wstr = str_conv.from_bytes(str);
         std::ctype<wchar_t> const &ctype_facet = std::use_facet<std::ctype<wchar_t> >(locale);
         for (auto& c : wstr) {
             c = ctype_facet.tolower(c);
-            auto a = str_conv.to_bytes(c);
-            std::cout << a << std::endl;
         }
         auto lcase = str_conv.to_bytes(wstr);
         return Conversions::pack_string(lcase);

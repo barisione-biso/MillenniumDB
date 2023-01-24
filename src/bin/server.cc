@@ -21,7 +21,6 @@ stop the execution throwing a timeout exception.
 #include <chrono>
 #include <fstream>
 #include <queue>
-#include <locale>
 #include <memory>
 #include <mutex>
 #include <random>
@@ -112,7 +111,6 @@ void session(chrono::seconds timeout_duration, tcp::socket sock) {
 
         TcpBuffer tcp_buffer = TcpBuffer(sock);
         ostream os(&tcp_buffer);
-        os.imbue(std::locale(""));
 
         // without this line ConnectionException won't be caught properly
         os.exceptions(ifstream::failbit | ifstream::badbit);
