@@ -50,6 +50,10 @@ If you work on windows, you can use Windows Subsystem for Linux (WSL).
 
      Other linux distributions may need to install the prerequisites differently. Some distributions might have repositories with too old versions and the project won't compile, in that case you'll need to manually install the appropriate versions.
 
+    You also need to have the `en_US.UTF-8` locale installed.
+    - `sudo locale-gen en_US.UTF-8`
+    - `sudo update-locale`
+
 2. Clone this repository and enter to the 'MillenniumDB' folder. Set `MDB_HOME` as the project root folder directory.
     - `git clone git@github.com:MillenniumDB/MillenniumDB-Dev.git`
     - `cd MillenniumDB-Dev`

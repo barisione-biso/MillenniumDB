@@ -251,11 +251,6 @@ int main(int argc, char **argv) {
     string db_folder;
 
     ios_base::sync_with_stdio(false);
-    try {
-        std::locale::global(std::locale("en_US.UTF-8"));
-    } catch (std::runtime_error&) {
-        std::cerr << "Could not set locale to 'en_US.UTF-8'." << std::endl;
-    }
 
     // TODO: We would like to receive shared and private buffer param in MB or GB
     try {
