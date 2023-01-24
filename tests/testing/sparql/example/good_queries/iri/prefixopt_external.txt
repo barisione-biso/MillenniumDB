@@ -1,7 +1,0 @@
-s,p,o
----------------------------------------
-<http://www.prefixedExternal.com/externals1>,<http://www.prefixedExternal.com/externalp2>,<http://www.prefixedExternal.com/externalo3>
----------------------------------------
-Found 1 results.
-Execution time: 0.0096 ms.
-Query Parser/Optimizer time: 9.0373 ms.

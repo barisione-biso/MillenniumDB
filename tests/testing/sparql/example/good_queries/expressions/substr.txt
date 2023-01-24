@@ -1,7 +1,0 @@
-o
----------------------------------------
-<http://www.firstPrefix.com/objectFirstPrefix>
----------------------------------------
-Found 1 results.
-Execution time: 0.036996 ms.
-Optimizer time: 0.02552 ms.

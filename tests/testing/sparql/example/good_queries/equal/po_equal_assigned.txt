@@ -1,7 +1,0 @@
-s
----------------------------------------
-<http://www.equals.com/s1>
----------------------------------------
-Found 1 results.
-Execution time: 0.014 ms.
-Query Parser/Optimizer time: 3.5133 ms.

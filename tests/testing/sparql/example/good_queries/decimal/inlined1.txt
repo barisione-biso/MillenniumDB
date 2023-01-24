@@ -1,7 +1,0 @@
-s,p
----------------------------------------
-<http://www.decinl.com/s>,<http://www.decinl.com/p>
----------------------------------------
-Found 1 results.
-Execution time: 0.0074 ms.
-Optimizer time: 1.6431 ms.

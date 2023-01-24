@@ -396,8 +396,9 @@ struct GraphObjectManager {
         }
         case GraphObjectType::PATH: {
             auto path = GraphObjectInterpreter::get<Path>(graph_obj);
+            os << "{\"type\":\"path\",\"value\":\"";
             path.path_printer->print(os, path.path_id);
-            return os;
+            return os << "\"}";
         }
         case GraphObjectType::NULL_OBJ:
             // TODO: null print shouldn't be called?

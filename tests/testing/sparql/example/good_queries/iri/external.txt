@@ -1,7 +1,0 @@
-s,p,o
----------------------------------------
-<http://www.external.com/externals1>,<http://www.external.com/externalp2>,<http://www.external.com/externalo3>
----------------------------------------
-Found 1 results.
-Execution time: 0.0116 ms.
-Query Parser/Optimizer time: 7.6882 ms.

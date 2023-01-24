@@ -1,7 +1,0 @@
-s,p
----------------------------------------
-<http://www.datetime.com/s>,<http://www.datetime.com/p>
----------------------------------------
-Found 1 results.
-Execution time: 0.0619 ms.
-Query Parser/Optimizer time: 5.9243 ms.

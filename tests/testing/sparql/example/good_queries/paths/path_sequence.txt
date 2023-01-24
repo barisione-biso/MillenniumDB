@@ -1,9 +1,0 @@
-country,path
----------------------------------------
-<http://www.path.com/London>,(path:Jane)-[path:knows]->(path:John)-[path:livesIn]->(path:London)
-<http://www.path.com/Spain>,(path:Jane)-[path:knows]->(path:Mary)-[path:livesIn]->(path:Spain)
-<http://www.path.com/Chile>,(path:Jane)-[path:knows]->(path:Vicente)-[path:livesIn]->(path:Chile)
----------------------------------------
-Found 3 results.
-Execution time: 0.011142 ms.
-Optimizer time: 0.043292 ms.

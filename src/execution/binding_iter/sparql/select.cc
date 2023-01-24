@@ -25,16 +25,20 @@ void Select::begin(std::ostream& _os) {
     os = &_os;
     child_iter->begin(_os);
 
-    // print header
-    (*os) << "{\"head\":{\"vars\":[";
     auto it = projection_vars.cbegin();
-    if (it != projection_vars.cend()) {
+    // Empty projection
+    if (it == projection_vars.cend()) {
+        (*os) << "{\"head\":{\"vars\":[]},\"results\":{\"bindings\":[";
+    }
+    else {
+        // print header
+        (*os) << "{\"head\":{\"vars\":[";
         (*os) << '"' << it->first << '"';
+        while (++it != projection_vars.cend()) {
+            (*os) << ",\"" << it->first << '"';
+        }
+        (*os) << "]},\"results\":{\"bindings\": [";
     }
-    while (++it != projection_vars.cend()) {
-        (*os) << ",\"" << it->first << '"';
-    }
-    (*os) << "]},\"results\":{\"bindings\": [";
 }
 
 bool Select::next() {
@@ -54,11 +58,12 @@ bool Select::next() {
         (*os) << "{";
         auto it = projection_vars.cbegin();
 
+        // This handles the case where the projection is empty
         if (it != projection_vars.cend()) {
             (*os) << "\"" << it->first << "\":" << (*child_iter)[it->second];
-        }
-        while (++it != projection_vars.cend()) {
-            (*os) << "," << "\"" << it->first << "\":" << (*child_iter)[it->second];
+            while (++it != projection_vars.cend()) {
+                (*os) << "," << "\"" << it->first << "\":" << (*child_iter)[it->second];
+            }
         }
         (*os) << "}";
         count++;

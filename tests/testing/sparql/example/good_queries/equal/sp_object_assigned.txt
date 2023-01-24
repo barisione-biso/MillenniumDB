@@ -1,7 +1,0 @@
-sp
----------------------------------------
-<http://www.equals.com/sp1>
----------------------------------------
-Found 1 results.
-Execution time: 0.007 ms.
-Query Parser/Optimizer time: 5.6481 ms.

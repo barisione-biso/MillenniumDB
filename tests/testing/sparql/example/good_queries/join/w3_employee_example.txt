@@ -1,7 +1,0 @@
-empName,managName
----------------------------------------
-"Smith","Johnson"
----------------------------------------
-Found 1 results.
-Execution time: 0.6816 ms.
-Query Parser/Optimizer time: 8.5301 ms.
