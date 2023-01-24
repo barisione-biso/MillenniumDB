@@ -9,7 +9,15 @@ class BindingIdExprUCase : public BindingIdExpr {
 private:
     ObjectId pack_ucase(const std::string& str) const {
         std::locale locale;
-        std::string ucase = std::toupper(str, locale);
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> str_conv;
+        auto wstr = str_conv.from_bytes(str);
+        std::ctype<wchar_t> const &ctype_facet = std::use_facet<std::ctype<wchar_t> >(locale);
+        for (auto& c : wstr) {
+            c = ctype_facet.toupper(c);
+            auto a = str_conv.to_bytes(c);
+            std::cout << a << std::endl;
+        }
+        auto ucase = str_conv.to_bytes(wstr);
         return Conversions::pack_string(ucase);
     }
 public:
