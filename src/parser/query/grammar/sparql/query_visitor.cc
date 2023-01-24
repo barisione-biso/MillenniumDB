@@ -224,11 +224,6 @@ Any QueryVisitor::visitMinusGraphPattern(SparqlParser::MinusGraphPatternContext*
 Any QueryVisitor::visitServiceGraphPattern(SparqlParser::ServiceGraphPatternContext* ctx) {
     std::unique_ptr<Op> lhs_op = std::move(current_op);
 
-    auto start_idx = ctx->start->getStartIndex();
-    auto stop_idx = ctx->stop->getStopIndex();
-
-    antlr4::misc::Interval(start_idx, stop_idx);
-
     visit(ctx->groupGraphPattern());
     bool silent = ctx->SILENT() != nullptr;
     auto voi = ctx->varOrIRI();
