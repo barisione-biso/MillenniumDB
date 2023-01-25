@@ -160,7 +160,7 @@ void Decimal::from_external(std::string_view sv) {
  */
 std::pair<std::string_view, std::string_view> Decimal::get_parts(std::string_view sv) {
     if (sv.find_first_not_of("+-.0123456789") != std::string::npos) {
-        throw QueryExecutionException("\""s + std::string(sv) + "\" is not a valid Decimal"s);
+        throw QueryParsingException("\""s + std::string(sv) + "\" is not a valid Decimal"s);
     }
 
     // Remove leading zeros

@@ -1087,12 +1087,12 @@ Any QueryVisitor::visitRdfLiteral(SparqlParser::RdfLiteralContext* ctx) {
                  || iri == "http://www.w3.org/2001/XMLSchema#int"
                  || iri == "http://www.w3.org/2001/XMLSchema#short"
                  || iri == "http://www.w3.org/2001/XMLSchema#byte") {
-            current_sparql_element = SparqlElement(int64_t(std::stoll(str)));
+            current_sparql_element = handleIntegerString(str);
         }
         // Negative Integer: xsd:nonPositiveInteger, xsd:negativeInteger
         else if (iri == "http://www.w3.org/2001/XMLSchema#nonPositiveInteger"
                  || iri == "http://www.w3.org/2001/XMLSchema#negativeInteger") {
-            current_sparql_element = SparqlElement(int64_t(std::stoll(str)));
+            current_sparql_element = handleIntegerString(str);
         }
         // Positive Integer: xsd:nonNegativeInteger, xsd:unsignedLong, xsd:unsignedInt, xsd:unsignedShort,
         // xsd:unsignedByte
@@ -1100,7 +1100,7 @@ Any QueryVisitor::visitRdfLiteral(SparqlParser::RdfLiteralContext* ctx) {
                  || iri == "http://www.w3.org/2001/XMLSchema#unsignedLong"
                  || iri == "http://www.w3.org/2001/XMLSchema#unsignedInt"
                  || iri == "http://www.w3.org/2001/XMLSchema#unsignedShort") {
-            current_sparql_element = SparqlElement(int64_t(std::stoll(str)));
+            current_sparql_element = handleIntegerString(str);
         }
         // xsd:boolean
         else if (iri == "http://www.w3.org/2001/XMLSchema#boolean") {
@@ -1129,11 +1129,7 @@ Any QueryVisitor::visitRdfLiteral(SparqlParser::RdfLiteralContext* ctx) {
 
 Any QueryVisitor::visitNumericLiteralUnsigned(SparqlParser::NumericLiteralUnsignedContext* ctx) {
     if (ctx->INTEGER()) {
-        try {
-            current_sparql_element = SparqlElement(int64_t(stoll(ctx->getText())));
-        } catch (std::out_of_range& e) {
-            current_sparql_element = SparqlElement(Decimal(ctx->getText()));
-        }
+        current_sparql_element = handleIntegerString(ctx->getText());
     } else if (ctx->DECIMAL()) {
         current_sparql_element = SparqlElement(Decimal(ctx->getText()));
     } else {
@@ -1146,11 +1142,7 @@ Any QueryVisitor::visitNumericLiteralUnsigned(SparqlParser::NumericLiteralUnsign
 
 Any QueryVisitor::visitNumericLiteralPositive(SparqlParser::NumericLiteralPositiveContext* ctx) {
     if (ctx->INTEGER_POSITIVE()) {
-        try {
-            current_sparql_element = SparqlElement(int64_t(stoll(ctx->getText())));
-        } catch (std::out_of_range& e) {
-            current_sparql_element = SparqlElement(Decimal(ctx->getText()));
-        }
+        current_sparql_element = handleIntegerString(ctx->getText());
     } else if (ctx->DECIMAL_POSITIVE()) {
         current_sparql_element = SparqlElement(Decimal(ctx->getText()));
     } else {
@@ -1163,11 +1155,7 @@ Any QueryVisitor::visitNumericLiteralPositive(SparqlParser::NumericLiteralPositi
 
 Any QueryVisitor::visitNumericLiteralNegative(SparqlParser::NumericLiteralNegativeContext* ctx) {
     if (ctx->INTEGER_NEGATIVE()) {
-        try {
-            current_sparql_element = SparqlElement(int64_t(stoll(ctx->getText())));
-        } catch (std::out_of_range& e) {
-            current_sparql_element = SparqlElement(Decimal(ctx->getText()));
-        }
+        current_sparql_element = handleIntegerString(ctx->getText());
     } else if (ctx->DECIMAL_NEGATIVE()) {
         current_sparql_element = SparqlElement(Decimal(ctx->getText()));
     } else {
@@ -1384,5 +1372,27 @@ std::string QueryVisitor::stringCtxToString(SparqlParser::StringContext* ctx) {
     } else {
         // Three quotes per side
         return str.substr(3, str.size() - 6);
+    }
+}
+
+/**
+ * @brief Handle a string representing an integer, setting its SparqlElement
+ * 
+ * @param str the string representing the integer
+ */
+SparqlElement QueryVisitor::handleIntegerString(const std::string& str) {
+    try {
+        size_t pos;
+        int64_t n = std::stoll(str, &pos);
+        // Check if the whole string was parsed
+        if (pos != str.size())
+            throw QueryException("Invalid integer value: " + str);
+        return SparqlElement(n);
+    } catch (std::out_of_range& e) {
+        // The integer is too big, we use a Decimal
+        return SparqlElement(Decimal(str));
+    } catch (std::invalid_argument& e) {
+        // The string is not a valid integer
+        throw QueryException("Invalid integer value: " + str);
     }
 }

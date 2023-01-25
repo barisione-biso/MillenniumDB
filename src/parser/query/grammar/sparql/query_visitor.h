@@ -57,6 +57,7 @@ private:
     // Parsing helpers
     std::string iriCtxToString(SparqlParser::IriContext*);
     std::string stringCtxToString(SparqlParser::StringContext*);
+    SparqlElement handleIntegerString(const std::string&);
 public:
     std::unique_ptr<Op> current_op;
     virtual antlrcpp::Any visitQuery(SparqlParser::QueryContext*) override;

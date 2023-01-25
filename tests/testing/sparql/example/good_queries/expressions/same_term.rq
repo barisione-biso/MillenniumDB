@@ -11,7 +11,7 @@ WHERE {
         && sameTerm(-10, -10)
         && !sameTerm("-10.0"^^xsd:decimal, "-1e1"^^xsd:float)
         && !sameTerm("-10.0"^^xsd:float, "-10.0"^^xsd:decimal)
-        && !sameTerm("-10.0"^^xsd:float, "-10.0"^^xsd:integer)
+        && !sameTerm("-10.0"^^xsd:float, "-10"^^xsd:integer)
 
         && sameTerm(<http://www.example.com/>, <http://www.example.com/>)
         && !sameTerm(<http://www.example.com/>, "http://www.example.com/")

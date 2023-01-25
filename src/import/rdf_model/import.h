@@ -3,6 +3,7 @@
 #include <iostream>
 #include "base/exceptions.h"
 #include "base/graph_object/datetime.h"
+#include "base/ids/object_id_conversions.h"
 #include "base/query/sparql/decimal.h"
 #include "base/graph_object/decimal_inlined.h"
 #include "import/external_string.h"
@@ -310,46 +311,16 @@ private:
                  || strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#int") == 0
                  || strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#short") == 0
                  || strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#byte") == 0) {
-            try {
-                int64_t i = std::stoll(cchar);
-                // If the integer uses more than 56 bits, it must be converted into Decimal Extern (overflow)
-                if (i < -0x00FF'FFFF'FFFF'FFFF || i > 0x00FF'FFFF'FFFF'FFFF) {
-                    std::string str(cchar);
-                    std::string normalized = Decimal(str).to_external();
-                    object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
-                } else if (i < 0) {
-                    i *= -1;
-                    i = (~i) & 0x00FF'FFFF'FFFF'FFFFUL;
-                    object_id = i | ObjectId::MASK_NEGATIVE_INT;
-                } else {
-                    object_id = i | ObjectId::MASK_POSITIVE_INT;
-                }
-            } catch (const std::out_of_range& e) {
-                std::string str(cchar);
-                std::string normalized = Decimal(str).to_external();
-                object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
-            }
+            object_id = handle_integer_string(cchar);
+            if (object_has_errors)
+                std::cout << "Warning [line " << reader->source.cur.line  << "] invalid integer: " << cchar << '\n';
         }
         // Negative Integer: xsd:nonPositiveInteger, xsd:negativeInteger
         else if (strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#nonPositiveInteger") == 0
                  || strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#negativeInteger") == 0) {
-            try {
-                int64_t i = std::stoll(cchar);
-                // If the integer uses more than 56 bits, it must be converted into Decimal Extern (overflow)
-                if (i < -0x00FF'FFFF'FFFF'FFFF) {
-                    std::string str(cchar);
-                    std::string normalized = Decimal(str).to_external();
-                    object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
-                } else {
-                    i *= -1;
-                    i = (~i) & 0x00FF'FFFF'FFFF'FFFFUL;
-                    object_id = i | ObjectId::MASK_NEGATIVE_INT;
-                }
-            } catch (const std::out_of_range& e) {
-                std::string str(cchar);
-                std::string normalized = Decimal(str).to_external();
-                object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
-            }
+            object_id = handle_integer_string(cchar);
+            if (object_has_errors)
+                std::cout << "Warning [line " << reader->source.cur.line  << "] invalid integer: " << cchar << '\n';
         }
         // Positive Integer: xsd:nonNegativeInteger, xsd:unsignedLong, xsd:unsignedInt, xsd:unsignedShort,
         // xsd:unsignedByte
@@ -357,21 +328,9 @@ private:
                  || strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#unsignedLong") == 0
                  || strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#unsignedInt") == 0
                  || strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#unsignedShort") == 0) {
-            try {
-                int64_t i = std::stoll(cchar);
-                // If the integer uses more than 56 bits, it must be converted into Decimal Extern (overflow)
-                if (i > 0x00FF'FFFF'FFFF'FFFF) {
-                    std::string str(cchar);
-                    std::string normalized = Decimal(str).to_external();
-                    object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
-                } else {
-                    object_id = i | ObjectId::MASK_POSITIVE_INT;
-                }
-            } catch (const std::out_of_range& e) {
-                std::string str(cchar);
-                std::string normalized = Decimal(str).to_external();
-                object_id = get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
-            }
+            object_id = handle_integer_string(cchar);
+            if (object_has_errors)
+                std::cout << "Warning [line " << reader->source.cur.line  << "] invalid integer: " << cchar << '\n';
         }
         // xsd:boolean
         else if (strcmp(cchar_datatype, "http://www.w3.org/2001/XMLSchema#boolean") == 0) {
@@ -572,6 +531,45 @@ private:
             return s.offset;
         } else {
             return found->offset;
+        }
+    }
+
+    /**
+     * @brief Handles the conversion of a string to an integer or decimal if 
+     * it does not fit in 56 bits. If the string is not a valid integer,
+     * it will flag the object as having errors.
+     * 
+     * @param str integer represented as a string
+     * @return uint64_t ObjectId of the integer
+     */
+    uint64_t handle_integer_string(const std::string& str) {
+        try {
+            size_t pos;
+            int64_t i = std::stoll(str, &pos);
+            // Check if the whole string was parsed
+            if (pos != str.size()) {
+                object_has_errors = true;
+                return ObjectId::NULL_OBJECT_ID;
+            }
+            // If the integer uses more than 56 bits, it must be converted into Decimal Extern (overflow)
+            else if (i > Conversions::INTEGER_MAX || i < -Conversions::INTEGER_MAX) {
+                std::string normalized = Decimal(str).to_external();
+                return get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
+            }
+            else if (i < 0) {
+                i *= -1;
+                i = (~i) & ObjectId::VALUE_MASK;
+                return i | ObjectId::MASK_NEGATIVE_INT;
+            }
+            else {
+                return i | ObjectId::MASK_POSITIVE_INT;
+            }
+        } catch (const std::out_of_range& e) {
+            std::string normalized = Decimal(str).to_external();
+            return get_or_create_external_string_id(normalized.c_str(), normalized.size()) | ObjectId::MASK_DECIMAL_EXTERN;
+        } catch (const std::invalid_argument& e) {
+            object_has_errors = true;
+            return ObjectId::NULL_OBJECT_ID;
         }
     }
 };
