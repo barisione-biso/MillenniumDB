@@ -5,6 +5,8 @@
 
 class Decimal {
 public:
+    static unsigned MAX_SIGNIFICANT_FIGURES;
+
     Decimal();
     Decimal(int64_t);
     Decimal(std::string_view);
@@ -54,7 +56,13 @@ private:
     int8_t               exponent = 0;
     bool                 sign     = false;
 
+    Decimal sub_digits(size_t start, size_t end) const;
+    void insert_digit(uint8_t);
+
     static std::pair<std::string_view, std::string_view> get_parts(std::string_view);
+
+public:
+    static std::pair<uint8_t, Decimal> quotient_remainder(const Decimal &lhs, const Decimal &rhs);
 };
 
 std::ostream& operator<<(std::ostream& os, const Decimal& dec);

@@ -12,6 +12,8 @@
 
 using namespace std::literals::string_literals;
 
+unsigned Decimal::MAX_SIGNIFICANT_FIGURES = 30;
+
 /**
  *  @brief Converts a digit from ASCII to it's numeric value.
  *  @param c The digit encoded in ASCII.
@@ -149,6 +151,7 @@ Decimal::Decimal(std::vector<uint8_t> vec) {
  *  @param sv The string_view representing the Decimal from which to deserialize.
  */
 void Decimal::from_external(std::string_view sv) {
+    // TODO: performance, avoid allocating and copying
     auto bytes = std::vector<uint8_t>(sv.begin(), sv.end());
     *this      = Decimal(bytes);
 }
@@ -206,6 +209,9 @@ std::pair<std::string_view, std::string_view> Decimal::get_parts(std::string_vie
     return { whole, fractional };
 }
 
+/**
+ *  @brief Trims any leading and trailing zeros in digits, adjusts the exponent as necessary.
+ */
 void Decimal::trim_zeros() {
     if (this->digits.size() == 0) {
         // Zero
@@ -363,6 +369,7 @@ std::vector<uint8_t> Decimal::to_bytes() const {
  */
 std::string Decimal::to_external() const {
     auto bytes = this->to_bytes();
+    // TODO: performance, avoid allocating and copying
     return std::string(bytes.begin(), bytes.end());
 }
 
@@ -409,9 +416,148 @@ Decimal Decimal::operator*(const Decimal& rhs) const {
     return res;
 }
 
+/**
+ *  @brief Divides this Decimal by a divisor, the divisor must not be 0.
+ *  @param rhs the divisor of the division, must not be 0.
+ *  @return The result of the division.
+ */
 Decimal Decimal::operator/(const Decimal& rhs) const {
-    // TODO: Implement
-    return rhs;
+    if (rhs == Decimal(0)) {
+        throw LogicException("Division by zero");
+    }
+    // This function implements division using the long division algorithm.
+    auto res_exponent = 0;
+    auto res_sign     = false;
+
+    Decimal dividend(*this);
+    // Ensure dividend exponent is >= 0.
+    // If the exponent is negative, set to zero and adjust result exponent.
+    if (dividend.exponent < 0) {
+        res_exponent += dividend.exponent;
+        dividend.exponent = 0;
+    }
+    // Make dividend positive, adjusting result sign.
+    res_sign ^= dividend.sign;
+    dividend.sign = false;
+
+    Decimal divisor(rhs);
+    // Ensure divisor exponent is >= 0.
+    // If the exponent is negative, set to zero and adjust result exponent.
+    if (divisor.exponent < 0) {
+        res_exponent -= divisor.exponent;
+        divisor.exponent = 0;
+    }
+    // Make divisor positive, adjusting result sign.
+    res_sign ^= divisor.sign;
+    divisor.sign = false;
+
+    // From this point onwards both dividend and divisor should be positive and have exponent >= 0.
+    assert(dividend.exponent >= 0);
+    assert(divisor.exponent >= 0);
+    assert(!dividend.sign);
+    assert(!divisor.sign);
+
+    // Vector of digits, big endian, to facilitate calculations.
+    std::vector<uint8_t> res_digits;
+
+    // Calculate effective divisor and dividend digit count (digits + trailing zeros)
+    auto divisor_s = divisor.digits.size() + divisor.exponent;
+    auto dividend_s = dividend.digits.size() + dividend.exponent;
+
+    // Ensure dividend has more or equal effective digits than divisor.
+    // If necessary increase dividend exponent and adjust result exponent.
+    if (dividend_s < divisor_s) {
+        auto diff = divisor_s - dividend_s;
+        dividend.exponent += diff;
+        res_exponent -= diff;
+    }
+
+    // Ensure dividend is greater than divisor.
+    // If necessary increase dividend exponent by one and adjust result exponent.
+    if (dividend < divisor) {
+        dividend.exponent++;
+        res_exponent--;
+    }
+
+    // From this point on, dividend >= divisor
+    assert(dividend >= divisor);
+
+    // Update effective digit count.
+    // May have changed due to adjusting exponents.
+    divisor_s = divisor.digits.size() + divisor.exponent;
+    dividend_s = dividend.digits.size() + dividend.exponent;
+
+    // Offset is used to align dividend and divisor digits.
+    auto offset    = dividend_s - divisor_s;
+
+    // Take the first n leading most significant digits of the dividend,
+    // where n is the number of effective digits of the divisor.
+    auto remainder = dividend.sub_digits(offset, dividend_s);
+
+    // Ensure divisor goes into remainder at least once,
+    // If not take one more digit from the dividend.
+    if (remainder < divisor) {
+        offset--;
+        remainder = dividend.sub_digits(offset, dividend_s);
+    }
+
+    // Do the initial division.
+    auto q_r      = Decimal::quotient_remainder(remainder, divisor);
+    auto quotient = q_r.first;
+    remainder     = q_r.second;
+    res_digits.push_back(quotient);
+
+    // Do the remaining divisions consuming digits from the dividend.
+    // Stop if we have reached MAX_SIGNIFICANT_FIGURES + 1.
+    while (offset > 0 && res_digits.size() < MAX_SIGNIFICANT_FIGURES + 1) {
+        offset--;
+        uint8_t next_digit = 0;
+        if (offset >= static_cast<size_t>(dividend.exponent)) {
+            next_digit = dividend.digits[offset - dividend.exponent];
+        }
+        remainder.insert_digit(next_digit);
+
+        auto q_r  = Decimal::quotient_remainder(remainder, divisor);
+        quotient  = q_r.first;
+        remainder = q_r.second;
+        res_digits.push_back(quotient);
+    }
+
+    // If we still have a remainder and not yet reached MAX_SIGNIFICANT_FIGURES + 1
+    // append 0s and continue dividing.
+    // We divide until MAX_SIGNIFICANT_FIGURES + 1 instead of MAX_SIGNIFICANT_FIGURES
+    // so we can round afterwards.
+    while (remainder > Decimal(0) && res_digits.size() < MAX_SIGNIFICANT_FIGURES + 1) {
+        remainder.insert_digit(0);
+        res_exponent--;
+
+        auto q_r  = Decimal::quotient_remainder(remainder, divisor);
+        quotient  = q_r.first;
+        remainder = q_r.second;
+        res_digits.push_back(quotient);
+    }
+
+    // Initialize result decimal, transform digits into little endian.
+    Decimal res;
+    res.digits = std::vector<uint8_t>(res_digits.rbegin(), res_digits.rend());
+    res.exponent = res_exponent;
+    res.sign = res_sign;
+
+
+    // Round if necessary.
+    if (res.digits.size() == MAX_SIGNIFICANT_FIGURES + 1) {
+        if (res.digits[0] >= 5) {
+            Decimal d(1);
+            d.exponent = res.exponent + 1;
+            res        = res + d;
+        }
+        // TODO: avoid unnecessary allocation
+        res.digits = std::vector<uint8_t>(res.digits.begin() + 1, res.digits.end());
+        res.exponent++;
+    }
+
+    res.trim_zeros();
+    return res;
 }
 
 bool Decimal::operator<(const Decimal& rhs) const {
@@ -605,6 +751,120 @@ Decimal Decimal::operator-(const Decimal& rhs_r) const {
     }
     res.trim_zeros();
     return res;
+}
+
+/**
+ *  @brief Calculates the quotient and remainder of dividend / divisor. Used as a helper function to implement operator/.
+ *  @param dividend The dividend of the division, has to have exponent >= 0.
+ *  @param divisor The divisor of the division, has to have exponent >= 0.
+ *  @return the quotient and remainder of the division as a std::pair.
+ */
+std::pair<uint8_t, Decimal> Decimal::quotient_remainder(const Decimal& dividend, const Decimal& divisor) {
+    assert(dividend.exponent >= 0);
+    assert(divisor.exponent >= 0);
+
+    if (dividend.digits.size() == 0) {
+        return {0, Decimal()};
+    }
+
+    if (divisor.digits.size() == 0) {
+        throw LogicException("division by zero");
+    }
+
+    if (divisor > dividend) {
+        return {0, dividend};
+    }
+
+    if (divisor == dividend) {
+        return {1, Decimal()};
+    }
+
+    auto dividend_s = dividend.digits.size() + dividend.exponent;
+    auto divisor_s = divisor.digits.size() + divisor.exponent;
+
+    if (dividend_s == divisor_s) {
+        assert(dividend.digits.size() >= 1);
+        auto q = dividend.digits[dividend.digits.size() - 1] / divisor.digits[divisor.digits.size() - 1];
+
+        Decimal quotient(q);
+        auto    remainder = dividend - quotient * divisor;
+        if (remainder < Decimal(0)) {
+            q--;
+            quotient  = Decimal(q);
+            remainder = dividend - quotient * divisor;
+        }
+        remainder.trim_zeros();
+        return { q, remainder };
+    } else if (dividend_s == divisor_s + 1) {
+        auto s = dividend.digits.size();
+        auto two_digits = dividend.digits[s - 1] * 10;
+        if (s >= 2) {
+            two_digits += dividend.digits[s - 2];
+        }
+        auto q          = two_digits / divisor.digits[divisor.digits.size() - 1];
+
+        Decimal quotient(q);
+        auto    remainder = dividend - quotient * divisor;
+
+        while (remainder < Decimal(0)) {
+            q--;
+            quotient  = Decimal(q);
+            remainder = dividend - quotient * divisor;
+        }
+        remainder.trim_zeros();
+        return { q, remainder };
+    } else {
+        throw NotSupportedException("");
+    }
+}
+
+/**
+ *  @brief Constructs a Decimal containing a sub-slice of effective digits of the Decimal.
+ *         Effective digits include trailing zeros represented by the exponent.
+ *  @param start the starting index of the slice to return, inclusive.
+ *  @param end the ending index of the slice to return, exclusive.
+ *  @return a Decimal representing the sub-slice of effective digits.
+ */
+Decimal Decimal::sub_digits(size_t start, size_t end) const {
+    assert(this->exponent >= 0);
+    auto effective_size = this->digits.size() + this->exponent;
+    assert(start <= effective_size);
+    assert(end >= static_cast<size_t>(this->exponent) && end <= effective_size);
+    if (start >= end) {
+        return Decimal();
+    }
+    Decimal sub;
+    if (start <= static_cast<size_t>(this->exponent)) {
+        auto diff = this->exponent - start;
+        sub.exponent += diff;
+        start = 0;
+    } else {
+        start -= this->exponent;
+    }
+    end -= this->exponent;
+    sub.digits = std::vector<uint8_t>(this->digits.begin() + start, this->digits.begin() + end);
+    return sub;
+}
+
+/**
+ *  @brief Inserts a digit behind the least siginificant digit.
+ *         Inserting 0 only adjusts the exponent and does not perform an actual insertion.
+ *  @param d the digit to insert.
+ *  @return a new Decimal representing the result of inserting the digit.
+ */
+void Decimal::insert_digit(uint8_t d) {
+    assert(this->exponent >= 0);
+    // Optimization to avoid inserting 0 and later trimming zeros.
+    if (d == 0) {
+        this->exponent++;
+        return;
+    }
+
+    for (auto i = 0; i < this->exponent; i++) {
+        this->digits.insert(this->digits.begin(), 0);
+    }
+    this->exponent = 0;
+    this->digits.insert(this->digits.begin(), d);
 }
 
 std::ostream& operator<<(std::ostream& os, const Decimal& dec) {

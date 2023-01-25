@@ -302,6 +302,81 @@ int multiplication_tests() {
     return 0;
 }
 
+int quotient_remainder_tests() {
+    vector<std::tuple<string, string, uint8_t, string>> tests {
+        std::make_tuple("9", "4", 2, "1"),
+        std::make_tuple("6", "3", 2, "0"),
+        std::make_tuple("7321", "2867", 2, "1587"),
+        std::make_tuple("73231231", "73231231", 1, "0"),
+        std::make_tuple("73231231", "43231231", 1, "30000000"),
+        std::make_tuple("25", "5", 5, "0"),
+        std::make_tuple("25", "6", 4, "1"),
+        std::make_tuple("250", "50", 5, "0"),
+        std::make_tuple("250", "60", 4, "10"),
+    };
+
+    cout << "quotient_remainder_tests\n";
+    for (auto& [dividend, divisor, quotient, remainder] : tests) {
+        Decimal dividend_d(dividend);
+        Decimal divisor_d(divisor);
+        Decimal remainder_d(remainder);
+
+        auto [got_q, got_r] = Decimal::quotient_remainder(dividend_d, divisor_d);
+
+        if (got_q != quotient || got_r != remainder_d) {
+            cout << "(" << dividend_d << " / " << divisor_d << ") got " << std::to_string(got_q) << ", " << got_r << ", want " << std::to_string(quotient) << ", " << remainder_d << "\n";
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int division_tests() {
+    Decimal::MAX_SIGNIFICANT_FIGURES = 100;
+
+    vector<std::tuple<string, string, string>> tests {
+        std::make_tuple("8", "4", "2"),
+        std::make_tuple("8", "8", "1"),
+        std::make_tuple("12", "4", "3"),
+        std::make_tuple("100", "25", "4"),
+        std::make_tuple("888", "2", "444"),
+        std::make_tuple("13123242", "99", "132558"),
+        std::make_tuple("1000000", "1000", "1000"),
+        std::make_tuple("3", "5", "0.6"),
+        std::make_tuple("254262", "46500", "5.468"),
+        std::make_tuple("254262", "0.005468", "46500000"),
+        std::make_tuple("254262", "46500000", "0.005468"),
+        std::make_tuple("0.7125", "95", "0.0075"),
+        std::make_tuple("0.00072628364", "9574", "0.00000007586"),
+        std::make_tuple("1", "3", "0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333"),
+        std::make_tuple("100", "3", "33.33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333"),
+        std::make_tuple("0.001", "3", "0.0003333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333"),
+        std::make_tuple("0.0011", "0.0333", "0.03303303303303303303303303303303303303303303303303303303303303303303303303303303303303303303303303303"),
+        std::make_tuple("110.00111", "33300.0003333", "0.003303336603573510811680145539549774524566370899760617991284865570713342500938226559678350980756925469"),
+        std::make_tuple("9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999", "1", "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999"),
+        std::make_tuple("99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999994", "1", "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999990"),
+        std::make_tuple("99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999995", "1", "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+        std::make_tuple("0.2", "0.1", "2"),
+        std::make_tuple("-0.6", "0.3", "-2"),
+        std::make_tuple("-0.04", "-0.008", "5"),
+    };
+
+    cout << "division_tests\n";
+    for (auto& [dividend, divisor, want] : tests) {
+        Decimal dividend_d(dividend);
+        Decimal divisor_d(divisor);
+        Decimal want_d(want);
+
+        auto got = dividend_d / divisor_d;
+
+        if (got != want_d) {
+            cout << "(" << dividend_d << " / " << divisor_d << ") got " << got << ", want " << want_d << "\n";
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int main() {
     cout.precision(20);
 
@@ -315,6 +390,8 @@ int main() {
     tests.push_back(&less_than_tests);
     tests.push_back(&greater_than_tests);
     tests.push_back(&multiplication_tests);
+    tests.push_back(&quotient_remainder_tests);
+    tests.push_back(&division_tests);
 
     for (auto& test_func : tests) {
         if (test_func()) {

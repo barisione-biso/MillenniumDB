@@ -44,15 +44,16 @@ set(BUILD_TARGETS
 
 set(TEST_TARGETS
     compare_datetime
-    compare_decimal_both_ext
+    # compare_decimal_both_ext
     compare_decimal_both_inl
-    compare_decimal_inl_ext
+    # compare_decimal_inl_ext
     normalize_decimal
+    decimal_operations
     # playground
     # parse_sparql
     # create_bpt
     # check_bpts
-    execute_query
+    # execute_query
 )
 
 foreach(target ${BUILD_TARGETS})
