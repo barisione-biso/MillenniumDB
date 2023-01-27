@@ -12,6 +12,7 @@
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_is_literal.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_is_numeric.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_multiplication.h"
+#include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_division.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_addition.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_subtraction.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_not.h"
@@ -36,7 +37,11 @@
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_iri.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_lcase.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_ucase.h"
+#include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_abs.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_bound.h"
+#include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_ceil.h"
+#include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_round.h"
+#include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_floor.h"
 #include "execution/binding_id_iter/binding_id_expr/sparql/binding_id_expr_substr.h"
 #include "parser/query/expr/sparql_exprs.h"
 #include "query_optimizer/rdf_model/sparql_element_to_object_id.h"
@@ -112,6 +117,16 @@ void Expr2BindingIdExpr::visit(SPARQL::ExprMultiplication& expr_multiplication) 
     current_binding_id_expr = make_unique<BindingIdExprMultiplication>(move(lhs), move(rhs));
 }
 
+void Expr2BindingIdExpr::visit(SPARQL::ExprDivision& expr_division) {
+    expr_division.lhs->accept_visitor(*this);
+    auto lhs = move(current_binding_id_expr);
+
+    expr_division.rhs->accept_visitor(*this);
+    auto rhs = move(current_binding_id_expr);
+
+    current_binding_id_expr = make_unique<BindingIdExprDivision>(move(lhs), move(rhs));
+}
+
 void Expr2BindingIdExpr::visit(SPARQL::ExprAddition& expr_addition) {
     expr_addition.lhs->accept_visitor(*this);
     auto lhs = move(current_binding_id_expr);
@@ -152,10 +167,38 @@ void Expr2BindingIdExpr::visit(ExprOr& expr_or) {
     current_binding_id_expr = make_unique<BindingIdExprOr>(move(lhs), move(rhs));
 }
 
+void Expr2BindingIdExpr::visit(ExprAbs& expr_abs) {
+    expr_abs.expr->accept_visitor(*this);
+    auto expr = move(current_binding_id_expr);
+
+    current_binding_id_expr = make_unique<BindingIdExprAbs>(move(expr));
+}
+
 void Expr2BindingIdExpr::visit(SPARQL::ExprBound& expr_bound) {
     auto var_id = var2var_ids.find(expr_bound.var)->second;
 
     current_binding_id_expr = make_unique<BindingIdExprBound>(var_id);
+}
+
+void Expr2BindingIdExpr::visit(ExprCeil& expr_ceil) {
+    expr_ceil.expr->accept_visitor(*this);
+    auto expr = move(current_binding_id_expr);
+
+    current_binding_id_expr = make_unique<BindingIdExprCeil>(move(expr));
+}
+
+void Expr2BindingIdExpr::visit(ExprRound& expr_round) {
+    expr_round.expr->accept_visitor(*this);
+    auto expr = move(current_binding_id_expr);
+
+    current_binding_id_expr = make_unique<BindingIdExprRound>(move(expr));
+}
+
+void Expr2BindingIdExpr::visit(ExprFloor& expr_floor) {
+    expr_floor.expr->accept_visitor(*this);
+    auto expr = move(current_binding_id_expr);
+
+    current_binding_id_expr = make_unique<BindingIdExprFloor>(move(expr));
 }
 
 void Expr2BindingIdExpr::visit(SPARQL::ExprCoalesce& expr_coalesce) {

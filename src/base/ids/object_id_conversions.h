@@ -345,6 +345,29 @@ public:
     }
 
     /**
+     *  @brief Converts an ObjectId to double if permitted.
+     *  @param oid ObjectId to convert.
+     *  @return a double representing the ObjectId.
+     *  @throws LogicException if the ObjectId has no permitted type.
+     */
+    static double to_double(ObjectId oid) {
+        switch (oid.get_type()) {
+        case ObjectId::MASK_POSITIVE_INT:
+            return static_cast<double>(unpack_positive_int(oid));
+        case ObjectId::MASK_NEGATIVE_INT:
+            return static_cast<double>(unpack_negative_int(oid));
+        case ObjectId::MASK_DECIMAL_INLINED:
+            return unpack_decimal_inlined(oid).to_double();
+        case ObjectId::MASK_DECIMAL_EXTERN:
+            return unpack_decimal_extern(oid).to_double();
+        case ObjectId::MASK_FLOAT:
+            return unpack_float(oid);
+        default:
+            throw LogicException("Called to_decimal with incorrect ObjectId type, this should never happen");
+        }
+    }
+
+    /**
      * @brief Unpacks the inlined string inside an ObjectId.
      *
      * @param oid ObjectId to unpack.
@@ -401,7 +424,7 @@ public:
 
     /**
      * @brief Pack an IRI string into an ObjectId.
-     * 
+     *
      * @param str IRI string to pack.
      * @return ObjectId containing the IRI.
      */

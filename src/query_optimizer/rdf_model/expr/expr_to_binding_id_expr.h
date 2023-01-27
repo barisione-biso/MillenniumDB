@@ -45,12 +45,12 @@ public:
     void visit(SPARQL::ExprUnaryMinus&)     override;
     void visit(SPARQL::ExprUnaryPlus&)      override;
     void visit(SPARQL::ExprMultiplication&) override;
-    // void visit(SPARQL::ExprDivision&)       override;
+    void visit(SPARQL::ExprDivision&)       override;
     void visit(SPARQL::ExprAddition&)       override;
     void visit(SPARQL::ExprSubtraction&)    override;
     void visit(SPARQL::ExprAnd&)            override;
     void visit(SPARQL::ExprOr&)             override;
-    
+
     // void visit(SPARQL::ExprLess&)           override;
     // void visit(SPARQL::ExprGreater&)        override;
     // void visit(SPARQL::ExprLessOrEqual&)    override;
@@ -68,10 +68,10 @@ public:
     // void visit(SPARQL::ExprAggSample&)      override;
     // void visit(SPARQL::ExprAggSum&)         override;
 
-    // void visit(SPARQL::ExprAbs&)            override;
+    void visit(SPARQL::ExprAbs&)            override;
     // void visit(SPARQL::ExprBNode&)          override;
     void visit(SPARQL::ExprBound&)          override;
-    // void visit(SPARQL::ExprCeil&)           override;
+    void visit(SPARQL::ExprCeil&)           override;
     void visit(SPARQL::ExprCoalesce&)       override;
     // void visit(SPARQL::ExprConcat&)         override; Needs temporary ObjectId (Literal/langtag)
     // void visit(SPARQL::ExprContains&)       override; Needs temporary ObjectId (Literal/langtag)
@@ -79,7 +79,7 @@ public:
     void visit(SPARQL::ExprDay&)            override;
     // void visit(SPARQL::ExprEncodeForUri&)   override; Needs temporary ObjectId (Literal/langtag)
     // void visit(SPARQL::ExprExists&)         override;
-    // void visit(SPARQL::ExprFloor&)          override;
+    void visit(SPARQL::ExprFloor&)          override;
     void visit(SPARQL::ExprHours&)          override;
     void visit(SPARQL::ExprIf&)             override;
     void visit(SPARQL::ExprIRI&)            override;
@@ -99,7 +99,7 @@ public:
     void visit(SPARQL::ExprRand&)           override;
     // void visit(SPARQL::ExprRegex&)          override; Needs temporary ObjectId (Literal/langtag)
     // void visit(SPARQL::ExprReplace&)        override; Needs temporary ObjectId (Literal/langtag)
-    // void visit(SPARQL::ExprRound&)          override;
+    void visit(SPARQL::ExprRound&)          override;
     void visit(SPARQL::ExprSameTerm&)       override;
     void visit(SPARQL::ExprSeconds&)        override;
     void visit(SPARQL::ExprSHA1&)           override;

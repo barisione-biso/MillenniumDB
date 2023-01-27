@@ -57,6 +57,10 @@ public:
                     // Integer overflow (after adding fractional part)
                     return INVALID_ID;
                 }
+                if (sep > 15) {
+                    // Separator overflow
+                    return INVALID_ID;
+                }
             }
         }
 

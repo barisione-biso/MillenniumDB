@@ -21,7 +21,14 @@ public:
             // Nulls are not equal to anything, including other nulls.
             return ObjectId::get_null();
         } else if (lhs_oid == rhs_oid) {
-            // Fast path for the case where the two objects are the same
+            // Fast path for the case where the two objects are the same.
+            // However, for floats NaN != NaN, so we have to check for that case.
+            if (lhs_oid.get_type() == ObjectId::MASK_FLOAT) {
+                auto f = Conversions::unpack_float(lhs_oid);
+                if (isnan(f)) {
+                    return ObjectId(ObjectId::BOOL_FALSE);
+                }
+            }
             return ObjectId(ObjectId::BOOL_TRUE);
         }
         // Otherwise, we need to do a more expensive comparison.

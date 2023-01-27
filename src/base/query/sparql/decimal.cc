@@ -373,6 +373,86 @@ std::string Decimal::to_external() const {
     return std::string(bytes.begin(), bytes.end());
 }
 
+Decimal Decimal::ceil() const {
+    if (this->exponent >= 0) {
+        return *this;
+    }
+
+    if (static_cast<size_t>(-this->exponent) >= this->digits.size()) {
+        if (this->sign) {
+            return Decimal();
+        } else {
+            return Decimal(1);
+        }
+    }
+
+    auto decimals = -this->exponent;
+    Decimal d;
+    d.digits = std::vector<uint8_t>(this->digits.begin() + decimals, this->digits.end());
+
+    if (this->sign) {
+        d.sign = true;
+    } else {
+        d = d + Decimal(1);
+    }
+
+    return d;
+}
+
+Decimal Decimal::floor() const {
+    if (this->exponent >= 0) {
+        return *this;
+    }
+
+    if (static_cast<size_t>(-this->exponent) >= this->digits.size()) {
+        if (this->sign) {
+            return Decimal(-1);
+        } else {
+            return Decimal();
+        }
+    }
+
+    auto decimals = -this->exponent;
+    Decimal d;
+    d.digits   = std::vector<uint8_t>(this->digits.begin() + decimals, this->digits.end());
+
+    if (this->sign) {
+        d.sign = true;
+        d = d - Decimal(1);
+    }
+    return d;
+}
+
+Decimal Decimal::round() const {
+    if (this->exponent >= 0) {
+        return *this;
+    }
+
+    size_t decimals = -this->exponent;
+
+    if (decimals > this->digits.size()) {
+        return Decimal();
+    }
+
+    Decimal d;
+    d.digits   = std::vector<uint8_t>(this->digits.begin() + decimals, this->digits.end());
+    d.exponent = 0;
+    d.sign     = this->sign;
+
+    uint8_t decider = 0;
+    if (this->digits.size() >= decimals) {
+        decider = this->digits[decimals-1];
+    }
+
+    if (this->sign && (decider > 5 || (decider == 5 && decimals >= 2))) {
+        d = d - Decimal(1);
+    } else if (!this->sign && decider >= 5) {
+        d = d + Decimal(1);
+    }
+
+    return d;
+}
+
 Decimal Decimal::operator-() const {
     Decimal dec(*this);
     dec.sign = !dec.sign;

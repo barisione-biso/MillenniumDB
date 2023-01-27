@@ -14,6 +14,12 @@ WHERE {
         && "-10.0"^^xsd:float = "-10.0"^^xsd:decimal
         && "-10.0"^^xsd:float = "-10"^^xsd:integer
 
+        && !("NaN"^^xsd:float = "NaN"^^xsd:float)
+        && !("-INF"^^xsd:float = "INF"^^xsd:float)
+        && "INF"^^xsd:float = "INF"^^xsd:float
+        && "-INF"^^xsd:float = "-INF"^^xsd:float
+        && "-0"^^xsd:float = "0"^^xsd:float
+
         && 10 = 10
         && 10 = "10"^^xsd:integer
         && 10 = "10"^^xsd:decimal
@@ -91,17 +97,6 @@ WHERE {
         && 10.0 = 1e1
         && 10.0 = "1e1"^^xsd:float
         && 10.0 = "1e1"^^xsd:double
-        && "10"^^xsd:integer = 10
-        && "10"^^xsd:integer = "10"^^xsd:decimal
-        && "10"^^xsd:integer = "10"^^xsd:float
-        && "10"^^xsd:integer = "10"^^xsd:double
-        && "10"^^xsd:integer = 10.0
-        && "10"^^xsd:integer = "10.0"^^xsd:decimal
-        && "10"^^xsd:integer = "10.0"^^xsd:float
-        && "10"^^xsd:integer = "10.0"^^xsd:double
-        && "10"^^xsd:integer = 1e1
-        && "10"^^xsd:integer = "1e1"^^xsd:float
-        && "10"^^xsd:integer = "1e1"^^xsd:double
         && "10.0"^^xsd:decimal = 10
         && "10.0"^^xsd:decimal = "10"^^xsd:integer
         && "10.0"^^xsd:decimal = "10"^^xsd:decimal
