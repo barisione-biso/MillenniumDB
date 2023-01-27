@@ -4,7 +4,7 @@
 If the year is greater than 9999, then we store just the year divided by ten thousand, losing precision. The 56 bits are divided into:
 
 ```
-[1 sign][1 precision][54 ten thousand years]
+[1 sign][1 precision][54 years]
 ```
 
 In other case, the 56 bits are divided into:
