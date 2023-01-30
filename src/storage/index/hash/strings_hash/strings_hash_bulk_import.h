@@ -9,7 +9,6 @@
 #include "storage/index/hash/strings_hash/strings_hash.h"
 #include "storage/index/hash/strings_hash/strings_hash_bucket.h"
 #include "storage/page.h"
-#include "third_party/xxhash/xxhash.h"
 
 class StringsHashBulkImportBucket {
 friend class StringsHashBulkImport;
