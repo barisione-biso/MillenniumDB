@@ -8,7 +8,7 @@
 #include "base/exceptions.h"
 #include "storage/file_manager.h"
 #include "storage/index/hash/strings_hash/strings_hash_bucket.h"
-#include "third_party/xxhash/xxhash.h"
+#include "third_party/murmur3/murmur3.h"
 
 
 StringsHash::StringsHash(const std::string& filename) :
@@ -92,7 +92,9 @@ void StringsHash::duplicate_dirs() {
 
 
 uint64_t StringsHash::get_or_create_str_id(const std::string& str) {
-    uint64_t hash = XXH3_64bits(str.data(), str.length());
+    uint64_t _hash[2];
+    MurmurHash3_x64_128(str.data(), str.length(), 0, _hash);
+    uint64_t hash = _hash[0];
 
     // After a bucket split, need to try insert again.
     while (true) {
@@ -156,16 +158,17 @@ uint64_t StringsHash::get_or_create_str_id(const std::string& str) {
 
 
 uint64_t StringsHash::get_str_id(const std::string& str) const {
-    uint64_t hash = XXH3_64bits(str.data(), str.length());
+    uint64_t hash[2];
+    MurmurHash3_x64_128(str.data(), str.length(), 0, hash);
 
     // After a bucket split, need to try insert again.
     while (true) {
         // global_depth must be <= 64
         auto mask = 0xFFFF'FFFF'FFFF'FFFF >> (64 - global_depth);
-        auto suffix = hash & mask;
+        auto suffix = hash[0] & mask;
         auto bucket_number = dir[suffix];
         auto bucket = StringsHashBucket(buckets_file_id, bucket_number);
 
-        return bucket.get_str_id(str, hash);
+        return bucket.get_str_id(str, hash[0]);
     }
 }
