@@ -54,7 +54,7 @@ If you work on windows, you can use Windows Subsystem for Linux (WSL).
 2. Clone this repository and enter to the 'MillenniumDB' folder:
 
 3. Build the project:
-    - `cmake -Bbuild/Release -DCMAKE_BUILD_TYPE=Release && cmake --build build/Release/`
+    - `cmake -Bbuild/Release -DCMAKE_BUILD_TYPE=Release . && cmake --build build/Release/`
 
 # Data model
 Our data model is similar to the known *labeled property graph* model. In simplified terms we could say that edges were extended such that the source or destination may be another edge. To be more precise, below is the full specification.
