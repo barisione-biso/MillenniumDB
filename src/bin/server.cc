@@ -115,8 +115,8 @@ void session(chrono::seconds timeout_duration, tcp::socket sock) {
         // without this line ConnectionException won't be caught properly
         os.exceptions(ifstream::failbit | ifstream::badbit);
 
-        chrono::duration<float, std::milli> parser_duration;
-        chrono::duration<float, std::milli> optimizer_duration;
+        chrono::duration<float, std::milli> parser_duration = 0ms;
+        chrono::duration<float, std::milli> optimizer_duration = 0ms;
         try {
             // Create logical plan
             antlr4::MyErrorListener error_listener;
@@ -162,8 +162,8 @@ void session(chrono::seconds timeout_duration, tcp::socket sock) {
             tcp_buffer.set_status(CommunicationProtocol::StatusCodes::logic_error);
         }
         catch (const InterruptedException& e) {
-            os << "Query Parser time: " << parser_duration.count() << " ms. "
-               << "Optimizer time: " << optimizer_duration.count() << "ms." << endl;
+            os << "Query Parser time: " << parser_duration.count() << " ms. \n"
+               << "Optimizer time: " << optimizer_duration.count() << " ms." << endl;
             tcp_buffer.set_status(CommunicationProtocol::StatusCodes::timeout);
         }
     }

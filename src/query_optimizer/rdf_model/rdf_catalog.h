@@ -26,6 +26,7 @@ public:
     uint64_t equal_so_count;
     uint64_t equal_po_count;
 
+    std::vector<std::string> aliases;
     std::vector<std::string> prefixes;
     std::vector<std::string> datatypes;
     std::vector<std::string> languages;

@@ -1,7 +1,0 @@
-
----------------------------------------
-
----------------------------------------
-Found 1 results.
-Execution time: 0.0052 ms.
-Query Parser/Optimizer time: 3.9846 ms.

@@ -9,7 +9,6 @@
 #include "storage/index/hash/strings_hash/strings_hash.h"
 #include "storage/index/hash/strings_hash/strings_hash_bucket.h"
 #include "storage/page.h"
-#include "third_party/xxhash/xxhash.h"
 
 class StringsHashBulkImportBucket {
 friend class StringsHashBulkImport;
@@ -106,7 +105,9 @@ public:
 
     // str is not null terminated
     void create_id(const char* str, uint64_t id, size_t strlen) {
-        uint64_t hash = XXH3_64bits(str, strlen);
+        uint64_t _hash[2];
+        MurmurHash3_x64_128(str, strlen, 0, _hash);
+        uint64_t hash = _hash[0];
 
         // After a bucket split, need to try insert again.
         while (true) {

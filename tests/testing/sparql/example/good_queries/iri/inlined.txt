@@ -1,7 +1,0 @@
-s,p,o
----------------------------------------
-<http://www.inlined.com/is1>,<http://www.inlined.com/ip2>,<http://www.inlined.com/io3>
----------------------------------------
-Found 1 results.
-Execution time: 0.0105 ms.
-Query Parser/Optimizer time: 7.4173 ms.

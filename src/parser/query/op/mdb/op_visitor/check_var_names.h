@@ -8,7 +8,7 @@
 
 namespace MDB {
 /**
- * Will throw an exception if unexisting nodes/edges are used inside RETRUN or WHERE
+ * Will throw an exception if undeclared nodes/edges are used inside RETURN or WHERE
  */
 class CheckVarNames : public OpVisitor {
 private:
@@ -28,6 +28,7 @@ public:
     void visit(OpSet&) override;
     void visit(OpWhere&) override;
 
+    void visit(OpInsert&) override { }
     void visit(OpEdge&) override { }
     void visit(OpDescribe&) override { }
     void visit(OpIsolatedTerm&) override { }

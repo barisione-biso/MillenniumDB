@@ -20,6 +20,6 @@ public:
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent = 0) const override {
-        return os << std::string(' ', indent) << "NOT (" <<*expr << ')' ;
+        return os << std::string(indent, ' ') << "NOT (" <<*expr << ')' ;
     }
 };

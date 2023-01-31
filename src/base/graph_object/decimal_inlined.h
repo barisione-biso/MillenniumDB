@@ -51,13 +51,14 @@ public:
                 }
 
                 sep = ptr - start;
-                uint64_t times = 10;
-                while (times < fraction) {
-                    times *= 10;
-                }
+                uint64_t times = std::pow(10, sep);
                 number = number * times + fraction;
                 if (number > 0x0007'FFFF'FFFF'FFFF) {
                     // Integer overflow (after adding fractional part)
+                    return INVALID_ID;
+                }
+                if (sep > 15) {
+                    // Separator overflow
                     return INVALID_ID;
                 }
             }

@@ -1,52 +1,73 @@
 #pragma once
 
-#include <cstring>
-#include <iomanip>
+#include <string>
+#include <vector>
 
 class Decimal {
 public:
-    static std::string normalize(const std::string& str) {
-        // Normalized format: (0|[1-9][0-9]*).(0|[0-9]*[1-9])
-        std::stringstream ss;
+    static unsigned MAX_SIGNIFICANT_FIGURES;
 
-        if (str[0] == '-') {
-            ss << '-';
-        }
-        // Skip leading zeros and signs
-        size_t start = str.find_first_not_of("+-0");
-        if (start == std::string::npos) {
-            // All zeros (e.g. 00000000)
-            ss << "0.0";
-            return ss.str();
-        }
+    std::vector<uint8_t> digits;
+    int8_t               exponent = 0;
+    bool                 sign     = false;
 
-        // Check if the number has a decimal point
-        size_t sep = str.find_first_of('.', start);
-        // Has not a decimal point (e.g. 123)
-        if (sep == std::string::npos) {
-            ss << str.substr(start) << ".0";
-        }
-        // Has a decimal point
-        else {
-            if (sep == start) {
-                // No integer part (e.g. .123)
-                ss << '0';
-            }
-            // Skip trailing zeros
-            size_t end = str.find_last_not_of('0');
-            // Has not a fractional part (e.g. 123.)
-            if (end == sep) {
-                ss << str.substr(start, sep - start) << ".0";
-            }
-            // Has a fractional part (e.g. 123.456)
-            else {
-                ss << str.substr(start, end - start + 1);
-            }
-        }
+    Decimal();
+    Decimal(int64_t);
+    Decimal(std::string_view);
+    Decimal(std::vector<uint8_t>);
+    void from_external(std::string_view);
 
-        return ss.str();
+    void trim_zeros();
+
+    bool operator==(const Decimal&) const;
+    bool operator<(const Decimal&) const;
+
+    inline bool operator!=(const Decimal& rhs) const {
+        return !(*this == rhs);
     }
-    std::string str;
 
-    Decimal(const std::string str) : str(str) { }
+    inline bool operator>(const Decimal& rhs) const {
+        return !(*this < rhs) && *this != rhs;
+    }
+
+    inline bool operator>=(const Decimal& rhs) const {
+        return *this > rhs || *this == rhs;
+    }
+
+    inline bool operator<=(const Decimal& rhs) const {
+        return *this < rhs || *this == rhs;
+    }
+
+    inline Decimal operator+() const {
+        return *this;
+    };
+
+    Decimal operator-() const;
+
+    Decimal operator+(const Decimal&) const;
+    Decimal operator-(const Decimal&) const;
+    Decimal operator*(const Decimal&) const;
+    Decimal operator/(const Decimal&) const;
+
+    Decimal ceil() const;
+    Decimal floor() const;
+    Decimal round() const;
+
+    float                to_float() const;
+    double               to_double() const;
+    std::string          to_string() const;
+    std::vector<uint8_t> to_bytes() const;
+    std::string          to_external() const;
+
+    // Only public for testing during operator/ development.
+    // Maybe make private at some point?
+    static std::pair<uint8_t, Decimal> quotient_remainder(const Decimal& lhs, const Decimal& rhs);
+
+private:
+    Decimal sub_digits(size_t start, size_t end) const;
+    void    insert_digit(uint8_t);
+
+    static std::pair<std::string_view, std::string_view> get_parts(std::string_view);
 };
+
+std::ostream& operator<<(std::ostream& os, const Decimal& dec);

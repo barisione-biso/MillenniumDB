@@ -143,7 +143,7 @@ class BFSIterEnum2 : public BindingIdIter {
 private:
     // Attributes determined in the constructor
     ThreadInfo*   thread_info;
-    // VarId         path_var;
+    VarId         path_var;
     Id            start;
     VarId         end;
     RPQAutomaton  automaton;
@@ -180,7 +180,7 @@ private:
 
 public:
     BFSIterEnum2(ThreadInfo*   thread_info,
-                //  VarId         path_var,
+                 VarId         path_var,
                  Id            start,
                  VarId         end,
                  RPQAutomaton  automaton,

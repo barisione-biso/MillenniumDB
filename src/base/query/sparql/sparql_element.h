@@ -10,14 +10,14 @@
 #include "base/query/sparql/literal.h"
 #include "base/query/sparql/literal_datatype.h"
 #include "base/query/sparql/literal_language.h"
-#include "base/query/sparql/path.h"
 #include "base/query/sparql/sparql_element_to_string.h"
 #include "base/query/var.h"
+#include "parser/query/paths/path.h"
 
 class SparqlElement {
 public:
     // TODO: implement, replace literal with string?
-    std::variant<Var, Iri, Literal, LiteralDatatype, LiteralLanguage, DateTime, Decimal, bool, std::unique_ptr<SPARQL::IPath>> value;
+    std::variant<Var, Iri, Literal, LiteralDatatype, LiteralLanguage, DateTime, Decimal, bool, std::unique_ptr<IPath>, int64_t, float> value;
 
     SparqlElement() : value(false) { }
 
@@ -37,7 +37,11 @@ public:
 
     explicit SparqlElement(bool b) : value(b) { }
 
-    SparqlElement(std::unique_ptr<SPARQL::IPath> path) : value(std::move(path)) { }
+    SparqlElement(std::unique_ptr<IPath> path) : value(std::move(path)) { }
+
+    explicit SparqlElement(int64_t i) : value(i) { }
+
+    explicit SparqlElement(float f) : value(f) { }
 
     SparqlElement duplicate() const;
 
@@ -46,18 +50,23 @@ public:
     }
 
     inline bool is_path() const {
-        return std::holds_alternative<std::unique_ptr<SPARQL::IPath>>(value);
+        return std::holds_alternative<std::unique_ptr<IPath>>(value);
     }
 
     inline bool is_bnode() const {
         // Blank nodes are treated as variables.
-        // To identify them, we check if the first character is '_'.
-        return std::holds_alternative<Var>(value) && to_var().name[0] == '_';
+        // To identify them, we check if the prefix is "_:".
+        return std::holds_alternative<Var>(value) && (to_var().name.find("_:") == 0);
     }
 
     inline Var to_var() const {
         assert(is_var());
         return std::get<Var>(value);
+    }
+
+    inline std::unique_ptr<IPath> to_path() const {
+        assert(is_path());
+        return std::get<std::unique_ptr<IPath>>(value)->duplicate();
     }
 
     inline std::string to_string() const {

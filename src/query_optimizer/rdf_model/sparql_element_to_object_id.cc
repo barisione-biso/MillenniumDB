@@ -36,7 +36,7 @@ ObjectId SparqlElementToObjectId::operator()(const Iri& iri) {
     auto& prefixes = rdf_model.catalog().prefixes;
     std::string str = iri.name;
     uint8_t prefix_id = 0;
-    for (size_t i = 0; i < prefixes.size(); ++i) {
+    for (size_t i = 1; i < prefixes.size(); ++i) {
         if (str.compare(0, prefixes[i].size(), prefixes[i]) == 0) {
             str = str.substr(prefixes[i].size(), str.size() - prefixes[i].size());
             prefix_id = i;
@@ -150,9 +150,9 @@ ObjectId SparqlElementToObjectId::operator()(DateTime dt) {
 }
 
 ObjectId SparqlElementToObjectId::operator()(Decimal dec) {
-    uint64_t decimal_id = DecimalInlined::get_decimal_id(dec.str.c_str());
+    uint64_t decimal_id = DecimalInlined::get_decimal_id(dec.to_string().c_str());
     if (decimal_id == DecimalInlined::INVALID_ID) {
-        uint64_t external_id = string_manager.get_str_id(Decimal::normalize(dec.str), create_if_not_exists);
+        uint64_t external_id = string_manager.get_str_id(dec.to_external(), create_if_not_exists);
         if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
             return ObjectId::get_not_found();
         } else {
@@ -168,6 +168,39 @@ ObjectId SparqlElementToObjectId::operator()(bool b) {
     return ObjectId(ObjectId::MASK_BOOL | (b ? 0x01 : 0x00));
 }
 
-ObjectId SparqlElementToObjectId::operator()(const std::unique_ptr<SPARQL::IPath>&) {
+ObjectId SparqlElementToObjectId::operator()(const std::unique_ptr<IPath>&) {
     throw LogicException("IPath cannot be converted into ObjectId");
+}
+
+ObjectId SparqlElementToObjectId::operator()(int64_t i) {
+    // If the integer uses more than 56 bits, it must be converted into Decimal Extern (overflow)
+    if (i < -0x00FF'FFFF'FFFF'FFFF || i > 0x00FF'FFFF'FFFF'FFFF) {
+        uint64_t external_id = string_manager.get_str_id(Decimal(i).to_external(), create_if_not_exists);
+        if (external_id == ObjectId::OBJECT_ID_NOT_FOUND) {
+            return ObjectId::get_not_found();
+        } else {
+            return ObjectId(external_id | ObjectId::MASK_DECIMAL_EXTERN);
+        }
+    } else if (i < 0) {
+        i *= -1;
+        i = (~i) & 0x00FF'FFFF'FFFF'FFFFUL;
+        return ObjectId(i | ObjectId::MASK_NEGATIVE_INT);
+    } else {
+        return ObjectId(i | ObjectId::MASK_POSITIVE_INT);
+    }
+}
+
+ObjectId SparqlElementToObjectId::operator()(float f) {
+    static_assert(sizeof(f) == 4);
+    unsigned char bytes[sizeof(f)];
+    memcpy(bytes, &f, sizeof(f));
+
+    uint64_t res = 0;
+    int shift_size = 0;
+    for (std::size_t i = 0; i < sizeof(bytes); ++i) {
+        uint64_t byte = bytes[i];
+        res |= byte << shift_size;
+        shift_size += 8;
+    }
+    return ObjectId(ObjectId::MASK_FLOAT | res);
 }

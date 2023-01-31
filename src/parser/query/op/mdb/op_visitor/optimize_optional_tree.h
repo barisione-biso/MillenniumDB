@@ -39,6 +39,7 @@ public:
     void visit(OpSet&) override;
     void visit(OpWhere&) override;
 
+    void visit(OpInsert&) override { }
     void visit(OpEdge&) override { }
     void visit(OpDescribe&) override { }
     void visit(OpIsolatedTerm&) override { }

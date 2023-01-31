@@ -1,5 +1,7 @@
 #include "select.h"
 
+#include "execution/binding_id_iter/paths/path_manager.h"
+
 using namespace std;
 using namespace SPARQL;
 
@@ -12,52 +14,62 @@ Select::Select(std::unique_ptr<BindingIter>         child_iter,
     limit              (limit),
     offset             (offset) { }
 
+Select::~Select() {
+    // TODO: We always have the Select operator as the root of our physical query plans.
+    // If that changes we might need to call path_manager.clear() somewhere else
+    // (it needs to be called always at the destruction of the query and only once)
+    path_manager.clear();
+}
+
 void Select::begin(std::ostream& _os) {
     os = &_os;
-    // print header
-    auto it = projection_vars.cbegin();
-    if (it != projection_vars.cend()) {
-        auto& var_varid_pair = *it;
-        (*os) << var_varid_pair.first;
-        ++it;
-    }
-    while (it != projection_vars.cend()) {
-        auto& var_varid_pair = *it;
-        (*os) << "," << var_varid_pair.first;
-        ++it;
-    }
-    (*os) << '\n'
-          << "---------------------------------------\n";
-
     child_iter->begin(_os);
+
+    auto it = projection_vars.cbegin();
+    // Empty projection
+    if (it == projection_vars.cend()) {
+        (*os) << "{\"head\":{\"vars\":[]},\"results\":{\"bindings\":[";
+    }
+    else {
+        // print header
+        (*os) << "{\"head\":{\"vars\":[";
+        (*os) << '"' << it->first << '"';
+        while (++it != projection_vars.cend()) {
+            (*os) << ",\"" << it->first << '"';
+        }
+        (*os) << "]},\"results\":{\"bindings\": [";
+    }
 }
 
 bool Select::next() {
     while (offset > 0) {
         if (child_iter->next()) {
             --offset;
-        }
-        else {
+        } else {
             return false;
         }
     }
+
+    // json format
     if (count < limit && child_iter->next()) {
+        if (count > 0) {
+            (*os) << ',';
+        }
+        (*os) << "{";
         auto it = projection_vars.cbegin();
 
+        // This handles the case where the projection is empty
         if (it != projection_vars.cend()) {
-            auto& var_varid_pair = *it;
-            (*os) << (*child_iter)[var_varid_pair.second];
-            ++it;
+            (*os) << "\"" << it->first << "\":" << (*child_iter)[it->second];
+            while (++it != projection_vars.cend()) {
+                (*os) << "," << "\"" << it->first << "\":" << (*child_iter)[it->second];
+            }
         }
-        while (it != projection_vars.cend()) {
-            auto& var_varid_pair = *it;
-            (*os) << "," << (*child_iter)[var_varid_pair.second];
-            ++it;
-        }
-        (*os) << "\n";
+        (*os) << "}";
         count++;
         return true;
     } else {
+        (*os) << "]}}";
         return false;
     }
 }

@@ -38,11 +38,10 @@ public:
     std::ostream& print_to_ostream(std::ostream& os, int indent = 0) const override {
         os << std::string(indent, ' ');
         os << "OpTriple(";
-        os << subject << "\t";
-        os << predicate << "\t";
-        os << object << "\t";
-        os << ")\n";
+        os << subject << ' ';
+        os << predicate << ' ';
+        os << object << ")\n";
         return os;
-    };
+    }
 };
 } // namespace SPARQL

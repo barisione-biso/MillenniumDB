@@ -18,13 +18,12 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -pedantic -O0 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -pedantic -O3 -g0 \
 -pthread -march=native -funroll-loops")
 
-find_package(Boost 1.71.0 REQUIRED)
-
-include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/antlr4-runtime-4.9.3)
 include_directories(${CMAKE_SOURCE_DIR}/third_party/antlr4-runtime-4.9.3/runtime/src)
+include_directories(${CMAKE_SOURCE_DIR}/third_party/boost_1_81/include)
+link_directories(${CMAKE_SOURCE_DIR}/third_party/boost_1_81/lib)
 
 file(GLOB_RECURSE SRCS src/*.cc)
 
@@ -36,22 +35,24 @@ add_library(millenniumdb STATIC ${sources})
 set(BUILD_TARGETS
     server
     server_sparql
+    server_sparql2
     create_db
     create_db_sparql
     query
+    service
 )
 
 set(TEST_TARGETS
     compare_datetime
-    compare_decimal_both_ext
+    # compare_decimal_both_ext
     compare_decimal_both_inl
-    compare_decimal_inl_ext
+    # compare_decimal_inl_ext
     normalize_decimal
-    playground
+    decimal_operations
+    # playground
     # parse_sparql
     # create_bpt
     # check_bpts
-    # check_extendible_hash
     # execute_query
 )
 
@@ -61,6 +62,8 @@ foreach(target ${BUILD_TARGETS})
         millenniumdb
         antlr4_cpp_runtime
         stdc++fs
+        ssl
+        crypto
     )
 endforeach(target)
 

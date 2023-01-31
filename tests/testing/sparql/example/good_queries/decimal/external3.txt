@@ -1,7 +1,0 @@
-s,p
----------------------------------------
-<http://www.decext.com/s>,<http://www.decext.com/p>
----------------------------------------
-Found 1 results.
-Execution time: 0.0121 ms.
-Optimizer time: 1.5657 ms.

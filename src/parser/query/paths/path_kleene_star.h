@@ -31,7 +31,7 @@ public:
         os << "PathKleeneStar()\n";
         path->print_to_ostream(os, indent + 2);
         return os;
-    };
+    }
 
     bool nullable() const override {
         return true;

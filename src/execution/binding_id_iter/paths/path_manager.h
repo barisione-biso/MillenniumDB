@@ -45,6 +45,8 @@ public:
 
     void clear();
 
+    static void (*path_print) (std::ostream&, const Paths::AnyShortest::SearchState*);
+
 private:
     PathManager(uint_fast32_t max_threads);
 

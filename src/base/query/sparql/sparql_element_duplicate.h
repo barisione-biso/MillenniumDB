@@ -3,14 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "base/graph_object/datetime.h"
-#include "base/query/sparql/decimal.h"
-#include "base/query/sparql/iri.h"
-#include "base/query/sparql/literal.h"
-#include "base/query/sparql/literal_datatype.h"
-#include "base/query/sparql/literal_language.h"
-#include "base/query/sparql/path.h"
-#include "base/query/var.h"
+#include "base/query/sparql/sparql_element.h"
 
 struct SparqlElementDuplicate {
     SparqlElement operator()(const Var& v) {
@@ -45,7 +38,15 @@ struct SparqlElementDuplicate {
         return SparqlElement(b);
     }
 
-    SparqlElement operator()(const std::unique_ptr<SPARQL::IPath>& p) {
+    SparqlElement operator()(const std::unique_ptr<IPath>& p) {
         return SparqlElement(p->duplicate());
+    }
+
+    SparqlElement operator()(int64_t i) {
+        return SparqlElement(i);
+    }
+
+    SparqlElement operator()(float f) {
+        return SparqlElement(f);
     }
 };

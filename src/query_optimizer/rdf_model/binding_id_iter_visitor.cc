@@ -3,17 +3,20 @@
 #include <iostream>
 
 #include "execution/binding_id_iter/optional_node.h"
+#include "execution/binding_id_iter/filter.h"
+#include "query_optimizer/plan/join_order/greedy_optimizer.h"
+#include "query_optimizer/plan/join_order/leapfrog_optimizer.h"
+#include "query_optimizer/rdf_model/expr/expr_to_binding_id_expr.h"
 #include "query_optimizer/rdf_model/rdf_model.h"
-#include "query_optimizer/quad_model/join_order/greedy_optimizer.h"
-#include "query_optimizer/quad_model/join_order/leapfrog_optimizer.h"
-#include "query_optimizer/quad_model/plan/sparql/triple_plan.h"
-#include "query_optimizer/quad_model/plan/sparql/sparql_path_plan.h"
+#include "query_optimizer/rdf_model/plan/triple_plan.h"
+#include "query_optimizer/rdf_model/plan/path_plan.h"
 
 using namespace std;
 using namespace SPARQL;
 
 BindingIdIterVisitor::BindingIdIterVisitor(ThreadInfo* thread_info, const map<Var, VarId>& var2var_id) :
     var2var_id(var2var_id), thread_info(thread_info) { }
+
 
 VarId BindingIdIterVisitor::get_var_id(const Var& var) const {
     auto search = var2var_id.find(var);
@@ -24,21 +27,22 @@ VarId BindingIdIterVisitor::get_var_id(const Var& var) const {
     }
 }
 
-void BindingIdIterVisitor::visit(OpTriples& op_triples) {
+
+void BindingIdIterVisitor::visit(OpBasicGraphPattern& op_basic_graph_pattern) {
     vector<unique_ptr<Plan>> base_plans;
 
-    for (auto& triple : op_triples.triples) {
-        if (!triple.predicate.is_path()) {
-            auto subject_id   = get_id(triple.subject);
-            auto predicate_id = get_id(triple.predicate);
-            auto object_id    = get_id(triple.object);
-            base_plans.push_back(make_unique<TriplePlan>(subject_id, predicate_id, object_id));
-        } else {
-            auto subject_id   = get_id(triple.subject);
-            auto path = std::get<std::unique_ptr<SPARQL::IPath>>(triple.predicate.value).get();
-            auto object_id    = get_id(triple.object);
-            base_plans.push_back(make_unique<SparqlPathPlan>(subject_id, *path, object_id));
-        }
+    for (auto& op_triple : op_basic_graph_pattern.triples) {
+        auto subject_id = get_id(op_triple.subject);
+        auto predicate_id = get_id(op_triple.predicate);
+        auto object_id = get_id(op_triple.object);
+        base_plans.push_back(make_unique<TriplePlan>(subject_id, predicate_id, object_id));
+    }
+    for (auto& op_path : op_basic_graph_pattern.paths) {
+        VarId path_var = get_var_id(op_path.var);
+        auto subject_id = get_id(op_path.subject);
+        auto path = op_path.path.get();
+        auto object_id = get_id(op_path.object);
+        base_plans.push_back(make_unique<SPARQL::PathPlan>(path_var, subject_id, *path, object_id, op_path.semantic));
     }
 
     assert(tmp == nullptr);
@@ -78,24 +82,42 @@ void BindingIdIterVisitor::visit(OpTriples& op_triples) {
     }
 }
 
-void BindingIdIterVisitor::visit(OpOptional& op_optional) {
-    op_optional.op->accept_visitor(*this);
-    unique_ptr<BindingIdIter> binding_id_iter = move(tmp);
 
-    vector<unique_ptr<BindingIdIter>> optional_children;
-    // TODO: its not necessary to remember assigned_vars and reassign them after visiting a child because we only
-    // support well designed patterns. If we want to support non well designed patterns this could change
-    // auto current_scope_assigned_vars = assigned_vars;
+void BindingIdIterVisitor::visit(OpFilter& op_filter) {
+    op_filter.op->accept_visitor(*this);
 
-    for (auto& optional : op_optional.optionals) {
-        optional->accept_visitor(*this);
-        optional_children.push_back(move(tmp));
-        // assigned_vars = current_scope_assigned_vars;
+    vector<std::unique_ptr<BindingIdExpr>> binding_id_exprs;
+
+    Expr2BindingIdExpr expr2binding_id_expr(var2var_id);
+    for (auto& expr : op_filter.filters) {
+        expr->accept_visitor(expr2binding_id_expr);
+        binding_id_exprs.push_back(std::move(expr2binding_id_expr.current_binding_id_expr));
     }
 
-    assert(tmp == nullptr);
-    tmp = make_unique<OptionalNode>(move(binding_id_iter), move(optional_children));
+    tmp = make_unique<Filter>(move(tmp), move(binding_id_exprs));
 }
+
+
+void BindingIdIterVisitor::visit(OpOptional&) {
+    // TODO:
+    // op_optional.op->accept_visitor(*this);
+    // unique_ptr<BindingIdIter> binding_id_iter = move(tmp);
+
+    // vector<unique_ptr<BindingIdIter>> optional_children;
+    // // TODO: its not necessary to remember assigned_vars and reassign them after visiting a child because we only
+    // // support well designed patterns. If we want to support non well designed patterns this could change
+    // // auto current_scope_assigned_vars = assigned_vars;
+
+    // for (auto& optional : op_optional.optionals) {
+    //     optional->accept_visitor(*this);
+    //     optional_children.push_back(move(tmp));
+    //     // assigned_vars = current_scope_assigned_vars;
+    // }
+
+    // assert(tmp == nullptr);
+    // tmp = make_unique<OptionalNode>(move(binding_id_iter), move(optional_children));
+}
+
 
 Id BindingIdIterVisitor::get_id(const SparqlElement& sparql_element) const {
     if (sparql_element.is_var()) {

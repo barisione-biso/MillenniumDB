@@ -43,8 +43,8 @@ int compare_external(std::string& lhs, std::string& rhs) {
 }
 
 int compare(std::string& lhs, std::string& rhs) {
-    std::string lhs_normalized = Decimal::normalize(lhs);
-    std::string rhs_normalized = Decimal::normalize(rhs);
+    std::string lhs_normalized = Decimal(lhs).to_string();
+    std::string rhs_normalized = Decimal(rhs).to_string();
 
     return compare_external(lhs_normalized, rhs_normalized);
 }

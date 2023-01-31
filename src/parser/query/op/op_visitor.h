@@ -25,9 +25,17 @@ namespace SPARQL {
 class OpOptional;
 class OpOrderBy;
 class OpSelect;
-class OpTriples;
+class OpBasicGraphPattern;
 class OpTriple;
+class OpPath;
 class OpWhere;
+class OpUnitTable;
+class OpJoin;
+class OpUnion;
+class OpMinus;
+class OpService;
+class OpGraph;
+class OpFilter;
 } // namespace SPARQL
 
 class OpVisitor {
@@ -51,11 +59,20 @@ public:
     virtual void visit(MDB::OpReturn&)            { throw LogicException("visit MDB::OpReturn not implemented"); }
     virtual void visit(MDB::OpSet&)               { throw LogicException("visit MDB::OpSet not implemented"); }
     virtual void visit(MDB::OpWhere&)             { throw LogicException("visit MDB::OpWhere not implemented"); }
+
     // SPARQL
-    virtual void visit(SPARQL::OpOptional&)       { throw LogicException("visit SPARQL::OpOptional not implemented"); }
-    virtual void visit(SPARQL::OpOrderBy&)        { throw LogicException("visit SPARQL::OpOrderBy not implemented"); }
-    virtual void visit(SPARQL::OpSelect&)         { throw LogicException("visit SPARQL::OpSelect not implemented"); }
-    virtual void visit(SPARQL::OpTriples&)        { throw LogicException("visit SPARQL::OpTriples not implemented"); }
-    virtual void visit(SPARQL::OpTriple&)         { throw LogicException("visit SPARQL::OpTriple not implemented"); }
-    virtual void visit(SPARQL::OpWhere&)          { throw LogicException("visit SPARQL::OpWhere not implemented"); }
+    virtual void visit(SPARQL::OpOptional&)          { throw LogicException("visit SPARQL::OpOptional not implemented"); }
+    virtual void visit(SPARQL::OpOrderBy&)           { throw LogicException("visit SPARQL::OpOrderBy not implemented"); }
+    virtual void visit(SPARQL::OpSelect&)            { throw LogicException("visit SPARQL::OpSelect not implemented"); }
+    virtual void visit(SPARQL::OpBasicGraphPattern&) { throw LogicException("visit SPARQL::OpBasicGraphPattern not implemented"); }
+    virtual void visit(SPARQL::OpTriple&)            { throw LogicException("visit SPARQL::OpTriple not implemented"); }
+    virtual void visit(SPARQL::OpPath&)              { throw LogicException("visit SPARQL::OpPath not implemented"); }
+    virtual void visit(SPARQL::OpWhere&)             { throw LogicException("visit SPARQL::OpWhere not implemented"); }
+    virtual void visit(SPARQL::OpUnitTable&)         { throw LogicException("visit SPARQL::OpUnitTable not implemented"); }
+    virtual void visit(SPARQL::OpJoin&)              { throw LogicException("visit SPARQL::OpJoin not implemented"); }
+    virtual void visit(SPARQL::OpUnion&)             { throw LogicException("visit SPARQL::OpUnion not implemented"); }
+    virtual void visit(SPARQL::OpMinus&)             { throw LogicException("visit SPARQL::OpMinus not implemented"); }
+    virtual void visit(SPARQL::OpService&)           { throw LogicException("visit SPARQL::OpService not implemented"); }
+    virtual void visit(SPARQL::OpGraph&)             { throw LogicException("visit SPARQL::OpGraph not implemented"); }
+    virtual void visit(SPARQL::OpFilter&)            { throw LogicException("visit SPARQL::OpFilter not implemented"); }
 };

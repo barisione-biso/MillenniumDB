@@ -62,8 +62,6 @@ struct SearchState {
     SearchState duplicate() const {
         return SearchState(automaton_state, node_id, previous, inverse_direction, type_id);
     }
-
-    void get_path(std::ostream& os) const;
 };
 
 }} // namespace Paths::AnyShortest

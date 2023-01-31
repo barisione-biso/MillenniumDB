@@ -3,6 +3,7 @@
 #include <string>
 
 #include "execution/graph_object/graph_object_manager.h"
+#include "parser/query/paths/path.h"
 
 struct SparqlElementToString {
     std::string operator()(const Var& v) {
@@ -30,14 +31,23 @@ struct SparqlElementToString {
     }
 
     std::string operator()(const Decimal& d) {
-        return '"' + d.str + "\"^^<http://www.w3.org/2001/XMLSchema#decimal>";
+        return d.to_string(); // TODO: change?
+        // return '"' + d.str + "\"^^<http://www.w3.org/2001/XMLSchema#decimal>";
     }
 
     std::string operator()(bool b) {
         return b ? "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>" : "\"false\"^^<http://www.w3.org/2001/XMLSchema#boolean>";
     }
 
-    std::string operator()(const std::unique_ptr<SPARQL::IPath>& path) {
+    std::string operator()(const std::unique_ptr<IPath>& path) {
         return path.get()->to_string();
+    }
+
+    std::string operator()(int64_t i) {
+        return '"' + std::to_string(i) + "\"^^<http://www.w3.org/2001/XMLSchema#integer>";
+    }
+
+    std::string operator()(float f) {
+        return '"' + std::to_string(f) + "\"^^<http://www.w3.org/2001/XMLSchema#float>";
     }
 };

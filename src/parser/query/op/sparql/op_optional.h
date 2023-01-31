@@ -9,37 +9,31 @@ namespace SPARQL {
 
 class OpOptional : public Op {
 public:
-    std::unique_ptr<Op> op;
+    std::unique_ptr<Op> lhs;
+    std::unique_ptr<Op> rhs;
 
-    std::vector<std::unique_ptr<Op>> optionals;
-
-    OpOptional(std::unique_ptr<Op> op, std::vector<std::unique_ptr<Op>>&& optionals) :
-        op(std::move(op)), optionals(std::move(optionals)) { }
+    OpOptional(std::unique_ptr<Op> lhs, std::unique_ptr<Op> rhs) :
+        lhs(std::move(lhs)), rhs(std::move(rhs)) { }
 
     void accept_visitor(OpVisitor& visitor) override {
         visitor.visit(*this);
     }
 
     std::set<Var> get_vars() const override {
-        auto res = op->get_vars();
-        for (auto& child : optionals) {
-            for (auto& child_var : child->get_vars()) {
-                res.insert(child_var);
-            }
-        }
+        auto res = lhs->get_vars();
+        auto rhs_vars = rhs->get_vars();
+        res.insert(rhs_vars.begin(), rhs_vars.end());
         return res;
     }
 
     std::ostream& print_to_ostream(std::ostream& os, int indent = 0) const override {
         os << std::string(indent, ' ');
-        os << "OpOptional()\n";
-        os << std::string(indent + 2, ' ') << "main pattern:\n";
-        op->print_to_ostream(os, indent + 4);
-        os << std::string(indent + 2, ' ') << "children:\n";
-        for (auto& optional : optionals) {
-            optional->print_to_ostream(os, indent + 4);
-        }
+        os << "OpOptional(\n";
+        lhs->print_to_ostream(os, indent + 2);
+        rhs->print_to_ostream(os, indent + 2);
+        os << std::string(indent, ' ');
+        os << ")\n";
         return os;
-    };
+    }
 };
 } // namespace SPARQL

@@ -1,0 +1,6 @@
+# Get the country of every known person by Jane
+PREFIX path: <http://www.path.com/>
+SELECT ?country ?path
+WHERE {
+    path:Jane ANY_SHORTEST(path:knows/path:livesIn AS ?path) ?country .
+}

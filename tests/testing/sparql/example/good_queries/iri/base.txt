@@ -1,7 +1,0 @@
-s,p,o
----------------------------------------
-<http://www.base.com/baseSubject1>,<http://www.base.com/basePredicate2>,<http://www.base.com/baseObject3>
----------------------------------------
-Found 1 results.
-Execution time: 0.0129 ms.
-Query Parser/Optimizer time: 9.3625 ms.

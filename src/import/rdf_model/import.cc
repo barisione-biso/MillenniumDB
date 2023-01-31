@@ -59,26 +59,21 @@ void OnDiskImport::start_import(const std::string& input_filename, const std::st
     external_strings_capacity            = external_strings_initial_size;
     external_strings_end                 = StringManager::METADATA_SIZE;
 
-    if (prefixes_filename.empty()) {
-        prefixes = { "" };
-    } else {
-        // Open file
-        FILE* prefixes_file = fopen(prefixes_filename.c_str(), "r");
-        // Read line by line and store in prefixes vector
-        char* line = NULL;
-        size_t len = 0;
-        ssize_t nread;
-        while ((nread = getline(&line, &len, prefixes_file)) != -1) {
-            if (line[nread - 1] == '\n') {
-                line[nread - 1] = '\0';
-            }
-            prefixes.push_back(line);
+    // The first prefix/alias is considered as null
+    prefixes = { "" };
+    aliases  = { "" };
+    if (!prefixes_filename.empty()) {
+        std::ifstream prefixes_file(prefixes_filename);
+        if (prefixes_file.fail()) {
+            throw std::runtime_error("Could not open file " + prefixes_filename);
         }
-        // Cleanup
-        free(line);
-        fclose(prefixes_file);
-        // ALWAYS set last prefix as empty string
-        prefixes.push_back("");
+        std::string line;
+        while (std::getline(prefixes_file, line)) {
+            size_t pos = line.find_first_of(':');
+            aliases.push_back(line.substr(0, pos));
+            prefixes.push_back(line.substr(pos + 2));
+        }
+        prefixes_file.close();
     }
 
     // Open file
@@ -277,7 +272,8 @@ void OnDiskImport::start_import(const std::string& input_filename, const std::st
     std::chrono::duration<float, std::milli> total_duration = end_triple_index - start;
     std::cout << "Total duration: " << total_duration.count() << " ms\n";
 
-    // Store IRI prefixes and literal datatypes/languages into catalog
+    // Store IRI aliases, prefixes and literal datatypes/languages into catalog
+    catalog.aliases  = std::move(aliases);
     catalog.prefixes = std::move(prefixes);
     catalog.datatypes.resize(datatype_ids_map.size());
     for (auto&& [datatype, id] : datatype_ids_map) {

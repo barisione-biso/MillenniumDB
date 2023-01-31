@@ -16,7 +16,7 @@ RdfModelIndexProvider::RdfModelIndexProvider(// unordered_map<uint64_t, IndexTyp
     interruption_requested (interruption_requested) {}
 
 
-bool RdfModelIndexProvider::node_exists(uint64_t node_id) {
+bool RdfModelIndexProvider::node_exists(uint64_t /* node_id */) {
     return true;
 }
 

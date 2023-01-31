@@ -14,6 +14,7 @@ enum class PathType {
     PATH_ATOM,
     PATH_OPTIONAL,
     PATH_CHECK,
+    PATH_NEGATED_SET,
 };
 
 class IPath {

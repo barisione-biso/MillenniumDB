@@ -6,7 +6,7 @@
 
 #include "storage/page.h"
 #include "storage/string_manager.h"
-#include "third_party/xxhash/xxhash.h"
+#include "third_party/murmur3/murmur3.h"
 
 namespace Import {
 
@@ -51,6 +51,8 @@ struct std::hash<Import::ExternalString> {
         size_t len = StringManager::get_string_len(ptr, &bytes_for_len);
         ptr += bytes_for_len;
 
-        return XXH3_64bits(ptr, len);
+        uint64_t hash[2];
+        MurmurHash3_x64_128(ptr, len, 0, hash);
+        return hash[0];
     }
 };

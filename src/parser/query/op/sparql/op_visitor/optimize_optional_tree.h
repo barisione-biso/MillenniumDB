@@ -18,7 +18,6 @@ that does not assign any new variables is eliminated.
 */
 class OptimizeOptionalTree : public OpVisitor {
 private:
-    std::set<Var>                    global_vars;
     std::vector<std::unique_ptr<Op>> optionals;
 
     bool delete_current    = false;
@@ -26,10 +25,11 @@ private:
     bool optional_to_match = true;
 
 public:
-    void visit(OpSelect&)   override;
-    void visit(OpWhere&)    override;
-    void visit(OpOptional&) override;
-    void visit(OpTriples&)  override;
-    void visit(OpOrderBy&)  override;
+    void visit(OpBasicGraphPattern&) override;
+    void visit(OpFilter&)            override;
+    void visit(OpOptional&)          override;
+    void visit(OpOrderBy&)           override;
+    void visit(OpSelect&)            override;
+    void visit(OpWhere&)             override;
 };
 } // namespace SPARQL

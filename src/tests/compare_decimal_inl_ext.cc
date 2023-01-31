@@ -46,7 +46,7 @@ int compare_external(std::string& lhs, std::string& rhs) {
 
 int compare(DecimalInlined lhs, std::string& rhs) {
     std::string lhs_external   = lhs.get_value_string();
-    std::string rhs_normalized = Decimal::normalize(rhs);
+    std::string rhs_normalized = Decimal(rhs).to_string();
 
     return compare_external(lhs_external, rhs_normalized);
 }

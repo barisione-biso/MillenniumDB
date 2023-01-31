@@ -9,6 +9,7 @@
 #include "base/graph_object/edge.h"
 #include "base/graph_object/path.h"
 #include "base/path_printer.h"
+#include "execution/binding_id_iter/paths/any_shortest/search_state_printer.h"
 #include "execution/binding_id_iter/paths/path_manager.h"
 #include "execution/graph_object/graph_object_manager.h"
 #include "query_optimizer/rdf_model/binding_iter_visitor.h"
@@ -17,6 +18,7 @@
 #include "storage/file_manager.h"
 #include "storage/index/bplus_tree/bplus_tree.h"
 #include "storage/string_manager.h"
+#include "storage/temporal_manager.h"
 
 using namespace std;
 
@@ -48,12 +50,13 @@ RdfModel::RdfModel(const std::string& db_folder,
     BufferManager::init(shared_buffer_pool_size, private_buffer_pool_size, max_threads);
     PathManager::init(max_threads);
     StringManager::init();
+    TemporalManager::init();
 
     new (&catalog())       RdfCatalog("catalog.dat"); // placement new
 
     Path::path_printer = &path_manager;
 
-    GraphObject::graph_object_print    = GraphObjectManager::print_rdf;
+    GraphObject::graph_object_print    = GraphObjectManager::print_rdf_json;
     GraphObject::graph_object_eq       = GraphObjectManager::equal;
     GraphObject::graph_object_cmp      = GraphObjectManager::compare_rdf;
     GraphObject::graph_object_sum      = GraphObjectManager::sum;
@@ -61,6 +64,7 @@ RdfModel::RdfModel(const std::string& db_folder,
     GraphObject::graph_object_multiply = GraphObjectManager::multiply;
     GraphObject::graph_object_divide   = GraphObjectManager::divide;
     GraphObject::graph_object_modulo   = GraphObjectManager::modulo;
+    PathManager::path_print            = SearchStatePrinter::get_path_rdf_model;
 
     spo = make_unique<BPlusTree<3>>("spo");
     pos = make_unique<BPlusTree<3>>("pos");
@@ -258,6 +262,22 @@ GraphObject RdfModel::get_graph_object(ObjectId object_id) const {
 
         case ObjectId::MASK_DECIMAL_INLINED: {
             return GraphObjectFactory::make_decimal_inlined(unmasked_id);
+        }
+
+        case ObjectId::MASK_IRI_TMP: {
+            return GraphObjectFactory::make_iri_tmp2(unmasked_id);
+        }
+
+        case ObjectId::MASK_STRING_TMP2: {
+            return GraphObjectFactory::make_string_tmp2(unmasked_id);
+        }
+
+        case ObjectId::MASK_STRING_DATATYPE_TMP2: {
+            return GraphObjectFactory::make_literal_datatype_tmp2(unmasked_id);
+        }
+
+        case ObjectId::MASK_STRING_LANG_TMP2: {
+            return GraphObjectFactory::make_literal_language_tmp2(unmasked_id);
         }
 
         default: {

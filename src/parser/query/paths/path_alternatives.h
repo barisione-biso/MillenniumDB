@@ -44,7 +44,7 @@ public:
             alternative->print_to_ostream(os, indent + 2);
         }
         return os;
-    };
+    }
 
     std::unique_ptr<IPath> invert() const override {
         std::vector<std::unique_ptr<IPath>> invert_alternatives;

@@ -1,0 +1,7 @@
+# Get any of the possible attributes for the products
+PREFIX path: <http://www.path.com/>
+SELECT ?product ?attribute ?path
+WHERE {
+    ?product path:ItemType path:Product;
+             ANY_SHORTEST(path:hasColor|path:hasStyle|path:hasCategory AS ?path) ?attribute 
+}

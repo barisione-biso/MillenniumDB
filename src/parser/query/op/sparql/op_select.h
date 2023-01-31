@@ -54,6 +54,6 @@ public:
         }
         os << ")\n";
         return op->print_to_ostream(os, indent + 2);
-    };
+    }
 };
 } // namespace SPARQL

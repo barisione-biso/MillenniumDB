@@ -33,6 +33,7 @@ class PathCheck;
 class PathKleeneStar;
 class PathOptional;
 class PathSequence;
+class PathNegatedSet;
 
 class PathDenull {
 public:
@@ -47,4 +48,5 @@ private:
     static std::unique_ptr<IPath> denull(std::unique_ptr<PathKleeneStar>);
     static std::unique_ptr<IPath> denull(std::unique_ptr<PathOptional>);
     static std::unique_ptr<IPath> denull(std::unique_ptr<PathSequence>);
+    static std::unique_ptr<IPath> denull(std::unique_ptr<PathNegatedSet>);
 };

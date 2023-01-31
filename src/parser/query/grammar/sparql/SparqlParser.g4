@@ -40,7 +40,7 @@ prologue
 
 baseDecl
     : BASE IRIREF
-    ; 
+    ;
 
 prefixDecl
     : PREFIX PNAME_NS IRIREF
@@ -53,7 +53,7 @@ selectQuery
 subSelect
     : selectClause whereClause solutionModifier valuesClause
     ;
-    	
+
 selectClause
     : SELECT selectModifier? (selectVariables+ | '*')
     ;
@@ -94,29 +94,29 @@ solutionModifier
 groupClause
     : GROUP BY groupCondition+
     ;
-    		 
+
 groupCondition
     : builtInCall | functionCall | '(' expression (AS var)? ')' | var
     ;
-    
+
 havingClause
     : HAVING havingCondition+
     ;
-    
+
 havingCondition
     : constraint
     ;
-    
+
 orderClause
     : ORDER BY orderCondition+
     ;
 
 orderCondition
-    : (ASC|DESC) '(' expression ')' 
-    | constraint 
+    : (ASC|DESC) '(' expression ')'
+    | constraint
     | var
     ;
-	    
+
 limitOffsetClauses
     : limitClause offsetClause? | offsetClause limitClause?
     ;
@@ -132,39 +132,39 @@ offsetClause
 valuesClause
     : (VALUES dataBlock)?
     ;
-    
+
 updateCommand
     : prologue (update (';' prologue update)* (';' prologue)?)?
     ;
 
 update
     : load | clear | drop | add | move | copy | create | insertData | deleteData | deleteWhere | modify
-    ;   
-    
-load 	  
+    ;
+
+load
     : LOAD SILENT? iri (INTO graphRef)?
     ;
-    
+
 clear
     : CLEAR  SILENT? graphRefAll
     ;
-    
+
 drop
     : DROP SILENT? graphRefAll
-    ; 
+    ;
 
 create
     : CREATE SILENT? graphRef
     ;
-    
+
 add
     : ADD SILENT? graphOrDefault TO graphOrDefault
     ;
-    
+
 move
     : MOVE SILENT? graphOrDefault TO graphOrDefault
     ;
-    
+
 copy
     : COPY SILENT? graphOrDefault TO graphOrDefault
     ;
@@ -180,15 +180,15 @@ deleteData
 deleteWhere
     : DELETE WHERE quadPattern
     ;
-    
+
 modify
     : (WITH iri)? (deleteClause insertClause? | insertClause) usingClause* WHERE groupGraphPattern
     ;
-  
+
 deleteClause
     : DELETE quadPattern
     ;
-      
+
 insertClause
     : INSERT quadPattern
     ;
@@ -197,10 +197,10 @@ usingClause
     : USING NAMED? iri
     ;
 
-graphOrDefault	  
+graphOrDefault
     : DEFAULT | GRAPH? iri
     ;
-    	    	
+
 graphRef
     : GRAPH iri
     ;
@@ -212,13 +212,13 @@ graphRefAll
 quadPattern
     : '{' quads '}'
     ;
-    
+
 quadData
     : '{' quads '}'
     ;
-    
+
 quads
-    : triplesTemplate? quadsDetails* 
+    : triplesTemplate? quadsDetails*
     ;
 
 quadsDetails
@@ -228,29 +228,36 @@ quadsDetails
 quadsNotTriples
     : GRAPH varOrIRI '{' triplesTemplate? '}'
     ;
-    
+
 triplesTemplate
     : triplesSameSubject ('.' triplesSameSubject?)*
     ;
-    	
+
 groupGraphPattern
     : '{' (subSelect | groupGraphPatternSub) '}'
     ;
-    
+
 groupGraphPatternSub
     : triplesBlock?  groupGraphPatternSubList*
     ;
-    
+
 groupGraphPatternSubList
     : graphPatternNotTriples '.'? triplesBlock?
     ;
-    
+
 triplesBlock
     :  triplesSameSubjectPath ('.' triplesSameSubjectPath?)*
     ;
 
 graphPatternNotTriples
-    : groupOrUnionGraphPattern | optionalGraphPattern | minusGraphPattern | graphGraphPattern | serviceGraphPattern | filter | bind | inlineData
+    : groupOrUnionGraphPattern
+    | optionalGraphPattern
+    | minusGraphPattern
+    | graphGraphPattern
+    | serviceGraphPattern
+    | filter
+    | bind
+    | inlineData
     ;
 
 optionalGraphPattern
@@ -264,11 +271,11 @@ graphGraphPattern
 serviceGraphPattern
     : SERVICE SILENT? varOrIRI groupGraphPattern
     ;
-    
+
 bind
     : BIND '(' expression AS var ')'
     ;
-    	
+
 inlineData
     : VALUES dataBlock
     ;
@@ -330,20 +337,20 @@ constructTriples
     ;
 
 triplesSameSubject
-    : varOrTerm propertyListNotEmpty | triplesNode propertyList 
+    : varOrTerm propertyListNotEmpty | triplesNode propertyList
     ;
- 
+
 propertyList
     : propertyListNotEmpty?
     ;
 
 propertyListNotEmpty
-    : verb objectList (';' (verb objectList)?)* 
+    : verb objectList (';' (verb objectList)?)*
     ;
 
 verb
     : varOrIRI | A
-    ;    
+    ;
 
 objectList
     : object (',' object)*
@@ -356,10 +363,10 @@ object
 triplesSameSubjectPath
     : varOrTerm propertyListPathNotEmpty | triplesNodePath propertyListPath
     ;
-  
+
 propertyListPath
     : propertyListPathNotEmpty?
-    ;  
+    ;
 
 propertyListPathNotEmpty
     : (verbPath|verbSimple) objectListPath (';' propertyListPathNotEmptyList?)*
@@ -371,12 +378,14 @@ propertyListPathNotEmptyList
 
 verbPath
     : path
+    // MDB extension
+    | (ANY_SHORTEST | ALL_SHORTEST) '(' path AS var ')'
     ;
-    
+
 verbSimple
     : var
     ;
-    	
+
 objectListPath
     : objectPath (',' objectPath)*
     ;
@@ -387,16 +396,16 @@ objectPath
 
 path
     : pathAlternative
-    ; 
+    ;
 
 pathAlternative
     : pathSequence ('|' pathSequence)*
     ;
-    
+
 pathSequence
     : pathEltOrInverse ('/' pathEltOrInverse)*
     ;
-       	  	
+
 pathElt
     : pathPrimary pathMod?
     ;
@@ -406,7 +415,7 @@ pathEltOrInverse
     ;
 
 pathMod
-    : op=('?'| '*' | '+') 
+    : op=('?'| '*' | '+')
     ;
 
 pathPrimary
@@ -415,16 +424,16 @@ pathPrimary
 
 pathNegatedPropertySet
     : pathOneInPropertySet | '(' (pathOneInPropertySet ('|' pathOneInPropertySet)*)? ')'
-    ;  	
+    ;
 
 pathOneInPropertySet
     : INVERSE? (iri | A)
     ;
-	
+
 integer
     : INTEGER
     ;
-    
+
 triplesNode
     : collection | blankNodePropertyList
     ;
@@ -448,7 +457,7 @@ collection
 collectionPath
     : '(' graphNodePath+ ')'
     ;
-    
+
 graphNode
     : varOrTerm | triplesNode
     ;
@@ -472,28 +481,44 @@ var
 graphTerm
     : iri | rdfLiteral | numericLiteral | booleanLiteral | blankNode | nil
     ;
-    
+
 nil
     : '(' ')'
     ;
 
-/* ANTLR V4 branded expressions */
 expression
-    : primaryExpression                                     # baseExpression
-    | op=('*'|'/') expression                               # unaryMultiplicativeExpression
-    | op=('+'|'-') expression                               # unaryAdditiveExpression
-    | '!' expression                                        # unaryNegationExpression
-    | expression op=('*'|'/') expression                    # multiplicativeExpression
-    | expression op=('+'|'-') expression                    # additiveExpression
-    | expression unaryLiteralExpression                     # unarySignedLiteralExpression   
-    | expression NOT? IN '(' expressionList? ')'            # relationalSetExpression
-    | expression op=('='|'!='|'<'|'>'|'<='|'>=') expression # relationalExpression
-    | expression ('&&' expression)                          # conditionalAndExpression
-    | expression ('||' expression)                          # conditionalOrExpression
+    : conditionalOrExpression
     ;
 
-unaryLiteralExpression
-    : (numericLiteralPositive|numericLiteralNegative) (op=('*'|'/') unaryExpression)? 
+conditionalOrExpression
+    : conditionalAndExpression ('||' conditionalAndExpression)*
+    ;
+
+conditionalAndExpression
+    : relationalExpression ('&&' relationalExpression)*
+    ;
+
+relationalExpression
+    : additiveExpression (op=('='|'!='|'<'|'>'|'<='|'>=') additiveExpression)?
+    | additiveExpression NOT? IN '(' expressionList? ')'
+    ;
+
+additiveExpression
+    : multiplicativeExpression rhsAdditiveExpression*
+    ;
+
+rhsAdditiveExpression
+    : rhsAdditiveExpressionSub (op+=('*'|'/') unaryExpression)*
+    ;
+
+rhsAdditiveExpressionSub
+    : ('+'|'-') multiplicativeExpression
+    | numericLiteralPositive
+    | numericLiteralNegative
+    ;
+
+multiplicativeExpression
+    : unaryExpression (op+=('*'|'/') unaryExpression)*
     ;
 
 unaryExpression
@@ -501,7 +526,7 @@ unaryExpression
     ;
 
 primaryExpression
-    : '(' expression ')' | builtInCall | iriRefOrFunction | rdfLiteral | numericLiteral | booleanLiteral | var
+    : '(' expression ')' | builtInCall | iriOrFunction | rdfLiteral | numericLiteral | booleanLiteral | var
     ;
 
 builtInCall
@@ -565,15 +590,15 @@ builtInCall
 regexExpression
     : REGEX '(' expression ',' expression (',' expression)? ')'
     ;
-    
+
 subStringExpression
     : SUBSTR '(' expression ',' expression (',' expression)? ')'
     ;
-    
+
 strReplaceExpression
     : REPLACE '(' expression ',' expression ',' expression (',' expression)? ')'
     ;
-    
+
 existsFunction
     : EXISTS groupGraphPattern
     ;
@@ -591,8 +616,8 @@ aggregate
     | SAMPLE '(' DISTINCT? expression ')'
     | GROUP_CONCAT '(' DISTINCT? expression (';' SEPARATOR '=' string)? ')'
     ;
-    
-iriRefOrFunction
+
+iriOrFunction
     : iri argList?
     ;
 

@@ -48,7 +48,7 @@ int main() {
 
     std::vector<uint64_t> tests;
     for (auto &str : tests_str) {
-        tests.emplace_back(DateTime::get_datetime_id(str.c_str()));
+        tests.emplace_back(DateTime::get_datetime_id(str));
     }
 
    for (size_t i=0; i<tests.size(); i++) {

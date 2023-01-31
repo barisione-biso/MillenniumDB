@@ -31,4 +31,8 @@ enum class GraphObjectType {
     BOOL                      = 24,
     INT                       = 25,
     FLOAT                     = 26,
+    IRI_TMP2                  = 27,
+    STR_TMP2                  = 28,
+    LITERAL_DATATYPE_TMP2     = 29,
+    LITERAL_LANGUAGE_TMP2     = 30,
 };
