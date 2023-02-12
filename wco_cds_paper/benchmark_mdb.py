@@ -22,6 +22,12 @@ EXECUTABLES_DIR   = os.path.join(MDB_DIR, "build/Release/bin")
 SERVER_EXECUTABLE = os.path.join(EXECUTABLES_DIR, "server")
 QUERY_EXECUTABLE  = os.path.join(EXECUTABLES_DIR, "query")
 
+print(MDB_DIR)
+print(DBS_FOLDER)
+print(EXECUTABLES_DIR)
+print(SERVER_EXECUTABLE)
+print(QUERY_EXECUTABLE)
+
 RESULTS_TMP = 'result.tmp'
 QUERY_TMP = 'query.tmp'
 
@@ -35,9 +41,10 @@ def start_server(db_dir):
 
     # Check if port is already in use
     if s.connect_ex(location) == 0:
-        print(f"Port {PORT} is already in use")
+        print("Port "+str(PORT)+" is already in use")
         sys.exit(1)
-
+    print(db_dir)
+    print(PORT)
     server_process = subprocess.Popen(
         [SERVER_EXECUTABLE, db_dir, "--timeout", str(TIMEOUT), "--port", str(PORT)],
         stdout=subprocess.DEVNULL,
@@ -46,17 +53,18 @@ def start_server(db_dir):
 
     # Wait for server initialization
     while s.connect_ex(location) != 0:
+        print('trying to connect...')
         time.sleep(1)
 
-    print(f"server started[pid={server_process.pid}]")
+    print("server started[pid="+str(server_process.pid)+"]")
     return server_process
 
 
 def kill_server(server_process):
-    print(f"killing server[pid={server_process.pid}]...")
+    print("killing server[pid="+str(server_process.pid)+"]...")
     server_process.kill()
     server_process.wait()
-    print(f"server killed")
+    print("server killed")
 
 
 def execute_query(query, out, pid):
@@ -65,7 +73,7 @@ def execute_query(query, out, pid):
     with open(QUERY_TMP, "w") as query_file:
         query_file.write(query)
 
-    start_time = time.time_ns()
+    start_time = time.time()
     with open(RESULTS_TMP, "w") as results_file, \
          open(QUERY_TMP, "r") as query_file:
         query_execution = subprocess.Popen(
@@ -75,8 +83,8 @@ def execute_query(query, out, pid):
             stderr=subprocess.DEVNULL,
         )
         exit_code = query_execution.wait()
-        #elapsed_time = int((time.time() - start_time) * 1000)
-        elapsed_time = float((time.time_ns() - start_time)/1000000000)
+        elapsed_time = int((time.time() - start_time) * 1000)
+        #elapsed_time = float((time.time() - start_time)/1000000000)
 
         if force_cache_reloading == "True":
             os.system("touch "+DBS_FOLDER+"/*")
@@ -85,25 +93,26 @@ def execute_query(query, out, pid):
     result, _ = p.communicate()
     results_count = int(result.strip().split()[0]) - 6 # 1 line from header + 2 for separators + 3 for stats
 
-    mem_cmd = f'grep ^VmRSS /proc/{pid}/status'.split(' ')
+    #mem_cmd = f'grep ^VmRSS /proc/'+str(pid)+'/status'.split(' ')
+    mem_cmd = ['grep', '^VmRSS', '/proc/'+str(pid)+'/status']
     process = subprocess.Popen(mem_cmd, universal_newlines=True, stdout=subprocess.PIPE)
     out_cmd, err_cmd = process.communicate()
     out_cmd = out_cmd.strip().split()[1]
 
     if exit_code == 0:
-        out.write(f'\'{query}\t{results_count}\tOK\t{elapsed_time}\t{out_cmd}\n')
+        out.write('\''+query+'\t'+str(results_count)+'\tOK\t'+str(elapsed_time)+'\t'+out_cmd+'\n')
     else:
         if elapsed_time >= TIMEOUT:
-            out.write(f'\'{query}\t{results_count}\tTIMEOUT\t{elapsed_time}\t{out_cmd}\n')
+            out.write('\''+query+'\t'+str(results_count)+'\tTIMEOUT\t'+str(elapsed_time)+'\t'+out_cmd+'\n')
         else:
-            out.write(f'\'{query}\t0\tERROR\t{elapsed_time}\t{out_cmd}\n')
+            out.write('\''+query+'\t0\tERROR\t'+str(elapsed_time)+'\t'+out_cmd+'\n')
 
 
 if __name__ == "__main__":
 
     query_file = open(sys.argv[3], 'r')
     queries = query_file.readlines()
-    server_process = start_server(f'{DBS_FOLDER}')
+    server_process = start_server(DBS_FOLDER)
     with open(sys.argv[5], 'w') as results_file:
         results_file.write('query\tresults\tstatus\ttime\tmax_mem[kB]\n')
         for query in queries:

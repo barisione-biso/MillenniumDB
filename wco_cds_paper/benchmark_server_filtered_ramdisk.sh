@@ -1,1 +1,2 @@
-python3 benchmark_mdb.py '/mnt/tmp/MillenniumDB-Dev' 'tests/dbs/wikipedia_db' 'output_queries_wikidata_filtered.txt' 'False' 'benchmark_results_filtered_ramdisk.tsv'
+sudo sync; sudo echo 3 > /proc/sys/vm/drop_caches
+python3 benchmark_mdb.py '/mnt/tmp/MillenniumDB-Dev' 'tests/dbs/wikipedia_db' 'output_queries_wikidata_filtered.txt' 'True' 'benchmark_results_filtered_ramdisk.tsv'

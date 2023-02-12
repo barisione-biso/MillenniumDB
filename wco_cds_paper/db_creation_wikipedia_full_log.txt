@@ -1,0 +1,30 @@
+Creating new database
+  input file:  output.txt
+  db folder:   /data/MillenniumDB-Dev/tests/dbs/wikipedia_db_full
+Parser duration: 980144 ms
+Write strings and strings hash duration: 129401 ms
+Write edge table and nodes index: 283923 ms
+Write labels index: 0.353502 ms
+Write properties index: 0.173084 ms
+Write quad index: 1.22573e+06 ms
+Write special cases index: 2611.78 ms
+Total duration: 2.62181e+06 ms
+-------------------------------------
+Catalog:
+  identifiable nodes count: 296008192
+  anonymous nodes count:    0
+  connections count:        958844165
+  label count:              0
+  properties count:         0
+  distinct labels:          0
+  distinct from's:          107836911
+  distinct to's:            242124920
+  distinct type's:          5419
+  distinct keys:            0
+  equal_from_to_count:      3446
+  equal_from_type_count:    31
+  equal_to_type_count:      14772
+  equal_from_to_type_count: 1
+-------------------------------------
+
+Maybe 43.69683 minutes? Please confirm.

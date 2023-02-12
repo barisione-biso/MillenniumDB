@@ -16,7 +16,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -pedantic -O0 
 -fsanitize=undefined -fno-omit-frame-pointer -fsanitize=address")
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra -pedantic -O3 -g0 \
--pthread -march=native -funroll-loops")
+-lpthread -pthread -march=native -funroll-loops")
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 

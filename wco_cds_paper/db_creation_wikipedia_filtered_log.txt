@@ -1,0 +1,29 @@
+fbarisio@dijkstra:/data/MillenniumDB-Dev/wco_cds_paper$ ./recreate_db.sh
+Creating new database
+  input file:  output.txt
+  db folder:   /data/MillenniumDB-Dev/tests/dbs/wikipedia_db
+Parser duration: 99365 ms
+Write strings and strings hash duration: 13873.8 ms
+Write edge table and nodes index: 31831.6 ms
+Write labels index: 0.322281 ms
+Write properties index: 0.985477 ms
+Write quad index: 95025.8 ms
+Write special cases index: 1.47524 ms
+Total duration: 240099 ms
+-------------------------------------
+Catalog:
+  identifiable nodes count: 54251878
+  anonymous nodes count:    0
+  connections count:        81469147
+  label count:              0
+  properties count:         0
+  distinct labels:          0
+  distinct from's:          19227373
+  distinct to's:            39894068
+  distinct type's:          2102
+  distinct keys:            0
+  equal_from_to_count:      2530
+  equal_from_type_count:    10
+  equal_to_type_count:      0
+  equal_from_to_type_count: 0
+-------------------------------------

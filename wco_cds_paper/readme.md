@@ -25,6 +25,9 @@ Run ./recreate_db.sh
 
 Running the benchmark
 ======================
+
+(PENDING EXPLAIN HOW TO TRANSFORM QUERIES FROM RING TO MILLDB FORMAT)
+
 For development use benchmark_local.sh
 
 For actual benchmark run:

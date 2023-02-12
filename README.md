@@ -1,3 +1,4 @@
+
 # Millennium DB
 MillenniumDB is a graph oriented database management system developed by the [Millennium Institute for Foundational Research on Data (IMFD)](https://imfd.cl/).
 
@@ -55,7 +56,7 @@ If you work on windows, you can use Windows Subsystem for Linux (WSL).
     - `sudo update-locale`
 (OLD BUILD PROCESS)
 2. Build the project:
-    - `cmake -Bbuild/Release -DCMAKE_BUILD_TYPE=Release . && cmake --build build/Release/`
+    - `cmake -Bbuild/Release -DCMAKE_BUILD_TYPE=Release  && cmake --build build/Release/`
 =============================================================================================
 (NEW BUILD PROCESS)
 2. Clone this repository and enter to the 'MillenniumDB' folder. Set `MDB_HOME` as the project root folder directory.
@@ -75,6 +76,8 @@ If you work on windows, you can use Windows Subsystem for Linux (WSL).
 
 4. Build the project:
     - `cmake -B build/Release -D CMAKE_BUILD_TYPE=Release && cmake --build build/Release/`
+    (you can also specify the compiler as follows)
+    `cmake -Bbuild/Release -DCMAKE_BUILD_TYPE=Release -D CMAKE_CXX_COMPILER=/usr/bin/./g++-8 && cmake --build build/Release/`
 
 # Data model
 Our data model is similar to the known *labeled property graph* model. In simplified terms we could say that edges were extended such that the source or destination may be another edge. To be more precise, below is the full specification.
