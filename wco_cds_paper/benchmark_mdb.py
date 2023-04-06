@@ -8,7 +8,7 @@ import time
 PORT = 8080
 
 # Maximum time in seconds that the server will wait for a query
-TIMEOUT = 60
+TIMEOUT = 600
 
 print("\nArguments passed:", end = " ")
 n = len(sys.argv)
@@ -31,7 +31,7 @@ print(QUERY_EXECUTABLE)
 RESULTS_TMP = 'result.tmp'
 QUERY_TMP = 'query.tmp'
 
-force_cache_reloading = sys.argv[4]
+#force_cache_reloading = sys.argv[4]
 
 def start_server(db_dir):
     print("starting server...")
@@ -84,10 +84,10 @@ def execute_query(query, out, pid):
         )
         exit_code = query_execution.wait()
         elapsed_time = int((time.time() - start_time) * 1000)
-        #elapsed_time = float((time.time() - start_time)/1000000000)
+        #elapsed_time = float((time.time() - start_time)/000000000)
 
-        if force_cache_reloading == "True":
-            os.system("touch "+DBS_FOLDER+"/*")
+        #if force_cache_reloading == "True":
+        #    os.system("touch "+DBS_FOLDER+"/*")
 
     p = subprocess.Popen(['wc', '-l', RESULTS_TMP], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     result, _ = p.communicate()
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     query_file = open(sys.argv[3], 'r')
     queries = query_file.readlines()
     server_process = start_server(DBS_FOLDER)
-    with open(sys.argv[5], 'w') as results_file:
+    with open(sys.argv[4], 'w') as results_file:
         results_file.write('query\tresults\tstatus\ttime\tmax_mem[kB]\n')
         for query in queries:
             print(query.strip('\n'))

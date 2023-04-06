@@ -178,6 +178,7 @@ MATCH (?v0)-[:Q12]->(Q19), (?v1)-[:Q12]->(Q428), (?v1)-[:?v2]->(?v0)  RETURN * L
 MATCH (?v0)-[:Q23]->(?v2), (?v1)-[:Q159]->(?v0), (?v1)-[:Q12]->(Q76451)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q201]->(Q373), (?v0)-[:Q12]->(Q428), (?v1)-[:Q6]->(?v0)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q206]->(Q125176), (?v0)-[:Q2631]->(?v1), (?v0)-[:Q208]->(?v2)  RETURN * LIMIT 1000
+MATCH (?v0)-[:Q1]->(?v1), (?v2)-[:?v3]->(?v0), (?v5)-[:?v4]->(?v3)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q443]->(Q1503), (?v0)-[:Q442]->(?v1), (?v0)-[:Q456]->(?v2)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q443]->(Q1503), (?v0)-[:Q442]->(?v2), (?v0)-[:Q456]->(?v1)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q12]->(Q4902), (?v0)-[:Q313]->(?v2), (?v1)-[:Q6]->(?v0)  RETURN * LIMIT 1000
@@ -292,6 +293,7 @@ MATCH (?v0)-[:Q159]->(Q22), (?v0)-[:Q385]->(?v2), (?v0)-[:Q35]->(?v1)  RETURN * 
 MATCH (?v0)-[:Q205]->(?v2), (?v1)-[:Q12]->(Q19226), (?v1)-[:Q404]->(?v0)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q23]->(?v2), (?v1)-[:Q159]->(?v0), (?v1)-[:Q12]->(Q27126)  RETURN * LIMIT 1000
 MATCH (?v3)-[:Q206]->(?v1), (?v3)-[:Q289]->(?v0), (?v3)-[:Q208]->(?v2)  RETURN * LIMIT 1000
+MATCH (?v0)-[:?v2]->(?v4), (?v1)-[:Q12]->(Q428), (?v1)-[:?v0]->(?v3)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q189]->(?v2), (?v0)-[:Q12]->(Q428), (?v0)-[:Q208]->(?v1)  RETURN * LIMIT 1000
 MATCH (?v1)-[:Q205]->(Q139), (?v1)-[:Q12]->(Q428), (?v1)-[:Q209]->(?v0)  RETURN * LIMIT 1000
 MATCH (?v1)-[:Q1361]->(?v0), (?v3)-[:Q381]->(?v1), (?v3)-[:Q606]->(?v2)  RETURN * LIMIT 1000
@@ -605,6 +607,7 @@ MATCH (?v1)-[:Q12]->(Q3058), (?v1)-[:Q528]->(?v0)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q63]->(?v1), (?v0)-[:Q12]->(?v2)  RETURN * LIMIT 1000
 MATCH (?v1)-[:Q12]->(Q111642), (?v1)-[:Q1534]->(?v0)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q444]->(?v1), (?v0)-[:Q442]->(?v2)  RETURN * LIMIT 1000
+MATCH (?v2)-[:?v0]->(?v4), (?v3)-[:?v2]->(?v1)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q66]->(?v1), (?v0)-[:Q159]->(?v2)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q12]->(Q23942), (?v1)-[:Q412]->(?v0)  RETURN * LIMIT 1000
 MATCH (?v1)-[:Q6]->(?v0), (?v1)-[:Q1]->(Q91697372)  RETURN * LIMIT 1000
@@ -662,6 +665,7 @@ MATCH (?v0)-[:Q196]->(Q34530), (?v1)-[:Q12]->(?v0)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q1462]->(?v2), (?v0)-[:Q208]->(?v1)  RETURN * LIMIT 1000
 MATCH (?v1)-[:Q12]->(Q6499), (?v1)-[:Q62]->(?v0)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q601]->(?v1), (?v2)-[:Q6]->(?v1)  RETURN * LIMIT 1000
+MATCH (?v0)-[:Q1]->(?v1), (?v2)-[:?v0]->(?v3)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q12]->(Q4902), (?v0)-[:?v1]->(Q96621236)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q2414]->(?v2), (?v0)-[:Q189]->(?v1)  RETURN * LIMIT 1000
 MATCH (?v1)-[:Q189]->(?v0), (?v1)-[:Q1107]->(Q195613)  RETURN * LIMIT 1000
@@ -861,6 +865,7 @@ MATCH (?v0)-[:Q494]->(?v1)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q576]->(?v1)  RETURN * LIMIT 1000
 MATCH (?v0)-[:?v1]->(Q1738)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q44]->(?v1)  RETURN * LIMIT 1000
+MATCH (?v1)-[:?v1]->(?v0)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q1066]->(?v1)  RETURN * LIMIT 1000
 MATCH (?v0)-[:Q1158]->(?v1)  RETURN * LIMIT 1000
 MATCH (Q191972)-[:?v0]->(?v1)  RETURN * LIMIT 1000

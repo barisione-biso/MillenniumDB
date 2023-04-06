@@ -1,3 +1,7 @@
+
+Important:
+result limit = 1000 is by default written when the queries are transformed to MDB format.
+timeout = 600 is hardcoded in `benchmark_mdb.py`
 Building the code
 =================
 Run ./build.sh
